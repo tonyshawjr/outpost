@@ -110,7 +110,9 @@
           <div class="list-row-left">
             <div class="list-row-title">
               {page.title || 'Untitled'}
-              {#if page.visibility === 'members' || page.visibility === 'paid'}
+              {#if page.locked}
+                <svg class="list-row-lock" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" title="Locked"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              {:else if page.visibility === 'members' || page.visibility === 'paid'}
                 <svg class="list-row-lock" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
               {/if}
             </div>

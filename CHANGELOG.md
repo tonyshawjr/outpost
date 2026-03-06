@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-03-06
+
+### Added
+- **Content Editor cleanup** — hide Channels, Form Builder, Code Editor, Settings, and Themes from sidebar/mobile nav for editor role users
+- **Collection-scoped editors** — restrict editors to specific collections via per-user grants (Settings → Team → user profile)
+- **Per-page locks** — admins can lock pages to prevent editors from editing; locked pages show banner and disabled controls for non-admins
+- Route guards for channels and form-builder pages (AccessDenied for unauthorized roles)
+- Developer role option in user profile role selector
+- `user_collection_grants` table for collection access control
+- `pages.locked` column for page lock state
+- `GET/PUT users/grants` API endpoints for managing editor collection grants
+- `collection_grants` field in `auth/me` response for editor users
+- Backend enforcement: collection list filtering, item CRUD gating, and page lock checks
+
+---
+
 ## [1.1.1] — 2026-03-06
 
 ### Changed

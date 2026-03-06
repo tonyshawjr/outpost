@@ -721,7 +721,29 @@ Admin users have one of four roles (separate from front-end member roles):
 | `super_admin` | Full access + user management + site settings + destructive ops. Reserved for site owner. |
 | `admin` | Full content + themes + code editor + user management. Cannot change site-level settings. |
 | `developer` | Full content + code editor + theme files. No user/member management or settings. |
-| `editor` | Content only (pages, collections, media, globals, navigation, folders, forms). No themes, code, analytics, settings, or user management. |
+| `editor` | Content only (pages, collections, media, globals, navigation, folders, form submissions). No themes, code, analytics, channels, form builder, settings, or user management. Can be restricted to specific collections. Cannot edit locked pages. |
+
+### Collection-Scoped Editors
+
+Editors can be restricted to specific collections by an admin:
+
+1. Go to Admin → Users → [Editor User]
+2. Under "Collection Access", check the collections the editor should access
+3. If no boxes checked = unrestricted access (backward compatible)
+
+When restricted: only granted collections appear in sidebar, API returns 403 for non-granted collection operations (list, create, update, delete items, bulk ops).
+
+Grants stored in `user_collection_grants` table. API: `GET/PUT users/grants?user_id=N`.
+
+### Per-Page Locks
+
+Admins can lock individual pages to prevent editing by non-admin roles:
+
+- `super_admin` and `admin` can lock/unlock pages and always edit locked pages
+- `developer` and `editor` see a "locked" banner and cannot edit or delete locked pages (API returns 403)
+- Lock set via "Lock page" checkbox in Page sidebar tab
+- Locked pages show lock icon in pages list
+- `locked` field only settable by admin+; silently stripped for other roles
 
 ## Password Reset
 
@@ -1192,6 +1214,7 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `media/upload` | POST | Upload file |
 | `media/transform` | POST | Resize or crop a raster image (GD required) |
 | `users` | GET, POST, PUT, DELETE | Admin users CRUD |
+| `users/grants` | GET, PUT | Collection grants for editor users (GET returns granted IDs, PUT replaces all grants) |
 | `members` | GET, PUT, DELETE | Member management |
 | `menus` | GET, POST, PUT, DELETE | Navigation menus CRUD |
 | `loops` | GET, POST, DELETE | Saved query loops |
@@ -1462,17 +1485,17 @@ Migrations run on first request to the relevant endpoint. Safe to run multiple t
 
 ## Database Schema
 
-Outpost uses 19 SQLite tables in five groups. Single `.db` file at `outpost/data/cms.db` (path set by `OUTPOST_DB_PATH`).
+Outpost uses 20 SQLite tables in five groups. Single `.db` file at `outpost/data/cms.db` (path set by `OUTPOST_DB_PATH`).
 
 **Content:** `pages`, `fields`, `collections`, `collection_items`
 **Channels:** `channels`, `channel_items`, `channel_sync_log`
 **Folder & Navigation:** `folders`, `labels`, `item_labels`, `menus`
-**Users & Members:** `users`, `members`, `settings`
+**Users & Members:** `users`, `members`, `user_collection_grants`, `settings`
 **Media, Forms & Logs:** `media`, `forms` (builder definitions), `form_configs`, `form_submissions` (with form_id, status, starred, notes, user_agent), `analytics_hits`, `activity_log`
 
 Key columns:
 
-**`pages`:** `id`, `title`, `slug`, `body`, `meta_title`, `meta_description`, `og_image`, `visibility` (`'public'|'members'|'paid'`), `status` (`'published'|'draft'`), `sort_order`, `created_at`, `updated_at`
+**`pages`:** `id`, `title`, `slug`, `body`, `meta_title`, `meta_description`, `og_image`, `visibility` (`'public'|'members'|'paid'`), `status` (`'published'|'draft'`), `locked` (0|1 — admin-only lock), `sort_order`, `created_at`, `updated_at`
 
 **`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name)
 
@@ -1481,6 +1504,8 @@ Key columns:
 **`collection_items`:** `id`, `collection_id`, `slug`, `status` (`'published'|'draft'|'scheduled'`), `scheduled_at`, `published_at`, `data` (JSON), `created_at`, `updated_at`
 
 **`members`:** `id`, `email`, `password_hash`, `display_name`, `role` (`'free_member'|'paid_member'`), `status` (`'active'|'suspended'`), `member_expires`, `created_at`, `updated_at`
+
+**`user_collection_grants`:** `id`, `user_id` (FK→users), `collection_id` (FK→collections) — M:N grants restricting editor users to specific collections. UNIQUE(user_id, collection_id). No rows = unrestricted access.
 
 **`settings`:** `id`, `key`, `value` — key-value store for site settings and globals
 

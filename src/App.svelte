@@ -10,6 +10,9 @@
     searchOpen,
     canManageSettings,
     canAccessCodeEditor,
+    canManageChannels,
+    canBuildForms,
+    collectionGrants,
     appVersion,
     navigate,
   } from '$lib/stores.js';
@@ -66,6 +69,7 @@
         user.set(data.user);
         setCsrfToken(data.csrf_token);
         if (data.version) appVersion.set(data.version);
+        collectionGrants.set(data.collection_grants ?? null);
       }
     } catch (e) {
       // Not authenticated
@@ -90,6 +94,8 @@
   let route = $derived($currentRoute);
   let hasSettingsAccess = $derived($canManageSettings);
   let hasCodeAccess = $derived($canAccessCodeEditor);
+  let hasChannelsAccess = $derived($canManageChannels);
+  let hasFormBuilderAccess = $derived($canBuildForms);
 
   // Redirect old standalone routes into Settings hub
   $effect(() => {
@@ -157,13 +163,25 @@
         {:else if route === 'forms-list'}
           <FormsList />
         {:else if route === 'form-builder'}
-          <FormBuilder />
+          {#if hasFormBuilderAccess}
+            <FormBuilder />
+          {:else}
+            <AccessDenied />
+          {/if}
         {:else if route === 'form-submissions'}
           <FormSubmissions />
         {:else if route === 'channels'}
-          <ChannelsList />
+          {#if hasChannelsAccess}
+            <ChannelsList />
+          {:else}
+            <AccessDenied />
+          {/if}
         {:else if route === 'channel-builder'}
-          <ChannelBuilder />
+          {#if hasChannelsAccess}
+            <ChannelBuilder />
+          {:else}
+            <AccessDenied />
+          {/if}
         {:else if route === 'settings'}
           {#if hasSettingsAccess}
             <Settings />

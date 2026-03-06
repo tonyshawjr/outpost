@@ -124,6 +124,8 @@ ensure_api_keys_table();
 ensure_webhooks_tables();
 ensure_channels_tables();
 ensure_totp_columns();
+ensure_user_collection_grants_table();
+ensure_pages_locked_column();
 cleanup_ghost_collection_pages();
 require_once __DIR__ . '/mailer.php';
 
@@ -208,6 +210,8 @@ match (true) {
     $action === 'users' && $method === 'POST' => handle_user_create(),
     $action === 'users' && $method === 'PUT' && isset($_GET['id']) => handle_user_update(),
     $action === 'users' && $method === 'DELETE' && isset($_GET['id']) => handle_user_delete(),
+    $action === 'users/grants' && $method === 'GET' => handle_user_grants_get(),
+    $action === 'users/grants' && $method === 'PUT' => handle_user_grants_set(),
 
     // Code Editor
     $action === 'code/files'   && $method === 'GET'    => handle_code_files(),
@@ -601,11 +605,104 @@ function handle_me(): void {
     if ($user) {
         $user['totp_enabled'] = (bool)($user['totp_enabled'] ?? 0);
     }
+
+    // Include collection grants for editors
+    $collection_grants = null;
+    if ($user && $user['role'] === 'editor') {
+        $grants = OutpostDB::fetchAll(
+            'SELECT collection_id FROM user_collection_grants WHERE user_id = ?',
+            [(int) $user['id']]
+        );
+        $collection_grants = empty($grants) ? null : array_map(fn($g) => (int) $g['collection_id'], $grants);
+    }
+
     json_response([
         'user' => $user,
         'csrf_token' => OutpostAuth::csrfToken(),
         'version' => OUTPOST_VERSION,
+        'collection_grants' => $collection_grants,
     ]);
+}
+
+// ── Role Refinement Migrations ────────────────────────────
+
+function ensure_user_collection_grants_table(): void {
+    OutpostDB::connect()->exec("CREATE TABLE IF NOT EXISTS user_collection_grants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        collection_id INTEGER NOT NULL,
+        UNIQUE(user_id, collection_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
+    )");
+}
+
+function ensure_pages_locked_column(): void {
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(pages)");
+    $existing = array_column($cols, 'name');
+    if (!in_array('locked', $existing)) {
+        OutpostDB::connect()->exec("ALTER TABLE pages ADD COLUMN locked INTEGER NOT NULL DEFAULT 0");
+    }
+}
+
+/**
+ * Require that a page is unlocked for the current user, or return 403.
+ * Admins and super_admins always pass.
+ */
+function require_page_unlocked(int $page_id): void {
+    $role = $_SESSION['outpost_role'] ?? '';
+    if (in_array($role, ['super_admin', 'admin'], true)) return;
+
+    $page = OutpostDB::fetchOne('SELECT locked FROM pages WHERE id = ?', [$page_id]);
+    if ($page && (int) $page['locked'] === 1) {
+        http_response_code(403);
+        echo json_encode(['error' => 'This page is locked']);
+        exit;
+    }
+}
+
+// ── User Collection Grants ───────────────────────────────
+
+function handle_user_grants_get(): void {
+    $userId = (int) ($_GET['user_id'] ?? 0);
+    if (!$userId) json_error('user_id required');
+
+    $grants = OutpostDB::fetchAll(
+        'SELECT collection_id FROM user_collection_grants WHERE user_id = ?',
+        [$userId]
+    );
+
+    json_response(['grants' => array_map(fn($g) => (int) $g['collection_id'], $grants)]);
+}
+
+function handle_user_grants_set(): void {
+    $userId = (int) ($_GET['user_id'] ?? 0);
+    if (!$userId) json_error('user_id required');
+
+    $targetUser = OutpostDB::fetchOne('SELECT role FROM users WHERE id = ?', [$userId]);
+    if (!$targetUser) json_error('User not found', 404);
+    if ($targetUser['role'] !== 'editor') json_error('Grants only apply to editors');
+
+    $data = get_json_body();
+    $collectionIds = $data['collection_ids'] ?? [];
+    if (!is_array($collectionIds)) json_error('collection_ids must be an array');
+
+    // Validate each collection exists
+    foreach ($collectionIds as $cid) {
+        $coll = OutpostDB::fetchOne('SELECT id FROM collections WHERE id = ?', [(int) $cid]);
+        if (!$coll) json_error("Collection ID {$cid} not found", 404);
+    }
+
+    // Replace all grants
+    OutpostDB::exec('DELETE FROM user_collection_grants WHERE user_id = ?', [$userId]);
+    foreach ($collectionIds as $cid) {
+        OutpostDB::insert('user_collection_grants', [
+            'user_id' => $userId,
+            'collection_id' => (int) $cid,
+        ]);
+    }
+
+    json_response(['success' => true]);
 }
 
 // ── TOTP Migration & Handlers ────────────────────────────
@@ -984,7 +1081,9 @@ function handle_page_update(): void {
     $id = (int) $_GET['id'];
     $data = get_json_body();
 
-    $allowed = ['title', 'meta_title', 'meta_description', 'status', 'visibility'];
+    require_page_unlocked($id);
+
+    $allowed = ['title', 'meta_title', 'meta_description', 'status', 'visibility', 'locked'];
     $update = [];
     foreach ($allowed as $key) {
         if (isset($data[$key])) {
@@ -995,6 +1094,16 @@ function handle_page_update(): void {
     // Validate visibility value
     if (isset($update['visibility']) && !in_array($update['visibility'], ['public', 'members', 'paid'])) {
         unset($update['visibility']);
+    }
+
+    // Only admin+ can set the locked field
+    if (isset($update['locked'])) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin'], true)) {
+            $update['locked'] = (int) $update['locked'] ? 1 : 0;
+        } else {
+            unset($update['locked']);
+        }
     }
 
     $newTimestamp = date('Y-m-d H:i:s');
@@ -1055,6 +1164,8 @@ function handle_page_update(): void {
 function handle_page_delete(): void {
     $id = (int) $_GET['id'];
 
+    require_page_unlocked($id);
+
     $page = OutpostDB::fetchOne('SELECT * FROM pages WHERE id = ?', [$id]);
     if (!$page) json_error('Page not found', 404);
 
@@ -1101,6 +1212,11 @@ function handle_fields_bulk_update(): void {
         $fid = (int) ($f['id'] ?? 0);
         $fld = OutpostDB::fetchOne('SELECT page_id FROM fields WHERE id = ?', [$fid]);
         if ($fld) $snapshot_page_ids[$fld['page_id']] = true;
+    }
+
+    // Check page locks on all affected pages
+    foreach (array_keys($snapshot_page_ids) as $pid) {
+        require_page_unlocked((int) $pid);
     }
 
     // Optimistic lock: reject if any affected page was modified since client loaded it
@@ -1232,6 +1348,13 @@ function handle_collections_list(): void {
         );
         $c['item_count'] = $count['count'] ?? 0;
     }
+
+    // Filter by grants for scoped editors
+    $granted = outpost_get_granted_collection_ids();
+    if ($granted !== null) {
+        $collections = array_values(array_filter($collections, fn($c) => in_array((int) $c['id'], $granted, true)));
+    }
+
     json_response(['collections' => $collections]);
 }
 
@@ -1324,6 +1447,10 @@ function handle_items_list(): void {
     $collection = OutpostDB::fetchOne('SELECT * FROM collections WHERE slug = ?', [$slug]);
     if (!$collection) json_error('Collection not found', 404);
 
+    if (!outpost_can_access_collection((int) $collection['id'])) {
+        json_error('Permission denied', 403);
+    }
+
     $status = $_GET['status'] ?? '';
     $where = 'collection_id = ?';
     $params = [$collection['id']];
@@ -1359,6 +1486,10 @@ function handle_item_create(): void {
     $slug = trim($data['slug'] ?? '');
     if (!$collection_id || !$slug) json_error('collection_id and slug are required');
 
+    if (!outpost_can_access_collection($collection_id)) {
+        json_error('Permission denied', 403);
+    }
+
     if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
         json_error('Slug must be lowercase letters, numbers, and hyphens only');
     }
@@ -1390,6 +1521,12 @@ function handle_item_update(): void {
     ensure_items_columns();
     $id = (int) $_GET['id'];
     $data = get_json_body();
+
+    // Check collection access for scoped editors
+    $itemCheck = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$id]);
+    if ($itemCheck && !outpost_can_access_collection((int) $itemCheck['collection_id'])) {
+        json_error('Permission denied', 403);
+    }
 
     $newTimestamp = date('Y-m-d H:i:s');
     $update = ['updated_at' => $newTimestamp];
@@ -1571,6 +1708,12 @@ function handle_item_inline_update(): void {
 function handle_item_delete(): void {
     $id = (int) $_GET['id'];
 
+    // Check collection access for scoped editors
+    $itemCheck = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$id]);
+    if ($itemCheck && !outpost_can_access_collection((int) $itemCheck['collection_id'])) {
+        json_error('Permission denied', 403);
+    }
+
     // Purge the ghost page for this item before deleting
     $item = OutpostDB::fetchOne(
         'SELECT ci.slug, c.url_pattern, c.slug AS coll_slug
@@ -1598,6 +1741,17 @@ function handle_items_bulk_status(): void {
         json_error('ids (array) and status (draft|published) required');
     }
     $ids = array_map('intval', $ids);
+
+    // Check collection access for scoped editors
+    $granted = outpost_get_granted_collection_ids();
+    if ($granted !== null) {
+        foreach ($ids as $itemId) {
+            $ic = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$itemId]);
+            if ($ic && !in_array((int) $ic['collection_id'], $granted, true)) {
+                json_error('Permission denied', 403);
+            }
+        }
+    }
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $update = ['status' => $status, 'updated_at' => date('Y-m-d H:i:s')];
     if ($status === 'published') {
@@ -1630,6 +1784,17 @@ function handle_items_bulk_delete(): void {
         json_error('ids (array) required');
     }
     $ids = array_map('intval', $ids);
+
+    // Check collection access for scoped editors
+    $granted = outpost_get_granted_collection_ids();
+    if ($granted !== null) {
+        foreach ($ids as $itemId) {
+            $ic = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$itemId]);
+            if ($ic && !in_array((int) $ic['collection_id'], $granted, true)) {
+                json_error('Permission denied', 403);
+            }
+        }
+    }
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     // Purge ghost pages for all items being deleted

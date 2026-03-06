@@ -173,6 +173,7 @@
         <tr><td><code>sort_order</code></td><td>INTEGER</td><td>Position in the admin pages list. Drag-reorderable.</td></tr>
         <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 UTC timestamp set on insert.</td></tr>
         <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 UTC timestamp updated on every save.</td></tr>
+        <tr><td><code>locked</code></td><td>INTEGER</td><td><code>0</code> (default) or <code>1</code>. When set to <code>1</code>, non-admin roles cannot update or delete this page. Only <code>admin</code> and <code>super_admin</code> can toggle this column.</td></tr>
       </tbody>
     </table>
 
@@ -298,6 +299,26 @@
         <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
       </tbody>
     </table>
+
+    <hr>
+
+    <h2 id="user_collection_grants">user_collection_grants</h2>
+    <p>Many-to-many relationship restricting which collections an editor-role user can access. If an editor has no rows in this table, they have unrestricted access to all collections (backward compatible).</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>user_id</code></td><td>INTEGER FK &rarr; users</td><td>The editor user. Cascades on user delete.</td></tr>
+        <tr><td><code>collection_id</code></td><td>INTEGER FK &rarr; collections</td><td>The granted collection. Cascades on collection delete.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>UNIQUE constraint:</strong> <code>(user_id, collection_id)</code>. Prevents duplicate grants.
+    </div>
 
     <hr>
 

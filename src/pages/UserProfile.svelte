@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
-  import { users as usersApi, media as mediaApi, auth } from '$lib/api.js';
-  import { currentProfileUserId, user as currentUserStore, navigate, addToast } from '$lib/stores.js';
+  import { users as usersApi, media as mediaApi, auth, collections as collectionsApi } from '$lib/api.js';
+  import { currentProfileUserId, user as currentUserStore, navigate, addToast, canManageUsers } from '$lib/stores.js';
   import { required, email as emailRule, minLength, match, validate, hasErrors } from '$lib/validation.js';
   import QRCode from 'qrcode';
 
@@ -23,6 +23,12 @@
   let formPasswordConfirm = $state('');
   let showPasswordChange = $state(false);
   let errors = $state({});
+
+  // Collection grants state
+  let allCollections = $state([]);
+  let grantedIds = $state([]);
+  let grantsSaving = $state(false);
+  let isAdminViewer = $derived($canManageUsers);
 
   // 2FA state
   let twoFaEnabled = $state(false);
@@ -93,6 +99,18 @@
       formAvatar = profileUser.avatar || '';
       formRole = profileUser.role || 'admin';
 
+      // Load collection grants for editors (when viewed by admin)
+      if (profileUser.role === 'editor' && isAdminViewer) {
+        try {
+          const [collsData, grantsData] = await Promise.all([
+            collectionsApi.list(),
+            usersApi.getGrants(profileUser.id),
+          ]);
+          allCollections = collsData.collections || [];
+          grantedIds = grantsData.grants || [];
+        } catch (_) {}
+      }
+
       // Load 2FA status for own profile
       if (profileUser.id == $currentUserStore?.id) {
         try {
@@ -149,6 +167,26 @@
       addToast(err.message, 'error');
     } finally {
       saving = false;
+    }
+  }
+
+  function toggleGrant(collId) {
+    if (grantedIds.includes(collId)) {
+      grantedIds = grantedIds.filter(id => id !== collId);
+    } else {
+      grantedIds = [...grantedIds, collId];
+    }
+  }
+
+  async function handleGrantsSave() {
+    grantsSaving = true;
+    try {
+      await usersApi.setGrants(profileUser.id, grantedIds);
+      addToast('Collection access updated', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      grantsSaving = false;
     }
   }
 
@@ -384,6 +422,7 @@
             onchange={markDirty}
           >
             <option value="admin">Admin</option>
+            <option value="developer">Developer</option>
             <option value="editor">Editor</option>
           </select>
         </div>
@@ -428,6 +467,34 @@
           </button>
         {/if}
       </div>
+
+      <!-- Collection Access (admin viewing editor) -->
+      {#if formRole === 'editor' && isAdminViewer && allCollections.length > 0}
+        <div class="profile-section">
+          <h3 class="profile-section-title">Collection Access</h3>
+          <p class="profile-hint">Leave all unchecked for full access to all collections. Check specific collections to restrict this editor.</p>
+          <div class="grants-list">
+            {#each allCollections as coll}
+              <label class="grants-item">
+                <input
+                  type="checkbox"
+                  checked={grantedIds.includes(coll.id)}
+                  onchange={() => toggleGrant(coll.id)}
+                />
+                <span>{coll.name}</span>
+              </label>
+            {/each}
+          </div>
+          <button
+            class="btn btn-secondary"
+            onclick={handleGrantsSave}
+            disabled={grantsSaving}
+            style="margin-top: 12px;"
+          >
+            {grantsSaving ? 'Saving...' : 'Save access'}
+          </button>
+        </div>
+      {/if}
 
       <!-- Security / 2FA (own profile only) -->
       {#if isOwnProfile}
@@ -702,6 +769,28 @@
     color: var(--text-tertiary);
     margin-top: 4px;
     display: block;
+  }
+
+  .grants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .grants-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .grants-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
   }
 
   .profile-meta {

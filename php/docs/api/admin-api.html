@@ -216,6 +216,7 @@
         <tr><td><code>meta_description</code></td><td>string</td><td>SEO meta description tag.</td></tr>
         <tr><td><code>status</code></td><td>string</td><td><code>published</code> or <code>draft</code>.</td></tr>
         <tr><td><code>visibility</code></td><td>string</td><td><code>public</code>, <code>members</code>, or <code>paid</code>.</td></tr>
+        <tr><td><code>locked</code></td><td>integer</td><td><code>0</code> or <code>1</code>. Locks the page from editing by non-admin roles. Only <code>admin</code> and <code>super_admin</code> can set this field — it is silently stripped for other roles. Non-admin roles receive <code>403</code> when attempting to update or delete a locked page.</td></tr>
       </tbody>
     </table>
 
@@ -732,6 +733,42 @@
         <span class="endpoint-path">api.php?action=users&amp;id=2</span>
       </div>
       <p>Deletes a user. Cannot delete your own account.</p>
+    </div>
+
+    <h3>Collection grants</h3>
+
+    <p>These endpoints manage which collections an editor-role user can access. Requires the <code>users.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=users/grants&amp;user_id=2</span>
+      </div>
+      <p>Returns the granted collection IDs for a user. If the user has no grants (unrestricted), returns an empty array.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "grants": [1, 3, 5]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=users/grants&amp;user_id=2</span>
+      </div>
+      <p>Replaces all collection grants for a user. Pass an empty array to remove all grants (unrestricted access). The target user must exist and have the <code>editor</code> role. Each collection ID is validated to exist.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection_ids</code></td><td>array</td><td>Array of integer collection IDs. Empty array = unrestricted.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — The <code>auth/me</code> response includes a <code>collection_grants</code> field for editor users. It is <code>null</code> when the editor has unrestricted access, or an array of granted collection IDs when restricted.
     </div>
 
     <h2>Members (admin view)</h2>

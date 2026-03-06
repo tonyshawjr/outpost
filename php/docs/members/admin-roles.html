@@ -152,7 +152,7 @@
         </tr>
         <tr>
           <td><code>editor</code></td>
-          <td>Content management only — pages, collections and items, media, globals, navigation, folders, and forms. No access to themes, code, analytics, settings, or user management. Suited for content writers and marketing teams.</td>
+          <td>Content management only — pages, collections and items, media, globals, navigation, folders, and form submissions. No access to themes, code, analytics, channels, form builder, settings, or user management. Editors can optionally be restricted to specific collections and cannot edit locked pages. Suited for content writers and marketing teams.</td>
         </tr>
       </tbody>
     </table>
@@ -225,6 +225,20 @@
           <td>&#10003;</td>
           <td>&#10003;</td>
           <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Form builder (create/edit forms)</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Channels</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
         </tr>
         <tr>
           <td>Themes (activate, duplicate)</td>
@@ -416,6 +430,46 @@
     <div class="callout callout-tip">
       <strong>Tip</strong> — The activity log is particularly useful when you have multiple editors working on a site and need to track who changed what. It is accessible to <code>admin</code> and <code>super_admin</code> roles.
     </div>
+
+    <h2>Collection-scoped editors</h2>
+    <p>By default, editors can access all collections. An <code>admin</code> or <code>super_admin</code> can restrict an editor to specific collections from the editor's user profile page.</p>
+
+    <h3>How it works</h3>
+    <ol class="steps">
+      <li>Go to <strong>Admin &rarr; Users &rarr; [Editor User]</strong>.</li>
+      <li>Under <strong>Collection Access</strong>, check the collections the editor should have access to.</li>
+      <li>Save. If no boxes are checked, the editor has unrestricted access to all collections (backward compatible).</li>
+    </ol>
+
+    <p>When an editor has collection grants:</p>
+    <ul>
+      <li>Only granted collections appear in the sidebar</li>
+      <li>API calls to list, create, update, or delete items in non-granted collections return <code>403</code></li>
+      <li>Bulk operations (status change, delete) are blocked for items in non-granted collections</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — Collection grants only apply to the <code>editor</code> role. All other roles have unrestricted collection access. Grants are stored in the <code>user_collection_grants</code> table and managed via the <code>users/grants</code> API endpoint.
+    </div>
+
+    <h2>Per-page locks</h2>
+    <p>Admins can lock individual pages to prevent non-admin roles from editing them. This is useful for protecting critical pages like the homepage or landing pages from accidental changes by editors.</p>
+
+    <h3>Locking a page</h3>
+    <ol class="steps">
+      <li>Open the page in <strong>Admin &rarr; Pages &rarr; [Page]</strong>.</li>
+      <li>In the sidebar <strong>Page</strong> tab, check <strong>Lock page</strong>.</li>
+      <li>Save. The page is now locked.</li>
+    </ol>
+
+    <h3>What locked pages do</h3>
+    <ul>
+      <li><code>super_admin</code> and <code>admin</code> roles can always edit locked pages</li>
+      <li><code>developer</code> and <code>editor</code> roles see a "This page is locked" banner and cannot edit the title, fields, or save changes</li>
+      <li>The <code>locked</code> field is only settable by <code>admin</code> or above — it is silently stripped from update requests by other roles</li>
+      <li>Locked pages show a lock icon in the pages list</li>
+      <li>Deleting a locked page also requires <code>admin</code> or above</li>
+    </ul>
 
     <h2>Related docs</h2>
     <ul>

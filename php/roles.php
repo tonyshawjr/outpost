@@ -99,3 +99,35 @@ function outpost_require_cap(string $cap): void {
         exit;
     }
 }
+
+/**
+ * Get granted collection IDs for the current user.
+ * Returns null if user is unrestricted (non-editor or editor with no grants).
+ * Returns array of collection IDs if editor has specific grants.
+ */
+function outpost_get_granted_collection_ids(): ?array {
+    $role = $_SESSION['outpost_role'] ?? '';
+    if ($role !== 'editor') return null;
+
+    $userId = $_SESSION['outpost_user_id'] ?? 0;
+    if (!$userId) return null;
+
+    $grants = OutpostDB::fetchAll(
+        'SELECT collection_id FROM user_collection_grants WHERE user_id = ?',
+        [$userId]
+    );
+
+    if (empty($grants)) return null; // No grants = unrestricted
+
+    return array_map(fn($g) => (int) $g['collection_id'], $grants);
+}
+
+/**
+ * Check if the current user can access a specific collection.
+ * Always true for non-editors. For editors: true if no grants or collection is granted.
+ */
+function outpost_can_access_collection(int $collection_id): bool {
+    $granted = outpost_get_granted_collection_ids();
+    if ($granted === null) return true;
+    return in_array($collection_id, $granted, true);
+}

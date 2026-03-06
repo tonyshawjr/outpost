@@ -4,6 +4,18 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Admin Role Refinement (v1.2.0)
+
+- **Content Editor cleanup** — Channels, Form Builder, Code Editor, Settings, and Themes hidden from editors in sidebar and mobile nav; route guards redirect to AccessDenied
+- **Collection-scoped editors** — admins can restrict an editor to specific collections via checkboxes on their user profile; backend enforces on list, create, update, delete, and bulk operations
+- **Per-page locks** — admins toggle a "Lock page" checkbox in the PageEditor sidebar; locked pages show a banner and disabled controls for non-admin users; backend blocks updates, deletes, and field saves on locked pages
+- Developer role added to user profile role selector
+- `user_collection_grants` table with `(user_id, collection_id)` unique pairs; `pages.locked` column
+- `GET/PUT users/grants` API endpoints; `collection_grants` in `auth/me` response
+- **Files**: `php/roles.php`, `php/api.php`, `src/lib/stores.js`, `src/lib/api.js`, `src/App.svelte`, `src/components/Sidebar.svelte`, `src/components/MobileNav.svelte`, `src/pages/UserProfile.svelte`, `src/pages/PageEditor.svelte`, `src/pages/Pages.svelte`
+
+---
+
 ## Security Hardening (v1.0.0-beta.14)
 
 Comprehensive security audit and hardening pass across the entire PHP backend — 37 findings addressed across auth, sessions, SSRF, XSS, file operations, input validation, and rate limiting.

@@ -1,6 +1,6 @@
 <script>
   import { pages as pagesApi, fields as fieldsApi, ConflictError } from '$lib/api.js';
-  import { currentPageId, navigate, addToast, appVersion } from '$lib/stores.js';
+  import { currentPageId, navigate, addToast, appVersion, isAdmin } from '$lib/stores.js';
   import FieldRenderer from '$components/FieldRenderer.svelte';
   import SeoScore from '$components/SeoScore.svelte';
   import RevisionList from '$components/RevisionList.svelte';
@@ -19,6 +19,9 @@
   let pageVersion = $state(null);
   let conflict = $state(null);
   let revisionKey = $state(0);
+  let adminUser = $derived($isAdmin);
+  let pageLocked = $derived(page ? (page.locked === 1 || page.locked === true) : false);
+  let isLockedForUser = $derived(pageLocked && !adminUser);
 
   $effect(() => {
     if (pageId) loadPage(pageId);
@@ -126,6 +129,17 @@
     }
   }
 
+  async function toggleLock() {
+    const newLocked = pageLocked ? 0 : 1;
+    try {
+      await pagesApi.update(pageId, { locked: newLocked });
+      page = { ...page, locked: newLocked };
+      addToast(newLocked ? 'Page locked' : 'Page unlocked', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
   function handleGlobalKeydown(e) {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault();
@@ -161,6 +175,13 @@
         </div>
       {/if}
 
+      {#if isLockedForUser}
+        <div class="pe-lock-banner">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <span>This page is locked by an administrator. You cannot edit it.</span>
+        </div>
+      {/if}
+
       <div class="pe-header">
         <button class="pe-breadcrumb" onclick={goBack}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -172,6 +193,7 @@
           value={page.title}
           oninput={(e) => handleMetaChange('title', e.target.value)}
           placeholder="Page title"
+          disabled={isLockedForUser}
         />
       </div>
 
@@ -233,7 +255,7 @@
             <button
               class="pe-save-btn"
               onclick={handleSave}
-              disabled={!dirty || saving}
+              disabled={!dirty || saving || isLockedForUser}
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
@@ -244,6 +266,20 @@
             <p class="pe-status-hint">Saved</p>
           {/if}
         </div>
+
+        {#if adminUser}
+          <div class="pe-section">
+            <label class="pe-lock-toggle">
+              <input
+                type="checkbox"
+                checked={pageLocked}
+                onchange={toggleLock}
+              />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <span>Lock page</span>
+            </label>
+          </div>
+        {/if}
 
         <div class="pe-section">
           <span class="pe-section-label">Visibility</span>
@@ -339,7 +375,7 @@
           <button
             class="pe-save-btn pe-save-btn--full"
             onclick={handleSave}
-            disabled={!dirty || saving}
+            disabled={!dirty || saving || isLockedForUser}
           >
             {saving ? 'Saving…' : 'Save changes'}
           </button>
@@ -771,6 +807,40 @@
   }
 
   /* ── Conflict banner ── */
+  .pe-lock-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    margin: 0 -56px 0;
+    background: #fef3cd;
+    border-bottom: 1px solid #f0d98d;
+    font-size: 13px;
+    color: #856404;
+    flex-shrink: 0;
+  }
+
+  :global(.dark) .pe-lock-banner {
+    background: #332b10;
+    border-color: #4a3f1a;
+    color: #fbbf24;
+  }
+
+  .pe-lock-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .pe-lock-toggle input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+
   .pe-conflict-banner {
     display: flex;
     align-items: center;

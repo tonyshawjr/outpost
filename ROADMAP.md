@@ -79,6 +79,17 @@ Freeze the feature set. Ship after beta feedback stabilizes.
 - Type-dispatched schema discovery and sync pipeline
 - SSRF protection on all channel types
 
+---
+
+## v1.2 — Admin Role Refinement — SHIPPED (v1.2.0)
+
+- **Content Editor cleanup** — sidebar and mobile nav hide Channels, Form Builder, Code Editor, Settings, and Themes for editors; route guards block direct URL access
+- **Collection-scoped editors** — restrict editors to specific collections via per-user grants; backend enforces on all item CRUD and collection list
+- **Per-page locks** — admins can lock pages; locked pages prevent edits by non-admin roles (including field saves and deletes)
+- Developer role option added to user profile selector
+
+---
+
 ### Remaining phases
 
 - **Phase 3:** Inbound webhooks

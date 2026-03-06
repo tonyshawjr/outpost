@@ -164,6 +164,8 @@ export const users = {
   create: (data) => request('users', { method: 'POST', body: data }),
   update: (id, data) => request('users', { method: 'PUT', params: { id }, body: data }),
   delete: (id) => request('users', { method: 'DELETE', params: { id } }),
+  getGrants: (userId) => request('users/grants', { params: { user_id: userId } }),
+  setGrants: (userId, collectionIds) => request('users/grants', { method: 'PUT', params: { user_id: userId }, body: { collection_ids: collectionIds } }),
 };
 
 // Media
