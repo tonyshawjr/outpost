@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] — 2026-03-06
+
+### Added
+- **Backup & Restore** — one-click backup of SQLite database + uploaded media as a downloadable zip
+- **Restore from backup** — upload a backup zip to roll back the entire site (super_admin only)
+- **Backup history** — list of recent backups with download and delete actions
+- **Automatic backups** — optional daily/weekly auto-backup triggered on dashboard load with configurable max backup retention
+- **Backups page** in admin sidebar (admin/super_admin only)
+- 6 new API endpoints: `backup/create`, `backup/list`, `backup/download`, `backup/restore`, `backup/delete`, `backup/settings`
+- `.htaccess` protection on backup directory to prevent direct web access
+- Safety net on restore: current database is backed up before overwrite; restored on failure
+
+---
+
 ## [1.2.0] — 2026-03-06
 
 ### Added

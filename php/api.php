@@ -100,7 +100,7 @@ OutpostAuth::requireAuth();
 // CSRF check on mutations (skip for API key auth — CSRF only protects browser sessions)
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
     if (!OutpostAuth::isApiKeyAuth()) {
-        if ($action !== 'media/upload' && $action !== 'import/wordpress') {
+        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore') {
             OutpostAuth::validateCsrf();
         }
     }
@@ -144,6 +144,7 @@ $cap_map = [
     'webhooks' => 'settings.*',
     'channels' => 'settings.*',
     'updates'  => 'settings.*',
+    'backup'   => 'settings.*',
 ];
 if (isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
@@ -363,6 +364,14 @@ match (true) {
     $action === 'apikeys' && $method === 'GET' => handle_apikeys_list(),
     $action === 'apikeys' && $method === 'POST' => handle_apikey_create(),
     $action === 'apikeys' && $method === 'DELETE' && isset($_GET['id']) => handle_apikey_delete(),
+
+    // Backup & Restore
+    $action === 'backup/create'   && $method === 'POST'   => handle_backup_create(),
+    $action === 'backup/list'     && $method === 'GET'    => handle_backup_list(),
+    $action === 'backup/download' && $method === 'GET'    => handle_backup_download(),
+    $action === 'backup/restore'  && $method === 'POST'   => handle_backup_restore(),
+    $action === 'backup/delete'   && $method === 'DELETE'  => handle_backup_delete(),
+    $action === 'backup/settings' && in_array($method, ['GET', 'PUT']) => handle_backup_settings(),
 
     // Updates (admin only)
     $action === 'updates/check' && $method === 'GET' => handle_updates_check(),
@@ -2782,6 +2791,9 @@ function handle_dashboard_stats(): void {
         ];
     }, $recent_rows);
 
+    // Trigger auto-backup check (non-blocking, silently skips if not due)
+    maybe_run_auto_backup();
+
     json_response(['data' => [
         'totals' => [
             'pages'           => count($all_pages),
@@ -5115,6 +5127,350 @@ function handle_channel_items(): void {
         'page'  => $page,
         'pages' => ceil(($total['c'] ?? 0) / $perPage),
     ]);
+}
+
+// ── Backup & Restore ────────────────────────────────────
+
+/**
+ * Ensure the backups directory exists with a protective .htaccess.
+ */
+function ensure_backups_dir(): void {
+    if (!is_dir(OUTPOST_BACKUPS_DIR)) {
+        mkdir(OUTPOST_BACKUPS_DIR, 0755, true);
+    }
+    $htaccess = OUTPOST_BACKUPS_DIR . '.htaccess';
+    if (!file_exists($htaccess)) {
+        file_put_contents($htaccess, "Deny from all\n");
+    }
+}
+
+/**
+ * Create a backup zip containing the database and uploads.
+ * Shared by handle_backup_create() and maybe_run_auto_backup().
+ */
+function create_backup_zip(string $path): bool {
+    $zip = new ZipArchive();
+    if ($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        return false;
+    }
+
+    // Add the SQLite database
+    if (file_exists(OUTPOST_DB_PATH)) {
+        $zip->addFile(OUTPOST_DB_PATH, 'cms.db');
+    }
+
+    // Recursively add uploads directory
+    if (is_dir(OUTPOST_UPLOADS_DIR)) {
+        $uploadsBase = rtrim(OUTPOST_UPLOADS_DIR, '/');
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($uploadsBase, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $file) {
+            $realPath = $file->getRealPath();
+            $relativePath = 'uploads/' . substr($realPath, strlen($uploadsBase) + 1);
+            if ($file->isDir()) {
+                $zip->addEmptyDir($relativePath);
+            } else {
+                $zip->addFile($realPath, $relativePath);
+            }
+        }
+    }
+
+    return $zip->close();
+}
+
+function handle_backup_create(): void {
+    ensure_backups_dir();
+
+    $filename = 'backup-' . date('Y-m-d-His') . '.zip';
+    $path = OUTPOST_BACKUPS_DIR . $filename;
+
+    if (!create_backup_zip($path)) {
+        json_error('Failed to create backup zip', 500);
+    }
+
+    // Update last backup timestamp
+    OutpostDB::query(
+        'INSERT OR REPLACE INTO settings ("key", "value") VALUES (?, ?)',
+        ['backup_last_backup_at', date('c')]
+    );
+
+    log_activity('system', 'Backup created: ' . $filename);
+
+    json_response([
+        'success' => true,
+        'backup'  => [
+            'filename'   => $filename,
+            'size'       => filesize($path),
+            'created_at' => date('c', filemtime($path)),
+        ],
+    ]);
+}
+
+function handle_backup_list(): void {
+    if (!is_dir(OUTPOST_BACKUPS_DIR)) {
+        json_response(['backups' => []]);
+        return;
+    }
+
+    $files = glob(OUTPOST_BACKUPS_DIR . 'backup-*.zip') ?: [];
+
+    // Sort newest first
+    usort($files, fn($a, $b) => filemtime($b) - filemtime($a));
+
+    $backups = array_map(fn($f) => [
+        'filename'   => basename($f),
+        'size'       => filesize($f),
+        'created_at' => date('c', filemtime($f)),
+    ], $files);
+
+    json_response(['backups' => $backups]);
+}
+
+function handle_backup_download(): void {
+    $filename = $_GET['filename'] ?? '';
+
+    if (!preg_match('/^backup-[\d-]+\.zip$/', $filename)) {
+        json_error('Invalid filename', 400);
+    }
+
+    $path = OUTPOST_BACKUPS_DIR . $filename;
+
+    if (!file_exists($path)) {
+        json_error('Backup not found', 404);
+    }
+
+    // Discard any buffered output
+    while (ob_get_level()) ob_end_clean();
+
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . filesize($path));
+    readfile($path);
+    exit;
+}
+
+function handle_backup_restore(): void {
+    // Only super_admin can restore — this is destructive
+    outpost_require_cap('super.*');
+
+    if (!isset($_FILES['backup']) || $_FILES['backup']['error'] !== UPLOAD_ERR_OK) {
+        json_error('No valid backup file uploaded', 400);
+    }
+
+    $upload = $_FILES['backup'];
+    $ext = strtolower(pathinfo($upload['name'], PATHINFO_EXTENSION));
+    if ($ext !== 'zip') {
+        json_error('Backup must be a .zip file', 400);
+    }
+
+    $tmpZip = $upload['tmp_name'];
+
+    // Validate zip contains cms.db
+    $zip = new ZipArchive();
+    if ($zip->open($tmpZip) !== true) {
+        json_error('Could not open zip file', 400);
+    }
+    if ($zip->locateName('cms.db') === false) {
+        $zip->close();
+        json_error('Invalid backup: missing cms.db', 400);
+    }
+
+    // Safety net: copy current DB to temp location before overwriting
+    $safetyBackup = sys_get_temp_dir() . '/outpost_restore_safety_' . time() . '.db';
+    if (file_exists(OUTPOST_DB_PATH)) {
+        copy(OUTPOST_DB_PATH, $safetyBackup);
+    }
+
+    try {
+        // Close the current database connection before overwriting
+        OutpostDB::reconnect();
+
+        // Extract cms.db to the database path
+        $dbStream = $zip->getStream('cms.db');
+        if (!$dbStream) {
+            throw new RuntimeException('Could not read cms.db from zip');
+        }
+        $dbContent = stream_get_contents($dbStream);
+        fclose($dbStream);
+        file_put_contents(OUTPOST_DB_PATH, $dbContent);
+
+        // Extract uploads if present
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (!str_starts_with($name, 'uploads/')) continue;
+
+            $destPath = OUTPOST_DIR . $name;
+
+            // Directory entry
+            if (str_ends_with($name, '/')) {
+                if (!is_dir($destPath)) mkdir($destPath, 0755, true);
+                continue;
+            }
+
+            // File entry
+            $destDir = dirname($destPath);
+            if (!is_dir($destDir)) mkdir($destDir, 0755, true);
+
+            $stream = $zip->getStream($name);
+            if ($stream) {
+                file_put_contents($destPath, stream_get_contents($stream));
+                fclose($stream);
+            }
+        }
+
+        $zip->close();
+
+        // Clear all caches
+        $cacheTemplatesDir = OUTPOST_CACHE_DIR . 'templates/';
+        if (is_dir($cacheTemplatesDir)) {
+            $cacheFiles = glob($cacheTemplatesDir . '*.php') ?: [];
+            foreach ($cacheFiles as $f) unlink($f);
+        }
+        if (is_dir(OUTPOST_CACHE_DIR)) {
+            $cacheFiles = glob(OUTPOST_CACHE_DIR . '*.php') ?: [];
+            foreach ($cacheFiles as $f) unlink($f);
+        }
+
+        // Remove safety backup on success
+        if (file_exists($safetyBackup)) {
+            unlink($safetyBackup);
+        }
+
+        log_activity('system', 'Backup restored: ' . basename($upload['name']));
+
+        json_response([
+            'success' => true,
+            'message' => 'Backup restored successfully',
+        ]);
+    } catch (\Throwable $e) {
+        // Restore the safety backup on failure
+        if (file_exists($safetyBackup)) {
+            copy($safetyBackup, OUTPOST_DB_PATH);
+            unlink($safetyBackup);
+        }
+        if ($zip) {
+            @$zip->close();
+        }
+
+        json_error('Restore failed: ' . $e->getMessage(), 500);
+    }
+}
+
+function handle_backup_delete(): void {
+    $filename = $_GET['filename'] ?? '';
+
+    if (!preg_match('/^backup-[\d-]+\.zip$/', $filename)) {
+        json_error('Invalid filename', 400);
+    }
+
+    $path = OUTPOST_BACKUPS_DIR . $filename;
+
+    if (!file_exists($path)) {
+        json_error('Backup not found', 404);
+    }
+
+    unlink($path);
+
+    log_activity('system', 'Backup deleted: ' . $filename);
+
+    json_response(['success' => true]);
+}
+
+function handle_backup_settings(): void {
+    $method = $_SERVER['REQUEST_METHOD'];
+
+    if ($method === 'GET') {
+        $auto_enabled = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_auto_enabled'");
+        $frequency    = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_frequency'");
+        $max_backups  = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_max_backups'");
+        $last_backup  = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_last_backup_at'");
+
+        json_response([
+            'auto_enabled'   => ($auto_enabled['value'] ?? '0') === '1',
+            'frequency'      => $frequency['value'] ?? 'daily',
+            'max_backups'    => (int) ($max_backups['value'] ?? '10'),
+            'last_backup_at' => $last_backup['value'] ?? null,
+        ]);
+        return;
+    }
+
+    // PUT — update settings
+    $data = get_json_body();
+
+    if (isset($data['auto_enabled'])) {
+        $val = $data['auto_enabled'] ? '1' : '0';
+        OutpostDB::query(
+            'INSERT OR REPLACE INTO settings ("key", "value") VALUES (?, ?)',
+            ['backup_auto_enabled', $val]
+        );
+    }
+
+    if (isset($data['frequency'])) {
+        $freq = in_array($data['frequency'], ['daily', 'weekly'], true) ? $data['frequency'] : 'daily';
+        OutpostDB::query(
+            'INSERT OR REPLACE INTO settings ("key", "value") VALUES (?, ?)',
+            ['backup_frequency', $freq]
+        );
+    }
+
+    if (isset($data['max_backups'])) {
+        $max = max(1, min(100, (int) $data['max_backups']));
+        OutpostDB::query(
+            'INSERT OR REPLACE INTO settings ("key", "value") VALUES (?, ?)',
+            ['backup_max_backups', (string) $max]
+        );
+    }
+
+    log_activity('system', 'Backup settings updated');
+
+    json_response(['success' => true]);
+}
+
+/**
+ * Auto-backup trigger — called from handle_dashboard_stats().
+ * Checks if an automatic backup is due and creates one if needed.
+ */
+function maybe_run_auto_backup(): void {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_auto_enabled'");
+    if (($row['value'] ?? '0') !== '1') return;
+
+    $freqRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_frequency'");
+    $freq = $freqRow['value'] ?? 'daily';
+
+    $lastRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_last_backup_at'");
+    $last = $lastRow['value'] ?? '';
+
+    $maxRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE \"key\" = 'backup_max_backups'");
+    $maxBackups = (int) ($maxRow['value'] ?? '10');
+    if ($maxBackups < 1) $maxBackups = 10;
+
+    $interval = $freq === 'weekly' ? 7 * 86400 : 86400;
+    if ($last && (time() - strtotime($last)) < $interval) return;
+
+    // Time for a backup
+    ensure_backups_dir();
+
+    $filename = 'backup-' . date('Y-m-d-His') . '.zip';
+    $path = OUTPOST_BACKUPS_DIR . $filename;
+
+    if (!create_backup_zip($path)) return;
+
+    // Update last backup time
+    OutpostDB::query(
+        'INSERT OR REPLACE INTO settings ("key", "value") VALUES (?, ?)',
+        ['backup_last_backup_at', date('c')]
+    );
+
+    // Prune old backups beyond the max
+    $files = glob(OUTPOST_BACKUPS_DIR . 'backup-*.zip') ?: [];
+    if (count($files) > $maxBackups) {
+        usort($files, fn($a, $b) => filemtime($b) - filemtime($a));
+        foreach (array_slice($files, $maxBackups) as $old) {
+            @unlink($old);
+        }
+    }
 }
 
 // ── Updates ─────────────────────────────────────────────

@@ -1166,6 +1166,7 @@ define('OUTPOST_SYNC_KEY', 'your-random-64-char-key');
 | `OUTPOST_MAX_UPLOAD_SIZE` | `10485760` (10 MB) | Max upload size in bytes |
 | `OUTPOST_UPLOAD_DIR` | `uploads/` | Media upload directory (relative to `outpost/`) |
 | `OUTPOST_CACHE_DIR` | `cache/` | Cache directory (relative to `outpost/`) |
+| `OUTPOST_BACKUPS_DIR` | `backups/` | Backup zip storage directory (relative to `outpost/`) |
 | `OUTPOST_CACHE_TTL` | `3600` | HTML page cache TTL in seconds |
 | `OUTPOST_TEMPLATE_CACHE` | `true` | Enable compiled template cache (set `false` during dev) |
 | `OUTPOST_SESSION_NAME` | `outpost_session` | Admin session cookie name |
@@ -1242,6 +1243,12 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `code/search` | GET | Full-text search in theme files |
 | `code/context` | GET | Globals + collections for autocomplete |
 | `cache/clear` | POST | Clear HTML + template cache |
+| `backup/create` | POST | Create backup zip (DB + uploads) |
+| `backup/list` | GET | List available backups |
+| `backup/download` | GET | Download a backup zip |
+| `backup/restore` | POST | Restore from uploaded backup zip (super_admin only) |
+| `backup/delete` | DELETE | Delete a backup file |
+| `backup/settings` | GET, PUT | Auto-backup settings (enabled, frequency, max retention) |
 | `dashboard/stats` | GET | Site stats snapshot |
 | `dashboard/analytics` | GET | Full analytics data |
 | `dashboard/activity` | GET | Recent activity log |

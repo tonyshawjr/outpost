@@ -280,6 +280,14 @@
     {#if showSettings}
       <button
         class="sidebar-item"
+        class:active={route === 'backups'}
+        onclick={() => nav('backups')}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+        Backups
+      </button>
+      <button
+        class="sidebar-item"
         class:active={route === 'settings' || route === 'user-profile'}
         onclick={() => nav('settings')}
       >

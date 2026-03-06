@@ -474,6 +474,27 @@ export const channels = {
   items: (id, page = 1) => request('channels/items', { params: { id, page } }),
 };
 
+// Backups
+export const backup = {
+  list: () => request('backup/list'),
+  create: () => request('backup/create', { method: 'POST' }),
+  download: (filename) => {
+    const url = new URL(apiBase, window.location.origin);
+    url.searchParams.set('action', 'backup/download');
+    url.searchParams.set('filename', filename);
+    window.open(url.toString(), '_blank');
+  },
+  delete: (filename) => request('backup/delete', { method: 'DELETE', params: { filename } }),
+  restore: (file) => {
+    const formData = new FormData();
+    formData.append('backup', file);
+    formData.append('csrf_token', csrfToken);
+    return request('backup/restore', { method: 'POST', body: formData });
+  },
+  getSettings: () => request('backup/settings'),
+  updateSettings: (data) => request('backup/settings', { method: 'PUT', body: data }),
+};
+
 // Revisions
 export const revisions = {
   list: (entityType, entityId) =>

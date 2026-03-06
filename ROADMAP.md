@@ -125,36 +125,17 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.3 — Admin Role Refinement
+## v1.3 — Backup & Restore — SHIPPED (v1.3.0)
 
-Current roles work but could be more granular for small teams:
-
-- **Content Editor** — can create/publish pages and collection items; no access to settings, users, webhooks, or code editor
-- **Collection-Scoped Editor** — restricted to specific collections only (assigned per user in team settings)
-- **Per-page permissions** — lock specific pages so only admins can edit them
-
-The capability system in `roles.php` already supports this pattern. Extend with per-collection and per-page grants.
-
-**Why:** Agencies managing client sites need editor lockdown without promoting everyone to admin.
+- **One-click backup** — single button exports the SQLite database + all uploaded media as a `.zip`
+- **Restore from backup** — upload a `.zip` to roll back the entire site (super_admin only, with safety copy)
+- **Automatic backups** — optional daily/weekly auto-backup with configurable max retention
+- **Backup history** — list of recent backups with download links, sizes, and timestamps
+- **Backups page** in admin sidebar with create, download, delete, restore, and schedule settings
 
 ---
 
-## v1.4 — Backup & Restore
-
-One-click backup and restore from the admin panel:
-
-- **Download backup**: Single button exports the SQLite database + all uploaded media as a `.zip`
-- **Restore from backup**: Upload a `.zip` to roll back the entire site
-- **Scheduled backups**: Optional daily/weekly auto-backup saved to a local directory (configurable)
-- **Backup history**: List of recent backups with download links and timestamps
-
-SQLite's single-file nature makes this trivial compared to MySQL-based CMSes. The entire site state is one `.db` file plus an `uploads/` folder.
-
-**Why:** "How do I back up my site?" should never require SSH or FTP knowledge. One click, one zip file.
-
----
-
-## v1.5 — Editorial Workflow
+## v1.4 — Editorial Workflow
 
 Scheduled publishing works, but team content workflows need more structure:
 
@@ -168,7 +149,7 @@ Scheduled publishing works, but team content workflows need more structure:
 
 ---
 
-## v1.6 — Media Library Pro
+## v1.5 — Media Library Pro
 
 The current library handles basics. Real sites need more:
 
@@ -182,7 +163,7 @@ The current library handles basics. Real sites need more:
 
 ---
 
-## v1.7 — Internationalization
+## v1.6 — Internationalization
 
 Not full multi-language — just the groundwork to store and serve localized content:
 
@@ -196,7 +177,7 @@ Not full multi-language — just the groundwork to store and serve localized con
 
 ---
 
-## v1.8 — Developer Experience
+## v1.7 — Developer Experience
 
 Polish the theme development loop:
 
@@ -295,10 +276,9 @@ These define what Outpost is. Breaking them makes it something else.
 | 1.0.0 | Q1 2026 | Stable release — beta hardening complete |
 | ~~1.1~~ | ~~Q1 2026~~ | ~~Channels Phase 2: RSS + CSV~~ **Shipped** |
 | ~~1.2~~ | ~~Q3 2026~~ | ~~On-page editing~~ **Shipped in beta.9** |
-| 1.3 | Q3 2026 | Role refinement |
-| 1.4 | Q4 2026 | Backup & restore |
-| 1.5 | Q4 2026 | Editorial workflow |
-| 1.6 | Q1 2027 | Media library pro |
-| 1.7 | Q1 2027 | Internationalization |
-| 1.8 | Q2 2027 | Developer experience |
+| ~~1.3~~ | ~~Q4 2026~~ | ~~Backup & restore~~ **Shipped** |
+| 1.4 | Q4 2026 | Editorial workflow |
+| 1.5 | Q1 2027 | Media library pro |
+| 1.6 | Q1 2027 | Internationalization |
+| 1.7 | Q2 2027 | Developer experience |
 | 2.0 | Q3 2027 | Headless-first |

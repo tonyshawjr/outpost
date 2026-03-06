@@ -1888,6 +1888,105 @@
     <h3>Retry schedule</h3>
     <p>Failed deliveries are retried up to 5 times via the cron endpoint: 1 min, 5 min, 30 min, 2 hours, 12 hours. Successful deliveries are cleaned up after 7 days, exhausted failures after 30 days.</p>
 
+    <h2>Backups</h2>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      Backup endpoints require the <code>settings.*</code> capability (<code>admin</code> or <code>super_admin</code>). The restore endpoint additionally requires the <code>super.*</code> capability (<code>super_admin</code> only).
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=backup/create</span>
+      </div>
+      <p>Creates a new backup zip containing the SQLite database and all uploaded media files. Returns metadata about the created backup.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "backup": {
+    "filename": "backup-2026-03-06-143022.zip",
+    "size": 4521984,
+    "created_at": "2026-03-06T14:30:22+00:00"
+  }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=backup/list</span>
+      </div>
+      <p>Returns all backup zip files sorted by date (newest first).</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "backups": [
+    { "filename": "backup-2026-03-06-143022.zip", "size": 4521984, "created_at": "2026-03-06T14:30:22+00:00" }
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=backup/download&amp;filename=backup-2026-03-06-143022.zip</span>
+      </div>
+      <p>Streams the backup zip file as a download. The filename is validated against a strict pattern to prevent path traversal.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=backup/restore</span>
+      </div>
+      <p>Restores the site from an uploaded backup zip. Requires <code>super_admin</code> role. Accepts a multipart form upload with a <code>backup</code> file field. The current database is safety-copied before overwrite and restored on failure. Clears all caches after restore.</p>
+    </div>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Restoring a backup permanently overwrites the current database and uploaded media. This cannot be undone unless you have another backup.</div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=backup/delete&amp;filename=backup-2026-03-06-143022.zip</span>
+      </div>
+      <p>Deletes a backup zip file from the server.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=backup/settings</span>
+      </div>
+      <p>Returns auto-backup configuration.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "auto_enabled": false,
+  "frequency": "daily",
+  "max_backups": 10,
+  "last_backup_at": null
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=backup/settings</span>
+      </div>
+      <p>Updates auto-backup settings. All fields are optional — only pass the ones you want to change.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>auto_enabled</code></td><td>boolean</td><td>Enable or disable automatic backups.</td></tr>
+        <tr><td><code>frequency</code></td><td>string</td><td><code>daily</code> or <code>weekly</code>.</td></tr>
+        <tr><td><code>max_backups</code></td><td>integer</td><td>Maximum number of backups to retain (1–100). Oldest are pruned automatically.</td></tr>
+      </tbody>
+    </table>
+
     <h2>Updates</h2>
 
     <p>Built-in auto-updater. Requires <code>super_admin</code> role. See <a href="features/auto-updater.html">Auto-Updater</a> for the full workflow.</p>

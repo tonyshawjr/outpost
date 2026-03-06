@@ -3,7 +3,7 @@
  * Outpost CMS — Configuration
  */
 
-define('OUTPOST_VERSION', '1.2.0');
+define('OUTPOST_VERSION', '1.3.0');
 
 // Paths (resolved relative to this file's location)
 define('OUTPOST_DIR', __DIR__ . '/');
@@ -37,6 +37,9 @@ define('OUTPOST_SESSION_NAME', 'outpost_session');
 
 // Cache
 define('OUTPOST_CACHE_ENABLED', true);
+
+// Backups
+define('OUTPOST_BACKUPS_DIR', OUTPOST_DIR . 'backups/');
 
 // Themes (code editor)
 define('OUTPOST_THEMES_DIR', OUTPOST_DIR . 'themes/');

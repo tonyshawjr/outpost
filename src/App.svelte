@@ -44,6 +44,7 @@
   import Analytics from '$pages/Analytics.svelte';
   import ChannelsList from '$pages/ChannelsList.svelte';
   import ChannelBuilder from '$pages/ChannelBuilder.svelte';
+  import Backups from '$pages/Backups.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopBar from '$components/TopBar.svelte';
@@ -213,6 +214,12 @@
         {:else if route === 'themes'}
           {#if hasSettingsAccess}
             <Themes />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'backups'}
+          {#if hasSettingsAccess}
+            <Backups />
           {:else}
             <AccessDenied />
           {/if}

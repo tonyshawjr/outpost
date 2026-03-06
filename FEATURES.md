@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Backup & Restore (v1.3.0)
+
+- **One-click backup** — creates a zip containing the SQLite database (`cms.db`) and all uploaded media; stored in `outpost/backups/`
+- **Restore from backup** — upload a backup zip to replace the current database and uploads (super_admin only); safety copy of current DB before overwrite
+- **Backup history** — list all backups with filename, size, date; download or delete individual backups
+- **Automatic backups** — enable daily or weekly auto-backup from the Backups page; configurable max retention (old backups pruned automatically); triggered on dashboard load
+- **Admin UI** — Backups page in sidebar (admin/super_admin only) with create, download, delete, restore, and settings sections
+- **Security** — `.htaccess` Deny-from-all on backups directory; filename validation prevents path traversal; restore requires `super_admin` role
+- **API endpoints**: `backup/create` (POST), `backup/list` (GET), `backup/download` (GET), `backup/restore` (POST), `backup/delete` (DELETE), `backup/settings` (GET/PUT)
+- **Files**: `php/api.php`, `php/config.php`, `src/pages/Backups.svelte`, `src/App.svelte`, `src/components/Sidebar.svelte`, `src/components/MobileNav.svelte`, `src/lib/api.js`
+
+---
+
 ## Admin Role Refinement (v1.2.0)
 
 - **Content Editor cleanup** — Channels, Form Builder, Code Editor, Settings, and Themes hidden from editors in sidebar and mobile nav; route guards redirect to AccessDenied
