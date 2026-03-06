@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0] — 2026-03-06
+
+First stable release. Feature-complete, security-audited, fully documented.
+
+### Changed
+- Version `1.0.0` — all release criteria met
+
+---
+
 ## [1.0.0-beta.16] — 2026-03-06
 
 ### Fixed

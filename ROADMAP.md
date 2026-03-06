@@ -46,8 +46,10 @@ Freeze the feature set. Ship after beta feedback stabilizes.
 - ~~Zero known security issues~~ — **Done** (v1.0.0-beta.14: 37 findings addressed across 8 batches)
 - ~~All docs complete and accurate~~ — **Done** (v1.0.0-beta.15: auto-updater, security, 28 API endpoints documented, all sidebar navs updated)
 - ~~Upgrade path documented~~ — **Done** (v1.0.0-beta.15: beta-to-stable migration notes in Deploy guide)
-- Fresh install tested on cPanel, Apache, and Nginx
-- Personal theme passes full QA as reference implementation
+- ~~Fresh install tested on cPanel, Apache, and Nginx~~ — **Done**
+- ~~Personal theme passes full QA as reference implementation~~ — **Done**
+
+**v1.0.0 shipped on 2026-03-06.**
 
 ---
 
