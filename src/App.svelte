@@ -14,6 +14,8 @@
     canBuildForms,
     collectionGrants,
     appVersion,
+    updateAvailable,
+    latestVersion,
     navigate,
   } from '$lib/stores.js';
   import './styles/admin.css';
@@ -70,6 +72,10 @@
         user.set(data.user);
         setCsrfToken(data.csrf_token);
         if (data.version) appVersion.set(data.version);
+        if (data.update_available) {
+          updateAvailable.set(true);
+          latestVersion.set(data.latest_version);
+        }
         collectionGrants.set(data.collection_grants ?? null);
       }
     } catch (e) {

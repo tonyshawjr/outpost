@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2] — 2026-03-06
+
+### Fixed
+- **Backups now include themes** — the `themes/` directory (user-customized templates, CSS, assets) is now included in backup zips alongside the database and uploads
+- Restore also extracts `themes/` entries from the backup
+
+---
+
+## [1.3.1] — 2026-03-06
+
+### Added
+- **Auto update check** — `auth/me` includes `update_available` and `latest_version` for admin/super_admin users on every page load, using the existing 5-minute GitHub API cache
+- **Sidebar update badge** — green dot on "Settings" in desktop sidebar and mobile nav when an update is available
+- Badge clears immediately after applying an update via Settings → Updates
+
+---
+
 ## [1.3.0] — 2026-03-06
 
 ### Added

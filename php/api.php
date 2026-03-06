@@ -625,12 +625,21 @@ function handle_me(): void {
         $collection_grants = empty($grants) ? null : array_map(fn($g) => (int) $g['collection_id'], $grants);
     }
 
-    json_response([
+    $response = [
         'user' => $user,
         'csrf_token' => OutpostAuth::csrfToken(),
         'version' => OUTPOST_VERSION,
         'collection_grants' => $collection_grants,
-    ]);
+    ];
+
+    // Include update status for admin/super_admin users
+    if ($user && in_array($user['role'], ['admin', 'super_admin'])) {
+        $updateStatus = outpost_check_update_status();
+        $response['update_available'] = $updateStatus['update_available'];
+        $response['latest_version'] = $updateStatus['latest_version'];
+    }
+
+    json_response($response);
 }
 
 // ── Role Refinement Migrations ────────────────────────────
@@ -5145,7 +5154,7 @@ function ensure_backups_dir(): void {
 }
 
 /**
- * Create a backup zip containing the database and uploads.
+ * Create a backup zip containing the database, uploads, and themes.
  * Shared by handle_backup_create() and maybe_run_auto_backup().
  */
 function create_backup_zip(string $path): bool {
@@ -5159,23 +5168,27 @@ function create_backup_zip(string $path): bool {
         $zip->addFile(OUTPOST_DB_PATH, 'cms.db');
     }
 
-    // Recursively add uploads directory
-    if (is_dir(OUTPOST_UPLOADS_DIR)) {
-        $uploadsBase = rtrim(OUTPOST_UPLOADS_DIR, '/');
+    // Recursively add a directory to the zip under the given prefix
+    $addDir = function(string $dirPath, string $prefix) use ($zip) {
+        if (!is_dir($dirPath)) return;
+        $base = rtrim($dirPath, '/');
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($uploadsBase, RecursiveDirectoryIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($base, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST
         );
         foreach ($iterator as $file) {
             $realPath = $file->getRealPath();
-            $relativePath = 'uploads/' . substr($realPath, strlen($uploadsBase) + 1);
+            $relativePath = $prefix . substr($realPath, strlen($base) + 1);
             if ($file->isDir()) {
                 $zip->addEmptyDir($relativePath);
             } else {
                 $zip->addFile($realPath, $relativePath);
             }
         }
-    }
+    };
+
+    $addDir(OUTPOST_UPLOADS_DIR, 'uploads/');
+    $addDir(OUTPOST_THEMES_DIR, 'themes/');
 
     return $zip->close();
 }
@@ -5296,10 +5309,10 @@ function handle_backup_restore(): void {
         fclose($dbStream);
         file_put_contents(OUTPOST_DB_PATH, $dbContent);
 
-        // Extract uploads if present
+        // Extract uploads and themes if present
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = $zip->getNameIndex($i);
-            if (!str_starts_with($name, 'uploads/')) continue;
+            if (!str_starts_with($name, 'uploads/') && !str_starts_with($name, 'themes/')) continue;
 
             $destPath = OUTPOST_DIR . $name;
 
@@ -5474,6 +5487,77 @@ function maybe_run_auto_backup(): void {
 }
 
 // ── Updates ─────────────────────────────────────────────
+
+/**
+ * Lightweight update status check — reuses the same 5-minute cache as handle_updates_check().
+ * Returns ['update_available' => bool, 'latest_version' => string|null].
+ * Silently returns false on any error (network, DB, etc.) so it never blocks auth/me.
+ */
+function outpost_check_update_status(): array {
+    try {
+        $current = OUTPOST_VERSION;
+        $cached = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'update_check_cache'");
+        if ($cached) {
+            $cache = json_decode($cached['value'], true);
+            if ($cache && (time() - ($cache['checked_at'] ?? 0)) < 300) {
+                return [
+                    'update_available' => version_compare($cache['latest_version'], $current, '>'),
+                    'latest_version'   => $cache['latest_version'],
+                ];
+            }
+        }
+
+        // Cache is stale or missing — fetch from GitHub with a short timeout
+        $url = 'https://api.github.com/repos/' . OUTPOST_GITHUB_REPO . '/releases/latest';
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/vnd.github+json',
+                'User-Agent: OutpostCMS/' . $current,
+            ],
+            CURLOPT_TIMEOUT => 5,
+        ]);
+        $body = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$body) {
+            return ['update_available' => false, 'latest_version' => null];
+        }
+
+        $release = json_decode($body, true);
+        $latestVersion = ltrim($release['tag_name'] ?? '', 'v');
+        $downloadUrl = '';
+        foreach (($release['assets'] ?? []) as $asset) {
+            if (str_ends_with($asset['name'], '.zip')) {
+                $downloadUrl = $asset['browser_download_url'];
+                break;
+            }
+        }
+
+        // Update the shared cache so handle_updates_check() benefits too
+        $cacheData = json_encode([
+            'latest_version' => $latestVersion,
+            'download_url'   => $downloadUrl,
+            'release_notes'  => $release['body'] ?? '',
+            'release_url'    => $release['html_url'] ?? '',
+            'checked_at'     => time(),
+        ]);
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('update_check_cache', ?)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [$cacheData]
+        );
+
+        return [
+            'update_available' => version_compare($latestVersion, $current, '>'),
+            'latest_version'   => $latestVersion,
+        ];
+    } catch (\Throwable $e) {
+        return ['update_available' => false, 'latest_version' => null];
+    }
+}
 
 function handle_updates_check(): void {
     $current = OUTPOST_VERSION;

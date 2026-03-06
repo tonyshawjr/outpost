@@ -771,6 +771,10 @@
       <strong>Note</strong> — The <code>auth/me</code> response includes a <code>collection_grants</code> field for editor users. It is <code>null</code> when the editor has unrestricted access, or an array of granted collection IDs when restricted.
     </div>
 
+    <div class="callout callout-note">
+      <strong>Note</strong> — For <code>admin</code> and <code>super_admin</code> users, the <code>auth/me</code> response also includes <code>update_available</code> (boolean) and <code>latest_version</code> (string or null). This piggybacks on the existing 5-minute GitHub API cache used by the Updates page, so no extra network calls are made. The admin SPA uses these fields to show a notification badge on Settings when an update is available.
+    </div>
+
     <h2>Members (admin view)</h2>
 
     <p>These endpoints let admins manage site members (users with <code>free_member</code> or <code>paid_member</code> roles). Requires the <code>members.*</code> capability.</p>
@@ -1900,7 +1904,7 @@
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=backup/create</span>
       </div>
-      <p>Creates a new backup zip containing the SQLite database and all uploaded media files. Returns metadata about the created backup.</p>
+      <p>Creates a new backup zip containing the SQLite database, all uploaded media files, and the entire themes directory. Returns metadata about the created backup.</p>
     </div>
 
     <p>Response:</p>
@@ -1941,10 +1945,10 @@
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=backup/restore</span>
       </div>
-      <p>Restores the site from an uploaded backup zip. Requires <code>super_admin</code> role. Accepts a multipart form upload with a <code>backup</code> file field. The current database is safety-copied before overwrite and restored on failure. Clears all caches after restore.</p>
+      <p>Restores the site from an uploaded backup zip. Requires <code>super_admin</code> role. Accepts a multipart form upload with a <code>backup</code> file field. Extracts the database, uploads, and themes. The current database is safety-copied before overwrite and restored on failure. Clears all caches after restore.</p>
     </div>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Restoring a backup permanently overwrites the current database and uploaded media. This cannot be undone unless you have another backup.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Restoring a backup permanently overwrites the current database, uploaded media, and themes. This cannot be undone unless you have another backup.</div>
 
     <div class="endpoint">
       <div class="endpoint-line">

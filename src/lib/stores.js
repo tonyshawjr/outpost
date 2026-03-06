@@ -7,6 +7,8 @@ import { writable, derived } from 'svelte/store';
 export const user = writable(null);
 export const isAuthenticated = derived(user, ($user) => $user !== null);
 export const appVersion = writable('');
+export const updateAvailable = writable(false);
+export const latestVersion = writable(null);
 
 // Role-based derived stores
 export const isSuperAdmin = derived(user, ($user) => $user?.role === 'super_admin');

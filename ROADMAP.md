@@ -135,6 +135,21 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
+## v1.3.2 — Backup Includes Themes — SHIPPED (v1.3.2)
+
+- Backups now include the `themes/` directory (user templates, CSS, assets) alongside db + uploads
+- Restore extracts themes from the backup zip
+
+---
+
+## v1.3.1 — Auto Update Notification — SHIPPED (v1.3.1)
+
+- **Auto update check on login** — backend includes update status in `auth/me` for admins
+- **Sidebar badge** — green dot on Settings when an update is available (desktop + mobile)
+- Zero additional API calls — shares the existing 5-minute GitHub cache
+
+---
+
 ## v1.4 — Editorial Workflow
 
 Scheduled publishing works, but team content workflows need more structure:

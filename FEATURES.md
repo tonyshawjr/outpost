@@ -4,6 +4,27 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Backup Includes Themes (v1.3.2)
+
+- **Themes included in backups** — `create_backup_zip()` now backs up the entire `themes/` directory alongside the database and uploads
+- **Restore extracts themes** — `handle_backup_restore()` extracts `themes/` entries from the backup zip back into the themes directory
+- **Refactored directory add** — shared closure `$addDir()` eliminates duplicate directory-walking code for uploads and themes
+- **Files**: `php/api.php`
+
+---
+
+## Auto Update Check with Sidebar Notification (v1.3.1)
+
+- **Auto update check on login** — `auth/me` response includes `update_available` and `latest_version` for admin/super_admin users, piggybacking on the existing 5-minute GitHub API cache
+- **Sidebar badge** — green dot appears next to "Settings" in the desktop sidebar when an update is available
+- **Mobile nav badge** — same green dot on "Settings" in the mobile drawer
+- **Badge clears on update** — applying an update via Settings → Updates immediately removes the dot
+- **Non-admin users excluded** — editors and developers never see update status or the badge
+- **Zero additional API calls** — reuses the same `update_check_cache` as the existing Updates page; GitHub is hit at most once per 5 minutes
+- **Files**: `php/api.php`, `src/lib/stores.js`, `src/App.svelte`, `src/components/Sidebar.svelte`, `src/components/MobileNav.svelte`, `src/pages/settings/UpdateSettings.svelte`
+
+---
+
 ## Backup & Restore (v1.3.0)
 
 - **One-click backup** — creates a zip containing the SQLite database (`cms.db`) and all uploaded media; stored in `outpost/backups/`

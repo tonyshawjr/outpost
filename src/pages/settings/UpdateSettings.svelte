@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { updates as updatesApi } from '$lib/api.js';
-  import { addToast } from '$lib/stores.js';
+  import { addToast, updateAvailable } from '$lib/stores.js';
 
   let checking = $state(false);
   let applying = $state(false);
@@ -32,6 +32,7 @@
     applying = true;
     try {
       const res = await updatesApi.apply(updateInfo.download_url);
+      updateAvailable.set(false);
       addToast(res.message || 'Update applied successfully!', 'success');
       // Reload after a short delay so the new admin SPA loads
       setTimeout(() => window.location.reload(), 1500);

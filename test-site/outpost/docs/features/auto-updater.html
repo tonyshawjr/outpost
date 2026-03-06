@@ -134,6 +134,8 @@
     <p>Outpost includes a built-in updater at <strong>Settings &rarr; Updates</strong> that lets administrators check for new versions and apply them without leaving the browser. The entire flow is self-contained &mdash; no command-line access, FTP clients, or manual file copying required.</p>
 
     <ol>
+      <li>On every admin page load, the <code>auth/me</code> API response includes <code>update_available</code> and <code>latest_version</code> for admin and super_admin users. This uses the same 5-minute cache as the Updates page &mdash; no extra API calls.</li>
+      <li>If an update is available, a green dot badge appears on <strong>Settings</strong> in the sidebar and mobile navigation</li>
       <li>Admin visits <strong>Settings &rarr; Updates</strong> in the admin panel</li>
       <li>The UI calls <code>GET api.php?action=updates/check</code>, which fetches the latest GitHub Release from the Outpost repository</li>
       <li>Outpost compares the installed <code>OUTPOST_VERSION</code> (from <code>config.php</code>) against the release tag using <code>version_compare()</code></li>
@@ -144,7 +146,7 @@
       <li>The admin SPA reloads automatically on the new version</li>
     </ol>
 
-    <div class="callout callout-note"><strong>Note</strong> &mdash; The update check result is cached for 1 hour. Visiting the Updates page multiple times within that window will not make repeated requests to GitHub.</div>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The update check result is cached for 5 minutes. Both the <code>auth/me</code> auto-check and the Updates page share the same cache, so GitHub is hit at most once per 5 minutes regardless of how often the admin panel is loaded.</div>
 
     <hr style="margin: 40px 0;">
 

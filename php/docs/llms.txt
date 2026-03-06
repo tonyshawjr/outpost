@@ -1198,7 +1198,7 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 |---|---|---|
 | `auth/login` | POST | Sign in |
 | `auth/logout` | POST | Sign out |
-| `auth/me` | GET | Current user |
+| `auth/me` | GET | Current user (includes `update_available` + `latest_version` for admin/super_admin) |
 | `pages` | GET, PUT | List and update pages |
 | `fields/bulk` | PUT | Bulk page field update |
 | `globals` | GET | Global fields |
@@ -1243,7 +1243,7 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `code/search` | GET | Full-text search in theme files |
 | `code/context` | GET | Globals + collections for autocomplete |
 | `cache/clear` | POST | Clear HTML + template cache |
-| `backup/create` | POST | Create backup zip (DB + uploads) |
+| `backup/create` | POST | Create backup zip (DB + uploads + themes) |
 | `backup/list` | GET | List available backups |
 | `backup/download` | GET | Download a backup zip |
 | `backup/restore` | POST | Restore from uploaded backup zip (super_admin only) |
@@ -1435,8 +1435,10 @@ Or use Clear Cache in the admin top bar.
 
 Check for and apply core updates from Settings → Updates. Requires `super_admin` role.
 
+**Auto-check on login:** The `auth/me` response includes `update_available` (bool) and `latest_version` (string) for admin/super_admin users. Uses the same 5-minute cache — zero extra GitHub calls. A green dot badge appears on Settings in the sidebar when an update is available.
+
 **How it works:**
-1. `GET api.php?action=updates/check` — fetches latest GitHub Release, compares against `OUTPOST_VERSION`, cached 1 hour
+1. `GET api.php?action=updates/check` — fetches latest GitHub Release, compares against `OUTPOST_VERSION`, cached 5 minutes
 2. `POST api.php?action=updates/apply` — downloads release zip, validates URL (must be github.com/tonyshawjr/outpost), validates zip paths (zip slip prevention), extracts core files only
 
 **Files replaced:** root `.php` files, `admin/`, `docs/`, `member-pages/`, `tools/`
