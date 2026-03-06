@@ -49,7 +49,7 @@
 
   let isEmptyState = $derived(
     stats != null &&
-    stats.totals.pages <= 1 &&
+    stats.totals.pages === 0 &&
     stats.totals.collection_items === 0 &&
     stats.totals.members_total === 0
   );
@@ -372,10 +372,10 @@
   {:else if isEmptyState}
     <div class="empty-state-full">
       <h2 class="empty-heading">Welcome to Outpost</h2>
-      <p class="empty-body">Your site is set up and ready to go.</p>
+      <p class="empty-body">Activate a theme to get started. Pages are created automatically from your theme templates.</p>
       <div class="empty-actions">
-        <button class="btn-primary-sm" onclick={() => navigate('page-editor', {})}>
-          Create your first page
+        <button class="btn-primary-sm" onclick={() => navigate('themes')}>
+          Choose a theme
         </button>
         <button class="btn-ghost-sm" onclick={() => navigate('collections')}>
           Explore collections
