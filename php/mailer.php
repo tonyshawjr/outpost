@@ -51,6 +51,12 @@ class OutpostMailer {
      * @throws RuntimeException on SMTP failure
      */
     public function send(string $toEmail, string $subject, string $text, string $html = ''): void {
+        // Validate email and strip any CRLF to prevent header injection
+        $toEmail = str_replace(["\r", "\n"], '', $toEmail);
+        if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('Invalid recipient email address');
+        }
+
         if ($this->host && $this->fromEmail) {
             $this->sendSmtp($toEmail, $subject, $text, $html);
         } else {

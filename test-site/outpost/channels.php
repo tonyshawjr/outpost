@@ -14,6 +14,13 @@ function channel_fetch_api(array $config): array {
     $url = $config['url'] ?? '';
     if (!$url) return ['status' => 0, 'body' => '', 'decoded' => null, 'error' => 'No URL configured'];
 
+    // SSRF guard — block private IPs and dangerous protocols
+    try {
+        outpost_ssrf_guard($url);
+    } catch (\RuntimeException $e) {
+        return ['status' => 0, 'body' => '', 'decoded' => null, 'error' => $e->getMessage()];
+    }
+
     $method = strtoupper($config['method'] ?? 'GET');
 
     // Build query params
@@ -53,6 +60,8 @@ function channel_fetch_api(array $config): array {
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_MAXREDIRS      => 5,
         CURLOPT_HTTPHEADER     => $headers,
+        CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
     ]);
 
     if ($method === 'POST') {

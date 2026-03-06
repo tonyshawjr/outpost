@@ -180,7 +180,12 @@ class OutpostTOTP {
      */
     public static function createTotpToken(int $userId): string {
         $expires = time() + self::TOKEN_TTL;
-        $payload = $userId . '.' . $expires;
+        $nonce = bin2hex(random_bytes(8));
+
+        // Store nonce in DB for single-use verification
+        OutpostDB::update('users', ['totp_token_nonce' => $nonce], 'id = ?', [$userId]);
+
+        $payload = $userId . '.' . $expires . '.' . $nonce;
         $sig = hash_hmac('sha256', $payload, self::getSigningKey());
         return base64_encode($payload . '.' . $sig);
     }
@@ -193,15 +198,28 @@ class OutpostTOTP {
         if (!$decoded) return null;
 
         $parts = explode('.', $decoded);
-        if (count($parts) !== 3) return null;
+        if (count($parts) !== 4) return null;
 
-        [$userId, $expires, $sig] = $parts;
-        $payload = $userId . '.' . $expires;
+        [$userId, $expires, $nonce, $sig] = $parts;
+        $payload = $userId . '.' . $expires . '.' . $nonce;
         $expectedSig = hash_hmac('sha256', $payload, self::getSigningKey());
 
         if (!hash_equals($expectedSig, $sig)) return null;
         if ((int)$expires < time()) return null;
 
         return (int)$userId;
+    }
+
+    /**
+     * Extract the nonce from a TOTP token (for single-use verification).
+     */
+    public static function extractNonce(string $token): ?string {
+        $decoded = base64_decode($token, true);
+        if (!$decoded) return null;
+
+        $parts = explode('.', $decoded);
+        if (count($parts) !== 4) return null;
+
+        return $parts[2]; // nonce is the third element
     }
 }

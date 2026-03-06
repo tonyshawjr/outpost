@@ -31,12 +31,14 @@ class OutpostMedia {
             return ['error' => 'MIME type not allowed: ' . $mime];
         }
 
-        // SVG sanitization
+        // SVG sanitization — DOM-based allowlist
         if ($ext === 'svg') {
             $svgContent = file_get_contents($file['tmp_name']);
-            if (preg_match('/<script|on\w+\s*=/i', $svgContent)) {
-                return ['error' => 'SVG contains potentially unsafe content'];
+            $sanitized = self::sanitizeSvg($svgContent);
+            if ($sanitized === false) {
+                return ['error' => 'SVG contains unsafe content and could not be sanitized'];
             }
+            file_put_contents($file['tmp_name'], $sanitized);
         }
 
         // Generate safe filename
@@ -272,5 +274,71 @@ class OutpostMedia {
             return $siteRoot . $stripped;
         }
         return $siteRoot . $stripped;
+    }
+
+    /**
+     * DOM-based SVG sanitizer — strips dangerous elements and attributes.
+     * Returns sanitized SVG string, or false if the SVG cannot be parsed.
+     */
+    private static function sanitizeSvg(string $svg): string|false {
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        if (!$dom->loadXML($svg)) {
+            libxml_clear_errors();
+            return false;
+        }
+        libxml_clear_errors();
+
+        $xpath = new \DOMXPath($dom);
+
+        // Remove script elements
+        foreach (iterator_to_array($xpath->query('//script') ?: []) as $node) {
+            $node->parentNode->removeChild($node);
+        }
+
+        // Remove foreignObject elements (can embed arbitrary HTML)
+        foreach (iterator_to_array($xpath->query('//foreignObject') ?: []) as $node) {
+            $node->parentNode->removeChild($node);
+        }
+
+        // Allowed URI schemes for href/src attributes
+        $allowedSchemes = ['http', 'https', 'data:image/']; // data:image/ only for inline images
+
+        // Process all elements
+        $allElements = $xpath->query('//*');
+        foreach ($allElements ?: [] as $el) {
+            $attrsToRemove = [];
+            foreach ($el->attributes as $attr) {
+                $name = strtolower($attr->name);
+                $value = trim($attr->value);
+                $stripped = preg_replace('/[\s\x00-\x1f]/u', '', strtolower($value));
+
+                // Remove all event handler attributes (on*)
+                if (str_starts_with($name, 'on')) {
+                    $attrsToRemove[] = $attr->name;
+                    continue;
+                }
+
+                // Check href, xlink:href, src, action for dangerous URIs
+                if (in_array($name, ['href', 'xlink:href', 'src', 'action', 'formaction'])) {
+                    if (preg_match('/^(javascript|vbscript|data(?!:image\/))\s*:/i', $stripped)) {
+                        $attrsToRemove[] = $attr->name;
+                    }
+                }
+            }
+            foreach ($attrsToRemove as $a) {
+                $el->removeAttribute($a);
+            }
+        }
+
+        // Remove <use> elements with external references (only allow internal #id refs)
+        foreach (iterator_to_array($xpath->query('//use') ?: []) as $node) {
+            $href = $node->getAttribute('href') ?: $node->getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            if ($href && !str_starts_with($href, '#')) {
+                $node->parentNode->removeChild($node);
+            }
+        }
+
+        return $dom->saveXML();
     }
 }

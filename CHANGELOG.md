@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-beta.15] — 2026-03-06
+
+### Added
+- Auto-Updater documentation page (`docs/features/auto-updater.html`) — full workflow, API endpoints, security, manual fallback
+- Security reference page (`docs/reference/security.html`) — authentication, rate limiting, SSRF prevention, file upload security, HTML sanitization, CORS, access control
+- Upgrade path documentation in Deploy guide — beta-to-stable migration notes with auto-updater and manual options
+- 28 previously undocumented API endpoints added to Admin API docs — code editor CRUD, updates, cron, goals, dashboard events, revisions diff
+- Auto-Updater and Security nav links added to all 67 doc page sidebars
+- `llms.txt` updated with auto-updater, security, and upgrade sections
+
+---
+
+## [1.0.0-beta.14] — 2026-03-06
+
+### Security
+- SSRF hardening — block private IPs, loopback, cloud metadata, and non-HTTP protocols in Channels and Webhooks
+- Session cookie `secure` flag — enforce HTTPS-only cookies in production for both admin and member sessions
+- Fix member session key mismatch — page visibility gates (`members`/`paid`) now work correctly
+- IP-based login rate limiting — admin and member login brute-force no longer bypassable by discarding session cookies
+- TOTP replay prevention — same 6-digit code cannot be reused within its validity window
+- TOTP verify endpoint rate limited — 5 attempts per 5 minutes per IP
+- TOTP pre-session token made single-use via nonce
+- Open redirect fix — `form.php` `_redirect` field now enforces relative paths only
+- Email injection fix — `_notify` POST field removed from public form submissions; mailer validates email format
+- DOM-based SVG sanitizer replaces regex check — blocks `xlink:href`, `data:` URIs, `foreignObject`, event handlers
+- Richtext sanitizer now blocks `data:` and `vbscript:` URI schemes alongside `javascript:`
+- API key auth optimized — prefix-based O(1) lookup instead of O(n) bcrypt scan (prevents DoS)
+- Auto-updater URL validation hardened — strict hostname + path check via `parse_url()` instead of `str_contains`
+- Zip slip prevention — validate all zip entry paths before extraction in auto-updater
+- Channel API credentials masked in admin API responses
+- Rate limits added to forgot/reset password endpoints (admin and member)
+- CORS origin check tightened — only exact `localhost`/`127.0.0.1` matches, not substring
+- Page delete path containment — `realpath()` check before `unlink()`
+- Email validation added to user create/update
+- Role read consistency — user create/update now uses `OutpostAuth::currentUser()` instead of `$_SESSION` directly
+- Member session DB revalidation — suspended members detected within 5 minutes
+- `scheduled_at` datetime format validation
+- Template cache directory protected with `.htaccess` deny
+- XSS fix in form builder HTML field type — now passed through sanitizer
+
+---
+
 ## [1.0.0-beta.11] — 2026-03-06
 
 ### Added

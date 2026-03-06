@@ -15,6 +15,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/sanitizer.php';
 require_once __DIR__ . '/roles.php';
+require_once __DIR__ . '/http-security.php';
 require_once __DIR__ . '/code-editor.php';
 require_once __DIR__ . '/themes.php';
 require_once __DIR__ . '/import.php';
@@ -30,7 +31,7 @@ define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');
 // ── CORS for dev ─────────────────────────────────────────
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     $origin = $_SERVER['HTTP_ORIGIN'];
-    if (str_contains($origin, 'localhost')) {
+    if (preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin)) {
         header("Access-Control-Allow-Origin: {$origin}");
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization');
@@ -444,6 +445,8 @@ function cleanup_ghost_collection_pages(): void {
 
 // ── Auth Handlers ────────────────────────────────────────
 function handle_forgot_password(): void {
+    outpost_ip_rate_limit('forgot', 5, 300); // 5 per 5 minutes
+
     require_once __DIR__ . '/mailer.php';
     ensure_users_columns();
 
@@ -496,6 +499,8 @@ function handle_forgot_password(): void {
 }
 
 function handle_reset_password(): void {
+    outpost_ip_rate_limit('reset', 10, 300); // 10 per 5 minutes
+
     ensure_users_columns();
 
     $data     = get_json_body();
@@ -621,6 +626,24 @@ function ensure_totp_columns(): void {
 }
 
 function handle_totp_verify(): void {
+    // IP-based rate limit — 5 attempts per 5 minutes (public endpoint)
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $bucket = $ip . ':totp_verify';
+    $now = time();
+    $window = $now - 300;
+    OutpostDB::connect()->exec("CREATE TABLE IF NOT EXISTS login_rate_limits (
+        ip TEXT PRIMARY KEY, attempts TEXT DEFAULT '[]', updated_at INTEGER
+    )");
+    $rlRow = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$bucket]);
+    $rlAttempts = $rlRow ? json_decode($rlRow['attempts'], true) : [];
+    $rlAttempts = array_values(array_filter($rlAttempts, fn($t) => $t > $window));
+    if (count($rlAttempts) >= 5) {
+        http_response_code(429);
+        header('Retry-After: 300');
+        echo json_encode(['error' => 'Too many attempts. Please wait.']);
+        exit;
+    }
+
     $data = get_json_body();
     $code = trim($data['code'] ?? '');
     $totpToken = $data['totp_token'] ?? '';
@@ -640,10 +663,23 @@ function handle_totp_verify(): void {
         json_error('User not found', 401);
     }
 
+    // Verify nonce matches (single-use token)
+    $tokenNonce = OutpostTOTP::extractNonce($totpToken);
+    if ($tokenNonce !== null && ($user['totp_token_nonce'] ?? '') !== $tokenNonce) {
+        json_error('Session expired. Please sign in again.', 401);
+    }
+
     if ($isBackup) {
         // Verify backup code
         $index = OutpostTOTP::verifyBackupCode($code, $user['backup_codes'] ?? '[]');
         if ($index === -1) {
+            // Record failed attempt for rate limiting
+            $rlAttempts[] = $now;
+            OutpostDB::query(
+                "INSERT INTO login_rate_limits (ip, attempts, updated_at) VALUES (?, ?, ?)
+                 ON CONFLICT(ip) DO UPDATE SET attempts = excluded.attempts, updated_at = excluded.updated_at",
+                [$bucket, json_encode($rlAttempts), $now]
+            );
             json_error('Invalid backup code', 401);
         }
         // Consume the used backup code
@@ -655,9 +691,25 @@ function handle_totp_verify(): void {
             json_error('Authentication code required', 400);
         }
         if (!OutpostTOTP::verifyCode($user['totp_secret'], $code)) {
+            // Record failed attempt for rate limiting
+            $rlAttempts[] = $now;
+            OutpostDB::query(
+                "INSERT INTO login_rate_limits (ip, attempts, updated_at) VALUES (?, ?, ?)
+                 ON CONFLICT(ip) DO UPDATE SET attempts = excluded.attempts, updated_at = excluded.updated_at",
+                [$bucket, json_encode($rlAttempts), $now]
+            );
             json_error('Invalid authentication code', 401);
         }
+
+        // Replay prevention — reject reused TOTP codes
+        if (($user['totp_last_code'] ?? '') === $code) {
+            json_error('Code already used. Wait for the next code.', 401);
+        }
+        OutpostDB::update('users', ['totp_last_code' => $code], 'id = ?', [$userId]);
     }
+
+    // Invalidate the single-use token nonce
+    OutpostDB::update('users', ['totp_token_nonce' => null], 'id = ?', [$userId]);
 
     // Code verified — create session
     $result = OutpostAuth::createSession($userId);
@@ -1012,12 +1064,14 @@ function handle_page_delete(): void {
 
     $label = $page['title'] ?: $page['path'];
 
-    // Delete template file from active theme
+    // Delete template file from active theme (with path containment check)
     $activeTheme = get_active_theme();
     $filename = ($page['path'] === '/') ? 'index.html' : ltrim($page['path'], '/') . '.html';
     $templatePath = OUTPOST_THEMES_DIR . $activeTheme . '/' . $filename;
-    if (file_exists($templatePath)) {
-        unlink($templatePath);
+    $themeBase = realpath(OUTPOST_THEMES_DIR . $activeTheme);
+    $resolved = realpath($templatePath);
+    if ($themeBase && $resolved && str_starts_with($resolved, $themeBase . '/') && file_exists($resolved)) {
+        unlink($resolved);
     }
 
     // Delete DB row (fields cascade via FK)
@@ -1324,7 +1378,7 @@ function handle_item_create(): void {
         'status' => $status,
         'data' => json_encode($item_data),
         'published_at' => $status === 'published' ? date('Y-m-d H:i:s') : null,
-        'scheduled_at' => ($status === 'scheduled' && !empty($data['scheduled_at'])) ? $data['scheduled_at'] : null,
+        'scheduled_at' => ($status === 'scheduled' && !empty($data['scheduled_at']) && preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/', $data['scheduled_at'])) ? $data['scheduled_at'] : null,
     ]);
 
     dispatch_webhook('entry.created', ['id' => $id, 'collection_id' => $collection_id, 'slug' => $slug, 'status' => $status, 'data' => $item_data]);
@@ -1375,7 +1429,11 @@ function handle_item_update(): void {
         $update['sort_order'] = (int) $data['sort_order'];
     }
     if (isset($data['scheduled_at'])) {
-        $update['scheduled_at'] = $data['scheduled_at'];
+        $sa = $data['scheduled_at'];
+        if ($sa && !preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/', $sa)) {
+            json_error('Invalid scheduled_at format');
+        }
+        $update['scheduled_at'] = $sa;
     }
     if (array_key_exists('published_at', $data)) {
         $update['published_at'] = $data['published_at'] ?: null;
@@ -2180,6 +2238,12 @@ function ensure_users_columns(): void {
     if (!in_array('verify_token_expires', $colNames)) {
         $db->exec("ALTER TABLE users ADD COLUMN verify_token_expires TEXT");
     }
+    if (!in_array('totp_last_code', $colNames)) {
+        $db->exec("ALTER TABLE users ADD COLUMN totp_last_code TEXT");
+    }
+    if (!in_array('totp_token_nonce', $colNames)) {
+        $db->exec("ALTER TABLE users ADD COLUMN totp_token_nonce TEXT");
+    }
 }
 
 // ── Folder/Label Table Migration (formerly Taxonomy/Term) ─────────────────────
@@ -2289,14 +2353,15 @@ function handle_user_create(): void {
     $role = $data['role'] ?? 'admin';
 
     if (!$username || !$password) json_error('Username and password are required');
+    if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Invalid email address');
     if (strlen($password) < 8) json_error('Password must be at least 8 characters');
 
     // Validate role
     if (!in_array($role, OUTPOST_ALL_ROLES)) json_error('Invalid role');
 
     // Only admin can assign admin/developer roles
-    OutpostAuth::init();
-    $currentRole = $_SESSION['outpost_role'] ?? '';
+    $currentUser = OutpostAuth::currentUser();
+    $currentRole = $currentUser['role'] ?? '';
     if (in_array($role, ['admin', 'developer']) && !in_array($currentRole, ['super_admin', 'admin'])) {
         json_error('Only admins can assign admin or developer roles', 403);
     }
@@ -2335,15 +2400,19 @@ function handle_user_update(): void {
         if ($existing) json_error('Username is already taken');
         $update['username'] = $newUsername;
     }
-    if (isset($data['email'])) $update['email'] = trim($data['email']);
+    if (isset($data['email'])) {
+        $email = trim($data['email']);
+        if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Invalid email address');
+        $update['email'] = $email;
+    }
     if (isset($data['display_name'])) $update['display_name'] = trim($data['display_name']);
     if (isset($data['bio'])) $update['bio'] = trim($data['bio']);
     if (isset($data['avatar'])) $update['avatar'] = trim($data['avatar']);
 
     // Role changes: admin only
     if (isset($data['role'])) {
-        OutpostAuth::init();
-        $currentRole = $_SESSION['outpost_role'] ?? '';
+        $currentUser = OutpostAuth::currentUser();
+        $currentRole = $currentUser['role'] ?? '';
         if (!in_array($currentRole, ['super_admin', 'admin'])) {
             json_error('Only admins can change roles', 403);
         }
@@ -4628,6 +4697,8 @@ function handle_channels_list(): void {
             [$ch['id']]
         );
         $ch['item_count'] = (int)($count['count'] ?? 0);
+        // Strip auth credentials from list view
+        $ch['config'] = outpost_mask_channel_config($ch['config'] ?? '{}');
     }
     json_response(['channels' => $channels]);
 }
@@ -4643,7 +4714,26 @@ function handle_channel_get(): void {
     );
     $channel['item_count'] = (int)($count['count'] ?? 0);
 
+    // Mask auth credentials in detail view (show structure but hide values)
+    $channel['config'] = outpost_mask_channel_config($channel['config'] ?? '{}');
+
     json_response($channel);
+}
+
+/**
+ * Mask sensitive auth credentials in channel config JSON.
+ * Returns the config as a decoded array with auth values masked.
+ */
+function outpost_mask_channel_config(string $configJson): array {
+    $config = json_decode($configJson, true) ?: [];
+    if (isset($config['auth_config']) && is_array($config['auth_config'])) {
+        foreach ($config['auth_config'] as $key => $val) {
+            if (is_string($val) && $val !== '') {
+                $config['auth_config'][$key] = '••••••••';
+            }
+        }
+    }
+    return $config;
 }
 
 function handle_channel_create(): void {
@@ -4689,7 +4779,19 @@ function handle_channel_update(): void {
     $update = [];
     foreach ($allowed as $key) {
         if (array_key_exists($key, $data)) {
-            if (in_array($key, ['config', 'field_map'])) {
+            if ($key === 'config') {
+                // Preserve existing auth credentials when masked values are sent back
+                $newConfig = $data[$key];
+                $oldConfig = json_decode($current['config'] ?? '{}', true) ?: [];
+                if (isset($newConfig['auth_config']) && isset($oldConfig['auth_config'])) {
+                    foreach ($newConfig['auth_config'] as $ak => $av) {
+                        if ($av === '••••••••' && isset($oldConfig['auth_config'][$ak])) {
+                            $newConfig['auth_config'][$ak] = $oldConfig['auth_config'][$ak];
+                        }
+                    }
+                }
+                $update[$key] = json_encode($newConfig);
+            } elseif ($key === 'field_map') {
                 $update[$key] = json_encode($data[$key]);
             } elseif (in_array($key, ['cache_ttl', 'max_items'])) {
                 $update[$key] = (int)$data[$key];
@@ -4919,8 +5021,14 @@ function handle_updates_apply(): void {
         json_error('No download URL provided');
     }
 
-    // Validate the URL points to our GitHub repo
-    if (!str_contains($downloadUrl, 'github.com/' . OUTPOST_GITHUB_REPO . '/')) {
+    // Validate the URL strictly points to our GitHub repo
+    $parsedUrl = parse_url($downloadUrl);
+    $urlHost = strtolower($parsedUrl['host'] ?? '');
+    $urlPath = $parsedUrl['path'] ?? '';
+    $urlScheme = strtolower($parsedUrl['scheme'] ?? '');
+    if ($urlScheme !== 'https' ||
+        !in_array($urlHost, ['github.com', 'objects.githubusercontent.com'], true) ||
+        ($urlHost === 'github.com' && !str_starts_with($urlPath, '/' . OUTPOST_GITHUB_REPO . '/releases/'))) {
         json_error('Invalid download URL — must be from the official Outpost repository');
     }
 
@@ -4937,11 +5045,13 @@ function handle_updates_apply(): void {
         // Download the zip
         $ch = curl_init($downloadUrl);
         curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS => 5,
-            CURLOPT_HTTPHEADER => ['User-Agent: OutpostCMS/' . OUTPOST_VERSION],
-            CURLOPT_TIMEOUT => 120,
+            CURLOPT_RETURNTRANSFER  => true,
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_MAXREDIRS       => 5,
+            CURLOPT_HTTPHEADER      => ['User-Agent: OutpostCMS/' . OUTPOST_VERSION],
+            CURLOPT_TIMEOUT         => 120,
+            CURLOPT_PROTOCOLS       => CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
         ]);
         $zipData = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -4957,6 +5067,15 @@ function handle_updates_apply(): void {
         $zip = new \ZipArchive();
         if ($zip->open($zipPath) !== true) {
             throw new \RuntimeException('Could not open zip file');
+        }
+
+        // Zip slip prevention — validate all entry paths before extraction
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = str_replace('\\', '/', $zip->getNameIndex($i));
+            if (str_contains($name, '../') || str_contains($name, '/..') || str_starts_with($name, '/')) {
+                $zip->close();
+                throw new \RuntimeException('Zip contains unsafe path: ' . $name);
+            }
         }
 
         $extractDir = $tmpDir . '/extracted';

@@ -84,7 +84,9 @@ function cms_form_render_field(array $field): void {
 
     // Non-input types
     if ($type === 'html') {
-        echo '  <div class="' . $wrapClass . '">' . ($settings['content'] ?? '') . '</div>' . "\n";
+        require_once __DIR__ . '/sanitizer.php';
+        $safeContent = OutpostSanitizer::clean($settings['content'] ?? '');
+        echo '  <div class="' . $wrapClass . '">' . $safeContent . '</div>' . "\n";
         return;
     }
 

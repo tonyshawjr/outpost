@@ -91,16 +91,21 @@ function webhook_attempt_delivery(int $deliveryId, array $webhook, string $paylo
             $headers[] = $name . ': ' . $value;
         }
 
+        // SSRF guard — block private IPs and dangerous protocols
+        outpost_ssrf_guard($webhook['url']);
+
         $ch = curl_init($webhook['url']);
         curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 5,
-            CURLOPT_CONNECTTIMEOUT => 3,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_POST            => true,
+            CURLOPT_POSTFIELDS      => $payload,
+            CURLOPT_HTTPHEADER      => $headers,
+            CURLOPT_RETURNTRANSFER  => true,
+            CURLOPT_TIMEOUT         => 5,
+            CURLOPT_CONNECTTIMEOUT  => 3,
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_MAXREDIRS       => 3,
+            CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         ]);
 
         $body       = curl_exec($ch);
@@ -231,6 +236,7 @@ function handle_webhook_create(): void {
     $name = trim($data['name'] ?? '');
     if (!$url) json_error('URL is required');
     if (!filter_var($url, FILTER_VALIDATE_URL)) json_error('Invalid URL');
+    try { outpost_ssrf_guard($url); } catch (\RuntimeException $e) { json_error($e->getMessage()); }
 
     $events  = $data['events'] ?? ['*'];
     $headers = $data['headers'] ?? (object)[];
@@ -264,6 +270,7 @@ function handle_webhook_update(): void {
     if (isset($data['name']))    $update['name']    = trim($data['name']);
     if (isset($data['url'])) {
         if (!filter_var($data['url'], FILTER_VALIDATE_URL)) json_error('Invalid URL');
+        try { outpost_ssrf_guard($data['url']); } catch (\RuntimeException $e) { json_error($e->getMessage()); }
         $update['url'] = trim($data['url']);
     }
     if (isset($data['events']))  $update['events']  = json_encode(array_values($data['events']));

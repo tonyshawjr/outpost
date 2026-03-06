@@ -71,10 +71,10 @@ class OutpostSanitizer {
                         continue;
                     }
 
-                    // Sanitize href/src for javascript: protocol
+                    // Sanitize href/src — only allow safe URI schemes
                     if (in_array($attrName, ['href', 'src'])) {
-                        $val = trim($attr->value);
-                        if (preg_match('/^\s*javascript\s*:/i', $val)) {
+                        $val = preg_replace('/[\s\x00-\x1f]/u', '', trim($attr->value));
+                        if (preg_match('/^(javascript|data|vbscript)\s*:/i', $val)) {
                             $attrsToRemove[] = $attr->name;
                         }
                     }

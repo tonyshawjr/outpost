@@ -6,7 +6,7 @@
 
 ## Shipped in Beta
 
-Everything below is already built and in the current beta (v1.0.0-beta.9).
+Everything below is already built and in the current beta (v1.0.0-beta.15).
 
 - Content management (pages, collections, globals, folders, menus, navigation)
 - **Flexible Content field type** — named layout blocks with sub-fields (ACF Pro parity)
@@ -34,6 +34,7 @@ Everything below is already built and in the current beta (v1.0.0-beta.9).
 - Dark mode
 - Template error handling, database indexes, rate limiting
 - cPanel deployment guide, developer docs (53 pages)
+- **Security hardening** (v1.0.0-beta.14) — SSRF prevention, session fixes, TOTP hardening, SVG DOM sanitizer, API key O(1) lookup, zip slip prevention, rate limits on all public endpoints, credential masking, open redirect fix, email injection fix
 
 ---
 
@@ -42,9 +43,9 @@ Everything below is already built and in the current beta (v1.0.0-beta.9).
 Freeze the feature set. Ship after beta feedback stabilizes.
 
 **Release criteria:**
-- Zero known security issues
-- All docs complete and accurate
-- Upgrade path documented (beta → stable migration notes)
+- ~~Zero known security issues~~ — **Done** (v1.0.0-beta.14: 37 findings addressed across 8 batches)
+- ~~All docs complete and accurate~~ — **Done** (v1.0.0-beta.15: auto-updater, security, 28 API endpoints documented, all sidebar navs updated)
+- ~~Upgrade path documented~~ — **Done** (v1.0.0-beta.15: beta-to-stable migration notes in Deploy guide)
 - Fresh install tested on cPanel, Apache, and Nginx
 - Personal theme passes full QA as reference implementation
 

@@ -9,13 +9,14 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/members.php';
+require_once __DIR__ . '/http-security.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
 // ── CORS for dev ─────────────────────────────────────────
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     $origin = $_SERVER['HTTP_ORIGIN'];
-    if (str_contains($origin, 'localhost')) {
+    if (preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin)) {
         header("Access-Control-Allow-Origin: {$origin}");
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
@@ -72,6 +73,7 @@ function member_api_ensure_reset_columns(): void {
 // ── Public routes (no auth required) ─────────────────────
 
 if ($action === 'forgot' && $method === 'POST') {
+    outpost_ip_rate_limit('member_forgot', 5, 300); // 5 per 5 minutes
     require_once __DIR__ . '/mailer.php';
     require_once __DIR__ . '/auth.php';
     member_api_ensure_reset_columns();
@@ -124,6 +126,7 @@ if ($action === 'forgot' && $method === 'POST') {
 }
 
 if ($action === 'reset' && $method === 'POST') {
+    outpost_ip_rate_limit('member_reset', 10, 300); // 10 per 5 minutes
     require_once __DIR__ . '/auth.php';
     member_api_ensure_reset_columns();
 

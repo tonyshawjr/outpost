@@ -4,6 +4,38 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Security Hardening (v1.0.0-beta.14)
+
+Comprehensive security audit and hardening pass across the entire PHP backend — 37 findings addressed across auth, sessions, SSRF, XSS, file operations, input validation, and rate limiting.
+
+- **SSRF prevention** — shared `outpost_ssrf_guard()` blocks private IPs, loopback, link-local, cloud metadata (`169.254.169.254`), and non-HTTP protocols in Channels and Webhooks. `CURLOPT_PROTOCOLS` restricted on all curl handles.
+- **Session cookie `secure` flag** — HTTPS-only cookies enforced in production for both admin and member sessions
+- **Member session key fix** — `members.php` session keys aligned with `engine.php` reads (`outpost_member_id` etc.) so `members`/`paid` visibility gates work correctly
+- **IP-based login rate limiting** — admin and member login brute-force no longer bypassable by discarding session cookies. Uses `login_rate_limits` DB table keyed by IP.
+- **TOTP replay prevention** — `totp_last_code` column prevents same 6-digit code reuse within validity window
+- **TOTP verify rate limit** — 5 attempts per 5 minutes per IP on public verify endpoint
+- **TOTP single-use token** — pre-session token includes DB-backed nonce, cleared after use
+- **Open redirect fix** — `form.php` `_redirect` field enforces relative paths only (no `//`, no absolute URLs)
+- **Email injection fix** — `_notify` POST field removed from public form submissions; `mailer.php` validates email format and strips CRLF
+- **DOM-based SVG sanitizer** — replaces regex check; blocks `xlink:href`, `data:` URIs, `foreignObject`, `<script>`, all `on*` event handlers
+- **Richtext sanitizer** — blocks `data:` and `vbscript:` URI schemes alongside `javascript:`
+- **API key O(1) lookup** — prefix-based DB query instead of O(n) bcrypt scan (prevents DoS)
+- **Auto-updater URL hardening** — strict hostname + path check via `parse_url()` instead of `str_contains`
+- **Zip slip prevention** — all zip entry paths validated before extraction in auto-updater
+- **Channel credential masking** — `auth_config` values masked in admin API responses, preserved transparently on update
+- **Rate limits on forgot/reset** — admin and member password reset endpoints capped at 5 requests per 5 minutes per IP
+- **CORS origin tightened** — only exact `localhost`/`127.0.0.1` matches, not substring
+- **Page delete path containment** — `realpath()` check before `unlink()`
+- **Email validation** — `filter_var()` check on user create/update
+- **Role read consistency** — user create/update uses `OutpostAuth::currentUser()` instead of `$_SESSION` directly
+- **Member session DB revalidation** — suspended members detected within 5 minutes via periodic DB check
+- **`scheduled_at` validation** — datetime format validated before storing
+- **Template cache `.htaccess`** — `Deny from all` protects compiled PHP templates from direct HTTP access
+- **XSS fix in form builder** — HTML field type content passed through `OutpostSanitizer::clean()`
+- **Files**: `php/http-security.php` (new shared helpers), `php/api.php`, `php/auth.php`, `php/members.php`, `php/totp.php`, `php/channels.php`, `php/webhooks.php`, `php/form.php`, `php/mailer.php`, `php/forms-engine.php`, `php/media.php`, `php/sanitizer.php`, `php/member-api.php`
+
+---
+
 ## On-Page Editing
 
 Edit content directly on the live frontend while logged in as an admin — no round-trip to the admin panel.

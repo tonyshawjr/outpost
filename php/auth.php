@@ -19,6 +19,7 @@ class OutpostAuth {
                 'path' => '/',
                 'httponly' => true,
                 'samesite' => 'Strict',
+                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             ]);
             session_start();
         }
@@ -154,7 +155,9 @@ class OutpostAuth {
         }
         $providedKey = $m[1];
 
-        $keys = OutpostDB::fetchAll('SELECT * FROM api_keys');
+        // Use prefix for O(1) lookup instead of scanning all keys with bcrypt
+        $prefix = substr($providedKey, 0, 11);
+        $keys = OutpostDB::fetchAll('SELECT * FROM api_keys WHERE key_prefix = ?', [$prefix]);
         foreach ($keys as $row) {
             if (password_verify($providedKey, $row['key_hash'])) {
                 $user = OutpostDB::fetchOne('SELECT * FROM users WHERE id = ?', [$row['user_id']]);
@@ -277,11 +280,15 @@ class OutpostAuth {
     }
 
     public static function isRateLimited(): bool {
+        // Session-based check
         $attempts = $_SESSION['outpost_login_attempts'] ?? [];
         $window = time() - OUTPOST_RATE_LIMIT_WINDOW;
         $attempts = array_filter($attempts, fn($t) => $t > $window);
         $_SESSION['outpost_login_attempts'] = $attempts;
-        return count($attempts) >= OUTPOST_RATE_LIMIT_ATTEMPTS;
+        if (count($attempts) >= OUTPOST_RATE_LIMIT_ATTEMPTS) return true;
+
+        // IP-based check (prevents bypass by discarding session cookies)
+        return self::isIpRateLimited('admin_login');
     }
 
     public static function recordFailedAttempt(): void {
@@ -289,5 +296,39 @@ class OutpostAuth {
             $_SESSION['outpost_login_attempts'] = [];
         }
         $_SESSION['outpost_login_attempts'][] = time();
+        self::recordIpAttempt('admin_login');
+    }
+
+    private static function isIpRateLimited(string $bucket): bool {
+        $ip = ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0') . ':' . $bucket;
+        $now = time();
+        $window = $now - OUTPOST_RATE_LIMIT_WINDOW;
+
+        OutpostDB::connect()->exec("CREATE TABLE IF NOT EXISTS login_rate_limits (
+            ip TEXT PRIMARY KEY, attempts TEXT DEFAULT '[]', updated_at INTEGER
+        )");
+        OutpostDB::query('DELETE FROM login_rate_limits WHERE updated_at < ?', [$window]);
+
+        $row = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$ip]);
+        $timestamps = $row ? json_decode($row['attempts'], true) : [];
+        $timestamps = array_values(array_filter($timestamps, fn($t) => $t > $window));
+        return count($timestamps) >= OUTPOST_RATE_LIMIT_ATTEMPTS;
+    }
+
+    private static function recordIpAttempt(string $bucket): void {
+        $ip = ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0') . ':' . $bucket;
+        $now = time();
+        $window = $now - OUTPOST_RATE_LIMIT_WINDOW;
+
+        $row = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$ip]);
+        $timestamps = $row ? json_decode($row['attempts'], true) : [];
+        $timestamps = array_values(array_filter($timestamps, fn($t) => $t > $window));
+        $timestamps[] = $now;
+
+        OutpostDB::query(
+            "INSERT INTO login_rate_limits (ip, attempts, updated_at) VALUES (?, ?, ?)
+             ON CONFLICT(ip) DO UPDATE SET attempts = excluded.attempts, updated_at = excluded.updated_at",
+            [$ip, json_encode($timestamps), $now]
+        );
     }
 }

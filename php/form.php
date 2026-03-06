@@ -43,7 +43,8 @@ require_once __DIR__ . '/mailer.php';
 
 $formName = trim($_POST['_form']     ?? '');
 $redirect = trim($_POST['_redirect'] ?? '');
-$notify   = trim($_POST['_notify']   ?? '');
+// _notify from POST is intentionally ignored — only admin-configured addresses are used
+// This prevents email injection via public form submissions
 
 $formId   = trim($_POST['_form_id']  ?? '');
 
@@ -65,7 +66,15 @@ foreach ($_POST as $k => $v) {
 // ── Helpers ───────────────────────────────────────────────
 
 function form_finish(string $redirect, string $error = ''): never {
+    // Only allow relative paths to prevent open redirect
+    if ($redirect && (!str_starts_with($redirect, '/') || str_starts_with($redirect, '//'))) {
+        $redirect = '';
+    }
     $base = $redirect ?: ($_SERVER['HTTP_REFERER'] ?? '/');
+    // Also guard the referer fallback against absolute URLs from untrusted sources
+    if (!str_starts_with($base, '/') || str_starts_with($base, '//')) {
+        $base = '/';
+    }
     $sep  = str_contains($base, '?') ? '&' : '?';
     if ($error) {
         header('Location: ' . $base . $sep . 'form_error=' . urlencode($error));
@@ -188,7 +197,7 @@ try {
 // ── Send email notification ───────────────────────────────
 
 try {
-    $notifyEmail = $notify ?: get_form_notify($formName) ?: get_setting('notify_email');
+    $notifyEmail = get_form_notify($formName) ?: get_setting('notify_email');
 
     if ($notifyEmail) {
         $mailer  = OutpostMailer::fromSettings();

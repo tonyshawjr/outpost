@@ -22,6 +22,7 @@ class OutpostMember {
                 'path' => '/',
                 'httponly' => true,
                 'samesite' => 'Lax',
+                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             ]);
             session_start();
         }
@@ -64,11 +65,11 @@ class OutpostMember {
 
         session_regenerate_id(true);
 
-        $_SESSION['member_id'] = $user['id'];
-        $_SESSION['member_username'] = $user['username'];
-        $_SESSION['member_role'] = $user['role'];
+        $_SESSION['outpost_member_id'] = $user['id'];
+        $_SESSION['outpost_member_username'] = $user['username'];
+        $_SESSION['outpost_member_role'] = $user['role'];
         $_SESSION['member_csrf'] = bin2hex(random_bytes(32));
-        $_SESSION['member_login_time'] = time();
+        $_SESSION['outpost_member_login_time'] = time();
 
         // Update last login
         OutpostDB::update('users', ['last_login' => date('Y-m-d H:i:s')], 'id = ?', [$user['id']]);
@@ -149,11 +150,11 @@ class OutpostMember {
 
         // Auto-login after registration
         session_regenerate_id(true);
-        $_SESSION['member_id'] = $id;
-        $_SESSION['member_username'] = $username;
-        $_SESSION['member_role'] = 'free_member';
+        $_SESSION['outpost_member_id'] = $id;
+        $_SESSION['outpost_member_username'] = $username;
+        $_SESSION['outpost_member_role'] = 'free_member';
         $_SESSION['member_csrf'] = bin2hex(random_bytes(32));
-        $_SESSION['member_login_time'] = time();
+        $_SESSION['outpost_member_login_time'] = time();
 
         return [
             'success' => true,
@@ -178,8 +179,23 @@ class OutpostMember {
 
     public static function check(): bool {
         self::init();
-        return isset($_SESSION['member_id']) &&
-               (time() - ($_SESSION['member_login_time'] ?? 0)) < (86400 * 30);
+        if (!isset($_SESSION['outpost_member_id'])) return false;
+        if ((time() - ($_SESSION['outpost_member_login_time'] ?? 0)) >= (86400 * 30)) return false;
+
+        // Revalidate against DB every 5 minutes (catches suspended users)
+        $lastCheck = $_SESSION['outpost_member_db_check'] ?? 0;
+        if (time() - $lastCheck > 300) {
+            $user = OutpostDB::fetchOne(
+                "SELECT member_status FROM users WHERE id = ? AND role IN ('free_member', 'paid_member')",
+                [$_SESSION['outpost_member_id']]
+            );
+            if (!$user || ($user['member_status'] ?? 'active') === 'suspended') {
+                self::logout();
+                return false;
+            }
+            $_SESSION['outpost_member_db_check'] = time();
+        }
+        return true;
     }
 
     public static function currentMember(): ?array {
@@ -187,9 +203,9 @@ class OutpostMember {
         if (!self::check()) return null;
 
         return [
-            'id' => $_SESSION['member_id'],
-            'username' => $_SESSION['member_username'],
-            'role' => $_SESSION['member_role'],
+            'id' => $_SESSION['outpost_member_id'],
+            'username' => $_SESSION['outpost_member_username'],
+            'role' => $_SESSION['outpost_member_role'],
         ];
     }
 
@@ -211,16 +227,20 @@ class OutpostMember {
     }
 
     public static function isPaid(): bool {
-        $role = $_SESSION['member_role'] ?? '';
+        $role = $_SESSION['outpost_member_role'] ?? '';
         return $role === 'paid_member';
     }
 
     private static function isRateLimited(): bool {
+        // Session-based check
         $attempts = $_SESSION['member_login_attempts'] ?? [];
         $window = time() - 60;
         $attempts = array_filter($attempts, fn($t) => $t > $window);
         $_SESSION['member_login_attempts'] = $attempts;
-        return count($attempts) >= 5;
+        if (count($attempts) >= 5) return true;
+
+        // IP-based check (prevents bypass by discarding session cookies)
+        return self::isIpRateLimited();
     }
 
     private static function recordFailedAttempt(): void {
@@ -228,6 +248,40 @@ class OutpostMember {
             $_SESSION['member_login_attempts'] = [];
         }
         $_SESSION['member_login_attempts'][] = time();
+        self::recordIpAttempt();
+    }
+
+    private static function isIpRateLimited(): bool {
+        $ip = ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0') . ':member_login';
+        $now = time();
+        $window = $now - 60;
+
+        OutpostDB::connect()->exec("CREATE TABLE IF NOT EXISTS login_rate_limits (
+            ip TEXT PRIMARY KEY, attempts TEXT DEFAULT '[]', updated_at INTEGER
+        )");
+        OutpostDB::query('DELETE FROM login_rate_limits WHERE updated_at < ?', [$window]);
+
+        $row = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$ip]);
+        $timestamps = $row ? json_decode($row['attempts'], true) : [];
+        $timestamps = array_values(array_filter($timestamps, fn($t) => $t > $window));
+        return count($timestamps) >= 5;
+    }
+
+    private static function recordIpAttempt(): void {
+        $ip = ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0') . ':member_login';
+        $now = time();
+        $window = $now - 60;
+
+        $row = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$ip]);
+        $timestamps = $row ? json_decode($row['attempts'], true) : [];
+        $timestamps = array_values(array_filter($timestamps, fn($t) => $t > $window));
+        $timestamps[] = $now;
+
+        OutpostDB::query(
+            "INSERT INTO login_rate_limits (ip, attempts, updated_at) VALUES (?, ?, ?)
+             ON CONFLICT(ip) DO UPDATE SET attempts = excluded.attempts, updated_at = excluded.updated_at",
+            [$ip, json_encode($timestamps), $now]
+        );
     }
 
     public static function sendVerificationEmail(int $userId, string $username, string $email): void {
