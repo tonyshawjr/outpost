@@ -55,9 +55,9 @@ Edit content directly on the live frontend while logged in as an admin — no ro
 
 ---
 
-## Channels — External Data Sources (Phase 1: REST API)
+## Channels — External Data Sources (Phase 1: REST API + Phase 2: RSS + CSV)
 
-Pull data from any external REST API into Liquid templates using the same `{% for %}` loop syntax used for collections. Collections = your content. Channels = external content that flows in.
+Pull data from external REST APIs, RSS feeds, and CSV files into Liquid templates using the same `{% for %}` loop syntax used for collections. Collections = your content. Channels = external content that flows in.
 
 - **Database**: `channels`, `channel_items`, `channel_sync_log` tables with full cascade deletes and indexed queries
 - **Channel engine** (`channels.php`): `channel_fetch_api()` with cURL (auth types: none, API key, bearer, basic), `channel_fetch_all_pages()` with offset/cursor pagination, `channel_extract_data()` for dot-notation JSON path traversal, `channel_discover_schema()` for recursive field type detection
@@ -74,6 +74,11 @@ Pull data from any external REST API into Liquid templates using the same `{% fo
   - Step 4 (Preview): Item preview table, auto-generated template code with copy button
 - **Sync dashboard**: Status overview, manual sync button, sync history table (timestamp, status, added/updated/removed counts, duration, errors)
 - **6 subcomponents**: `ConnectStep`, `SchemaStep`, `ConfigStep`, `PreviewStep`, `JsonTree`, `KeyValueEditor`
+- **RSS channel type** (v1.1.0): `channel_fetch_rss()` parses RSS 2.0 and Atom 1.0 feeds via SimpleXML. Auto-maps standard fields: title, link, description, pubDate, author, content (content:encoded), category, guid, enclosure_url. Fallback guid from link or hash of title+pubDate. SSRF guard applied.
+- **CSV channel type** (v1.1.0): `channel_fetch_csv()` downloads CSV from any URL, parses via `fgetcsv()` on `php://temp` stream (handles quoted newlines). Configurable delimiter (comma, tab, semicolon, pipe), first-row-is-headers toggle, UTF-8 BOM stripping, header name sanitization. SSRF guard applied.
+- **Source type selector** (v1.1.0): Channel creation wizard shows REST API / RSS Feed / CSV pill selector. Conditional UI hides irrelevant fields per type (Method/Headers/Params for API only, delimiter/headers toggle for CSV only). Type is immutable after creation.
+- **Type-dispatched discovery** (v1.1.0): `handle_channel_discover()` routes to `channel_discover_rss()` or `channel_discover_csv()` based on type. RSS discovery builds schema from actual feed fields. CSV discovery uses existing `channel_discover_schema()` on parsed rows.
+- **Type badge in channel list** (v1.1.0): Cards show API/RSS/CSV label in metadata row
 
 ---
 

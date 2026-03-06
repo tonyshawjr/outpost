@@ -18,6 +18,7 @@
   let step = $state(1); // 1-4 within setup
 
   // Channel data
+  let channelType = $state('api');
   let config = $state({ url: '', method: 'GET', auth_type: 'none', auth_config: {}, headers: {}, params: {}, data_path: '', id_field: 'id', slug_field: 'slug', pagination: { type: 'none' } });
   let schema = $state([]);
   let sample = $state([]);
@@ -50,6 +51,7 @@
     try {
       const data = await channels.get(channelId);
       channel = data;
+      channelType = data.type || 'api';
       channelName = data.name || '';
       channelSlug = data.slug || '';
       cacheTtl = data.cache_ttl ?? 3600;
@@ -98,7 +100,7 @@
           saving = false;
           return;
         }
-        const res = await channels.create({ ...payload, slug: channelSlug });
+        const res = await channels.create({ ...payload, slug: channelSlug, type: channelType });
         addToast('Channel created');
         navigate('channel-builder', { channelId: res.id });
       }
@@ -252,13 +254,13 @@
           </div>
 
           {#if step === 1}
-            <ConnectStep bind:config />
+            <ConnectStep bind:config bind:channelType isEditing={!!channelId} />
             <div class="cb-step-actions">
               <div></div>
               <button class="btn btn-primary" onclick={nextStep}>Next: Schema</button>
             </div>
           {:else if step === 2}
-            <SchemaStep bind:config bind:schema bind:sample bind:fieldMap />
+            <SchemaStep bind:config bind:schema bind:sample bind:fieldMap {channelType} />
             <div class="cb-step-actions">
               <button class="btn btn-secondary" onclick={prevStep}>Back</button>
               <button class="btn btn-primary" onclick={nextStep}>Next: Configure</button>

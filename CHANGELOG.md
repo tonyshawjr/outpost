@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] — 2026-03-06
+
+### Added
+- **RSS channel type** — connect to any RSS 2.0 or Atom 1.0 feed, auto-maps standard fields (title, link, description, pubDate, author, content, category, guid, enclosure)
+- **CSV channel type** — connect to any CSV file URL (including Google Sheets exports), configurable delimiter (comma, tab, semicolon, pipe), header row detection, BOM stripping
+- Source type selector in channel creation wizard (REST API / RSS Feed / CSV)
+- Type badge displayed on channel cards in the channels list
+- Smart defaults for RSS channels (guid as ID field, title as slug field)
+- Type-dispatched schema discovery for RSS and CSV sources
+- SSRF protection applied to all new channel types
+
+### Changed
+- Channel wizard Connect step now shows/hides fields based on source type (Method, Headers, Params hidden for RSS/CSV)
+- Schema step hides Data Path field for non-API channels
+- Channel list empty state updated to mention RSS and CSV alongside APIs
+
+---
+
 ## [1.0.0] — 2026-03-06
 
 First stable release. Feature-complete, security-audited, fully documented.

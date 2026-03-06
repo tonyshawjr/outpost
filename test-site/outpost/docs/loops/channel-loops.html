@@ -126,7 +126,7 @@
 <main class="main">
   <div class="page-hero">
     <h1>Channel Loops</h1>
-    <p class="lead">Iterate over cached items from external APIs. Channels bring external data into your templates with the same for-loop syntax you already use for collections.</p>
+    <p class="lead">Iterate over cached items from external data sources. Channels bring external data into your templates with the same for-loop syntax you already use for collections &mdash; regardless of whether the source is a REST API, RSS feed, or CSV file.</p>
   </div>
   <div class="content">
 
@@ -142,6 +142,8 @@
 {% endfor %}</code></pre>
 
     <div class="callout callout-note"><strong>Note</strong> &mdash; Only items cached from the last sync appear in channel loops. If the cache TTL has expired, Outpost auto-syncs before rendering so your templates always show fresh data.</div>
+
+    <div class="callout callout-tip"><strong>Type-agnostic</strong> &mdash; Channel loop syntax is identical for all three source types (REST API, RSS, CSV). You do not need to know what type a channel is &mdash; just use <code>channel.<em>slug</em></code> and access fields by name. This means you can switch a channel&rsquo;s source type without changing your templates, as long as the field names stay the same.</div>
 
     <h2>Available Fields</h2>
     <p>Each item exposes the fields mapped during channel setup. Unlike collections, there are no fixed fields &mdash; everything comes from the external API. Common patterns:</p>
@@ -386,9 +388,36 @@
 
     <div class="callout callout-note"><strong>Caching Behavior</strong> &mdash; Channel data is cached in SQLite. Auto-sync fires when the TTL expires on the next template render. Manual sync is available from the admin dashboard. If the external API is down, the last cached data is served &mdash; your site never goes blank because of an upstream outage.</div>
 
+    <h2>RSS Feed Example</h2>
+    <p>RSS channels expose standard feed fields like <code>title</code>, <code>link</code>, <code>description</code>, <code>pubDate</code>, <code>author</code>, and <code>content</code>. The syntax is exactly the same as any other channel.</p>
+    <pre><code>{% for post in channel.blog_feed limit:10 %}
+  &lt;article class="feed-item"&gt;
+    &lt;h2&gt;&lt;a href="{{ post.link }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+    &lt;time&gt;{{ post.pubDate }}&lt;/time&gt;
+    {% if post.author %}
+      &lt;span class="author"&gt;{{ post.author }}&lt;/span&gt;
+    {% endif %}
+    &lt;p&gt;{{ post.description }}&lt;/p&gt;
+  &lt;/article&gt;
+{% else %}
+  &lt;p&gt;No feed items available.&lt;/p&gt;
+{% endfor %}</code></pre>
+
+    <h2>CSV Example</h2>
+    <p>CSV channels expose column headers as field names (sanitized to lowercase with underscores). For example, a spreadsheet with columns &ldquo;First Name&rdquo;, &ldquo;Role&rdquo;, and &ldquo;Email&rdquo; would produce fields <code>first_name</code>, <code>role</code>, and <code>email</code>.</p>
+    <pre><code>{% for member in channel.team %}
+  &lt;div class="team-member"&gt;
+    &lt;h3&gt;{{ member.first_name }}&lt;/h3&gt;
+    &lt;p&gt;{{ member.role }}&lt;/p&gt;
+    &lt;a href="mailto:{{ member.email }}"&gt;{{ member.email }}&lt;/a&gt;
+  &lt;/div&gt;
+{% else %}
+  &lt;p&gt;Team directory is empty.&lt;/p&gt;
+{% endfor %}</code></pre>
+
     <div class="callout callout-tip"><strong>Comparison with Collection Loops</strong> &mdash; Collection loops use <code>collection.slug</code>, channel loops use <code>channel.slug</code>. Everything else &mdash; loop options, the <code>{% else %}</code> branch, conditionals inside loops &mdash; works identically. You can prototype with a collection and later switch to a channel (or vice versa) by simply changing the prefix.</div>
 
-    <p>For full details on setting up channels, authentication, caching configuration, and the sync dashboard, see <a href="features/channels.html">Channels</a>.</p>
+    <p>For full details on setting up channels, channel types, authentication, caching configuration, and the sync dashboard, see <a href="features/channels.html">Channels</a>.</p>
 
   </div>
 </main>

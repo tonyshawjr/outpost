@@ -126,13 +126,13 @@
 <main class="main">
   <div class="page-hero">
     <h1>Channels</h1>
-    <p class="lead">Connect to external REST APIs and pull data into your templates with the same Liquid syntax you use for collections. If Collections are content you create, Channels are content that flows in from somewhere else.</p>
+    <p class="lead">Connect to external REST APIs, RSS feeds, and CSV files &mdash; pull data into your templates with the same Liquid syntax you use for collections. If Collections are content you create, Channels are content that flows in from somewhere else.</p>
   </div>
   <div class="content">
 
     <h2>What are Channels?</h2>
-    <p>Collections store content you write inside Outpost. Channels do the opposite &mdash; they pull content <em>in</em> from external REST APIs and make it available to your templates with familiar Liquid syntax. No plugins, no Composer dependencies, no build step.</p>
-    <p>Connect to any JSON API &mdash; a headless CMS, a product catalog, a job board, a real-estate listing service, a weather feed &mdash; and render the data in your theme templates using the same <code>&#123;% for %&#125;</code> and <code>&#123;% single %&#125;</code> tags you already know from collections. Outpost caches the external data in SQLite so pages render instantly, and re-fetches automatically when the cache expires.</p>
+    <p>Collections store content you write inside Outpost. Channels do the opposite &mdash; they pull content <em>in</em> from external sources and make it available to your templates with familiar Liquid syntax. No plugins, no Composer dependencies, no build step.</p>
+    <p>Connect to any JSON API, RSS feed, or CSV file &mdash; a headless CMS, a product catalog, a job board, a podcast feed, a Google Sheets spreadsheet &mdash; and render the data in your theme templates using the same <code>&#123;% for %&#125;</code> and <code>&#123;% single %&#125;</code> tags you already know from collections. Outpost caches the external data in SQLite so pages render instantly, and re-fetches automatically when the cache expires.</p>
 
     <p>Common use cases:</p>
     <ul>
@@ -142,9 +142,80 @@
       <li>Aggregate blog posts from a headless CMS like Contentful or Strapi</li>
       <li>Show upcoming events from an external calendar API</li>
       <li>Display weather data, stock quotes, or any public JSON endpoint</li>
+      <li>Pull blog posts or news from any RSS/Atom feed</li>
+      <li>Render podcast episodes with enclosure links from a podcast RSS feed</li>
+      <li>Import data from a Google Sheets spreadsheet (published as CSV)</li>
+      <li>Load team members, pricing, or any structured data from a CSV file</li>
     </ul>
 
-    <div class="callout callout-note"><strong>Note</strong> &mdash; Channels are read-only. They pull data in from external APIs but do not push data back. If you need to create or edit content directly, use collections.</div>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Channels are read-only. They pull data in from external sources but do not push data back. If you need to create or edit content directly, use collections.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Channel Types</h2>
+    <p>Outpost supports three channel source types. You choose the type when creating a channel &mdash; it cannot be changed after creation. All three types use the same caching, sync, and template rendering pipeline, so your templates work identically regardless of the source.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Source</th>
+          <th>Best for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>REST API</strong></td>
+          <td>Any JSON API endpoint</td>
+          <td>Product catalogs, job boards, headless CMSes, any API with JSON responses</td>
+        </tr>
+        <tr>
+          <td><strong>RSS Feed</strong></td>
+          <td>RSS 2.0 or Atom 1.0 feeds</td>
+          <td>Blog aggregation, news feeds, podcast episodes, GitHub releases</td>
+        </tr>
+        <tr>
+          <td><strong>CSV</strong></td>
+          <td>Any URL serving a CSV file</td>
+          <td>Google Sheets exports, data files, team directories, pricing tables</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>RSS Feed Channels</h3>
+    <p>RSS channels parse RSS 2.0 and Atom 1.0 feeds automatically. Outpost maps standard feed fields to item properties:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>RSS 2.0 source</th>
+          <th>Atom 1.0 source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>title</code></td><td><code>&lt;title&gt;</code></td><td><code>&lt;title&gt;</code></td></tr>
+        <tr><td><code>link</code></td><td><code>&lt;link&gt;</code></td><td><code>&lt;link rel="alternate" href="..."&gt;</code></td></tr>
+        <tr><td><code>description</code></td><td><code>&lt;description&gt;</code></td><td><code>&lt;summary&gt;</code></td></tr>
+        <tr><td><code>pubDate</code></td><td><code>&lt;pubDate&gt;</code></td><td><code>&lt;published&gt;</code> or <code>&lt;updated&gt;</code></td></tr>
+        <tr><td><code>author</code></td><td><code>&lt;author&gt;</code> or <code>&lt;dc:creator&gt;</code></td><td><code>&lt;author&gt;&lt;name&gt;</code></td></tr>
+        <tr><td><code>content</code></td><td><code>&lt;content:encoded&gt;</code></td><td><code>&lt;content&gt;</code></td></tr>
+        <tr><td><code>category</code></td><td><code>&lt;category&gt;</code> (joined with commas)</td><td><code>&lt;category term="..."&gt;</code></td></tr>
+        <tr><td><code>guid</code></td><td><code>&lt;guid&gt;</code></td><td><code>&lt;id&gt;</code></td></tr>
+        <tr><td><code>enclosure_url</code></td><td><code>&lt;enclosure url="..."&gt;</code></td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
+    <p>In your templates, access these fields directly: <code>&#123;&#123; item.title &#125;&#125;</code>, <code>&#123;&#123; item.content | raw &#125;&#125;</code>, etc.</p>
+
+    <h3>CSV Channels</h3>
+    <p>CSV channels download and parse a CSV file from any URL. This works with Google Sheets (use the <em>File &rarr; Share &rarr; Publish to web &rarr; CSV</em> link), hosted CSV files, or any endpoint that returns CSV data.</p>
+    <p>Configuration options:</p>
+    <ul>
+      <li><strong>Delimiter</strong> &mdash; Comma (default), Tab, Semicolon, or Pipe</li>
+      <li><strong>First row is headers</strong> &mdash; When enabled (default), the first row becomes field names. When disabled, fields are named <code>col_0</code>, <code>col_1</code>, etc.</li>
+    </ul>
+    <p>Header names are automatically sanitized to lowercase with underscores (e.g. <code>First Name</code> becomes <code>first_name</code>). UTF-8 BOM characters are stripped automatically.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; To use a Google Sheet as a channel source, publish the sheet to the web as CSV. The URL will look like <code>https://docs.google.com/spreadsheets/d/.../pub?output=csv</code>. Updates to the sheet will be picked up on the next sync.</div>
 
     <hr style="margin: 40px 0;">
 
@@ -152,7 +223,8 @@
     <p>Navigate to <strong>Admin &rarr; Channels</strong> and click <strong>New Channel</strong>. Outpost walks you through a four-step wizard to connect, map, configure, and preview your external data source.</p>
 
     <h3>Step 1 &mdash; Connect</h3>
-    <p>Enter the API endpoint URL and configure authentication. Outpost supports four authentication methods (see <a href="#authentication-methods">Authentication Methods</a> below). You can also add custom HTTP headers and query parameters that will be sent with every request.</p>
+    <p>First, choose the source type &mdash; <strong>REST API</strong>, <strong>RSS Feed</strong>, or <strong>CSV</strong>. The type cannot be changed after the channel is created. Then enter the source URL and configure any authentication or type-specific options.</p>
+    <p><strong>REST API channels:</strong></p>
     <ol>
       <li>Enter the full API URL (e.g. <code>https://api.example.com/v2/listings</code>)</li>
       <li>Choose an authentication method &mdash; None, API Key, Bearer Token, or Basic Auth</li>
@@ -160,16 +232,29 @@
       <li>Add query parameters that should be included on every request (e.g. <code>status=active</code>, <code>per_page=100</code>)</li>
       <li>Click <strong>Test Connection</strong> to verify the API responds with a <code>200</code> status and valid JSON</li>
     </ol>
+    <p><strong>RSS Feed channels:</strong></p>
+    <ol>
+      <li>Enter the RSS or Atom feed URL (e.g. <code>https://example.com/feed</code>)</li>
+      <li>Optionally configure authentication if the feed requires it</li>
+      <li>Click <strong>Test Connection</strong> to verify the feed parses correctly</li>
+    </ol>
+    <p><strong>CSV channels:</strong></p>
+    <ol>
+      <li>Enter the CSV file URL (e.g. a Google Sheets published CSV link)</li>
+      <li>Choose the delimiter &mdash; Comma (default), Tab, Semicolon, or Pipe</li>
+      <li>Toggle whether the first row contains headers (enabled by default)</li>
+      <li>Click <strong>Test Connection</strong> to verify the CSV parses correctly</li>
+    </ol>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; The test connection button sends a real request to the API and shows you the raw JSON response. Use this to verify your URL, auth credentials, and headers are correct before proceeding.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; The test connection button sends a real request to the source and shows you the parsed response. Use this to verify your URL, auth credentials, and settings are correct before proceeding.</div>
 
     <h3>Step 2 &mdash; Schema</h3>
-    <p>After a successful test connection, Outpost displays the JSON response as an interactive tree. This step lets you tell Outpost where the data lives and which fields to use.</p>
+    <p>After a successful test connection, Outpost displays the discovered fields. This step lets you tell Outpost which fields to use.</p>
     <ol>
-      <li><strong>Data path</strong> &mdash; set the dot-notation path to the array of items in the response (see <a href="#data-path-extraction">Data Path Extraction</a>). For example, if your API returns <code>{"data": {"listings": [...]}}</code>, enter <code>data.listings</code>.</li>
+      <li><strong>Data path</strong> (REST API only) &mdash; set the dot-notation path to the array of items in the response (see <a href="#data-path-extraction">Data Path Extraction</a>). For example, if your API returns <code>{"data": {"listings": [...]}}</code>, enter <code>data.listings</code>. RSS and CSV channels skip this step as the data structure is auto-detected.</li>
       <li><strong>Select fields</strong> &mdash; check the fields you want to include from each item. Unchecked fields are ignored and not cached.</li>
-      <li><strong>ID field</strong> &mdash; choose the field that uniquely identifies each item (e.g. <code>id</code>, <code>uuid</code>, <code>_id</code>). This is used for cache updates and single-item lookups.</li>
-      <li><strong>Slug field</strong> &mdash; choose or generate the field used for URL-friendly slugs (e.g. <code>slug</code>, <code>handle</code>). If the API does not provide a slug, Outpost can auto-generate one from a text field like <code>title</code> or <code>name</code>.</li>
+      <li><strong>ID field</strong> &mdash; choose the field that uniquely identifies each item (e.g. <code>id</code>, <code>uuid</code>, <code>_id</code>). For RSS channels, this defaults to <code>guid</code>.</li>
+      <li><strong>Slug field</strong> &mdash; choose or generate the field used for URL-friendly slugs (e.g. <code>slug</code>, <code>handle</code>). If the source does not provide a slug, Outpost can auto-generate one from a text field like <code>title</code> or <code>name</code>.</li>
     </ol>
 
     <h3>Step 3 &mdash; Configure</h3>
@@ -458,14 +543,14 @@
     <hr style="margin: 40px 0;">
 
     <h2>Caching and Sync</h2>
-    <p>Channels store fetched API data in your SQLite database, so templates never make HTTP requests at render time. Instead, Outpost manages a local cache that is refreshed based on the TTL you configure for each channel.</p>
+    <p>Channels store fetched data in your SQLite database, so templates never make HTTP requests at render time. Instead, Outpost manages a local cache that is refreshed based on the TTL you configure for each channel. This applies to all channel types &mdash; REST API, RSS, and CSV.</p>
 
     <h3>How caching works</h3>
     <ol>
-      <li>When a channel is first created (or manually synced), Outpost fetches data from the API and stores each item as a row in the <code>channel_items</code> table.</li>
+      <li>When a channel is first created (or manually synced), Outpost fetches data from the external source and stores each item as a row in the <code>channel_items</code> table.</li>
       <li>On every template render that includes a channel loop, Outpost checks whether the cache has expired based on the channel&rsquo;s TTL setting.</li>
       <li>If the cache is still fresh, items are served directly from SQLite &mdash; no HTTP request is made.</li>
-      <li>If the cache has expired, Outpost re-fetches from the API in the background. The stale data is served immediately to avoid slow page loads, and the cache is updated for the next request.</li>
+      <li>If the cache has expired, Outpost re-fetches from the source in the background. The stale data is served immediately to avoid slow page loads, and the cache is updated for the next request.</li>
     </ol>
 
     <h3>Cache TTL options</h3>
@@ -512,7 +597,7 @@
     </table>
 
     <h3>Manual sync</h3>
-    <p>Navigate to <strong>Admin &rarr; Channels &rarr; select a channel</strong> and click <strong>Sync Now</strong> to force an immediate re-fetch from the API, regardless of the TTL. This is useful when you know the upstream data has changed and you do not want to wait for the cache to expire.</p>
+    <p>Navigate to <strong>Admin &rarr; Channels &rarr; select a channel</strong> and click <strong>Sync Now</strong> to force an immediate re-fetch from the source, regardless of the TTL. This is useful when you know the upstream data has changed and you do not want to wait for the cache to expire.</p>
 
     <h3>Sync dashboard</h3>
     <p>Each channel displays sync status information in the admin:</p>
@@ -523,12 +608,12 @@
       <li><strong>Errors</strong> &mdash; if the last sync failed, the error message and HTTP status code are displayed. Common errors include authentication failures (401/403), rate limiting (429), and connection timeouts</li>
     </ul>
 
-    <div class="callout callout-note"><strong>Note</strong> &mdash; If a sync fails, Outpost keeps serving the previously cached data. Your templates will not break because of a temporary API outage &mdash; they will continue to display the last successfully fetched data until the next successful sync.</div>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; If a sync fails, Outpost keeps serving the previously cached data. Your templates will not break because of a temporary source outage &mdash; they will continue to display the last successfully fetched data until the next successful sync.</div>
 
     <hr style="margin: 40px 0;">
 
     <h2>Pagination Support</h2>
-    <p>Many APIs return data in pages rather than all at once. Outpost supports two pagination strategies to automatically fetch all pages during a sync.</p>
+    <p>Many REST APIs return data in pages rather than all at once. Outpost supports two pagination strategies to automatically fetch all pages during a sync. Pagination is only applicable to REST API channels &mdash; RSS and CSV channels always return all items in a single fetch.</p>
 
     <h3>Offset-based pagination</h3>
     <p>The most common pattern. The API accepts <code>page</code> or <code>offset</code> query parameters, and Outpost increments them until all items are fetched.</p>
@@ -610,7 +695,7 @@
         <tr>
           <td><strong>Data source</strong></td>
           <td>Created and edited in the Outpost admin</td>
-          <td>Fetched from an external REST API</td>
+          <td>Fetched from an external REST API, RSS feed, or CSV file</td>
         </tr>
         <tr>
           <td><strong>Template loop syntax</strong></td>

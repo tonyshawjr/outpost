@@ -10,8 +10,8 @@
 - [Flexible Content Loops](/outpost/docs/loops/flexible-content-loops.html): Layout builder loops with named layouts
 - [Relationship Loops](/outpost/docs/loops/relationship-loops.html): Linked content from other collections
 - [Conditional Logic](/outpost/docs/features/conditional-logic.html): Show/hide fields based on other field values
-- [Channels](/outpost/docs/features/channels.html): External data sources (REST API) with template loops
-- [Channel Loops](/outpost/docs/loops/channel-loops.html): Template syntax for channel data loops
+- [Channels](/outpost/docs/features/channels.html): External data sources (REST API, RSS, CSV) with template loops
+- [Channel Loops](/outpost/docs/loops/channel-loops.html): Template syntax for channel data loops (type-agnostic)
 - [Members System](/outpost/docs/members/): Member registration, login, password reset
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
@@ -268,7 +268,24 @@ Fetches by `?slug=` (set automatically by router). Related items inside a single
 {% endfor %}
 ```
 
-`listings` is the channel slug. Loop options: `limit:N` (max items), `orderby:field` (sort descending). Items come from cached external API data.
+`listings` is the channel slug. Loop options: `limit:N` (max items), `orderby:field` (sort descending). Items come from cached external data. Syntax is type-agnostic — works the same for API, RSS, and CSV channels.
+
+RSS feed example:
+```html
+{% for post in channel.blog_feed limit:10 %}
+  <h2><a href="{{ post.link }}">{{ post.title }}</a></h2>
+  <time>{{ post.pubDate }}</time>
+  <p>{{ post.description }}</p>
+{% endfor %}
+```
+
+CSV example:
+```html
+{% for member in channel.team %}
+  <h3>{{ member.first_name }}</h3>
+  <p>{{ member.role }}</p>
+{% endfor %}
+```
 
 ### Channel Single Items
 
@@ -780,24 +797,32 @@ Builder forms use `outpost-form`, `outpost-field`, `outpost-field--{type}`, `out
 
 ## Channels (External Data Sources)
 
-Channels connect Outpost to external REST APIs. If Collections are content you create in the admin, Channels are content that flows in from somewhere else. No plugins, no Composer, no build step — connect to any JSON API, cache data in SQLite, and render it in templates with the same Liquid syntax.
+Channels connect Outpost to external data sources — REST APIs, RSS feeds, and CSV files. If Collections are content you create in the admin, Channels are content that flows in from somewhere else. No plugins, no Composer, no build step — connect to any JSON API, RSS/Atom feed, or CSV file, cache data in SQLite, and render it in templates with the same Liquid syntax.
 
 ### Concept
 
 - **Collections** = content you create and edit in the admin panel
-- **Channels** = content that flows in from external APIs (read-only in Outpost)
-- Both use identical template syntax: `{% for item in collection.slug %}` vs `{% for item in channel.slug %}`
-- Both support URL patterns for single-item pages
+- **Channels** = content that flows in from external sources (read-only in Outpost)
+- Three source types: **REST API**, **RSS Feed** (RSS 2.0 + Atom 1.0), **CSV** (any URL serving CSV data)
+- All three types use identical template syntax: `{% for item in channel.slug %}` — templates are type-agnostic
+- Both collections and channels support URL patterns for single-item pages
 - Channel data is cached in SQLite with configurable TTL
+- Type is chosen at creation and cannot be changed afterward
 
 ### Creating a Channel
 
-Navigate to Admin → Channels → New Channel. The 4-step builder wizard:
+Navigate to Admin → Channels → New Channel. Choose the source type (REST API / RSS Feed / CSV), then the 4-step builder wizard:
 
-1. **Connect** — enter API URL, choose auth method (None, API Key, Bearer Token, Basic Auth), add custom headers and query params, test connection
-2. **Schema** — view JSON response tree, set data path (dot notation), pick fields to include, set ID and slug fields
+1. **Connect** — choose source type, enter URL, configure type-specific options (see below), test connection
+2. **Schema** — view discovered fields, set data path (API only), pick fields to include, set ID and slug fields
 3. **Configure** — name, slug, cache TTL (5min/15min/1hr/6hr/daily/manual), max items, sort field, URL pattern
 4. **Preview** — see cached items in table, get auto-generated template code
+
+**REST API** connect options: URL, HTTP method, auth method (None/API Key/Bearer Token/Basic Auth), custom headers, query parameters.
+
+**RSS Feed** connect options: Feed URL, optional auth. Auto-detects RSS 2.0 vs Atom 1.0. Fields auto-mapped (see RSS Field Mapping below).
+
+**CSV** connect options: CSV URL, delimiter (comma/tab/semicolon/pipe), "first row is headers" toggle. Headers auto-sanitized to lowercase with underscores.
 
 ### Authentication Types
 
@@ -834,7 +859,33 @@ The `config` column stores all connection settings as JSON:
 }
 ```
 
-### Data Path Extraction
+### RSS Field Mapping
+
+RSS channels auto-map standard feed fields. Both RSS 2.0 and Atom 1.0 are supported:
+
+| Field | RSS 2.0 source | Atom 1.0 source |
+|---|---|---|
+| `title` | `<title>` | `<title>` |
+| `link` | `<link>` | `<link rel="alternate" href="...">` |
+| `description` | `<description>` | `<summary>` |
+| `pubDate` | `<pubDate>` | `<published>` or `<updated>` |
+| `author` | `<author>` or `<dc:creator>` | `<author><name>` |
+| `content` | `<content:encoded>` | `<content>` |
+| `category` | `<category>` (comma-joined) | `<category term="...">` |
+| `guid` | `<guid>` | `<id>` |
+| `enclosure_url` | `<enclosure url="...">` | — |
+
+Default ID field: `guid`. Default slug source: `title`.
+
+### CSV Field Mapping
+
+CSV channels use column headers as field names. Headers are sanitized: lowercase, spaces replaced with underscores, special characters removed. If "first row is headers" is disabled, columns are named `col_0`, `col_1`, etc.
+
+Supported delimiters: comma (default), tab, semicolon, pipe. UTF-8 BOM is stripped automatically.
+
+**Google Sheets tip:** Use File → Share → Publish to web → CSV. The URL looks like `https://docs.google.com/spreadsheets/d/.../pub?output=csv`.
+
+### Data Path Extraction (REST API only)
 
 Dot-notation to target the array in the API response:
 - `data.listings` → `response['data']['listings']`
@@ -887,16 +938,16 @@ Set a URL pattern in the Configure step (e.g. `/listing/{slug}`). The front rout
 
 ### Caching and Sync
 
-- Channel data is cached in the `channel_items` SQLite table
+- Channel data is cached in the `channel_items` SQLite table (all three types)
 - Each channel has a configurable TTL (5min, 15min, 1hr, 6hr, daily, manual-only)
 - **Auto-sync**: When a template renders a channel loop and the TTL has expired, Outpost syncs automatically before rendering
 - **Manual sync**: Click "Sync Now" in Admin → Channels → [channel] → Sync tab
 - **Sync log**: Every sync is logged with item counts (added/updated/removed), duration, and errors
-- If the external API is down, the last cached data is served
+- If the external source is down, the last cached data is served
 
-### Pagination Support
+### Pagination Support (REST API only)
 
-Channels support two pagination modes for APIs that return paginated data:
+REST API channels support two pagination modes for APIs that return paginated data (RSS and CSV channels always return all items in a single fetch):
 
 - **Offset-based**: Uses `page` and `limit` query params. Outpost increments the page until no more data returns.
 - **Cursor-based**: Uses a cursor param (e.g. `after`) with the cursor value extracted from the response via a dot-notation path (e.g. `meta.next_cursor`).
@@ -905,7 +956,7 @@ Channels support two pagination modes for APIs that return paginated data:
 
 | Feature | Collections | Channels |
 |---|---|---|
-| Data source | Admin editor | External REST API |
+| Data source | Admin editor | External REST API, RSS feed, or CSV file |
 | Template loop | `{% for item in collection.slug %}` | `{% for item in channel.slug %}` |
 | Single item | `{% single var from collection.slug %}` | `{% single var from channel.slug %}` |
 | URL patterns | `/post/{slug}` | `/listing/{slug}` |
@@ -933,12 +984,12 @@ Channels support two pagination modes for APIs that return paginated data:
 |---|---|---|
 | `channels` | GET | List all channels with item counts |
 | `channels&id=X` | GET | Get single channel with full config |
-| `channels` | POST | Create channel |
+| `channels` | POST | Create channel (type: api, rss, or csv — immutable) |
 | `channels&id=X` | PUT | Update channel |
 | `channels&id=X` | DELETE | Delete channel (cascades items + log) |
 | `channels/sync&id=X` | POST | Trigger manual sync |
 | `channels/sync-log&id=X` | GET | Get sync history (last 50) |
-| `channels/discover` | POST | Schema discovery — fetch URL, return JSON schema tree |
+| `channels/discover` | POST | Schema discovery — dispatches by type (API/RSS/CSV) |
 | `channels/items&id=X` | GET | Preview cached items (paginated) |
 
 ### Channel Database Tables

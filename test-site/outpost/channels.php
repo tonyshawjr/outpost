@@ -89,6 +89,253 @@ function channel_fetch_api(array $config): array {
 }
 
 /**
+ * Fetch and parse an RSS/Atom feed.
+ * Returns ['items' => array, 'error' => string|null]
+ */
+function channel_fetch_rss(array $config): array {
+    $url = $config['url'] ?? '';
+    if (!$url) return ['items' => [], 'error' => 'No URL configured'];
+
+    // SSRF guard
+    try {
+        outpost_ssrf_guard($url);
+    } catch (\RuntimeException $e) {
+        return ['items' => [], 'error' => $e->getMessage()];
+    }
+
+    $ch = curl_init($url);
+    $headers = [
+        'Accept: application/rss+xml, application/atom+xml, application/xml, text/xml',
+        'User-Agent: Outpost-CMS/1.0',
+    ];
+
+    // Auth (some feeds require it)
+    $authType = $config['auth_type'] ?? 'none';
+    $authConfig = $config['auth_config'] ?? [];
+    switch ($authType) {
+        case 'api_key':
+            $headerName = $authConfig['api_key_header'] ?? 'X-API-Key';
+            $headers[] = $headerName . ': ' . ($authConfig['api_key'] ?? '');
+            break;
+        case 'bearer':
+            $headers[] = 'Authorization: Bearer ' . ($authConfig['bearer_token'] ?? '');
+            break;
+        case 'basic':
+            curl_setopt($ch, CURLOPT_USERPWD, ($authConfig['basic_username'] ?? '') . ':' . ($authConfig['basic_password'] ?? ''));
+            break;
+    }
+
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER  => true,
+        CURLOPT_TIMEOUT         => 30,
+        CURLOPT_FOLLOWLOCATION  => true,
+        CURLOPT_MAXREDIRS       => 5,
+        CURLOPT_HTTPHEADER      => $headers,
+        CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_MAXFILESIZE     => 10 * 1024 * 1024, // 10MB limit
+    ]);
+
+    $body = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($error) return ['items' => [], 'error' => 'cURL error: ' . $error];
+    if ($status >= 400) return ['items' => [], 'error' => "HTTP {$status}"];
+    if (!$body) return ['items' => [], 'error' => 'Empty response'];
+
+    // Parse XML — LIBXML_NONET prevents XXE/SSRF via XML external entities
+    libxml_use_internal_errors(true);
+    $xml = simplexml_load_string($body, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NONET);
+    if ($xml === false) {
+        $errors = libxml_get_errors();
+        libxml_clear_errors();
+        $msg = !empty($errors) ? $errors[0]->message : 'Invalid XML';
+        return ['items' => [], 'error' => 'XML parse error: ' . trim($msg)];
+    }
+
+    $items = [];
+    $rootName = $xml->getName();
+
+    if ($rootName === 'rss') {
+        // RSS 2.0
+        foreach ($xml->channel->item as $entry) {
+            $dc = $entry->children('dc', true);
+            $content = $entry->children('content', true);
+            $categories = [];
+            foreach ($entry->category as $cat) {
+                $categories[] = (string)$cat;
+            }
+            $item = [
+                'title'          => (string)$entry->title,
+                'link'           => (string)$entry->link,
+                'description'    => (string)$entry->description,
+                'pubDate'        => (string)$entry->pubDate,
+                'author'         => (string)($entry->author ?: ($dc ? $dc->creator : '')),
+                'content'        => $content ? (string)$content->encoded : '',
+                'category'       => implode(', ', $categories),
+                'guid'           => (string)$entry->guid,
+                'enclosure_url'  => $entry->enclosure ? (string)$entry->enclosure['url'] : '',
+                'enclosure_type' => $entry->enclosure ? (string)$entry->enclosure['type'] : '',
+            ];
+            // Fallback: guid from link if missing
+            if (!$item['guid']) $item['guid'] = $item['link'] ?: md5($item['title'] . $item['pubDate']);
+            $items[] = $item;
+        }
+    } elseif ($rootName === 'feed') {
+        // Atom 1.0
+        foreach ($xml->entry as $entry) {
+            // Find the best link (rel="alternate" preferred)
+            $link = '';
+            foreach ($entry->link as $l) {
+                $rel = (string)($l['rel'] ?? 'alternate');
+                if ($rel === 'alternate') { $link = (string)$l['href']; break; }
+                if (!$link) $link = (string)$l['href'];
+            }
+            $categories = [];
+            foreach ($entry->category as $cat) {
+                $categories[] = (string)($cat['term'] ?? $cat);
+            }
+            $item = [
+                'title'       => (string)$entry->title,
+                'link'        => $link,
+                'description' => (string)$entry->summary,
+                'pubDate'     => (string)($entry->published ?: $entry->updated),
+                'author'      => $entry->author ? (string)$entry->author->name : '',
+                'content'     => (string)$entry->content,
+                'category'    => implode(', ', $categories),
+                'guid'        => (string)$entry->id,
+            ];
+            if (!$item['guid']) $item['guid'] = $item['link'] ?: md5($item['title'] . $item['pubDate']);
+            $items[] = $item;
+        }
+    } else {
+        return ['items' => [], 'error' => 'Unrecognized feed format (expected RSS 2.0 or Atom)'];
+    }
+
+    return ['items' => $items, 'error' => null];
+}
+
+/**
+ * Fetch and parse a CSV file from a URL.
+ * Returns ['items' => array, 'error' => string|null]
+ */
+function channel_fetch_csv(array $config): array {
+    $url = $config['url'] ?? '';
+    if (!$url) return ['items' => [], 'error' => 'No URL configured'];
+
+    // SSRF guard
+    try {
+        outpost_ssrf_guard($url);
+    } catch (\RuntimeException $e) {
+        return ['items' => [], 'error' => $e->getMessage()];
+    }
+
+    $ch = curl_init($url);
+    $headers = [
+        'Accept: text/csv, text/plain, */*',
+        'User-Agent: Outpost-CMS/1.0',
+    ];
+
+    // Auth
+    $authType = $config['auth_type'] ?? 'none';
+    $authConfig = $config['auth_config'] ?? [];
+    switch ($authType) {
+        case 'api_key':
+            $headerName = $authConfig['api_key_header'] ?? 'X-API-Key';
+            $headers[] = $headerName . ': ' . ($authConfig['api_key'] ?? '');
+            break;
+        case 'bearer':
+            $headers[] = 'Authorization: Bearer ' . ($authConfig['bearer_token'] ?? '');
+            break;
+        case 'basic':
+            curl_setopt($ch, CURLOPT_USERPWD, ($authConfig['basic_username'] ?? '') . ':' . ($authConfig['basic_password'] ?? ''));
+            break;
+    }
+
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER  => true,
+        CURLOPT_TIMEOUT         => 30,
+        CURLOPT_FOLLOWLOCATION  => true,
+        CURLOPT_MAXREDIRS       => 5,
+        CURLOPT_HTTPHEADER      => $headers,
+        CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_MAXFILESIZE     => 10 * 1024 * 1024, // 10MB limit
+    ]);
+
+    $body = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($error) return ['items' => [], 'error' => 'cURL error: ' . $error];
+    if ($status >= 400) return ['items' => [], 'error' => "HTTP {$status}"];
+    if (!$body) return ['items' => [], 'error' => 'Empty response'];
+
+    // Strip UTF-8 BOM (Google Sheets exports include this)
+    if (str_starts_with($body, "\xEF\xBB\xBF")) {
+        $body = substr($body, 3);
+    }
+
+    // Encoding conversion (whitelist to prevent injection via exotic encodings)
+    $encoding = strtoupper($config['csv_encoding'] ?? 'UTF-8');
+    $allowedEncodings = ['UTF-8', 'ISO-8859-1', 'WINDOWS-1252', 'ASCII', 'UTF-16', 'UTF-16LE', 'UTF-16BE'];
+    if ($encoding !== 'UTF-8') {
+        if (!in_array($encoding, $allowedEncodings, true)) {
+            return ['items' => [], 'error' => 'Unsupported encoding: ' . $encoding];
+        }
+        $body = mb_convert_encoding($body, 'UTF-8', $encoding);
+    }
+
+    // Parse CSV via stream (handles quoted newlines correctly)
+    $delimiter = $config['csv_delimiter'] ?? ',';
+    if ($delimiter === '\\t' || $delimiter === 'tab') $delimiter = "\t";
+    $hasHeaders = ($config['csv_has_headers'] ?? true) !== false;
+
+    $stream = fopen('php://temp', 'r+');
+    fwrite($stream, $body);
+    rewind($stream);
+
+    $rows = [];
+    while (($row = fgetcsv($stream, 0, $delimiter)) !== false) {
+        // Skip completely empty rows
+        if (count($row) === 1 && ($row[0] === null || $row[0] === '')) continue;
+        $rows[] = $row;
+    }
+    fclose($stream);
+
+    if (empty($rows)) return ['items' => [], 'error' => 'No data found in CSV'];
+
+    // Build items
+    if ($hasHeaders) {
+        $headerRow = array_shift($rows);
+        // Sanitize header names: lowercase, spaces/special chars → underscores
+        $headerRow = array_map(function($h) {
+            $h = strtolower(trim($h));
+            $h = preg_replace('/[^a-z0-9_]/', '_', $h);
+            $h = preg_replace('/_+/', '_', trim($h, '_'));
+            return $h ?: 'col';
+        }, $headerRow);
+    } else {
+        $colCount = count($rows[0] ?? []);
+        $headerRow = array_map(fn($i) => "col_{$i}", range(0, $colCount - 1));
+    }
+
+    $items = [];
+    foreach ($rows as $row) {
+        $item = [];
+        foreach ($headerRow as $i => $name) {
+            $item[$name] = $row[$i] ?? '';
+        }
+        $items[] = $item;
+    }
+
+    return ['items' => $items, 'error' => null];
+}
+
+/**
  * Fetch all pages from a paginated API.
  * Returns the combined array of all items.
  */
@@ -215,6 +462,56 @@ function channel_discover_schema($data, int $maxDepth = 5, int $depth = 0): arra
     return $fields;
 }
 
+/**
+ * Discover schema from an RSS/Atom feed.
+ * Returns ['schema' => array, 'sample' => array, 'total_items' => int, 'error' => string|null]
+ */
+function channel_discover_rss(array $config): array {
+    $result = channel_fetch_rss($config);
+    if ($result['error']) return ['error' => $result['error']];
+    if (empty($result['items'])) return ['error' => 'Feed contains no items'];
+
+    $items = $result['items'];
+    $first = $items[0];
+
+    // Build schema from actual fields present in the feed
+    $schema = [];
+    foreach ($first as $key => $value) {
+        if ($value === '' && $key !== 'title' && $key !== 'link' && $key !== 'guid') continue; // skip empty optional fields
+        $schema[] = [
+            'name'   => $key,
+            'type'   => 'string',
+            'sample' => mb_substr((string)$value, 0, 200),
+        ];
+    }
+
+    return [
+        'schema'      => $schema,
+        'sample'      => array_slice($items, 0, 3),
+        'total_items' => count($items),
+        'error'       => null,
+    ];
+}
+
+/**
+ * Discover schema from a CSV file.
+ * Returns ['schema' => array, 'sample' => array, 'total_items' => int, 'error' => string|null]
+ */
+function channel_discover_csv(array $config): array {
+    $result = channel_fetch_csv($config);
+    if ($result['error']) return ['error' => $result['error']];
+    if (empty($result['items'])) return ['error' => 'CSV contains no data rows'];
+
+    $schema = channel_discover_schema($result['items']);
+
+    return [
+        'schema'      => $schema,
+        'sample'      => array_slice($result['items'], 0, 3),
+        'total_items' => count($result['items']),
+        'error'       => null,
+    ];
+}
+
 
 // ── Sync ────────────────────────────────────────────────
 
@@ -239,8 +536,20 @@ function channel_sync(int $channelId): array {
         'status' => 'running',
     ]);
 
-    // Fetch all data
-    $result = channel_fetch_all_pages($config);
+    // Fetch all data — dispatch by channel type
+    $channelType = $channel['type'] ?? 'api';
+    switch ($channelType) {
+        case 'rss':
+            $result = channel_fetch_rss($config);
+            break;
+        case 'csv':
+            $result = channel_fetch_csv($config);
+            break;
+        case 'api':
+        default:
+            $result = channel_fetch_all_pages($config);
+            break;
+    }
 
     if ($result['error']) {
         $duration = (int)((microtime(true) - $startTime) * 1000);

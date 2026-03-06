@@ -2,7 +2,7 @@
   import KeyValueEditor from './KeyValueEditor.svelte';
   import { channels } from '$lib/api.js';
 
-  let { config = $bindable({}) } = $props();
+  let { config = $bindable({}), channelType = $bindable('api'), isEditing = false } = $props();
   let testing = $state(false);
   let testResult = $state(null);
   let testError = $state(null);
@@ -40,12 +40,22 @@
     config = { ...config, auth_config: { ...config.auth_config, [key]: value } };
   }
 
+  let urlLabel = $derived(
+    channelType === 'rss' ? 'Feed URL' : channelType === 'csv' ? 'CSV URL' : 'API URL'
+  );
+  let urlPlaceholder = $derived(
+    channelType === 'rss' ? 'https://example.com/feed/' :
+    channelType === 'csv' ? 'https://docs.google.com/spreadsheets/d/.../export?format=csv' :
+    'https://api.example.com/v1/items'
+  );
+
   async function testConnection() {
     testing = true;
     testResult = null;
     testError = null;
     try {
       const res = await channels.discover({
+        type: channelType,
         url: config.url,
         method: config.method,
         auth_type: config.auth_type,
@@ -53,6 +63,9 @@
         headers: config.headers,
         params: config.params,
         data_path: config.data_path || '',
+        csv_delimiter: config.csv_delimiter || ',',
+        csv_has_headers: config.csv_has_headers !== false,
+        csv_encoding: config.csv_encoding || 'UTF-8',
       });
       testResult = res;
     } catch (err) {
@@ -64,34 +77,83 @@
 </script>
 
 <div class="connect-step">
+  <!-- Source Type -->
+  <div class="field-group">
+    <label class="field-label">Source Type</label>
+    <div class="pill-group">
+      {#each [
+        { value: 'api', label: 'REST API' },
+        { value: 'rss', label: 'RSS Feed' },
+        { value: 'csv', label: 'CSV' },
+      ] as t}
+        <button
+          class="pill"
+          class:pill-active={channelType === t.value}
+          onclick={() => { channelType = t.value; }}
+          disabled={isEditing}
+        >{t.label}</button>
+      {/each}
+    </div>
+  </div>
+
   <!-- URL -->
   <div class="field-group">
-    <label class="field-label">API URL</label>
+    <label class="field-label">{urlLabel}</label>
     <input
       type="url"
       class="field-input field-input-lg"
-      placeholder="https://api.example.com/v1/items"
+      placeholder={urlPlaceholder}
       value={config.url || ''}
       oninput={(e) => (config.url = e.target.value)}
     />
   </div>
 
-  <!-- Method -->
-  <div class="field-group">
-    <label class="field-label">Method</label>
-    <div class="pill-group">
-      <button
-        class="pill"
-        class:pill-active={config.method === 'GET'}
-        onclick={() => setMethod('GET')}
-      >GET</button>
-      <button
-        class="pill"
-        class:pill-active={config.method === 'POST'}
-        onclick={() => setMethod('POST')}
-      >POST</button>
+  <!-- CSV Options -->
+  {#if channelType === 'csv'}
+    <div class="field-group">
+      <label class="field-label">Delimiter</label>
+      <div class="pill-group">
+        {#each [
+          { value: ',', label: 'Comma' },
+          { value: '\\t', label: 'Tab' },
+          { value: ';', label: 'Semicolon' },
+          { value: '|', label: 'Pipe' },
+        ] as d}
+          <button
+            class="pill"
+            class:pill-active={(config.csv_delimiter || ',') === d.value}
+            onclick={() => config.csv_delimiter = d.value}
+          >{d.label}</button>
+        {/each}
+      </div>
     </div>
-  </div>
+    <div class="field-group">
+      <label class="field-label">First row is headers</label>
+      <div class="pill-group">
+        <button class="pill" class:pill-active={config.csv_has_headers !== false} onclick={() => config.csv_has_headers = true}>Yes</button>
+        <button class="pill" class:pill-active={config.csv_has_headers === false} onclick={() => config.csv_has_headers = false}>No</button>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Method (API only) -->
+  {#if channelType === 'api'}
+    <div class="field-group">
+      <label class="field-label">Method</label>
+      <div class="pill-group">
+        <button
+          class="pill"
+          class:pill-active={config.method === 'GET'}
+          onclick={() => setMethod('GET')}
+        >GET</button>
+        <button
+          class="pill"
+          class:pill-active={config.method === 'POST'}
+          onclick={() => setMethod('POST')}
+        >POST</button>
+      </div>
+    </div>
+  {/if}
 
   <!-- Auth -->
   <div class="field-group">
@@ -178,17 +240,19 @@
     {/if}
   </div>
 
-  <!-- Headers -->
-  <div class="field-group">
-    <label class="field-label">Headers</label>
-    <KeyValueEditor bind:pairs={headerPairs} keyPlaceholder="Header name" valuePlaceholder="Value" onChange={syncHeadersToConfig} />
-  </div>
+  <!-- Headers (API only) -->
+  {#if channelType === 'api'}
+    <div class="field-group">
+      <label class="field-label">Headers</label>
+      <KeyValueEditor bind:pairs={headerPairs} keyPlaceholder="Header name" valuePlaceholder="Value" onChange={syncHeadersToConfig} />
+    </div>
 
-  <!-- Params -->
-  <div class="field-group">
-    <label class="field-label">Query Parameters</label>
-    <KeyValueEditor bind:pairs={paramPairs} onChange={syncParamsToConfig} />
-  </div>
+    <!-- Params -->
+    <div class="field-group">
+      <label class="field-label">Query Parameters</label>
+      <KeyValueEditor bind:pairs={paramPairs} onChange={syncParamsToConfig} />
+    </div>
+  {/if}
 
   <!-- Test -->
   <div class="test-section">

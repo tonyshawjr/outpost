@@ -4750,10 +4750,15 @@ function handle_channel_create(): void {
     $existing = OutpostDB::fetchOne('SELECT id FROM channels WHERE slug = ?', [$slug]);
     if ($existing) json_error('A channel with this slug already exists');
 
+    $type = $data['type'] ?? 'api';
+    if (!in_array($type, ['api', 'rss', 'csv'], true)) {
+        json_error('Invalid channel type. Must be api, rss, or csv.');
+    }
+
     $id = OutpostDB::insert('channels', [
         'slug'           => $slug,
         'name'           => $name,
-        'type'           => $data['type'] ?? 'api',
+        'type'           => $type,
         'config'         => json_encode($data['config'] ?? new \stdClass()),
         'field_map'      => json_encode($data['field_map'] ?? []),
         'cache_ttl'      => (int)($data['cache_ttl'] ?? 3600),
@@ -4843,18 +4848,39 @@ function handle_channel_sync_log(): void {
 
 function handle_channel_discover(): void {
     $data = get_json_body();
+    $type = $data['type'] ?? 'api';
 
     $config = [
-        'url'         => $data['url'] ?? '',
-        'method'      => $data['method'] ?? 'GET',
-        'auth_type'   => $data['auth_type'] ?? 'none',
-        'auth_config' => $data['auth_config'] ?? [],
-        'headers'     => $data['headers'] ?? [],
-        'params'      => $data['params'] ?? [],
+        'url'            => $data['url'] ?? '',
+        'method'         => $data['method'] ?? 'GET',
+        'auth_type'      => $data['auth_type'] ?? 'none',
+        'auth_config'    => $data['auth_config'] ?? [],
+        'headers'        => $data['headers'] ?? [],
+        'params'         => $data['params'] ?? [],
+        'csv_delimiter'  => $data['csv_delimiter'] ?? ',',
+        'csv_has_headers' => $data['csv_has_headers'] ?? true,
+        'csv_encoding'   => $data['csv_encoding'] ?? 'UTF-8',
     ];
 
     if (!$config['url']) json_error('URL is required');
 
+    // RSS discovery
+    if ($type === 'rss') {
+        $result = channel_discover_rss($config);
+        if (isset($result['error']) && $result['error']) json_error('RSS fetch failed: ' . $result['error']);
+        json_response($result);
+        return;
+    }
+
+    // CSV discovery
+    if ($type === 'csv') {
+        $result = channel_discover_csv($config);
+        if (isset($result['error']) && $result['error']) json_error('CSV fetch failed: ' . $result['error']);
+        json_response($result);
+        return;
+    }
+
+    // API discovery (existing logic)
     $result = channel_fetch_api($config);
 
     if ($result['error']) {

@@ -8,6 +8,7 @@
     schema = $bindable([]),
     sample = $bindable([]),
     fieldMap = $bindable([]),
+    channelType = 'api',
   } = $props();
 
   let loading = $state(false);
@@ -19,6 +20,7 @@
     error = null;
     try {
       const res = await channels.discover({
+        type: channelType,
         url: config.url,
         method: config.method,
         auth_type: config.auth_type,
@@ -26,11 +28,19 @@
         headers: config.headers,
         params: config.params,
         data_path: config.data_path || '',
+        csv_delimiter: config.csv_delimiter || ',',
+        csv_has_headers: config.csv_has_headers !== false,
+        csv_encoding: config.csv_encoding || 'UTF-8',
       });
       schema = res.schema || [];
       sample = res.sample || [];
       if (res.suggested_path && !config.data_path) {
         config.data_path = res.suggested_path;
+      }
+      // Set smart defaults for RSS
+      if (channelType === 'rss') {
+        if (!config.id_field || config.id_field === 'id') config.id_field = 'guid';
+        if (!config.slug_field || config.slug_field === 'slug') config.slug_field = 'title';
       }
     } catch (err) {
       error = err.message;
@@ -64,27 +74,42 @@
 </script>
 
 <div class="schema-step">
-  <!-- Data Path -->
-  <div class="field-group">
-    <label class="field-label">Data Path</label>
-    <div class="field-row">
-      <input
-        type="text"
-        class="field-input field-input-mono"
-        placeholder="e.g. data.listings"
-        value={config.data_path || ''}
-        oninput={(e) => (config.data_path = e.target.value)}
-      />
-      <button
-        class="btn btn-secondary btn-sm"
-        onclick={discoverSchema}
-        disabled={loading}
-      >
-        {loading ? 'Loading...' : 'Refresh'}
-      </button>
+  <!-- Data Path (API only) -->
+  {#if channelType === 'api'}
+    <div class="field-group">
+      <label class="field-label">Data Path</label>
+      <div class="field-row">
+        <input
+          type="text"
+          class="field-input field-input-mono"
+          placeholder="e.g. data.listings"
+          value={config.data_path || ''}
+          oninput={(e) => (config.data_path = e.target.value)}
+        />
+        <button
+          class="btn btn-secondary btn-sm"
+          onclick={discoverSchema}
+          disabled={loading}
+        >
+          {loading ? 'Loading...' : 'Refresh'}
+        </button>
+      </div>
+      <span class="field-hint">Where is the array in the response? Leave empty if the response is the array.</span>
     </div>
-    <span class="field-hint">Where is the array in the response? Leave empty if the response is the array.</span>
-  </div>
+  {:else}
+    <div class="field-group">
+      <div class="field-row">
+        <div></div>
+        <button
+          class="btn btn-secondary btn-sm"
+          onclick={discoverSchema}
+          disabled={loading}
+        >
+          {loading ? 'Loading...' : 'Re-discover'}
+        </button>
+      </div>
+    </div>
+  {/if}
 
   {#if error}
     <div class="schema-error">

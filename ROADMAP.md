@@ -18,7 +18,7 @@ Everything below is already built and in the current beta (v1.0.0-beta.15).
 - Built-in analytics (pageviews, referrers, top pages — zero external dependencies)
 - Member system (registration, login, email verification, paid tiers, visibility gates)
 - **Visual form builder** — 14 field types, drag-and-drop, `{% form 'slug' %}` template tag, enhanced submissions inbox
-- **Channels (Phase 1: REST API)** — connect to external APIs, cache data in SQLite, render in templates via `{% for item in channel.slug %}`
+- **Channels (Phase 1: REST API + Phase 2: RSS + CSV)** — connect to external APIs, RSS feeds, and CSV files, cache data in SQLite, render in templates via `{% for item in channel.slug %}`
 - **On-page editing** — edit text, richtext, textarea, and image fields directly on the live frontend (admin-only, with floating TipTap toolbar, media picker, auto-save)
 - Forms with submissions, email notifications, reCAPTCHA
 - Code editor (VS Code-style IDE with tabs, file tree, autocomplete, find in files)
@@ -71,9 +71,16 @@ Freeze the feature set. Ship after beta feedback stabilizes.
 - Channel URL pattern routing for single-item pages (e.g. `/listing/{slug}`)
 - Admin UI: Channel list, 4-step builder wizard (Connect → Schema → Configure → Preview), sync dashboard
 
+### Phase 2: RSS + CSV — SHIPPED (v1.1.0)
+
+- RSS 2.0 and Atom 1.0 feed parsing via SimpleXML (title, link, description, pubDate, author, content, category, guid, enclosure)
+- CSV file parsing from any URL (Google Sheets export, hosted CSVs) with configurable delimiter and header detection
+- Source type selector in channel wizard (REST API / RSS Feed / CSV)
+- Type-dispatched schema discovery and sync pipeline
+- SSRF protection on all channel types
+
 ### Remaining phases
 
-- **Phase 2:** RSS + CSV channels
 - **Phase 3:** Inbound webhooks
 - **Phase 4:** Outbound + advanced (filtering, pagination, channel-to-channel piping)
 
@@ -274,8 +281,8 @@ These define what Outpost is. Breaking them makes it something else.
 
 | Version | Target | Theme |
 |---|---|---|
-| 1.0.0 | Q2 2026 | Stable release — beta hardening complete |
-| 1.1 | Q2 2026 | Channels — external data sources (Phase 1: REST API) |
+| 1.0.0 | Q1 2026 | Stable release — beta hardening complete |
+| ~~1.1~~ | ~~Q1 2026~~ | ~~Channels Phase 2: RSS + CSV~~ **Shipped** |
 | ~~1.2~~ | ~~Q3 2026~~ | ~~On-page editing~~ **Shipped in beta.9** |
 | 1.3 | Q3 2026 | Role refinement |
 | 1.4 | Q4 2026 | Backup & restore |

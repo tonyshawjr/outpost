@@ -1301,7 +1301,7 @@
 
     <h2>Channels</h2>
 
-    <p>Manage external data source channels — connect to REST APIs, sync data into SQLite cache, and render in templates. Requires the <code>settings.*</code> capability.</p>
+    <p>Manage external data source channels &mdash; connect to REST APIs, RSS feeds, and CSV files, sync data into SQLite cache, and render in templates. Requires the <code>settings.*</code> capability.</p>
 
     <div class="endpoint">
       <div class="endpoint-line">
@@ -1342,10 +1342,10 @@
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=channels</span>
       </div>
-      <p>Creates a new channel.</p>
+      <p>Creates a new channel. The <code>type</code> field must be <code>"api"</code>, <code>"rss"</code>, or <code>"csv"</code> (default: <code>"api"</code>). Type is immutable after creation.</p>
     </div>
 
-    <p>Request body:</p>
+    <p>Request body (REST API channel):</p>
     <pre><code>{
   "name": "Property Listings",
   "slug": "listings",
@@ -1374,6 +1374,46 @@
   "max_items": 100
 }</code></pre>
 
+    <p>Request body (RSS channel):</p>
+    <pre><code>{
+  "name": "Company Blog",
+  "slug": "blog-feed",
+  "type": "rss",
+  "config": {
+    "url": "https://example.com/feed",
+    "id_field": "guid",
+    "slug_field": "title"
+  },
+  "field_map": [
+    { "source": "title", "type": "string" },
+    { "source": "link", "type": "string" },
+    { "source": "description", "type": "string" },
+    { "source": "pubDate", "type": "string" },
+    { "source": "content", "type": "string" }
+  ],
+  "cache_ttl": 3600
+}</code></pre>
+
+    <p>Request body (CSV channel):</p>
+    <pre><code>{
+  "name": "Team Directory",
+  "slug": "team",
+  "type": "csv",
+  "config": {
+    "url": "https://docs.google.com/spreadsheets/d/.../pub?output=csv",
+    "csv_delimiter": ",",
+    "csv_has_headers": true,
+    "id_field": "name",
+    "slug_field": "name"
+  },
+  "field_map": [
+    { "source": "name", "type": "string" },
+    { "source": "role", "type": "string" },
+    { "source": "email", "type": "string" }
+  ],
+  "cache_ttl": 86400
+}</code></pre>
+
     <div class="endpoint">
       <div class="endpoint-line">
         <span class="method method-put">PUT</span>
@@ -1397,7 +1437,7 @@
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=channels/sync&amp;id=1</span>
       </div>
-      <p>Triggers an immediate sync for the channel. Fetches the external API, upserts items into cache, removes stale items, and logs the result.</p>
+      <p>Triggers an immediate sync for the channel. Fetches the external source (API, RSS feed, or CSV file), upserts items into cache, removes stale items, and logs the result.</p>
     </div>
 
     <p>Response:</p>
@@ -1442,11 +1482,12 @@
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=channels/discover</span>
       </div>
-      <p>Fetches a URL with the provided auth configuration and returns the JSON response schema. Used by the admin channel builder wizard to discover API structure before saving the channel.</p>
+      <p>Fetches a URL with the provided configuration and returns the discovered schema. Used by the admin channel builder wizard to discover source structure before saving the channel. Dispatches by <code>type</code>: REST API returns JSON schema tree, RSS returns standard feed fields, CSV returns column headers.</p>
     </div>
 
-    <p>Request body:</p>
+    <p>Request body (REST API):</p>
     <pre><code>{
+  "type": "api",
   "url": "https://api.example.com/v1/listings",
   "method": "GET",
   "auth_type": "bearer",
@@ -1454,6 +1495,20 @@
   "headers": {},
   "params": {},
   "data_path": "data.listings"
+}</code></pre>
+
+    <p>Request body (RSS):</p>
+    <pre><code>{
+  "type": "rss",
+  "url": "https://example.com/feed"
+}</code></pre>
+
+    <p>Request body (CSV):</p>
+    <pre><code>{
+  "type": "csv",
+  "url": "https://docs.google.com/.../pub?output=csv",
+  "csv_delimiter": ",",
+  "csv_has_headers": true
 }</code></pre>
 
     <p>Response:</p>

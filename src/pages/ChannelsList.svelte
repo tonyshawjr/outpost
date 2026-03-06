@@ -9,6 +9,7 @@
   let creating = $state(false);
   let channelName = $state('');
   let channelSlug = $state('');
+  let channelType = $state('api');
   let submitting = $state(false);
   let deleteConfirmId = $state(null);
 
@@ -30,6 +31,7 @@
     creating = true;
     channelName = '';
     channelSlug = '';
+    channelType = 'api';
   }
 
   function cancelCreate() {
@@ -47,6 +49,7 @@
       const res = await channels.create({
         name: channelName.trim(),
         slug: channelSlug.trim(),
+        type: channelType,
       });
       addToast('Channel created');
       navigate('channel-builder', { channelId: res.id });
@@ -107,6 +110,22 @@
     <div class="create-row">
       <div class="create-fields">
         <div class="create-field">
+          <label class="create-label">Type</label>
+          <div class="create-type-pills">
+            {#each [
+              { value: 'api', label: 'REST API' },
+              { value: 'rss', label: 'RSS Feed' },
+              { value: 'csv', label: 'CSV' },
+            ] as t}
+              <button
+                class="type-pill"
+                class:type-pill-active={channelType === t.value}
+                onclick={() => channelType = t.value}
+              >{t.label}</button>
+            {/each}
+          </div>
+        </div>
+        <div class="create-field">
           <label class="create-label">Name</label>
           <input
             type="text"
@@ -147,7 +166,7 @@
     <div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width: 48px; height: 48px; opacity: 0.3; margin-bottom: 16px;"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.4"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.4"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>
       <h3>No channels yet</h3>
-      <p>Connect an external API to pull data into your templates.</p>
+      <p>Pull external data into your templates from APIs, RSS feeds, and CSV files.</p>
       <button class="btn btn-primary" onclick={startCreate}>Create Channel</button>
     </div>
   {:else}
@@ -159,6 +178,8 @@
             <span class="channel-card-status {statusClass(ch.status)}">{ch.status}</span>
           </div>
           <div class="channel-card-meta">
+            <span class="channel-card-type">{ch.type === 'rss' ? 'RSS' : ch.type === 'csv' ? 'CSV' : 'API'}</span>
+            <span class="channel-card-dot"></span>
             <span class="channel-card-slug">{ch.slug}</span>
             <span class="channel-card-dot"></span>
             <span>{ch.item_count || 0} items</span>
@@ -361,5 +382,40 @@
 
   .channel-card-link-danger:hover {
     color: var(--danger);
+  }
+
+  .channel-card-type {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+
+  .create-type-pills {
+    display: flex;
+    gap: 4px;
+  }
+
+  .type-pill {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .type-pill:hover {
+    background: var(--bg-secondary);
+  }
+
+  .type-pill-active {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
   }
 </style>
