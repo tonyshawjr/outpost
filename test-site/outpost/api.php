@@ -23,6 +23,9 @@ require_once __DIR__ . '/channels.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+// GitHub repository for auto-updater
+define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');
+
 // ── CORS for dev ─────────────────────────────────────────
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     $origin = $_SERVER['HTTP_ORIGIN'];
@@ -4819,8 +4822,6 @@ function handle_channel_items(): void {
 }
 
 // ── Updates ─────────────────────────────────────────────
-
-define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');
 
 function handle_updates_check(): void {
     $current = OUTPOST_VERSION;
