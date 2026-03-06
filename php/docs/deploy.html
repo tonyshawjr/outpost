@@ -87,6 +87,7 @@
       <a href="features/seo.html" class="nav-link">SEO</a>
       <a href="features/revisions.html" class="nav-link">Revision History</a>
       <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+      <a href="features/auto-updater.html" class="nav-link">Auto-Updater</a>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">API Reference</div>
@@ -104,6 +105,7 @@
       <a href="reference/migrations.html" class="nav-link">Migrations</a>
       <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
       <a href="reference/caching.html" class="nav-link">Caching</a>
+      <a href="reference/security.html" class="nav-link">Security</a>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Recipes</div>
@@ -478,6 +480,82 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
 0 2 * * * find /backups/ -name "cms-*.db" -mtime +30 -delete</code></pre>
 
     <p>For a more robust solution, use <code>rsync</code> to an off-site server or an object storage service (S3, Backblaze B2, etc.) to keep backups in a separate location from the live server.</p>
+
+    <h2>Upgrading from Beta to Stable</h2>
+
+    <p>If you are running any <code>1.0.0-beta.*</code> version, upgrading to <code>1.0.0</code> stable is straightforward. No manual database migration is required — Outpost runs schema migrations automatically on the next request.</p>
+
+    <h3>Option A: Built-in auto-updater (recommended)</h3>
+    <p>If your site is running <strong>beta.11 or later</strong>, use the built-in updater:</p>
+    <ol>
+      <li>Go to <strong>Settings &rarr; Updates</strong> in the admin panel</li>
+      <li>Click <strong>"Check for updates"</strong></li>
+      <li>Review the release notes, then click <strong>"Update now"</strong></li>
+      <li>The updater replaces core PHP files and the admin SPA. Your themes, database, uploads, and cache are never touched.</li>
+    </ol>
+    <p>See <a href="features/auto-updater.html">Auto-Updater</a> for full details on what gets replaced.</p>
+
+    <h3>Option B: Manual file replacement</h3>
+    <p>If your site is running <strong>beta.10 or earlier</strong> (before the auto-updater existed), or if you prefer manual control:</p>
+    <ol>
+      <li>Download the latest <code>outpost-vX.X.X.zip</code> from <a href="https://github.com/tonyshawjr/outpost/releases">GitHub Releases</a></li>
+      <li>Extract the zip</li>
+      <li>Copy all <code>.php</code> files from the zip root into your site's <code>outpost/</code> directory, overwriting existing files</li>
+      <li>Copy the entire <code>admin/</code> directory (replace the existing one)</li>
+      <li>Copy the <code>docs/</code>, <code>member-pages/</code>, and <code>tools/</code> directories</li>
+      <li>Delete the contents of <code>outpost/cache/templates/</code> to force template recompilation</li>
+    </ol>
+
+    <div class="callout callout-warn">
+      <strong>Do NOT overwrite these directories:</strong>
+      <code>themes/</code>, <code>data/</code>, <code>uploads/</code>, <code>cache/</code> (except templates).
+      These contain your content, database, and customizations.
+    </div>
+
+    <h3>What changes between beta and stable</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Database schema</td>
+          <td>New columns added automatically via migrations on first request. No manual SQL needed.</td>
+        </tr>
+        <tr>
+          <td>Session keys</td>
+          <td>Member session keys were renamed in beta.14. Active member sessions will be logged out once — they simply log in again.</td>
+        </tr>
+        <tr>
+          <td>Taxonomy &rarr; Folder rename</td>
+          <td>Database tables were auto-migrated in beta.7. Old API endpoints (<code>taxonomies/*</code>, <code>terms/*</code>) still work as aliases. Old template syntax (<code>{% for term in taxonomy.slug %}</code>) still works.</td>
+        </tr>
+        <tr>
+          <td>Template cache</td>
+          <td>Cleared automatically after auto-update. If upgrading manually, delete <code>cache/templates/*.php</code>.</td>
+        </tr>
+        <tr>
+          <td>Security hardening</td>
+          <td>Beta.14 added SSRF prevention, IP-based rate limiting, TOTP replay prevention, SVG DOM sanitization, and more. All automatic — no configuration needed.</td>
+        </tr>
+        <tr>
+          <td>Config constants</td>
+          <td><code>OUTPOST_VERSION</code> in <code>config.php</code> is updated automatically. No manual version bump needed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Post-upgrade verification</h3>
+    <ol>
+      <li>Log in to the admin panel — the version pill in the footer should show the new version</li>
+      <li>Visit the frontend — pages should render correctly (template cache is rebuilt automatically)</li>
+      <li>Upload an image in Media to verify file permissions</li>
+      <li>If you use member login, verify a member can still log in</li>
+      <li>If you use channels, verify the channel sync still works (Settings &rarr; Channels &rarr; Sync)</li>
+    </ol>
 
     <h2>Production Checklist</h2>
     <p>Before going live, work through this list:</p>

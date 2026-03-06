@@ -104,6 +104,7 @@
       <a href="reference/migrations.html" class="nav-link">Migrations</a>
       <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
       <a href="reference/caching.html" class="nav-link">Caching</a>
+      <a href="reference/security.html" class="nav-link">Security</a>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Recipes</div>
@@ -1082,6 +1083,46 @@
       <p>Writes content to a file. The file must be within the active theme directory.</p>
     </div>
 
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=code/create</span>
+      </div>
+      <p>Creates a new file or folder. Body: <code>{ path, type: "file"|"folder", content? }</code>. File extensions must be in the allowed list.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=code/rename</span>
+      </div>
+      <p>Renames or moves a file/folder within the theme. Body: <code>{ oldPath, newPath }</code>. Path traversal is blocked.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=code/delete</span>
+      </div>
+      <p>Deletes a file or folder (recursive for directories). Body: <code>{ path }</code>.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=code/search&amp;q=term</span>
+      </div>
+      <p>Full-text search across all theme files. Returns up to 200 matching results with line numbers and context.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=code/context</span>
+      </div>
+      <p>Returns the Outpost context for editor autocomplete: global field names, collection slugs, and collection schemas.</p>
+    </div>
+
     <h2>Saved loops</h2>
 
     <p>Saved loops store reusable query configurations. Requires the <code>code.*</code> capability.</p>
@@ -1754,6 +1795,134 @@
 
     <h3>Retry schedule</h3>
     <p>Failed deliveries are retried up to 5 times via the cron endpoint: 1 min, 5 min, 30 min, 2 hours, 12 hours. Successful deliveries are cleaned up after 7 days, exhausted failures after 30 days.</p>
+
+    <h2>Updates</h2>
+
+    <p>Built-in auto-updater. Requires <code>super_admin</code> role. See <a href="features/auto-updater.html">Auto-Updater</a> for the full workflow.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=updates/check</span>
+      </div>
+      <p>Checks for a newer version by comparing <code>OUTPOST_VERSION</code> against the latest GitHub Release. Response is cached for 1 hour.</p>
+    </div>
+
+    <pre><code>{
+  "available": true,
+  "current_version": "1.0.0-beta.13",
+  "latest_version": "1.0.0-beta.14",
+  "release_notes": "...",
+  "download_url": "https://github.com/..."
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=updates/apply</span>
+      </div>
+      <p>Downloads a release zip and applies the update. Body: <code>{ url }</code>. The URL must point to <code>github.com/tonyshawjr/outpost/releases</code>. All zip paths are validated before extraction. Only core files are replaced — themes, data, and uploads are never touched.</p>
+    </div>
+
+    <h2>Cron</h2>
+
+    <p>Cron endpoints handle scheduled tasks (publishing, webhook retries, analytics cleanup). The public cron endpoint requires a secret key.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=cron&amp;key=SECRET</span>
+      </div>
+      <p>Runs all scheduled tasks: publishes scheduled items, retries failed webhook deliveries, prunes old analytics data. Call this from an external cron job (e.g. every 5 minutes). The <code>key</code> parameter must match the stored cron secret.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=cron/key</span>
+      </div>
+      <p>Returns the current cron secret key. Requires <code>super_admin</code> role.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=cron/key/regenerate</span>
+      </div>
+      <p>Regenerates the cron secret key. The previous key is immediately invalidated. Requires <code>super_admin</code> role.</p>
+    </div>
+
+    <h2>Goals</h2>
+
+    <p>Analytics goal tracking. Requires <code>analytics.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=goals</span>
+      </div>
+      <p>Lists all configured goals with their current conversion counts.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=goals</span>
+      </div>
+      <p>Creates a new goal. Body: <code>{ name, type, target_url?, target_event? }</code>.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=goals&amp;id=N</span>
+      </div>
+      <p>Updates an existing goal.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=goals&amp;id=N</span>
+      </div>
+      <p>Deletes a goal.</p>
+    </div>
+
+    <h2>Dashboard analytics</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/events</span>
+      </div>
+      <p>Returns custom event analytics (outbound clicks, downloads, form submissions) aggregated by event name.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/events/detail&amp;name=event_name</span>
+      </div>
+      <p>Returns detailed event data for a specific event name, including per-URL breakdowns.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/goals</span>
+      </div>
+      <p>Returns goal completion data for the dashboard, including conversion counts per goal over the selected time range.</p>
+    </div>
+
+    <h2>Revisions diff</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=revisions/diff&amp;id=N</span>
+      </div>
+      <p>Returns a field-level diff between a revision and the current content. Shows which fields changed, with before/after values.</p>
+    </div>
 
   </div>
 </main>

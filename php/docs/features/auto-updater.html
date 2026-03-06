@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto-Updater — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+      <a href="features/auto-updater.html" class="nav-link active">Auto-Updater</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+      <a href="reference/security.html" class="nav-link">Security</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Auto-Updater</h1>
+    <p class="lead">Check for and apply core updates directly from the admin panel. No SSH, no FTP &mdash; one click.</p>
+  </div>
+  <div class="content">
+
+    <h2>How It Works</h2>
+    <p>Outpost includes a built-in updater at <strong>Settings &rarr; Updates</strong> that lets administrators check for new versions and apply them without leaving the browser. The entire flow is self-contained &mdash; no command-line access, FTP clients, or manual file copying required.</p>
+
+    <ol>
+      <li>Admin visits <strong>Settings &rarr; Updates</strong> in the admin panel</li>
+      <li>The UI calls <code>GET api.php?action=updates/check</code>, which fetches the latest GitHub Release from the Outpost repository</li>
+      <li>Outpost compares the installed <code>OUTPOST_VERSION</code> (from <code>config.php</code>) against the release tag using <code>version_compare()</code></li>
+      <li>If a newer version is available, the UI displays the release notes and an update button</li>
+      <li>Admin clicks <strong>&ldquo;Update now&rdquo;</strong> &mdash; the UI calls <code>POST api.php?action=updates/apply</code> with the zip download URL</li>
+      <li>PHP downloads the zip, validates the URL (must point to <code>github.com/tonyshawjr/outpost</code>), and validates all zip entry paths to prevent path traversal attacks</li>
+      <li>Extracts the archive and copies only core files to the installation directory, then clears the template cache</li>
+      <li>The admin SPA reloads automatically on the new version</li>
+    </ol>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The update check result is cached for 1 hour. Visiting the Updates page multiple times within that window will not make repeated requests to GitHub.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>What Gets Updated</h2>
+    <p>When an update is applied, Outpost replaces only the core system files. Everything that makes your site unique &mdash; your theme, your content, your uploads &mdash; is left untouched.</p>
+
+    <h3>Files that are replaced</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>*.php</code> (outpost root)</td>
+          <td>All PHP files in the outpost root directory &mdash; <code>api.php</code>, <code>engine.php</code>, <code>config.php</code>, <code>front-router.php</code>, <code>template-engine.php</code>, etc.</td>
+        </tr>
+        <tr>
+          <td><code>admin/</code></td>
+          <td>The entire admin SPA &mdash; <code>index.html</code>, JavaScript bundles, and CSS assets</td>
+        </tr>
+        <tr>
+          <td><code>docs/</code></td>
+          <td>Developer documentation</td>
+        </tr>
+        <tr>
+          <td><code>member-pages/</code></td>
+          <td>Built-in member page templates (login, register, password reset)</td>
+        </tr>
+        <tr>
+          <td><code>tools/</code></td>
+          <td>Utility scripts and diagnostic tools</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Files that are never touched</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Why it is protected</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>themes/</code></td>
+          <td>Contains your custom themes and any modifications you have made. The updater will never overwrite your theme files.</td>
+        </tr>
+        <tr>
+          <td><code>data/</code></td>
+          <td>Your SQLite database (<code>cms.db</code>). All your content, settings, and configuration live here.</td>
+        </tr>
+        <tr>
+          <td><code>uploads/</code></td>
+          <td>All user-uploaded media files (images, documents, etc.).</td>
+        </tr>
+        <tr>
+          <td><code>cache/</code></td>
+          <td>Compiled template cache. This directory is <em>cleared</em> after an update so templates are recompiled with the latest engine changes, but it rebuilds automatically on the next page load.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Because themes are never overwritten, you can safely customize any theme file. Your changes will persist through every update.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Database Migrations</h2>
+    <p>After an update, your database schema may need changes &mdash; new columns, new tables, or modified indexes. Outpost handles this automatically.</p>
+    <p>On the next API request after an update, the bootstrap process checks for missing columns and tables using <code>PRAGMA table_info</code> and applies any necessary <code>ALTER TABLE ADD COLUMN</code> statements. No manual intervention is needed.</p>
+    <p>Migrations are idempotent &mdash; they check whether each change has already been applied before running, so they are safe to run multiple times.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; If a new version introduces schema changes, the first API request after the update may take slightly longer as migrations run. Subsequent requests return to normal speed.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>API Endpoints</h2>
+    <p>The auto-updater is powered by two API endpoints. Both require <strong>super_admin</strong> role and session authentication with a valid CSRF token.</p>
+
+    <h3>Check for updates</h3>
+    <div class="endpoint-card">
+      <div class="endpoint-line">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">api.php?action=updates/check</span>
+      </div>
+    </div>
+    <p>Checks the GitHub Releases API for the latest version and compares it against the installed version.</p>
+    <p><strong>Requires:</strong> <code>super_admin</code> role</p>
+    <p><strong>Response:</strong></p>
+    <pre><code>{
+  "available": true,
+  "current_version": "1.0.0-beta.12",
+  "latest_version": "1.0.0-beta.13",
+  "release_notes": "### Fixed\n- Fix package script...",
+  "download_url": "https://github.com/tonyshawjr/outpost/releases/download/v1.0.0-beta.13/outpost-v1.0.0-beta.13.zip"
+}</code></pre>
+    <p>When no update is available:</p>
+    <pre><code>{
+  "available": false,
+  "current_version": "1.0.0-beta.13",
+  "latest_version": "1.0.0-beta.13"
+}</code></pre>
+    <p>The response is cached for 1 hour. Subsequent calls within that window return the cached result without hitting the GitHub API.</p>
+
+    <h3>Apply update</h3>
+    <div class="endpoint-card">
+      <div class="endpoint-line">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">api.php?action=updates/apply</span>
+      </div>
+    </div>
+    <p>Downloads and installs the specified update package.</p>
+    <p><strong>Requires:</strong> <code>super_admin</code> role</p>
+    <p><strong>Request body:</strong></p>
+    <pre><code>{
+  "url": "https://github.com/tonyshawjr/outpost/releases/download/v1.0.0-beta.13/outpost-v1.0.0-beta.13.zip"
+}</code></pre>
+    <p><strong>Validation:</strong></p>
+    <ul>
+      <li>The URL must use HTTPS</li>
+      <li>The hostname must be <code>github.com</code></li>
+      <li>The path must begin with <code>/tonyshawjr/outpost/releases</code></li>
+      <li>All zip entry paths are validated before extraction to prevent zip slip attacks</li>
+    </ul>
+    <p><strong>Response (success):</strong></p>
+    <pre><code>{
+  "success": true,
+  "message": "Update applied successfully"
+}</code></pre>
+    <p><strong>Response (failure):</strong></p>
+    <pre><code>{
+  "error": "Invalid download URL"
+}</code></pre>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Security</h2>
+    <p>The updater includes multiple layers of validation to ensure only legitimate updates from the official repository can be applied.</p>
+
+    <h3>URL validation</h3>
+    <p>Before downloading, the URL is parsed with <code>parse_url()</code> and checked against strict rules:</p>
+    <ul>
+      <li>Scheme must be <code>https</code></li>
+      <li>Hostname must be exactly <code>github.com</code></li>
+      <li>Path must start with <code>/tonyshawjr/outpost/releases</code></li>
+    </ul>
+    <p>Any URL that does not match all three criteria is rejected immediately.</p>
+
+    <h3>Zip slip prevention</h3>
+    <p>Before extracting any file from the downloaded zip archive, Outpost validates every entry path to ensure it does not contain directory traversal sequences (e.g. <code>../</code>). If any entry attempts to write outside the expected directory, the entire update is aborted.</p>
+
+    <h3>Role-based access</h3>
+    <p>Both updater endpoints require the <code>super_admin</code> role. Regular admin users and editors cannot check for or apply updates. This ensures that only the site owner can modify the installation.</p>
+
+    <h3>HTTPS enforcement</h3>
+    <p>The download URL must use HTTPS. Plain HTTP URLs are rejected to prevent man-in-the-middle attacks during the download.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> &mdash; The updater replaces core PHP files on the server. Always ensure you have a backup of your site before applying updates. While the updater is designed to be safe, having a backup provides an extra layer of protection.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Manual Updates</h2>
+    <p>For sites that do not yet have the built-in updater (versions before <code>v1.0.0-beta.11</code>), updates must be applied manually:</p>
+    <ol>
+      <li>Download the latest release zip from the <a href="https://github.com/tonyshawjr/outpost/releases">GitHub Releases page</a></li>
+      <li>Extract the zip on your local machine</li>
+      <li>Upload the core files to your <code>outpost/</code> directory via FTP or SSH:
+        <ul>
+          <li>All <code>.php</code> files in the root</li>
+          <li>The entire <code>admin/</code> directory</li>
+          <li>The <code>docs/</code>, <code>member-pages/</code>, and <code>tools/</code> directories</li>
+        </ul>
+      </li>
+      <li>Clear the template cache: delete all files in <code>outpost/cache/templates/</code></li>
+      <li>Reload the admin panel</li>
+    </ol>
+    <p>Once the manual update includes the updated <code>api.php</code> with the updater endpoints, all future updates can be done through <strong>Settings &rarr; Updates</strong>.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Do <em>not</em> overwrite the <code>themes/</code>, <code>data/</code>, <code>uploads/</code>, or <code>cache/</code> directories during a manual update. These contain your site-specific content and should be left in place.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Configuration</h2>
+    <p>The updater uses one key constant defined at the top of <code>api.php</code>:</p>
+    <pre><code>define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');</code></pre>
+    <p>This constant tells the updater which GitHub repository to check for releases. The GitHub Releases API URL is constructed as:</p>
+    <pre><code>https://api.github.com/repos/{OUTPOST_GITHUB_REPO}/releases/latest</code></pre>
+    <p>If the repository ever moves, update this constant and the URL validation logic in the <code>updates/apply</code> handler.</p>
+
+    <p>The installed version is read from <code>config.php</code>:</p>
+    <pre><code>define('OUTPOST_VERSION', '1.0.0-beta.13');</code></pre>
+    <p>This is the value compared against the latest release tag to determine whether an update is available.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

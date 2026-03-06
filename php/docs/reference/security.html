@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+      <a href="features/auto-updater.html" class="nav-link">Auto-Updater</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+      <a href="reference/security.html" class="nav-link active">Security</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Security</h1>
+    <p class="lead">Outpost is hardened against common web vulnerabilities. This page documents the security measures built into the CMS.</p>
+  </div>
+  <div class="content">
+
+    <h2>Authentication &amp; Sessions</h2>
+    <ul>
+      <li>Session-based auth with CSRF token validation on all mutations.</li>
+      <li>Bcrypt password hashing (cost 12).</li>
+      <li>Session cookies use the <code>secure</code> flag in production (HTTPS-only).</li>
+      <li>Session lifetime: 24 hours (configurable in <code>config.php</code>).</li>
+      <li>TOTP two-factor authentication with backup codes.</li>
+      <li>TOTP codes are single-use (replay prevention).</li>
+      <li>TOTP verify endpoint rate limited: 5 attempts per 5 minutes per IP.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Rate Limiting</h2>
+    <p>Outpost enforces per-endpoint rate limits to prevent brute-force attacks and abuse. Limits are tracked in the SQLite database and keyed by IP address, session, or API key depending on the endpoint.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Endpoint</th><th>Limit</th><th>Window</th><th>Key</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Admin login</td>
+          <td>5 attempts</td>
+          <td>60 seconds</td>
+          <td>IP + session</td>
+        </tr>
+        <tr>
+          <td>Member login</td>
+          <td>5 attempts</td>
+          <td>60 seconds</td>
+          <td>IP + session</td>
+        </tr>
+        <tr>
+          <td>TOTP verify</td>
+          <td>5 attempts</td>
+          <td>5 minutes</td>
+          <td>IP</td>
+        </tr>
+        <tr>
+          <td>Forgot password</td>
+          <td>5 requests</td>
+          <td>5 minutes</td>
+          <td>IP</td>
+        </tr>
+        <tr>
+          <td>Reset password</td>
+          <td>10 requests</td>
+          <td>5 minutes</td>
+          <td>IP</td>
+        </tr>
+        <tr>
+          <td>Form submissions</td>
+          <td>5 per form</td>
+          <td>60 seconds</td>
+          <td>IP</td>
+        </tr>
+        <tr>
+          <td>API mutations</td>
+          <td>60 requests</td>
+          <td>60 seconds</td>
+          <td>API key</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2>SSRF Prevention</h2>
+    <p>All outbound HTTP requests (channels, webhooks) are validated before execution to prevent Server-Side Request Forgery attacks.</p>
+    <ul>
+      <li>URL scheme must be <code>http</code> or <code>https</code> — <code>file://</code>, <code>ftp://</code>, <code>gopher://</code> etc. are blocked.</li>
+      <li>Hostname is resolved to IP and checked against blocked ranges:</li>
+    </ul>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Blocked Range</th><th>CIDR / Host</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Private (Class A)</td>
+          <td><code>10.0.0.0/8</code></td>
+          <td>Internal network access</td>
+        </tr>
+        <tr>
+          <td>Private (Class B)</td>
+          <td><code>172.16.0.0/12</code></td>
+          <td>Internal network access</td>
+        </tr>
+        <tr>
+          <td>Private (Class C)</td>
+          <td><code>192.168.0.0/16</code></td>
+          <td>Internal network access</td>
+        </tr>
+        <tr>
+          <td>Loopback</td>
+          <td><code>127.0.0.0/8</code></td>
+          <td>Localhost access</td>
+        </tr>
+        <tr>
+          <td>Link-local</td>
+          <td><code>169.254.0.0/16</code></td>
+          <td>Link-local network</td>
+        </tr>
+        <tr>
+          <td>Cloud metadata</td>
+          <td><code>169.254.169.254</code></td>
+          <td>AWS/GCP instance metadata endpoint</td>
+        </tr>
+        <tr>
+          <td>Cloud metadata</td>
+          <td><code>metadata.google.internal</code></td>
+          <td>GCP metadata hostname</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Additionally, curl handles are restricted via <code>CURLOPT_PROTOCOLS</code> and <code>CURLOPT_REDIR_PROTOCOLS</code> to prevent protocol downgrade after redirects.</p>
+
+    <hr>
+
+    <h2>File Upload Security</h2>
+    <ul>
+      <li><strong>Extension allowlist:</strong> <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>avif</code>, <code>svg</code>, <code>pdf</code>, <code>mp4</code>, <code>webm</code>.</li>
+      <li><strong>MIME type validation</strong> — the server checks the file's MIME type matches its extension.</li>
+      <li><strong>SVG sanitization</strong> — SVG files are parsed with a DOM parser. The following are removed: <code>&lt;script&gt;</code>, <code>&lt;foreignObject&gt;</code>, all <code>on*</code> event handler attributes, and dangerous URI schemes (<code>javascript:</code>, <code>data:</code>, <code>vbscript:</code>).</li>
+      <li><strong>Path traversal prevention</strong> — all file paths are validated with <code>realpath()</code> scoping to ensure uploads cannot escape the <code>uploads/</code> directory.</li>
+    </ul>
+
+    <hr>
+
+    <h2>HTML Sanitization</h2>
+    <p>All richtext/HTML content is sanitized before storage. See the <a href="reference/sanitization.html">Sanitization</a> reference for the full allowlist of tags and attributes.</p>
+    <ul>
+      <li>Only allowlisted elements and attributes are preserved — everything else is stripped.</li>
+      <li>URI schemes are restricted to <code>http</code>, <code>https</code>, <code>mailto</code>, and relative paths.</li>
+      <li>Dangerous schemes (<code>javascript:</code>, <code>data:</code>, <code>vbscript:</code>) are blocked.</li>
+      <li>Whitespace and control characters are stripped before scheme matching to prevent bypass via <code>java\nscript:</code> or similar tricks.</li>
+    </ul>
+
+    <hr>
+
+    <h2>API Key Security</h2>
+    <ul>
+      <li>API keys are hashed with bcrypt before storage. The plaintext key is shown exactly once at creation time and cannot be retrieved again.</li>
+      <li>Lookup uses a prefix-based approach for O(1) database lookups — the system does not need to scan and compare against all stored keys.</li>
+      <li>Per-key usage tracking and rate limiting (60 requests per 60 seconds).</li>
+    </ul>
+
+    <pre><code><span class="token comment">// API key format: outpost_XXXX_YYYYYYYYYYYY</span>
+<span class="token comment">// XXXX = prefix (stored plaintext for fast lookup)</span>
+<span class="token comment">// YYYYYYYYYYYY = secret (stored as bcrypt hash)</span></code></pre>
+
+    <hr>
+
+    <h2>CORS</h2>
+    <p>Cross-Origin Resource Sharing is handled with strict origin matching to prevent unauthorized cross-origin access.</p>
+    <ul>
+      <li>Only exact <code>localhost</code> or <code>127.0.0.1</code> origins are accepted during development.</li>
+      <li>No substring matching — this prevents bypass via domains like <code>evil-localhost.com</code>.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Auto-Updater Security</h2>
+    <p>The built-in auto-updater at Settings &rarr; Updates includes multiple safeguards.</p>
+    <ul>
+      <li><strong>Download URL validation:</strong> the URL must point to <code>github.com</code> with the correct repository path.</li>
+      <li><strong>HTTPS enforced</strong> for all update downloads.</li>
+      <li><strong>Zip slip prevention:</strong> all zip entry paths are validated before extraction to ensure no file can be written outside the target directory.</li>
+      <li><strong>Role gated:</strong> only <code>super_admin</code> users can trigger updates.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Path Traversal Prevention</h2>
+    <p>All file operations are scoped to their intended directories using <code>realpath()</code> containment checks.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Feature</th><th>Scoped To</th><th>Method</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Code editor</td>
+          <td><code>themes/</code> directory</td>
+          <td><code>realpath()</code> containment</td>
+        </tr>
+        <tr>
+          <td>Media uploads</td>
+          <td><code>uploads/</code> directory</td>
+          <td><code>realpath()</code> containment</td>
+        </tr>
+        <tr>
+          <td>Page delete (template file)</td>
+          <td>Active theme directory</td>
+          <td><code>realpath()</code> containment</td>
+        </tr>
+        <tr>
+          <td>Template cache</td>
+          <td><code>cache/templates/</code></td>
+          <td><code>.htaccess</code> deny from all</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Access Control</h2>
+    <p>Outpost uses a 6-role capability system. Each role inherits the permissions of roles below it.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Role</th><th>Scope</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>super_admin</code></td>
+          <td>Full access including settings, updates, user management, code editor, and API keys.</td>
+        </tr>
+        <tr>
+          <td><code>admin</code></td>
+          <td>Full content management, member management, theme configuration.</td>
+        </tr>
+        <tr>
+          <td><code>developer</code></td>
+          <td>Code editor access, theme editing, template management.</td>
+        </tr>
+        <tr>
+          <td><code>editor</code></td>
+          <td>Create and edit pages, collections, media. No settings or code access.</td>
+        </tr>
+        <tr>
+          <td><code>paid_member</code></td>
+          <td>Access to public, members-only, and paid-only pages on the front end.</td>
+        </tr>
+        <tr>
+          <td><code>free_member</code></td>
+          <td>Access to public and members-only pages on the front end.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Page Visibility Gates</h3>
+    <p>Page visibility is enforced at the router level in <code>front-router.php</code>. Each page has a <code>visibility</code> setting:</p>
+    <ul>
+      <li><strong><code>public</code></strong> — visible to all visitors (default).</li>
+      <li><strong><code>members</code></strong> — requires an authenticated member session (<code>free_member</code> or above).</li>
+      <li><strong><code>paid</code></strong> — requires an authenticated <code>paid_member</code> session.</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <strong>Suspended member detection.</strong> Member sessions are periodically revalidated against the database on a 5-minute interval. If a member is suspended or deleted between page loads, their session is invalidated within 5 minutes.
+    </div>
+
+    <hr>
+
+    <h2>SQL Injection Prevention</h2>
+    <div class="callout callout-note">
+      All database queries use PDO prepared statements with parameterized placeholders. No user input is ever interpolated directly into SQL strings.
+    </div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

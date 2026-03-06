@@ -15,6 +15,8 @@
 - [Members System](/outpost/docs/members/): Member registration, login, password reset
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
+- [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system
+- [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
 
 ---
 
@@ -1345,6 +1347,46 @@ rm -f outpost/cache/templates/*.php
 ```
 
 Or use Clear Cache in the admin top bar.
+
+**Upgrading from beta to stable:** Use Settings → Updates (built-in auto-updater) for beta.11+, or manually copy core PHP files + `admin/` directory for older versions. Database migrations run automatically. Themes, data, and uploads are never touched. See the deploy guide for full upgrade instructions.
+
+## Auto-Updater
+
+Check for and apply core updates from Settings → Updates. Requires `super_admin` role.
+
+**How it works:**
+1. `GET api.php?action=updates/check` — fetches latest GitHub Release, compares against `OUTPOST_VERSION`, cached 1 hour
+2. `POST api.php?action=updates/apply` — downloads release zip, validates URL (must be github.com/tonyshawjr/outpost), validates zip paths (zip slip prevention), extracts core files only
+
+**Files replaced:** root `.php` files, `admin/`, `docs/`, `member-pages/`, `tools/`
+**Files never touched:** `themes/`, `data/`, `uploads/`, `cache/` (cache is cleared post-update)
+
+**Security:** URL validated via `parse_url()` with strict hostname + path check. HTTPS enforced. All zip entry paths validated before extraction. Only `super_admin` can trigger updates.
+
+## Security
+
+Outpost is hardened against common web vulnerabilities:
+
+**Authentication:** Session-based with CSRF tokens. Bcrypt password hashing (cost 12). Secure cookies in production. TOTP 2FA with replay prevention and single-use tokens.
+
+**Rate limiting:**
+- Admin/member login: 5 attempts per 60s per IP + session
+- TOTP verify: 5 attempts per 5 minutes per IP
+- Forgot/reset password: 5 requests per 5 minutes per IP
+- Form submissions: 5 per 60s per IP
+- API mutations: 60 per 60s per API key
+
+**SSRF prevention:** All outbound HTTP (channels, webhooks) validated — scheme must be http/https, hostname resolved and checked against private/loopback/link-local/metadata IP ranges. `CURLOPT_PROTOCOLS` restricted.
+
+**File security:** Upload extension + MIME allowlist. SVG sanitized with DOM parser (removes script, foreignObject, on* handlers, dangerous URIs). Path traversal prevention via `realpath()` scoping in code editor, media upload, and page delete.
+
+**HTML sanitization:** Richtext stored clean via allowlist filter. URI schemes restricted to http, https, mailto, relative paths. Blocks `javascript:`, `data:`, `vbscript:`.
+
+**API keys:** Bcrypt-hashed, prefix-based O(1) lookup. Per-key rate limiting and usage tracking.
+
+**CORS:** Strict origin matching — only exact `localhost` or `127.0.0.1` accepted.
+
+**Access control:** 6-role capability system. Page visibility gates (public, members, paid) enforced at router level. Suspended members detected via periodic DB revalidation.
 
 **Build admin SPA (if modifying `src/`):**
 ```bash
