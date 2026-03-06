@@ -7,9 +7,10 @@
  * Or:    npm run package
  */
 
-import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync } from 'fs';
+import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -113,9 +114,30 @@ cache/*
 );
 console.log('  Created .gitignore');
 
+// ─── Create release zip ───
+const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
+const version = pkg.version;
+const zipName = `outpost-v${version}.zip`;
+const zipPath = resolve(ROOT, 'dist', zipName);
+
+// Remove old zip if exists
+if (existsSync(zipPath)) rmSync(zipPath);
+
+try {
+  // Create zip from dist/ directory (contains outpost/ + index.php + .htaccess)
+  execSync(`cd "${resolve(ROOT, 'dist')}" && zip -r "${zipName}" outpost/ index.php .htaccess`, { stdio: 'pipe' });
+  console.log(`\n  Created ${zipName}`);
+} catch (err) {
+  console.warn(`\n  Warning: Could not create zip (is 'zip' installed?). dist/outpost/ is still ready.`);
+}
+
 // ─── Summary ───
 const totalPhp = phpFiles.length;
 const totalDirs = dirs.filter(d => existsSync(resolve(PHP_DIR, d.name))).length;
 console.log(`\nDone! Packaged ${totalPhp} PHP files + ${totalDirs} directories.`);
 console.log(`Distribution ready at: dist/outpost/`);
+if (existsSync(zipPath)) {
+  console.log(`Release zip: dist/${zipName}`);
+  console.log(`Upload this zip to GitHub Releases for the auto-updater.`);
+}
 console.log('To install: copy the outpost/ folder to your site root and visit /outpost/install.php');

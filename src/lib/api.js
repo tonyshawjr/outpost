@@ -239,6 +239,14 @@ export const settings = {
     request('settings', { method: 'PUT', body: data }),
 };
 
+// Updates
+export const updates = {
+  check: () =>
+    request('updates/check'),
+  apply: (downloadUrl) =>
+    request('updates/apply', { method: 'POST', body: { download_url: downloadUrl } }),
+};
+
 // Cache
 export const cache = {
   clear: () =>

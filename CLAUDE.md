@@ -32,12 +32,68 @@ When you complete a new feature, fix, or significant change:
 - No colored background pills — use plain text links/toggles
 - Content-first: large serif titles, clean whitespace
 
-## Build & Deploy
+## Build & Deploy (Local Development)
 - Build: `npm run build` (outputs to `php/admin/`)
-- Deploy to test-site: copy `php/admin/*` and `php/api.php` to `test-site/outpost/`
+- Deploy to test-site: copy `php/admin/*` and changed PHP files to `test-site/outpost/`
 - Preserve `test-site/outpost/data/`, `uploads/`, `cache/` directories
+- Always copy `index.html` after build — it references hashed asset filenames that change every build
 
 ## API Pattern
 - REST API at `api.php?action=<endpoint>` with session auth + CSRF
 - Database migrations use `PRAGMA table_info` + `ALTER TABLE ADD COLUMN`
 - JSON columns for flexible data (schema, data, blocks)
+
+## Git & Release Workflow
+
+**Repository:** `https://github.com/tonyshawjr/outpost.git` (branch: `main`)
+
+### Development cycle
+1. Make changes in `php/` (backend) and `src/` (Svelte admin SPA)
+2. Test locally: `npm run dev` for Svelte HMR, `php -S` for backend
+3. Build: `npm run build`
+4. Deploy to test-site for final testing (see deploy steps in MEMORY.md)
+5. After every feature/fix, follow the "After Every Feature" checklist above
+
+### Release a new version
+```bash
+# 1. Version is already bumped (done in "After Every Feature" step)
+# 2. Build + package
+npm run build
+npm run package          # produces dist/outpost/ + dist/outpost-vX.X.X.zip
+
+# 3. Commit and push
+git add -A
+git commit -m "v1.0.0-beta.XX — Description of changes"
+git push origin main
+
+# 4. Tag and push the tag
+git tag -a v1.0.0-beta.XX -m "v1.0.0-beta.XX — Description"
+git push origin v1.0.0-beta.XX
+
+# 5. Create GitHub Release
+gh release create v1.0.0-beta.XX dist/outpost-v1.0.0-beta.XX.zip \
+  --title "v1.0.0-beta.XX" \
+  --notes "Changelog entry here"
+```
+
+### What goes in the repo (tracked)
+- `php/` — all PHP source files + themes + docs
+- `src/` — Svelte 5 source code
+- `test-site/` — test deployment (minus data/uploads/cache)
+- `scripts/` — build tooling
+- Config files: `package.json`, `vite.config.js`, `CLAUDE.md`, etc.
+
+### What stays out of the repo (.gitignore)
+- `node_modules/`, `dist/`, `php/admin/` — build artifacts
+- `*.db`, `*.db-shm`, `*.db-wal` — all database files
+- `test-site/outpost/data/`, `uploads/`, `cache/` — user data
+- `Outpost Website/` — deployed production copy
+- `memory/`, `.claude/` — local Claude Code tooling
+
+### Auto-updater (built into admin)
+Live Outpost sites can check for and apply updates from the admin Settings page:
+- **Check**: `GET api.php?action=updates/check` — compares `OUTPOST_VERSION` against latest GitHub Release
+- **Apply**: `POST api.php?action=updates/apply` — downloads release zip, extracts core files only
+- **Never touches**: `themes/` (user themes), `data/` (database), `uploads/` (media), `cache/` (cleared after update)
+- **Safe files** (overwritten on update): all `.php` in root, `admin/`, `docs/`, `member-pages/`, `tools/`
+- Database migrations run automatically on next request after update

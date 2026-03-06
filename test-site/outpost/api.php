@@ -136,6 +136,7 @@ $cap_map = [
     'apikeys' => 'settings.*',
     'webhooks' => 'settings.*',
     'channels' => 'settings.*',
+    'updates'  => 'settings.*',
 ];
 if (isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
@@ -353,6 +354,10 @@ match (true) {
     $action === 'apikeys' && $method === 'GET' => handle_apikeys_list(),
     $action === 'apikeys' && $method === 'POST' => handle_apikey_create(),
     $action === 'apikeys' && $method === 'DELETE' && isset($_GET['id']) => handle_apikey_delete(),
+
+    // Updates (admin only)
+    $action === 'updates/check' && $method === 'GET' => handle_updates_check(),
+    $action === 'updates/apply' && $method === 'POST' => handle_updates_apply(),
 
     default => json_error('Not found', 404),
 };
@@ -4811,4 +4816,269 @@ function handle_channel_items(): void {
         'page'  => $page,
         'pages' => ceil(($total['c'] ?? 0) / $perPage),
     ]);
+}
+
+// ── Updates ─────────────────────────────────────────────
+
+define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');
+
+function handle_updates_check(): void {
+    $current = OUTPOST_VERSION;
+
+    // Check cache first (avoid hammering GitHub API)
+    $cached = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'update_check_cache'");
+    if ($cached) {
+        $cache = json_decode($cached['value'], true);
+        if ($cache && (time() - ($cache['checked_at'] ?? 0)) < 3600) {
+            json_response([
+                'current_version' => $current,
+                'latest_version'  => $cache['latest_version'],
+                'download_url'    => $cache['download_url'] ?? '',
+                'release_notes'   => $cache['release_notes'] ?? '',
+                'release_url'     => $cache['release_url'] ?? '',
+                'update_available' => version_compare($cache['latest_version'], $current, '>'),
+                'cached' => true,
+            ]);
+            return;
+        }
+    }
+
+    // Fetch latest release from GitHub
+    $url = 'https://api.github.com/repos/' . OUTPOST_GITHUB_REPO . '/releases/latest';
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/vnd.github+json',
+            'User-Agent: OutpostCMS/' . $current,
+        ],
+        CURLOPT_TIMEOUT => 10,
+    ]);
+    $body = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200 || !$body) {
+        json_response([
+            'current_version' => $current,
+            'latest_version'  => $current,
+            'update_available' => false,
+            'error' => 'Could not reach GitHub (HTTP ' . $httpCode . ')',
+        ]);
+        return;
+    }
+
+    $release = json_decode($body, true);
+    $latestVersion = ltrim($release['tag_name'] ?? '', 'v');
+    $downloadUrl = '';
+
+    // Find the .zip asset in the release
+    foreach (($release['assets'] ?? []) as $asset) {
+        if (str_ends_with($asset['name'], '.zip')) {
+            $downloadUrl = $asset['browser_download_url'];
+            break;
+        }
+    }
+
+    // Cache the result
+    $cacheData = json_encode([
+        'latest_version' => $latestVersion,
+        'download_url'   => $downloadUrl,
+        'release_notes'  => $release['body'] ?? '',
+        'release_url'    => $release['html_url'] ?? '',
+        'checked_at'     => time(),
+    ]);
+    OutpostDB::query(
+        "INSERT INTO settings (key, value) VALUES ('update_check_cache', ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        [$cacheData]
+    );
+
+    json_response([
+        'current_version'  => $current,
+        'latest_version'   => $latestVersion,
+        'download_url'     => $downloadUrl,
+        'release_notes'    => $release['body'] ?? '',
+        'release_url'      => $release['html_url'] ?? '',
+        'update_available' => version_compare($latestVersion, $current, '>'),
+    ]);
+}
+
+function handle_updates_apply(): void {
+    // Require super_admin for updates
+    outpost_require_cap('settings.*');
+
+    $body = get_json_body();
+    $downloadUrl = $body['download_url'] ?? '';
+
+    if (empty($downloadUrl)) {
+        json_error('No download URL provided');
+    }
+
+    // Validate the URL points to our GitHub repo
+    if (!str_contains($downloadUrl, 'github.com/' . OUTPOST_GITHUB_REPO . '/')) {
+        json_error('Invalid download URL — must be from the official Outpost repository');
+    }
+
+    $outpostDir = OUTPOST_DIR;
+    $tmpDir = sys_get_temp_dir() . '/outpost_update_' . time();
+    $zipPath = $tmpDir . '/update.zip';
+
+    // Create temp directory
+    if (!mkdir($tmpDir, 0755, true)) {
+        json_error('Could not create temp directory');
+    }
+
+    try {
+        // Download the zip
+        $ch = curl_init($downloadUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
+            CURLOPT_HTTPHEADER => ['User-Agent: OutpostCMS/' . OUTPOST_VERSION],
+            CURLOPT_TIMEOUT => 120,
+        ]);
+        $zipData = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$zipData) {
+            throw new \RuntimeException('Download failed (HTTP ' . $httpCode . ')');
+        }
+
+        file_put_contents($zipPath, $zipData);
+
+        // Extract zip
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath) !== true) {
+            throw new \RuntimeException('Could not open zip file');
+        }
+
+        $extractDir = $tmpDir . '/extracted';
+        $zip->extractTo($extractDir);
+        $zip->close();
+
+        // Find the outpost/ directory inside the zip (it may be nested)
+        $sourceDir = outpost_find_update_root($extractDir);
+        if (!$sourceDir) {
+            throw new \RuntimeException('Could not find outpost/ directory in update package');
+        }
+
+        // Define what to copy and what to skip
+        $skipDirs = ['data', 'uploads', 'cache', 'themes'];
+        $updatedFiles = [];
+
+        // Copy PHP files from root of source
+        $phpFiles = glob($sourceDir . '/*.php') ?: [];
+        foreach ($phpFiles as $file) {
+            $basename = basename($file);
+            copy($file, $outpostDir . $basename);
+            $updatedFiles[] = $basename;
+        }
+
+        // Copy safe directories
+        $safeDirs = ['admin', 'docs', 'member-pages', 'tools'];
+        foreach ($safeDirs as $dir) {
+            $src = $sourceDir . '/' . $dir;
+            if (is_dir($src)) {
+                // Remove old directory contents first (stale hashed assets)
+                $dest = $outpostDir . $dir;
+                if (is_dir($dest)) {
+                    outpost_rmdir_recursive($dest);
+                }
+                outpost_copy_recursive($src, $dest);
+                $updatedFiles[] = $dir . '/';
+            }
+        }
+
+        // Clear template cache
+        $cacheDir = OUTPOST_CACHE_DIR . 'templates/';
+        if (is_dir($cacheDir)) {
+            $cacheFiles = glob($cacheDir . '*.php') ?: [];
+            foreach ($cacheFiles as $f) unlink($f);
+        }
+
+        // Clear the update check cache so it re-fetches
+        OutpostDB::query("DELETE FROM settings WHERE key = 'update_check_cache'");
+
+        // Clean up temp files
+        outpost_rmdir_recursive($tmpDir);
+
+        json_response([
+            'success' => true,
+            'updated_files' => $updatedFiles,
+            'message' => 'Update applied successfully. Refresh the page to load the new version.',
+        ]);
+    } catch (\Throwable $e) {
+        // Clean up on failure
+        if (is_dir($tmpDir)) {
+            outpost_rmdir_recursive($tmpDir);
+        }
+        json_error('Update failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Finds the outpost/ root inside an extracted zip.
+ * Handles both flat (outpost/api.php) and nested (outpost-v1.0.0/outpost/api.php) layouts.
+ */
+function outpost_find_update_root(string $dir): ?string {
+    // Check if api.php is directly here
+    if (file_exists($dir . '/api.php')) {
+        return $dir;
+    }
+    // Check one level deeper
+    $entries = scandir($dir);
+    foreach ($entries as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $sub = $dir . '/' . $entry;
+        if (is_dir($sub)) {
+            if (file_exists($sub . '/api.php')) {
+                return $sub;
+            }
+            // One more level (e.g., outpost-v1.0.0/outpost/)
+            $subEntries = scandir($sub);
+            foreach ($subEntries as $se) {
+                if ($se === '.' || $se === '..') continue;
+                $subsub = $sub . '/' . $se;
+                if (is_dir($subsub) && file_exists($subsub . '/api.php')) {
+                    return $subsub;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+/** Recursively copy a directory */
+function outpost_copy_recursive(string $src, string $dst): void {
+    if (!is_dir($dst)) mkdir($dst, 0755, true);
+    $items = scandir($src);
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $s = $src . '/' . $item;
+        $d = $dst . '/' . $item;
+        if (is_dir($s)) {
+            outpost_copy_recursive($s, $d);
+        } else {
+            copy($s, $d);
+        }
+    }
+}
+
+/** Recursively remove a directory */
+function outpost_rmdir_recursive(string $dir): void {
+    if (!is_dir($dir)) return;
+    $items = scandir($dir);
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = $dir . '/' . $item;
+        if (is_dir($path)) {
+            outpost_rmdir_recursive($path);
+        } else {
+            unlink($path);
+        }
+    }
+    rmdir($dir);
 }

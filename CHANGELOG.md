@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-beta.11] — 2026-03-06
+
+### Added
+- Built-in auto-updater — check for and apply core updates from the admin Settings panel
+- `GET api.php?action=updates/check` — compares installed version against latest GitHub Release (cached 1 hour)
+- `POST api.php?action=updates/apply` — downloads release zip, extracts core files (PHP, admin SPA, docs, member-pages), skips themes/data/uploads/cache
+- Updates section in Settings nav with version display, release notes, and one-click update button
+- Package script now produces a `dist/outpost-vX.X.X.zip` release archive for GitHub Releases
+- Git workflow documentation added to CLAUDE.md
+
+---
+
 ## [1.0.0-beta.10] — 2026-03-06
 
 ### Fixed

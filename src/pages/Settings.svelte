@@ -10,6 +10,7 @@
   import IntegrationsSettings from './settings/IntegrationsSettings.svelte';
   import ImportSettings from './settings/ImportSettings.svelte';
   import AdvancedSettings from './settings/AdvancedSettings.svelte';
+  import UpdateSettings from './settings/UpdateSettings.svelte';
 
   let settings = $state({});
   let loading = $state(true);
@@ -26,6 +27,7 @@
     { id: 'integrations', label: 'Integrations' },
     { id: 'import', label: 'Import' },
     { id: 'advanced', label: 'Advanced' },
+    { id: 'updates', label: 'Updates' },
   ];
 
   onMount(async () => {
@@ -108,6 +110,8 @@
         <ImportSettings />
       {:else if section === 'advanced'}
         <AdvancedSettings {settings} {onSettingChange} />
+      {:else if section === 'updates'}
+        <UpdateSettings />
       {/if}
     </div>
   </div>
