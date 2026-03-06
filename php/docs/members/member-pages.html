@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Pages — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link active">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Member Pages</h1>
+    <p class="lead">Outpost ships a complete set of pre-built authentication pages for front-end members — login, registration, profile management, password reset, and logout. All live under <code>/outpost/</code> and are handled by the engine without requiring any theme templates.</p>
+  </div>
+  <div class="content">
+
+    <h2>Built-in member page URLs</h2>
+    <p>The following pages are provided and handled directly by the Outpost engine. You do not need to create theme templates for them.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/outpost/login</code></td>
+          <td>Sign-in form — accepts username or email address</td>
+        </tr>
+        <tr>
+          <td><code>/outpost/register</code></td>
+          <td>New account registration form (if registration is enabled)</td>
+        </tr>
+        <tr>
+          <td><code>/outpost/forgot-password</code></td>
+          <td>Request a password reset email</td>
+        </tr>
+        <tr>
+          <td><code>/outpost/reset-password</code></td>
+          <td>Set a new password using a token from the reset email</td>
+        </tr>
+        <tr>
+          <td><code>/outpost/verify-email</code></td>
+          <td>Email verification landing page — validates a token from the verification email</td>
+        </tr>
+        <tr>
+          <td><code>/outpost/profile</code></td>
+          <td>Member profile — update name, email, password, avatar (requires login)</td>
+        </tr>
+        <tr>
+          <td><code>/outpost/logout</code></td>
+          <td>Destroys member session and redirects to home</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Linking to member pages from templates</h2>
+    <p>Hard-code the paths in your Liquid theme partials — typically in <code>nav.html</code> or <code>footer.html</code>:</p>
+
+    <pre><code><span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"member-nav"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span><span class="t-tag">&gt;</span>Create Account<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/profile"</span><span class="t-tag">&gt;</span>My Profile<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/logout"</span><span class="t-tag">&gt;</span>Sign Out<span class="t-tag">&lt;/a&gt;</span>
+<span class="t-tag">&lt;/nav&gt;</span></code></pre>
+
+    <p>To make the login and register URLs configurable by the admin (without editing template files), define them as global fields and use the <code>| link</code> filter:</p>
+
+    <pre><code><span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @login_url | link }}"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
+<span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @register_url | link }}"</span><span class="t-tag">&gt;</span>Join<span class="t-tag">&lt;/a&gt;</span></code></pre>
+
+    <h2>Login page</h2>
+    <p>The login page at <code>/outpost/login</code> provides:</p>
+    <ul>
+      <li>Username <em>or</em> email address input — either works</li>
+      <li>Password input</li>
+      <li>"Remember me" checkbox — sets a 30-day persistent cookie when checked</li>
+      <li>"Forgot password?" link to the password reset flow</li>
+      <li>Redirect support: if the member was sent to login from a protected page, they are returned there after successful login</li>
+      <li>Custom redirect: use <code>/outpost/login?redirect=/dashboard</code> to redirect to a specific page after login</li>
+      <li>Rate limiting: 5 failed attempts per IP per 60 seconds before the IP is temporarily blocked</li>
+    </ul>
+
+    <h2>Registration page</h2>
+    <p>The registration page at <code>/outpost/register</code> can be enabled or disabled in <strong>Admin &rarr; Settings &rarr; Members</strong>. When enabled, it provides:</p>
+    <ul>
+      <li>Fields: username, email address, password</li>
+      <li>Password minimum length: 8 characters</li>
+      <li>Validates uniqueness of both username and email before creating the account</li>
+      <li>On success: account is created with role <code>free_member</code> and status <code>active</code></li>
+      <li>If email verification is <strong>disabled</strong>: member is automatically logged in and redirected</li>
+      <li>If email verification is <strong>enabled</strong>: member sees a "Check your email" message with a link to the sign-in page. No auto-login occurs.</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — When registration is disabled, visiting <code>/outpost/register</code> redirects to the login page. New members can only be created by an admin from <strong>Admin &rarr; Members &rarr; New Member</strong>.
+    </div>
+
+    <h2>Email verification page</h2>
+    <p>When <em>Require Email Verification</em> is enabled in Settings, new members receive an email with a verification link pointing to <code>/outpost/verify-email?token=...</code>. This page:</p>
+    <ul>
+      <li>Validates the token against the database (must be unexpired and belong to a member account)</li>
+      <li>On success: sets <code>email_verified</code> to the current timestamp, clears the token, and displays a "Verified! Sign in" message with a link to the login page</li>
+      <li>On error: shows "This verification link is invalid or has expired" with links to sign in or register</li>
+    </ul>
+    <p>Tokens expire after 24 hours. If a member's token expires, they can request a new one from the login page using the <em>Resend verification email</em> button that appears when an unverified member tries to sign in.</p>
+
+    <h2>Member profile page</h2>
+    <p>The profile page at <code>/outpost/profile</code> requires the member to be logged in — non-authenticated visitors are redirected to the login page. The profile page lets members:</p>
+    <ul>
+      <li>View their current username, email address, and display name</li>
+      <li>Update their display name and email address</li>
+      <li>Upload or change their avatar image</li>
+      <li>Change their password (requires entering the current password for confirmation)</li>
+    </ul>
+    <p>Admins can also view and edit member accounts from <strong>Admin &rarr; Members</strong>, including resetting passwords without needing the current password.</p>
+
+    <h2>Logout</h2>
+    <p><code>/outpost/logout</code> destroys the member session cookie and the remember-me cookie (if set), then redirects to the site home (<code>/</code>) by default. Override the destination with a <code>?redirect=</code> parameter:</p>
+
+    <pre><code><span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/logout?redirect=/goodbye"</span><span class="t-tag">&gt;</span>Sign Out<span class="t-tag">&lt;/a&gt;</span></code></pre>
+
+    <h2>Member roles</h2>
+    <p>Front-end member accounts have one of two roles:</p>
+
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Assigned by</th><th>Access</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>free_member</code></td>
+          <td>Automatically on registration</td>
+          <td>Access to pages with visibility set to <em>Members</em></td>
+        </tr>
+        <tr>
+          <td><code>paid_member</code></td>
+          <td>Manually by an admin, or via payment integration</td>
+          <td>Access to pages with visibility set to <em>Members</em> or <em>Paid</em></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Member roles are completely separate from admin roles. A <code>free_member</code> cannot access the admin panel, and an admin user is not automatically a front-end member.</p>
+
+    <h2>Session lifetime</h2>
+
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Default</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Session duration (no "remember me")</td><td>Until browser is closed (session cookie)</td></tr>
+        <tr><td>Session duration ("remember me" checked)</td><td>30 days (persistent cookie)</td></tr>
+        <tr><td>Session namespace</td><td><code>outpost_member</code> (separate from admin sessions)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Custom login redirect</h2>
+    <p>By default, after login, members are redirected to the page they were trying to access before being sent to the login form, or to <code>/</code> if they navigated directly to <code>/outpost/login</code>. To override the default post-login destination for all members, set the constant in <code>config.php</code>:</p>
+
+    <pre><code><span class="t-comment">// config.php — send all members to /dashboard after login</span>
+define('OUTPOST_LOGIN_REDIRECT', '/dashboard');</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — <code>OUTPOST_LOGIN_REDIRECT</code> only applies when there is no <code>?redirect=</code> parameter in the login URL. The per-request <code>?redirect=</code> parameter always takes precedence.
+    </div>
+
+    <h2>Checking login state in templates</h2>
+    <p>Liquid templates have two built-in variables for checking member status:</p>
+
+    <pre><code><span class="t-comment">{# Check if any member is logged in #}</span>
+<span class="t-kw">{% if</span> <span class="t-out">member</span> <span class="t-kw">%}</span>
+  <span class="t-tag">&lt;p&gt;</span>Welcome back!<span class="t-tag">&lt;/p&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/profile"</span><span class="t-tag">&gt;</span>My Profile<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/logout"</span><span class="t-tag">&gt;</span>Sign Out<span class="t-tag">&lt;/a&gt;</span>
+<span class="t-kw">{% else %}</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span><span class="t-tag">&gt;</span>Create Account<span class="t-tag">&lt;/a&gt;</span>
+<span class="t-kw">{% endif %}</span>
+
+<span class="t-comment">{# Check specifically for paid members #}</span>
+<span class="t-kw">{% if</span> <span class="t-out">paid_member</span> <span class="t-kw">%}</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"premium-content"</span><span class="t-tag">&gt;</span>
+    <span class="t-out">{{ premium_body | raw }}</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-kw">{% else %}</span>
+  <span class="t-tag">&lt;p&gt;</span>This content is for paid members. <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/upgrade"</span><span class="t-tag">&gt;</span>Upgrade your account.<span class="t-tag">&lt;/a&gt;&lt;/p&gt;</span>
+<span class="t-kw">{% endif %}</span></code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong> — <code>{% if member %}</code> is true for both <code>free_member</code> and <code>paid_member</code> roles. <code>{% if paid_member %}</code> is only true for <code>paid_member</code>. To show content to free members but not to guests, use <code>{% if member %}</code>. To show content only to paid members, use <code>{% if paid_member %}</code>.
+    </div>
+
+    <h2>Protecting pages from the admin</h2>
+    <p>Individual pages can be restricted to members or paid members via the <strong>Visibility</strong> selector in the page editor's SEO section:</p>
+
+    <table>
+      <thead>
+        <tr><th>Visibility setting</th><th>Who can see the page</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Public</strong> (default)</td><td>Everyone — logged-in or not</td></tr>
+        <tr><td><strong>Members</strong></td><td>Any logged-in member (<code>free_member</code> or <code>paid_member</code>)</td></tr>
+        <tr><td><strong>Paid</strong></td><td>Only <code>paid_member</code> accounts</td></tr>
+      </tbody>
+    </table>
+
+    <p>Non-authenticated visitors accessing a restricted page are redirected to the login form with a <code>?redirect=</code> parameter so they are returned to the page after login. See <a href="members/protecting-pages.html">Protecting Pages</a> for the full reference.</p>
+
+    <h2>Managing members in the admin</h2>
+    <p>Admin users with the <code>admin</code> or <code>super_admin</code> role can view and manage all member accounts from <strong>Admin &rarr; Members</strong>. From there you can:</p>
+    <ul>
+      <li>View all registered members with their role, status, and last active date</li>
+      <li>Create new members directly (bypassing the registration form)</li>
+      <li>Change a member's role between <code>free_member</code> and <code>paid_member</code></li>
+      <li>Reset any member's password (no email required — sets a new password immediately)</li>
+      <li>Suspend or delete member accounts</li>
+    </ul>
+
+    <h2>Enabling or disabling registration</h2>
+    <p>You can enable or disable public registration from <strong>Admin &rarr; Settings &rarr; Members</strong>. When disabled:</p>
+    <ul>
+      <li><code>/outpost/register</code> redirects to the login page</li>
+      <li>New members can only be created by admins from Admin &rarr; Members</li>
+      <li>Existing member accounts and login still work normally</li>
+    </ul>
+
+    <h2>Related docs</h2>
+    <ul>
+      <li><a href="members/">Members Overview</a> — overview of the entire member system</li>
+      <li><a href="members/protecting-pages.html">Protecting Pages</a> — restricting page visibility by member role</li>
+      <li><a href="members/password-reset.html">Password Reset</a> — how the reset flow works and SMTP configuration</li>
+      <li><a href="members/admin-roles.html">Admin Roles</a> — admin user roles (separate from member roles)</li>
+      <li><a href="api/member-api.html">Member API</a> — programmatic member management via REST</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

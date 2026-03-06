@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Schema — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link active">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Database Schema</h1>
+    <p class="lead">Complete reference for every SQLite table in Outpost CMS — columns, types, constraints, and relationships.</p>
+  </div>
+  <div class="content">
+
+    <div class="callout callout-note">
+      <strong>Single-file SQLite.</strong> Outpost stores everything in one <code>.db</code> file, by default at <code>outpost/data/cms.db</code>. The path is set by <a href="reference/configuration.html"><code>OUTPOST_DB_PATH</code></a>. Back it up by copying that one file.
+    </div>
+
+    <p>The schema is created and evolved via idempotent migrations that run automatically on every boot. You never need to run SQL manually to set up or upgrade a site. See <a href="reference/migrations.html">Migrations</a> for the full pattern.</p>
+
+    <h2>Table Index</h2>
+    <p>Outpost uses 16 tables organised into four functional groups.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Group</th><th>Tables</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Content</td><td><code>pages</code>, <code>fields</code>, <code>collections</code>, <code>collection_items</code></td></tr>
+        <tr><td>Folder &amp; Navigation</td><td><code>folders</code>, <code>labels</code>, <code>item_labels</code>, <code>menus</code></td></tr>
+        <tr><td>Users &amp; Members</td><td><code>users</code>, <code>members</code>, <code>settings</code></td></tr>
+        <tr><td>Media, Forms &amp; Logs</td><td><code>media</code>, <code>form_configs</code>, <code>form_submissions</code>, <code>analytics_hits</code>, <code>activity_log</code>, <code>revisions</code></td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="pages">pages</h2>
+    <p>One row per page on the site. Pages are auto-discovered on first visit — Outpost creates a stub record the first time a URL is requested, so editors can immediately add content without manual setup.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>title</code></td><td>TEXT</td><td>Human-readable page title used in admin lists.</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>URL-safe identifier derived from the path (e.g. <code>about</code>, <code>blog</code>).</td></tr>
+        <tr><td><code>body</code></td><td>TEXT</td><td>Main richtext content stored as sanitized HTML.</td></tr>
+        <tr><td><code>meta_title</code></td><td>TEXT</td><td>SEO <code>&lt;title&gt;</code> override. Falls back to <code>title</code> if empty.</td></tr>
+        <tr><td><code>meta_description</code></td><td>TEXT</td><td>SEO meta description. Used in <code>&lt;meta name="description"&gt;</code>.</td></tr>
+        <tr><td><code>og_image</code></td><td>TEXT</td><td>Open Graph image path for social sharing previews.</td></tr>
+        <tr><td><code>visibility</code></td><td>TEXT</td><td><code>'public'</code> (default), <code>'members'</code>, or <code>'paid'</code>. Controls front-end access gating.</td></tr>
+        <tr><td><code>status</code></td><td>TEXT</td><td><code>'published'</code> or <code>'draft'</code>. Draft pages are not served to visitors.</td></tr>
+        <tr><td><code>sort_order</code></td><td>INTEGER</td><td>Position in the admin pages list. Drag-reorderable.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 UTC timestamp set on insert.</td></tr>
+        <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 UTC timestamp updated on every save.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="fields">fields</h2>
+    <p>Stores custom field definitions and values for pages. Fields are auto-registered the first time a template tag is encountered. One row per unique <code>(page_id, theme, field_name)</code> combination.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>page_id</code></td><td>INTEGER FK → pages</td><td>The page this field belongs to. Cascades on page delete.</td></tr>
+        <tr><td><code>theme</code></td><td>TEXT</td><td>Active theme slug when the field was registered. Empty string <code>''</code> for global fields.</td></tr>
+        <tr><td><code>field_name</code></td><td>TEXT</td><td>Identifier matching the template tag (e.g. <code>hero_title</code>).</td></tr>
+        <tr><td><code>field_type</code></td><td>TEXT</td><td>Field kind: <code>text</code>, <code>textarea</code>, <code>richtext</code>, <code>image</code>, <code>link</code>, <code>select</code>, <code>toggle</code>, <code>color</code>, <code>number</code>, <code>date</code>, <code>gallery</code>, <code>repeater</code>.</td></tr>
+        <tr><td><code>content</code></td><td>TEXT</td><td>The stored value. JSON for <code>gallery</code> and <code>repeater</code> types.</td></tr>
+        <tr><td><code>default_value</code></td><td>TEXT</td><td>Fallback value shown before an editor fills the field.</td></tr>
+        <tr><td><code>options</code></td><td>TEXT</td><td>JSON — extra metadata (e.g. select option list, repeater schema).</td></tr>
+        <tr><td><code>sort_order</code></td><td>INTEGER</td><td>Order in which fields appear in the editor panel.</td></tr>
+        <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 timestamp of last edit.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>UNIQUE constraint:</strong> <code>(page_id, theme, field_name)</code>. This allows the same field name to exist in multiple themes on the same page without collision.
+    </div>
+
+    <hr>
+
+    <h2 id="collections">collections</h2>
+    <p>Defines a content type — a named set of structured items like blog posts, products, or team members. The schema is a JSON object describing the fields each item has.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name shown in admin (e.g. "Blog Posts").</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>URL and template identifier (e.g. <code>post</code>). Used in <code>{% for item in collection.post %}</code>.</td></tr>
+        <tr><td><code>schema</code></td><td>TEXT</td><td>JSON array of field definitions. Each entry: <code>{"name":"title","type":"text"}</code>.</td></tr>
+        <tr><td><code>url_pattern</code></td><td>TEXT</td><td>URL template for single items, e.g. <code>/post/{slug}</code>. The <code>{slug}</code> token is replaced at render time.</td></tr>
+        <tr><td><code>sort_field</code></td><td>TEXT</td><td>Default sort column (e.g. <code>created_at</code>, <code>title</code>).</td></tr>
+        <tr><td><code>sort_direction</code></td><td>TEXT</td><td><code>ASC</code> or <code>DESC</code>.</td></tr>
+        <tr><td><code>items_per_page</code></td><td>INTEGER</td><td>Default items shown per page when no <code>limit:</code> is specified.</td></tr>
+        <tr><td><code>template_path</code></td><td>TEXT</td><td>Custom template file override. If empty, routing uses the default <code>{slug}.html</code> pattern.</td></tr>
+        <tr><td><code>status</code></td><td>TEXT</td><td><code>'active'</code> or <code>'archived'</code>.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="collection_items">collection_items</h2>
+    <p>One row per item in any collection. Field values are stored in the JSON <code>data</code> column, keyed by field name. This schema-less approach allows each collection to have its own field set without requiring a table per collection type.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>collection_id</code></td><td>INTEGER FK → collections</td><td>Which collection this item belongs to.</td></tr>
+        <tr><td><code>title</code></td><td>TEXT</td><td>Primary title — also stored in <code>data</code> for template access.</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT</td><td>URL-safe identifier. Used in <code>url_pattern</code> substitution.</td></tr>
+        <tr><td><code>data</code></td><td>TEXT</td><td>JSON object containing all custom field values keyed by field name.</td></tr>
+        <tr><td><code>status</code></td><td>TEXT</td><td><code>'published'</code>, <code>'draft'</code>, or <code>'scheduled'</code>.</td></tr>
+        <tr><td><code>scheduled_at</code></td><td>TEXT</td><td>ISO 8601 — when the item auto-publishes. Only relevant when <code>status = 'scheduled'</code>.</td></tr>
+        <tr><td><code>meta_title</code></td><td>TEXT</td><td>SEO title override for the single item page.</td></tr>
+        <tr><td><code>meta_description</code></td><td>TEXT</td><td>SEO description override.</td></tr>
+        <tr><td><code>og_image</code></td><td>TEXT</td><td>Open Graph image for social sharing.</td></tr>
+        <tr><td><code>sort_order</code></td><td>INTEGER</td><td>Manual drag-sort position in the admin item list.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 creation timestamp.</td></tr>
+        <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 last-modified timestamp.</td></tr>
+        <tr><td><code>published_at</code></td><td>TEXT</td><td>ISO 8601 timestamp of when the item was first published. Used for display dates in templates.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <strong>Template access.</strong> In collection loops, <code>{{ item.published_at }}</code> outputs a human-readable date like "March 4, 2026". The raw ISO value is not exposed to templates.
+    </div>
+
+    <hr>
+
+    <h2 id="media">media</h2>
+    <p>Tracks every file uploaded through the Media manager. The actual files are stored in <code>uploads/</code> on disk; this table holds metadata.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>filename</code></td><td>TEXT</td><td>The name of the file on disk (may be renamed from the original to avoid conflicts).</td></tr>
+        <tr><td><code>original_name</code></td><td>TEXT</td><td>The original filename as uploaded by the user.</td></tr>
+        <tr><td><code>mime_type</code></td><td>TEXT</td><td>MIME type, e.g. <code>image/jpeg</code>, <code>image/svg+xml</code>, <code>application/pdf</code>.</td></tr>
+        <tr><td><code>file_size</code></td><td>INTEGER</td><td>File size in bytes.</td></tr>
+        <tr><td><code>width</code></td><td>INTEGER</td><td>Image width in pixels. <code>NULL</code> for non-image files.</td></tr>
+        <tr><td><code>height</code></td><td>INTEGER</td><td>Image height in pixels. <code>NULL</code> for non-image files.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 upload timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="users">users</h2>
+    <p>Admin user accounts. Passwords are hashed with PHP's <code>password_hash()</code> using bcrypt. Never store or log plain-text passwords.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name shown in the admin UI and activity log.</td></tr>
+        <tr><td><code>email</code></td><td>TEXT UNIQUE</td><td>Login email address.</td></tr>
+        <tr><td><code>password</code></td><td>TEXT</td><td>bcrypt password hash.</td></tr>
+        <tr><td><code>role</code></td><td>TEXT</td><td>Admin role: <code>super_admin</code>, <code>admin</code>, <code>developer</code>, or <code>editor</code>. See <a href="members/admin-roles.html">Admin Roles</a> for permissions.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
+        <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="members">members</h2>
+    <p>Front-end member accounts for gated content. Separate from admin <code>users</code> — members cannot log into the Outpost admin panel.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name.</td></tr>
+        <tr><td><code>email</code></td><td>TEXT UNIQUE</td><td>Login email address.</td></tr>
+        <tr><td><code>password</code></td><td>TEXT</td><td>bcrypt password hash.</td></tr>
+        <tr><td><code>role</code></td><td>TEXT</td><td><code>'free_member'</code> or <code>'paid_member'</code>. Used to gate <code>visibility = 'paid'</code> pages.</td></tr>
+        <tr><td><code>status</code></td><td>TEXT</td><td><code>'active'</code> or <code>'suspended'</code>. Suspended members cannot log in.</td></tr>
+        <tr><td><code>email_verified</code></td><td>TEXT</td><td>ISO 8601 timestamp of when the email was verified. <code>NULL</code> if unverified. Auto-set on registration when verification is disabled.</td></tr>
+        <tr><td><code>verify_token</code></td><td>TEXT</td><td>64-character hex token for email verification. Cleared after verification.</td></tr>
+        <tr><td><code>verify_token_expires</code></td><td>TEXT</td><td>ISO 8601 timestamp when the verification token expires (24 hours).</td></tr>
+        <tr><td><code>reset_token</code></td><td>TEXT</td><td>64-character hex token for password reset. Cleared after use.</td></tr>
+        <tr><td><code>reset_token_expires</code></td><td>TEXT</td><td>ISO 8601 timestamp when the reset token expires (1 hour).</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 registration timestamp.</td></tr>
+        <tr><td><code>updated_at</code></td><td>TEXT</td><td>ISO 8601 last-updated timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="settings">settings</h2>
+    <p>A flat key-value store for site configuration, active theme, global field values, and migration tracking flags. Keys are arbitrary strings; values are always TEXT.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>key</code></td><td>TEXT PK</td><td>Setting identifier (e.g. <code>active_theme</code>, <code>site_title</code>, <code>migration_v2_done</code>).</td></tr>
+        <tr><td><code>value</code></td><td>TEXT</td><td>Setting value — always stored as a string, cast as needed in code.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Well-known keys used by Outpost internally:</p>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Key</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>active_theme</code></td><td>Slug of the currently active theme (e.g. <code>personal</code>).</td></tr>
+        <tr><td><code>site_title</code></td><td>Site display name.</td></tr>
+        <tr><td><code>installed</code></td><td>Set to <code>1</code> after initial setup wizard completes.</td></tr>
+        <tr><td><code>require_email_verification</code></td><td><code>'0'</code> (default) or <code>'1'</code>. When enabled, new members must verify their email before signing in.</td></tr>
+        <tr><td><code>migration_*</code></td><td>Flags set by one-time data migrations to prevent re-running them.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="folders">folders</h2>
+    <p>Defines a classification system (e.g. Categories, Tags, Topics). A folder can be flat or hierarchical. Custom field schemas can be attached to labels.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name (e.g. "Categories").</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Identifier used in templates: <code>{% for label in folder.category %}</code>.</td></tr>
+        <tr><td><code>type</code></td><td>TEXT</td><td><code>'flat'</code> (tags) or <code>'hierarchical'</code> (categories with parent/child nesting).</td></tr>
+        <tr><td><code>schema</code></td><td>TEXT</td><td>JSON array of custom field definitions attached to each label (e.g. a label image or description).</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="labels">labels</h2>
+    <p>Individual folder labels — a category, tag, or any classified label. Custom field values for each label are stored in the JSON <code>data</code> column.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>folder_id</code></td><td>INTEGER FK → folders</td><td>Which folder this label belongs to.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name (e.g. "JavaScript").</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT</td><td>URL-safe identifier (e.g. <code>javascript</code>).</td></tr>
+        <tr><td><code>description</code></td><td>TEXT</td><td>Optional plain-text description shown in folder listings.</td></tr>
+        <tr><td><code>parent_id</code></td><td>INTEGER</td><td><code>0</code> for top-level labels; otherwise the <code>id</code> of the parent label (hierarchical only).</td></tr>
+        <tr><td><code>data</code></td><td>TEXT</td><td>JSON object of custom field values defined by the folder's <code>schema</code>.</td></tr>
+        <tr><td><code>sort_order</code></td><td>INTEGER</td><td>Manual sort position within the folder.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="item_labels">item_labels</h2>
+    <p>Junction table connecting collection items to folder labels. No primary key — the composite <code>(item_id, label_id)</code> is the natural key.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>item_id</code></td><td>INTEGER FK → collection_items</td><td>The collection item.</td></tr>
+        <tr><td><code>label_id</code></td><td>INTEGER FK → labels</td><td>The folder label.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      This table is what powers folder filtering in collection loops. When you use <code>filteredby:category</code> in a loop, Outpost joins through <code>item_labels</code> to find items tagged with the requested label slug.
+    </div>
+
+    <hr>
+
+    <h2 id="menus">menus</h2>
+    <p>Navigation menu definitions. Items and their nested children are stored as a single JSON array. Outpost supports unlimited nesting depth, though themes typically only render one level of children.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name in the admin (e.g. "Main Navigation").</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Identifier used in templates: <code>{% for item in menu.main %}</code>.</td></tr>
+        <tr><td><code>items</code></td><td>TEXT</td><td>JSON array of menu item objects. Each item: <code>{"label":"Home","url":"/","target":"_self","children":[]}</code>.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="form_configs">form_configs</h2>
+    <p>Defines a contact form — its fields, notifications, and spam protection settings. The <code>slug</code> matches the <code>name</code> attribute on the HTML <code>&lt;form&gt;</code> element.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Display name in admin (e.g. "Contact Form").</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Machine identifier. Must match the HTML form's <code>name</code> attribute for submissions to be recorded.</td></tr>
+        <tr><td><code>fields</code></td><td>TEXT</td><td>JSON array describing form fields: label, type, required flag.</td></tr>
+        <tr><td><code>notify_email</code></td><td>TEXT</td><td>Email address that receives a notification on new submission.</td></tr>
+        <tr><td><code>redirect_url</code></td><td>TEXT</td><td>URL to redirect the visitor to after a successful submission.</td></tr>
+        <tr><td><code>recaptcha_enabled</code></td><td>INTEGER</td><td><code>0</code> (disabled) or <code>1</code> (enabled). When enabled, requires valid reCAPTCHA v3 token.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="form_submissions">form_submissions</h2>
+    <p>Every submitted form response. IP addresses are stored for spam review — ensure your privacy policy discloses this if operating in GDPR jurisdictions.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>form_name</code></td><td>TEXT</td><td>Matches <code>form_configs.slug</code>. Links submission to its form definition.</td></tr>
+        <tr><td><code>data</code></td><td>TEXT</td><td>JSON object of submitted field values, keyed by field name.</td></tr>
+        <tr><td><code>ip_address</code></td><td>TEXT</td><td>Submitter's IP address, stored for spam review purposes.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 submission timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="analytics_hits">analytics_hits</h2>
+    <p>Records a row for every page view tracked by Outpost's built-in analytics. The tracker fires a lightweight JS beacon; no cookies are used and IPs are hashed for privacy.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>url</code></td><td>TEXT</td><td>The page path that was viewed (e.g. <code>/blog/my-post</code>).</td></tr>
+        <tr><td><code>referrer</code></td><td>TEXT</td><td>The <code>document.referrer</code> value — where the visitor came from. Empty for direct visits.</td></tr>
+        <tr><td><code>ip_hash</code></td><td>TEXT</td><td>SHA-256 hash of the visitor's IP + a daily salt. Never stored as plain text.</td></tr>
+        <tr><td><code>user_agent</code></td><td>TEXT</td><td>Browser user agent string for device/browser breakdown reporting.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp of the page view.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="activity_log">activity_log</h2>
+    <p>Audit trail of admin actions. Every significant create, update, or delete action is recorded here with the acting user and a description of what changed.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>user_id</code></td><td>INTEGER FK → users</td><td>Which admin user performed the action.</td></tr>
+        <tr><td><code>action</code></td><td>TEXT</td><td>Machine-readable action code, e.g. <code>created_item</code>, <code>deleted_page</code>, <code>published_item</code>.</td></tr>
+        <tr><td><code>target</code></td><td>TEXT</td><td>Human-readable description of the affected resource, e.g. <code>Post: "Hello World"</code>.</td></tr>
+        <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp of the action.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="revisions">revisions</h2>
+    <p>Automatic content snapshots. Every save of a page or collection item records the previous state here so it can be browsed and restored. A maximum of 25 revisions are kept per entity; older ones are pruned on each save. See <a href="features/revisions.html">Revision History</a>.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><code>INTEGER</code> PK</td><td>Auto-increment</td></tr>
+        <tr><td><code>entity_type</code></td><td><code>TEXT NOT NULL</code></td><td><code>'page'</code> or <code>'item'</code></td></tr>
+        <tr><td><code>entity_id</code></td><td><code>INTEGER NOT NULL</code></td><td>FK to <code>pages.id</code> or <code>collection_items.id</code></td></tr>
+        <tr><td><code>data</code></td><td><code>TEXT NOT NULL</code></td><td>JSON snapshot of all field content</td></tr>
+        <tr><td><code>meta</code></td><td><code>TEXT NOT NULL</code></td><td>JSON snapshot of title/slug/status metadata</td></tr>
+        <tr><td><code>created_by</code></td><td><code>INTEGER</code></td><td>FK to <code>users.id</code></td></tr>
+        <tr><td><code>created_at</code></td><td><code>TEXT</code></td><td>Default <code>datetime('now')</code></td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="indexes">Indexes</h2>
+    <p>Outpost creates the following indexes to accelerate frequently-run queries. They are created automatically via <code>CREATE INDEX IF NOT EXISTS</code> — both in the initial schema and in the <code>ensure_indexes()</code> migration for existing databases.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Index</th><th>Table</th><th>Columns</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>idx_fields_page_theme</code></td><td>fields</td><td><code>page_id, theme</code></td><td>Fast field lookup on every page render.</td></tr>
+        <tr><td><code>idx_collection_items_coll_status</code></td><td>collection_items</td><td><code>collection_id, status</code></td><td>Fast filtering in collection loops (<code>{% for item in collection.* %}</code>).</td></tr>
+        <tr><td><code>idx_hits_path</code></td><td>analytics_hits</td><td><code>path</code></td><td>Analytics queries by page path.</td></tr>
+        <tr><td><code>idx_hits_created</code></td><td>analytics_hits</td><td><code>created_at</code></td><td>Analytics time-range queries.</td></tr>
+        <tr><td><code>idx_hits_session</code></td><td>analytics_hits</td><td><code>session_id</code></td><td>Unique visitor counting.</td></tr>
+        <tr><td><code>idx_revisions_entity</code></td><td>revisions</td><td><code>entity_type, entity_id, created_at DESC</code></td><td>Fast revision listing per entity.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Inspecting the Schema</h2>
+    <p>You can inspect any table's schema at any time using SQLite's <code>PRAGMA</code> command:</p>
+    <pre><code><span class="token comment">-- List all tables</span>
+<span class="token keyword">SELECT</span> name <span class="token keyword">FROM</span> sqlite_master <span class="token keyword">WHERE</span> type <span class="token operator">=</span> <span class="token string">'table'</span> <span class="token keyword">ORDER BY</span> name;
+
+<span class="token comment">-- Show columns for a table</span>
+<span class="token keyword">PRAGMA</span> table_info(collection_items);
+
+<span class="token comment">-- Show all indexes</span>
+<span class="token keyword">SELECT</span> name, tbl_name <span class="token keyword">FROM</span> sqlite_master <span class="token keyword">WHERE</span> type <span class="token operator">=</span> <span class="token string">'index'</span>;</code></pre>
+
+    <div class="callout callout-warn">
+      <strong>Never modify the schema manually</strong> in a way that breaks Outpost's expectations. Adding new tables or columns is safe. Dropping columns or renaming existing ones will break the CMS. If you need schema changes, write a migration — see <a href="reference/migrations.html">Migrations</a>.
+    </div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

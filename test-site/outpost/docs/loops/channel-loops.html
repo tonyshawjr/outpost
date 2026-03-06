@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Channel Loops — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link active">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Channel Loops</h1>
+    <p class="lead">Iterate over cached items from external APIs. Channels bring external data into your templates with the same for-loop syntax you already use for collections.</p>
+  </div>
+  <div class="content">
+
+    <h2>Basic Syntax</h2>
+    <p>The <code>{% for %}</code> tag iterates over all cached items in a channel. The channel is identified by its slug &mdash; the same slug you set when creating the channel in Admin &rarr; Channels.</p>
+    <pre><code>{% for item in channel.listings %}
+  &lt;div class="listing"&gt;
+    &lt;h2&gt;{{ item.title }}&lt;/h2&gt;
+    &lt;p&gt;{{ item.description }}&lt;/p&gt;
+    &lt;p class="price"&gt;{{ item.price }}&lt;/p&gt;
+    &lt;img src="{{ item.image_url }}" alt="{{ item.title }}"&gt;
+  &lt;/div&gt;
+{% endfor %}</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Only items cached from the last sync appear in channel loops. If the cache TTL has expired, Outpost auto-syncs before rendering so your templates always show fresh data.</div>
+
+    <h2>Available Fields</h2>
+    <p>Each item exposes the fields mapped during channel setup. Unlike collections, there are no fixed fields &mdash; everything comes from the external API. Common patterns:</p>
+    <ul>
+      <li><code>{{ item.field_name }}</code> &mdash; auto-escaped text output</li>
+      <li><code>{{ item.field_name | raw }}</code> &mdash; raw HTML output (use for HTML content from the API)</li>
+      <li>Field names match what you mapped in the <strong>Schema</strong> step of the channel builder</li>
+    </ul>
+
+    <p>In addition to your mapped data fields, every channel item has built-in properties:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>item._id</code></td>
+          <td>Internal database ID (auto-generated by Outpost)</td>
+        </tr>
+        <tr>
+          <td><code>item._external_id</code></td>
+          <td>The unique ID from the source API (mapped via the ID field setting)</td>
+        </tr>
+        <tr>
+          <td><code>item._slug</code></td>
+          <td>The URL slug for this item (mapped via the slug field setting)</td>
+        </tr>
+        <tr>
+          <td><code>item.url</code></td>
+          <td>Full URL path for this item (only available if the channel has a URL pattern)</td>
+        </tr>
+        <tr>
+          <td><code>item.{field}</code></td>
+          <td>Any data field from the API that was selected during channel setup</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Empty Loop &mdash; the else Branch</h2>
+    <p>Add an <code>{% else %}</code> clause to show a fallback when the channel has no cached items (or the external API returned no data).</p>
+    <pre><code>{% for item in channel.listings %}
+  &lt;div class="listing-card"&gt;
+    &lt;h2&gt;{{ item.title }}&lt;/h2&gt;
+    &lt;p&gt;{{ item.description }}&lt;/p&gt;
+  &lt;/div&gt;
+{% else %}
+  &lt;p&gt;No listings available.&lt;/p&gt;
+{% endfor %}</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Always include an <code>{% else %}</code> on channel loops. If the external API is temporarily unreachable and the cache is empty, visitors should see a friendly message rather than a blank page.</div>
+
+    <h2>Loop Options</h2>
+    <p>Options are added after the channel name, space-separated.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Option</th>
+          <th>Example</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>limit:N</code></td>
+          <td><code>limit:5</code></td>
+          <td>Return at most N items</td>
+        </tr>
+        <tr>
+          <td><code>orderby:field</code></td>
+          <td><code>orderby:price</code></td>
+          <td>Sort by field (descending)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>limit:N &mdash; Show a Fixed Number of Items</h3>
+    <p>Returns at most N items. Use this for homepage highlights, sidebar widgets, and any section that should cap the number of results.</p>
+    <pre><code>{% for item in channel.listings limit:6 %}
+  &lt;div class="listing-card"&gt;
+    &lt;h2&gt;{{ item.title }}&lt;/h2&gt;
+    &lt;p class="price"&gt;{{ item.price }}&lt;/p&gt;
+  &lt;/div&gt;
+{% endfor %}</code></pre>
+
+    <h3>orderby:field &mdash; Sort by a Field</h3>
+    <p>Sort results by any mapped field. The sort is always <strong>descending</strong> (newest / highest first). The default order when no <code>orderby</code> is specified is the order items were synced.</p>
+    <pre><code>{% for item in channel.listings orderby:price %}
+  &lt;p&gt;{{ item.title }} &mdash; ${{ item.price }}&lt;/p&gt;
+{% endfor %}</code></pre>
+
+    <h3>Combining Options</h3>
+    <p>Options can be combined on the same tag in any order.</p>
+    <pre><code>{% for item in channel.listings limit:3 orderby:updated_at %}
+  &lt;article&gt;
+    &lt;h2&gt;{{ item.title }}&lt;/h2&gt;
+    &lt;time&gt;{{ item.updated_at }}&lt;/time&gt;
+  &lt;/article&gt;
+{% endfor %}</code></pre>
+
+    <h2>Single Channel Items</h2>
+    <p>Fetch one item by slug using the <code>{% single %}</code> tag. This is used on detail pages where the URL contains the item slug.</p>
+    <pre><code>{% single listing from channel.listings %}
+  &lt;h1&gt;{{ listing.title }}&lt;/h1&gt;
+  &lt;p&gt;{{ listing.description }}&lt;/p&gt;
+  &lt;img src="{{ listing.image_url }}" alt="{{ listing.title }}"&gt;
+{% else %}
+  &lt;p&gt;Listing not found.&lt;/p&gt;
+{% endsingle %}</code></pre>
+
+    <p>The <code>{% else %}</code> block renders when no item matches the current slug &mdash; use it for a 404-style fallback.</p>
+
+    <h2>Channel URL Patterns</h2>
+    <p>URL patterns are set in <strong>Admin &rarr; Channels &rarr; Configure</strong> step. They control how channel items get their own pages.</p>
+    <ul>
+      <li><strong>Pattern format:</strong> <code>/listing/{slug}</code></li>
+      <li><strong>Router behavior:</strong> The front router matches incoming URLs against the pattern, extracts the slug, and sets <code>$_GET['slug']</code></li>
+      <li><strong>Template resolution:</strong> The template filename must match the first segment of the URL pattern &mdash; a pattern of <code>/listing/{slug}</code> requires a <code>listing.html</code> template in your theme</li>
+      <li><strong>Fallback:</strong> If no slug-named template exists, the router falls back to <code>channel.html</code></li>
+    </ul>
+
+    <p>Example flow:</p>
+    <ol>
+      <li>A visitor navigates to <code>/listing/downtown-loft</code></li>
+      <li>The router matches the URL against the channel's pattern <code>/listing/{slug}</code></li>
+      <li>The slug (<code>downtown-loft</code>) is extracted and set as <code>$_GET['slug']</code></li>
+      <li>The matching template file (<code>listing.html</code>) is rendered</li>
+      <li>Inside the template, <code>{% single listing from channel.listings %}</code> looks up the item by that slug</li>
+    </ol>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; This is the same convention used for collection URL patterns. If you already know how collection routing works, channel routing is identical.</div>
+
+    <h2>Multiple Channels on One Page</h2>
+    <p>You can use multiple channel loops on the same page. Each loop is independent.</p>
+    <pre><code>{% for listing in channel.properties limit:3 %}
+  &lt;div class="property-card"&gt;
+    &lt;h3&gt;{{ listing.address }}&lt;/h3&gt;
+    &lt;p&gt;{{ listing.price }}&lt;/p&gt;
+  &lt;/div&gt;
+{% endfor %}
+
+{% for review in channel.google_reviews limit:5 %}
+  &lt;div class="review"&gt;
+    &lt;p&gt;&lt;strong&gt;{{ review.author }}&lt;/strong&gt; &mdash; {{ review.rating }} stars&lt;/p&gt;
+    &lt;p&gt;{{ review.text }}&lt;/p&gt;
+  &lt;/div&gt;
+{% endfor %}</code></pre>
+
+    <h2>Mixing Channels and Collections</h2>
+    <p>Channel loops and collection loops work side by side on the same page. This is useful for pages that combine your own content with external data.</p>
+    <pre><code>&lt;section class="our-posts"&gt;
+  &lt;h2&gt;Latest Articles&lt;/h2&gt;
+  {% for post in collection.post limit:3 orderby:published_at %}
+    &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+  {% endfor %}
+&lt;/section&gt;
+
+&lt;section class="external-listings"&gt;
+  &lt;h2&gt;Featured Listings&lt;/h2&gt;
+  {% for listing in channel.mls limit:6 %}
+    &lt;div class="listing-card"&gt;
+      &lt;h3&gt;{{ listing.address }}&lt;/h3&gt;
+      &lt;p&gt;{{ listing.price }}&lt;/p&gt;
+    &lt;/div&gt;
+  {% endfor %}
+&lt;/section&gt;</code></pre>
+
+    <h2>Full Page Example (Real Estate Listings)</h2>
+    <p>A complete template showing a channel loop with conditionals, images, and links to single item pages. The channel slug is <code>properties</code> with URL pattern <code>/property/{slug}</code>.</p>
+
+    <h3>Listing page (properties.html)</h3>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main&gt;
+  &lt;h1&gt;Available Properties&lt;/h1&gt;
+
+  &lt;div class="property-grid"&gt;
+    {% for property in channel.properties limit:20 %}
+      &lt;a href="{{ property.url }}" class="property-card"&gt;
+        {% if property.image %}
+          &lt;img src="{{ property.image }}" alt="{{ property.title }}"&gt;
+        {% endif %}
+        &lt;h2&gt;{{ property.title }}&lt;/h2&gt;
+        &lt;p class="price"&gt;{{ property.price }}&lt;/p&gt;
+        &lt;p class="location"&gt;{{ property.city }}, {{ property.state }}&lt;/p&gt;
+        {% if property.bedrooms %}
+          &lt;span&gt;{{ property.bedrooms }} beds&lt;/span&gt;
+        {% endif %}
+        {% if property.bathrooms %}
+          &lt;span&gt;{{ property.bathrooms }} baths&lt;/span&gt;
+        {% endif %}
+      &lt;/a&gt;
+    {% else %}
+      &lt;p&gt;No properties available at this time.&lt;/p&gt;
+    {% endfor %}
+  &lt;/div&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <h3>Detail page (property.html)</h3>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+{% single property from channel.properties %}
+&lt;main class="property-detail"&gt;
+  &lt;h1&gt;{{ property.title }}&lt;/h1&gt;
+  &lt;p class="price"&gt;{{ property.price }}&lt;/p&gt;
+
+  {% if property.image %}
+    &lt;img src="{{ property.image }}" alt="{{ property.title }}" class="hero-image"&gt;
+  {% endif %}
+
+  &lt;div class="property-info"&gt;
+    {% if property.bedrooms %}
+      &lt;span&gt;{{ property.bedrooms }} beds&lt;/span&gt;
+    {% endif %}
+    {% if property.bathrooms %}
+      &lt;span&gt;{{ property.bathrooms }} baths&lt;/span&gt;
+    {% endif %}
+    {% if property.sqft %}
+      &lt;span&gt;{{ property.sqft }} sqft&lt;/span&gt;
+    {% endif %}
+  &lt;/div&gt;
+
+  &lt;div class="description"&gt;{{ property.description | raw }}&lt;/div&gt;
+
+  &lt;p class="location"&gt;{{ property.city }}, {{ property.state }}&lt;/p&gt;
+&lt;/main&gt;
+{% else %}
+&lt;main&gt;
+  &lt;h1&gt;Property Not Found&lt;/h1&gt;
+  &lt;p&gt;This property listing is no longer available.&lt;/p&gt;
+&lt;/main&gt;
+{% endsingle %}
+
+{% include 'footer' %}</code></pre>
+
+    <div class="callout callout-note"><strong>Caching Behavior</strong> &mdash; Channel data is cached in SQLite. Auto-sync fires when the TTL expires on the next template render. Manual sync is available from the admin dashboard. If the external API is down, the last cached data is served &mdash; your site never goes blank because of an upstream outage.</div>
+
+    <div class="callout callout-tip"><strong>Comparison with Collection Loops</strong> &mdash; Collection loops use <code>collection.slug</code>, channel loops use <code>channel.slug</code>. Everything else &mdash; loop options, the <code>{% else %}</code> branch, conditionals inside loops &mdash; works identically. You can prototype with a collection and later switch to a channel (or vice versa) by simply changing the prefix.</div>
+
+    <p>For full details on setting up channels, authentication, caching configuration, and the sync dashboard, see <a href="features/channels.html">Channels</a>.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

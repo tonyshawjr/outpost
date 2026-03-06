@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin API — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link active">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Admin API</h1>
+    <p class="lead">The Admin API covers all CMS management operations: pages, collections, items, media, users, folders, navigation menus, settings, and more. All endpoints require an active admin session and a CSRF token on mutations.</p>
+  </div>
+  <div class="content">
+
+    <div class="callout callout-note">
+      <strong>Auth required</strong>
+      All Admin API endpoints require a valid admin session cookie (<code>outpost_session</code>). POST, PUT, and DELETE requests also require an <code>X-CSRF-Token</code> header. See <a href="api/">API Overview &amp; Auth</a> for the login flow.
+    </div>
+
+    <h2>Pages</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=pages</span>
+      </div>
+      <p>Returns all pages for the active theme. Excludes collection item URL paths and the internal <code>__global__</code> page. Supports an optional <code>search</code> query parameter to filter by path or title.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>search</code></td><td>string</td><td>Optional. Filter pages by path or title (substring match).</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "pages": [
+    {
+      "id": 1,
+      "path": "/",
+      "title": "Home",
+      "meta_title": "Welcome",
+      "meta_description": "...",
+      "status": "published",
+      "visibility": "public",
+      "published_at": "2024-01-15 09:00:00",
+      "updated_at": "2024-03-01 14:22:00"
+    }
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=pages&amp;id=1</span>
+      </div>
+      <p>Returns a single page with all of its fields for the active theme, plus any registry fields that have not yet been populated.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "page": {
+    "id": 1,
+    "path": "/",
+    "title": "Home",
+    "meta_title": "",
+    "meta_description": "",
+    "status": "published",
+    "visibility": "public",
+    "active_theme": "personal",
+    "fields": [
+      {
+        "id": 5,
+        "field_name": "hero_title",
+        "field_type": "text",
+        "content": "Welcome",
+        "default_value": "Hello World",
+        "sort_order": 0
+      }
+    ]
+  }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=pages&amp;id=1</span>
+      </div>
+      <p>Updates page metadata. Clears the page HTML cache automatically.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>string</td><td>Page title shown in admin listings.</td></tr>
+        <tr><td><code>meta_title</code></td><td>string</td><td>SEO meta title tag.</td></tr>
+        <tr><td><code>meta_description</code></td><td>string</td><td>SEO meta description tag.</td></tr>
+        <tr><td><code>status</code></td><td>string</td><td><code>published</code> or <code>draft</code>.</td></tr>
+        <tr><td><code>visibility</code></td><td>string</td><td><code>public</code>, <code>members</code>, or <code>paid</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=pages&amp;id=3</span>
+      </div>
+      <p>Deletes a page, its template file, all associated fields, and field registry entries. Clears the full template cache.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer</td><td>Required. The page ID to delete.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn"><strong>Protected pages</strong> — The homepage (<code>/</code>) and the internal globals page (<code>__global__</code>) cannot be deleted. The endpoint returns an error for these paths.</div>
+
+    <p>What gets deleted:</p>
+    <ul>
+      <li>The <code>.html</code> template file from the active theme directory (e.g. <code>themes/personal/about.html</code>)</li>
+      <li>The page row in the <code>pages</code> table</li>
+      <li>All fields for that page (cascade via foreign key)</li>
+      <li>All <code>page_field_registry</code> entries for that path</li>
+    </ul>
+
+    <p>Response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <h2>Fields (bulk update)</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=fields/bulk</span>
+      </div>
+      <p>Saves content for one or more fields at once. Rich-text fields are sanitized before storage. Clears page cache for all affected pages; if any global field is updated, all page caches are cleared.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "fields": [
+    { "id": 5, "content": "Welcome to our site" },
+    { "id": 6, "content": "&lt;p&gt;Rich text here&lt;/p&gt;" }
+  ]
+}</code></pre>
+
+    <p>Response: <code>{"success": true, "updated": 2}</code></p>
+
+    <h2>Global fields</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=globals</span>
+      </div>
+      <p>Returns all global fields (the <code>__global__</code> page fields). These are shared across all pages and themes.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "fields": [
+    {
+      "id": 12,
+      "field_name": "site_name",
+      "field_type": "text",
+      "content": "My Site",
+      "default_value": "",
+      "options": ""
+    }
+  ]
+}</code></pre>
+
+    <h2>Collections</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=collections</span>
+      </div>
+      <p>Returns all collections with item counts.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=collections</span>
+      </div>
+      <p>Creates a new collection. The slug must be lowercase letters, numbers, and hyphens only, and must be unique.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>slug</code></td><td>Yes</td><td>URL-safe identifier, e.g. <code>blog</code>.</td></tr>
+        <tr><td><code>name</code></td><td>Yes</td><td>Human-readable name, e.g. <code>Blog Posts</code>.</td></tr>
+        <tr><td><code>singular_name</code></td><td>No</td><td>Singular form, e.g. <code>Blog Post</code>. Defaults to <code>name</code>.</td></tr>
+        <tr><td><code>schema</code></td><td>No</td><td>JSON object defining the field schema.</td></tr>
+        <tr><td><code>url_pattern</code></td><td>No</td><td>URL pattern, e.g. <code>/blog/{slug}</code>. Defaults to <code>/{slug}/{slug}</code>.</td></tr>
+        <tr><td><code>sort_field</code></td><td>No</td><td>Field to sort items by. Defaults to <code>created_at</code>.</td></tr>
+        <tr><td><code>sort_direction</code></td><td>No</td><td><code>ASC</code> or <code>DESC</code>. Defaults to <code>DESC</code>.</td></tr>
+        <tr><td><code>items_per_page</code></td><td>No</td><td>Default pagination size. Defaults to <code>10</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response: <code>{"success": true, "id": 3}</code> with HTTP 201.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=collections&amp;id=3</span>
+      </div>
+      <p>Updates an existing collection. Same fields as create (except <code>slug</code> which cannot be changed).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=collections&amp;id=3</span>
+      </div>
+      <p>Deletes a collection and all its items.</p>
+    </div>
+
+    <h2>Collection items</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=items&amp;collection=blog</span>
+      </div>
+      <p>Returns all items in a collection, decoded from JSON storage. Supports an optional <code>status</code> filter.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>string</td><td>Required. Collection slug.</td></tr>
+        <tr><td><code>status</code></td><td>string</td><td>Optional. Filter by <code>published</code>, <code>draft</code>, or <code>scheduled</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "items": [
+    {
+      "id": 10,
+      "collection_id": 3,
+      "slug": "my-first-post",
+      "status": "published",
+      "data": { "title": "My First Post", "body": "..." },
+      "published_at": "2024-02-01 08:00:00",
+      "updated_at": "2024-02-01 08:00:00"
+    }
+  ],
+  "collection": { "id": 3, "slug": "blog", "name": "Blog Posts", ... }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=items</span>
+      </div>
+      <p>Creates a new collection item.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection_id</code></td><td>Yes</td><td>Numeric ID of the collection.</td></tr>
+        <tr><td><code>slug</code></td><td>Yes</td><td>URL-safe slug, unique within the collection.</td></tr>
+        <tr><td><code>data</code></td><td>No</td><td>Object containing all field values.</td></tr>
+        <tr><td><code>status</code></td><td>No</td><td><code>draft</code> (default), <code>published</code>, or <code>scheduled</code>.</td></tr>
+        <tr><td><code>scheduled_at</code></td><td>No</td><td>ISO datetime string, used when <code>status</code> is <code>scheduled</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=items&amp;id=10</span>
+      </div>
+      <p>Updates a collection item. Any fields omitted from the body are left unchanged. Clears the full HTML cache so listing pages reflect the change.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>slug</code></td><td>New slug (must be unique in the collection).</td></tr>
+        <tr><td><code>data</code></td><td>Object containing field values to replace.</td></tr>
+        <tr><td><code>status</code></td><td><code>draft</code>, <code>published</code>, or <code>scheduled</code>.</td></tr>
+        <tr><td><code>sort_order</code></td><td>Integer sort position.</td></tr>
+        <tr><td><code>scheduled_at</code></td><td>ISO datetime for scheduled publish.</td></tr>
+        <tr><td><code>published_at</code></td><td>Override the publish timestamp.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=items&amp;id=10</span>
+      </div>
+      <p>Permanently deletes a collection item.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=items/inline</span>
+      </div>
+      <p>Partially updates specific fields in a collection item's <code>data</code> JSON. Designed for on-page editing — merges new field values into the existing data without replacing unmodified fields. Creates a revision snapshot, sanitizes richtext fields, and supports optimistic locking.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>Yes</td><td>Numeric ID of the collection item.</td></tr>
+        <tr><td><code>fields</code></td><td>Yes</td><td>Associative object of field name/value pairs to merge into the item's data.</td></tr>
+        <tr><td><code>_version</code></td><td>No</td><td>The <code>updated_at</code> timestamp the client last saw. If provided and the server value differs, returns 409 conflict.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "id": 42,
+  "fields": { "title": "New Title", "body": "&lt;p&gt;Updated&lt;/p&gt;" },
+  "_version": "2026-03-06 14:30:00"
+}</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{ "success": true, "updated_at": "2026-03-06 14:30:01" }</code></pre>
+
+    <p>Conflict response (409):</p>
+    <pre><code>{
+  "error": "This item was modified by another user. Reload to see the latest version.",
+  "conflict": true,
+  "server_updated_at": "2026-03-06 14:30:05"
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=items/bulk-status</span>
+      </div>
+      <p>Updates the status of multiple collection items in a single request. Preserves existing <code>published_at</code> timestamps on items that were already published.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>ids</code></td><td>Yes</td><td>Array of integer item IDs.</td></tr>
+        <tr><td><code>status</code></td><td>Yes</td><td><code>draft</code> or <code>published</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "ids": [10, 14, 22],
+  "status": "published"
+}</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{ "success": true, "count": 3 }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=items/bulk-delete</span>
+      </div>
+      <p>Permanently deletes multiple collection items in a single request.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>ids</code></td><td>Yes</td><td>Array of integer item IDs.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "ids": [10, 14, 22]
+}</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{ "success": true, "count": 3 }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=items/preview-token</span>
+      </div>
+      <p>Generates a secure preview token for a collection item, allowing draft or scheduled items to be viewed on the live site via <code>?preview=TOKEN</code> in the URL. The token is regenerated on each call.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>Yes</td><td>Integer item ID.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "token": "a1b2c3d4e5f6..."
+}</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Preview URL format</strong>
+      Append <code>?preview=TOKEN</code> to the item's normal URL. The router validates the token against the item's stored <code>preview_token</code> and serves the page even if the item is not published. Preview pages are never cached and display a "Preview Mode" banner at the bottom of the page.
+    </div>
+
+    <h2>Media</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=media</span>
+      </div>
+      <p>Returns all media files sorted newest first.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=media/upload</span>
+      </div>
+      <p>Uploads a file. Use <code>multipart/form-data</code>. The CSRF token must be sent as a form field named <code>csrf_token</code> (not as a header, because the request is multipart).</p>
+    </div>
+
+    <p>Form fields:</p>
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>file</code></td><td>The file to upload.</td></tr>
+        <tr><td><code>csrf_token</code></td><td>CSRF token from <code>auth/me</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response (HTTP 201):</p>
+    <pre><code>{
+  "success": true,
+  "media": {
+    "id": 7,
+    "filename": "photo-abc123.jpg",
+    "original_name": "photo.jpg",
+    "path": "/outpost/uploads/photo-abc123.jpg",
+    "thumb_path": "/outpost/uploads/thumbs/photo-abc123.jpg",
+    "mime_type": "image/jpeg",
+    "file_size": 204800,
+    "width": 1200,
+    "height": 800,
+    "alt_text": ""
+  }
+}</code></pre>
+
+    <p>curl example:</p>
+    <pre><code>curl -b cookies.txt \
+  -F "file=@/path/to/photo.jpg" \
+  -F "csrf_token=a1b2c3..." \
+  "https://example.com/outpost/api.php?action=media/upload"</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=media&amp;id=7</span>
+      </div>
+      <p>Updates media metadata. Currently supports <code>alt_text</code>.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "alt_text": "A sunset over the mountains" }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=media/transform</span>
+      </div>
+      <p>Applies a resize or crop transformation to a raster image. SVGs are not supported. Requires the GD extension. The original file is overwritten and the thumbnail is regenerated.</p>
+    </div>
+
+    <p>Request body (resize — provide width, height, or both; aspect ratio is maintained if only one is given):</p>
+    <pre><code>{ "id": 7, "action": "resize", "width": 800 }</code></pre>
+
+    <p>Request body (crop — x, y are the top-left origin; width, height define the crop region):</p>
+    <pre><code>{ "id": 7, "action": "crop", "x": 100, "y": 50, "width": 600, "height": 400 }</code></pre>
+
+    <p>Both operations return the updated media object. Maximum dimension is 4800px.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=media&amp;id=7</span>
+      </div>
+      <p>Deletes a media file and its thumbnail from disk, and removes the database record.</p>
+    </div>
+
+    <h2>Settings</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=settings</span>
+      </div>
+      <p>Returns all site settings as a flat key-value object. Requires the <code>settings.*</code> capability.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "settings": {
+    "site_name": "My Site",
+    "site_url": "https://example.com",
+    "active_theme": "personal",
+    "cache_enabled": "1"
+  }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=settings</span>
+      </div>
+      <p>Updates one or more settings. Send a flat key-value object. Any key present in the body is upserted. Requires the <code>settings.*</code> capability.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "site_name": "My Updated Site",
+  "cache_enabled": "1"
+}</code></pre>
+
+    <h2>Cache</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=cache/clear</span>
+      </div>
+      <p>Clears all HTML page caches and compiled template caches. Requires the <code>cache.*</code> capability.</p>
+    </div>
+
+    <p>Response: <code>{"success": true, "message": "Cache cleared"}</code></p>
+
+    <h2>Users</h2>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      User endpoints require the <code>users.*</code> capability. Creating or modifying users with <code>admin</code> or <code>developer</code> roles requires the <code>super_admin</code> or <code>admin</code> role. Deleting users requires <code>admin</code> role or above.
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=users</span>
+      </div>
+      <p>Returns all admin users (not members). Password hashes are never returned.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=users&amp;id=2</span>
+      </div>
+      <p>Returns a single admin user by ID.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "user": {
+    "id": 2,
+    "username": "editor1",
+    "email": "editor@example.com",
+    "display_name": "Jane Editor",
+    "avatar": "",
+    "bio": "",
+    "role": "editor",
+    "created_at": "2024-01-01 10:00:00",
+    "last_login": "2024-03-01 09:30:00"
+  }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=users</span>
+      </div>
+      <p>Creates a new admin user. Password must be at least 8 characters.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>username</code></td><td>Yes</td><td>Unique login name.</td></tr>
+        <tr><td><code>password</code></td><td>Yes</td><td>Minimum 8 characters.</td></tr>
+        <tr><td><code>email</code></td><td>No</td><td>Email address.</td></tr>
+        <tr><td><code>display_name</code></td><td>No</td><td>Display name.</td></tr>
+        <tr><td><code>role</code></td><td>No</td><td>Role slug. Defaults to <code>admin</code>. Valid values: <code>super_admin</code>, <code>admin</code>, <code>developer</code>, <code>editor</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=users&amp;id=2</span>
+      </div>
+      <p>Updates a user. Pass only the fields you want to change. To change the password, include <code>password</code> in the body. Omitting it leaves the password unchanged.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=users&amp;id=2</span>
+      </div>
+      <p>Deletes a user. Cannot delete your own account.</p>
+    </div>
+
+    <h2>Members (admin view)</h2>
+
+    <p>These endpoints let admins manage site members (users with <code>free_member</code> or <code>paid_member</code> roles). Requires the <code>members.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=members</span>
+      </div>
+      <p>Returns all members sorted by creation date.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=members&amp;id=50</span>
+      </div>
+      <p>Updates a member's role, status, or expiry date.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>role</code></td><td><code>free_member</code> or <code>paid_member</code>.</td></tr>
+        <tr><td><code>member_status</code></td><td><code>active</code> or <code>suspended</code>.</td></tr>
+        <tr><td><code>member_expires</code></td><td>ISO datetime string or empty to remove expiry.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=members&amp;id=50</span>
+      </div>
+      <p>Permanently deletes a member account.</p>
+    </div>
+
+    <h2>Folders</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=folders</span>
+      </div>
+      <p>Returns all folders across all collections, with collection name and label count.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=folders&amp;collection_id=3</span>
+      </div>
+      <p>Returns all folders for a specific collection.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=folders&amp;id=1</span>
+      </div>
+      <p>Returns a single folder by ID, including its schema and label count.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=folders</span>
+      </div>
+      <p>Creates a new folder for a collection.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection_id</code></td><td>Yes</td><td>Numeric collection ID.</td></tr>
+        <tr><td><code>slug</code></td><td>Yes</td><td>Unique slug within the collection.</td></tr>
+        <tr><td><code>name</code></td><td>Yes</td><td>Display name.</td></tr>
+        <tr><td><code>singular_name</code></td><td>No</td><td>Singular display name.</td></tr>
+        <tr><td><code>type</code></td><td>No</td><td><code>flat</code> (default) or <code>hierarchical</code>.</td></tr>
+        <tr><td><code>schema</code></td><td>No</td><td>Array of field definitions for label extra fields.</td></tr>
+        <tr><td><code>description</code></td><td>No</td><td>Description of this folder.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=folders&amp;id=1</span>
+      </div>
+      <p>Updates a folder's name, type, schema, or description.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=folders&amp;id=1</span>
+      </div>
+      <p>Deletes a folder and all its labels.</p>
+    </div>
+
+    <h2>Labels</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=labels&amp;folder_id=1</span>
+      </div>
+      <p>Returns all labels for a folder, with item counts and any extra field data.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=labels&amp;id=5</span>
+      </div>
+      <p>Returns a single label by ID.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=labels</span>
+      </div>
+      <p>Creates a new label.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>folder_id</code></td><td>Yes</td><td>Numeric folder ID.</td></tr>
+        <tr><td><code>slug</code></td><td>Yes</td><td>Unique slug within the folder.</td></tr>
+        <tr><td><code>name</code></td><td>Yes</td><td>Display name.</td></tr>
+        <tr><td><code>parent_id</code></td><td>No</td><td>Parent label ID for hierarchical folders.</td></tr>
+        <tr><td><code>description</code></td><td>No</td><td>Optional description.</td></tr>
+        <tr><td><code>data</code></td><td>No</td><td>Object with extra field values defined by the folder schema.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=labels&amp;id=5</span>
+      </div>
+      <p>Updates a label.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=labels&amp;id=5</span>
+      </div>
+      <p>Deletes a label. All item-label associations for this label are removed automatically.</p>
+    </div>
+
+    <h2>Item labels</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=item-labels&amp;item_id=10</span>
+      </div>
+      <p>Returns all labels assigned to a collection item, plus an array of label IDs.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=item-labels&amp;item_id=10</span>
+      </div>
+      <p>Replaces all label assignments for an item. Any labels not in the <code>label_ids</code> array are removed.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "label_ids": [2, 5, 8] }</code></pre>
+
+    <h2>Navigation menus</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=menus</span>
+      </div>
+      <p>Returns all navigation menus.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=menus&amp;id=1</span>
+      </div>
+      <p>Returns a single menu with its items.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=menus</span>
+      </div>
+      <p>Creates a new navigation menu.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=menus&amp;id=1</span>
+      </div>
+      <p>Updates a menu's name and item structure.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=menus&amp;id=1</span>
+      </div>
+      <p>Deletes a menu.</p>
+    </div>
+
+    <h2>Themes</h2>
+
+    <p>Theme management requires the <code>settings.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=themes</span>
+      </div>
+      <p>Returns all installed themes with their metadata.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=themes/activate</span>
+      </div>
+      <p>Activates a theme by slug.</p>
+    </div>
+
+    <p>Request body: <code>{ "slug": "personal" }</code></p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=themes/duplicate</span>
+      </div>
+      <p>Duplicates a theme under a new name.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=themes&amp;slug=old-theme</span>
+      </div>
+      <p>Deletes a theme. Cannot delete the currently active theme.</p>
+    </div>
+
+    <h2>Dashboard</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/stats</span>
+      </div>
+      <p>Returns site-wide statistics including page count, published items, member totals, media count, member growth data, and recent content activity.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>period</code></td><td><code>30days</code> (default), <code>90days</code>, or <code>1year</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/activity</span>
+      </div>
+      <p>Returns the last 8 activity log events, combining system events (content edits, setting changes) with recent member joins.</p>
+    </div>
+
+    <h2>Analytics</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/analytics</span>
+      </div>
+      <p>Returns pageview analytics: totals, chart data, top pages, referrers, and device breakdown. Only human traffic (non-bot) is counted.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>period</code></td><td><code>7days</code>, <code>30days</code> (default), <code>90days</code>, or <code>12months</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/seo</span>
+      </div>
+      <p>Returns an SEO health report for all pages and published collection items, including missing titles, descriptions, and OG images, plus duplicate meta descriptions.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/content</span>
+      </div>
+      <p>Returns content analytics: most-read articles, reading time estimates, and content velocity.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/members</span>
+      </div>
+      <p>Returns member analytics: growth over time, paid vs. free breakdown, and recent joins.</p>
+    </div>
+
+    <h2>Code editor</h2>
+
+    <p>Code editor endpoints require the <code>code.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=code/files</span>
+      </div>
+      <p>Returns a directory listing of editable theme files.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=code/read</span>
+      </div>
+      <p>Returns the contents of a specific file. Pass the relative path as a query parameter.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=code/write</span>
+      </div>
+      <p>Writes content to a file. The file must be within the active theme directory.</p>
+    </div>
+
+    <h2>Saved loops</h2>
+
+    <p>Saved loops store reusable query configurations. Requires the <code>code.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=loops</span>
+      </div>
+      <p>Returns all saved loop configurations.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=loops</span>
+      </div>
+      <p>Creates or updates a saved loop configuration.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=loops&amp;id=3</span>
+      </div>
+      <p>Deletes a saved loop.</p>
+    </div>
+
+    <h2>Forms &amp; submissions</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=forms</span>
+      </div>
+      <p>Returns a list of all forms that have received submissions.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=forms/submissions</span>
+      </div>
+      <p>Returns form submissions. Filter by form using the <code>form_id</code> query parameter.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=forms/submissions&amp;id=20</span>
+      </div>
+      <p>Marks a submission as read.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=forms/submissions&amp;id=20</span>
+      </div>
+      <p>Deletes a submission.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=forms/export</span>
+      </div>
+      <p>Exports form submissions as a CSV file.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=forms/config</span>
+      </div>
+      <p>Returns the form configuration (notification email, SMTP settings).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=forms/config</span>
+      </div>
+      <p>Updates the form configuration.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=forms/test-smtp</span>
+      </div>
+      <p>Sends a test email using the configured SMTP settings.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=forms/submissions/star&amp;id=20</span>
+      </div>
+      <p>Toggles the starred status of a submission.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=forms/submissions/status&amp;id=20</span>
+      </div>
+      <p>Changes submission status. Body: <code>{"status": "active|archived|trashed"}</code></p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=forms/submissions/notes&amp;id=20</span>
+      </div>
+      <p>Updates the internal notes on a submission. Body: <code>{"notes": "..."}</code></p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=forms/submissions/bulk</span>
+      </div>
+      <p>Performs a bulk action on multiple submissions. Body: <code>{"ids": [1,2,3], "action": "read|star|unstar|archive|delete|restore"}</code></p>
+    </div>
+
+    <h3>Form Builder</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=forms/builder</span>
+      </div>
+      <p>Returns all builder-defined forms with field counts and submission counts.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=forms/builder&amp;id=5</span>
+      </div>
+      <p>Returns a single form definition including fields, settings, notifications, and feeds.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=forms/builder</span>
+      </div>
+      <p>Creates a new builder form. Body: <code>{"name": "Contact", "slug": "contact", "fields": [...], "settings": {...}}</code></p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=forms/builder&amp;id=5</span>
+      </div>
+      <p>Updates a builder form definition.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=forms/builder&amp;id=5</span>
+      </div>
+      <p>Deletes a builder form.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=forms/builder/duplicate&amp;id=5</span>
+      </div>
+      <p>Duplicates a builder form with a new slug (appends <code>-copy</code>).</p>
+    </div>
+
+    <h2>Channels</h2>
+
+    <p>Manage external data source channels — connect to REST APIs, sync data into SQLite cache, and render in templates. Requires the <code>settings.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=channels</span>
+      </div>
+      <p>Returns all channels with item counts and sync status.</p>
+    </div>
+
+    <p>Response shape:</p>
+    <pre><code>{
+  "channels": [
+    {
+      "id": 1,
+      "slug": "listings",
+      "name": "Property Listings",
+      "type": "api",
+      "status": "active",
+      "cache_ttl": 3600,
+      "url_pattern": "/listing/{slug}",
+      "last_sync_at": "2026-03-05 10:00:00",
+      "item_count": 47,
+      "created_at": "2026-03-05 09:00:00"
+    }
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=channels&amp;id=1</span>
+      </div>
+      <p>Returns a single channel with full configuration, field map, and item count.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=channels</span>
+      </div>
+      <p>Creates a new channel.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "name": "Property Listings",
+  "slug": "listings",
+  "type": "api",
+  "config": {
+    "url": "https://api.example.com/v1/listings",
+    "method": "GET",
+    "auth_type": "bearer",
+    "auth_config": { "bearer_token": "sk_live_..." },
+    "headers": { "Accept": "application/json" },
+    "params": { "status": "active" },
+    "data_path": "data.listings",
+    "id_field": "id",
+    "slug_field": "slug",
+    "pagination": { "type": "offset", "page_param": "page", "limit_param": "limit", "per_page": 50 }
+  },
+  "field_map": [
+    { "source": "title", "type": "string" },
+    { "source": "price", "type": "number" },
+    { "source": "images.0.url", "type": "string" }
+  ],
+  "cache_ttl": 3600,
+  "url_pattern": "/listing/{slug}",
+  "sort_field": "updated_at",
+  "sort_direction": "desc",
+  "max_items": 100
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=channels&amp;id=1</span>
+      </div>
+      <p>Updates an existing channel. Same body format as create.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=channels&amp;id=1</span>
+      </div>
+      <p>Deletes a channel and all cached items. Cascades to <code>channel_items</code> and <code>channel_sync_log</code>.</p>
+    </div>
+
+    <h3>Sync</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=channels/sync&amp;id=1</span>
+      </div>
+      <p>Triggers an immediate sync for the channel. Fetches the external API, upserts items into cache, removes stale items, and logs the result.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "items_synced": 47,
+  "items_added": 3,
+  "items_updated": 44,
+  "items_removed": 1,
+  "duration_ms": 1250
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=channels/sync-log&amp;id=1</span>
+      </div>
+      <p>Returns the last 50 sync log entries for the channel, newest first.</p>
+    </div>
+
+    <p>Response shape:</p>
+    <pre><code>{
+  "log": [
+    {
+      "id": 12,
+      "status": "success",
+      "items_synced": 47,
+      "items_added": 3,
+      "items_updated": 44,
+      "items_removed": 1,
+      "duration_ms": 1250,
+      "error_message": null,
+      "synced_at": "2026-03-05 10:00:00"
+    }
+  ]
+}</code></pre>
+
+    <h3>Schema discovery</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=channels/discover</span>
+      </div>
+      <p>Fetches a URL with the provided auth configuration and returns the JSON response schema. Used by the admin channel builder wizard to discover API structure before saving the channel.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "url": "https://api.example.com/v1/listings",
+  "method": "GET",
+  "auth_type": "bearer",
+  "auth_config": { "bearer_token": "sk_live_..." },
+  "headers": {},
+  "params": {},
+  "data_path": "data.listings"
+}</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "schema": {
+    "id": "number",
+    "title": "string",
+    "price": "number",
+    "active": "boolean",
+    "tags": "array",
+    "address": {
+      "street": "string",
+      "city": "string"
+    }
+  },
+  "sample": [ { "id": 1, "title": "123 Main St", "price": 350000 } ],
+  "total_items": 47
+}</code></pre>
+
+    <h3>Cached items preview</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=channels/items&amp;id=1</span>
+      </div>
+      <p>Returns paginated cached items for a channel. Used by the admin Data tab to preview synced data.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer</td><td>Channel ID (required)</td></tr>
+        <tr><td><code>page</code></td><td>integer</td><td>Page number (default: 1)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Import</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=import/wordpress</span>
+      </div>
+      <p>Imports content from a WordPress WXR export file. Use <code>multipart/form-data</code>. The CSRF token must be sent as a form field named <code>csrf_token</code>.</p>
+    </div>
+
+    <p>Form fields:</p>
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>file</code></td><td>The WordPress WXR XML export file.</td></tr>
+        <tr><td><code>csrf_token</code></td><td>CSRF token from <code>auth/me</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Search</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=search/content</span>
+      </div>
+      <p>Full-text search across pages, collection items, and media. Returns up to 26 results grouped by type. Requires at least 2 characters.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>q</code></td><td>string</td><td>Search query (minimum 2 characters).</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response shape:</p>
+    <pre><code>{
+  "results": [
+    { "type": "page",  "id": 1, "title": "About", "subtitle": "/about", "meta": {} },
+    { "type": "item",  "id": 5, "title": "My Post", "subtitle": "Posts", "status": "draft", "meta": { "collection_slug": "post" } },
+    { "type": "media", "id": 3, "title": "hero.jpg", "subtitle": "image/jpeg", "meta": {} }
+  ]
+}</code></pre>
+
+    <p>Results are ordered by recency within each type: pages (up to 8), collection items (up to 12), media (up to 6). The admin uses this to power the <kbd>⌘K</kbd> command palette.</p>
+
+    <h2>Sync key management</h2>
+
+    <p>These endpoints manage the key used by the Outpost Builder sync. Requires the <code>settings.*</code> capability.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=sync/key</span>
+      </div>
+      <p>Returns metadata about the current sync API key (masked). Auto-generates a key on first access.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "key_set": true,
+  "key_masked": "a1b2c3d4••••••••••••••••••••••••••••••••••••••••••••••••ef01",
+  "last_pull": "2024-03-01 10:00:00",
+  "last_push": "2024-03-01 09:55:00"
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=sync/key/regenerate</span>
+      </div>
+      <p>Generates a new sync API key. The old key is invalidated immediately. The new key is returned once — store it in your Builder configuration.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "key": "full-64-char-hex-key-shown-once",
+  "key_masked": "a1b2c3d4••••••••••••••••••••••••••••••••••••••••••••••••ef01"
+}</code></pre>
+
+    <h2>API keys</h2>
+
+    <p>Manage Bearer token API keys for headless access. These endpoints require the <code>settings.*</code> capability. Keys allow external tools, CI/CD pipelines, and static site generators to authenticate with the Admin API without browser sessions.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=apikeys</span>
+      </div>
+      <p>Lists all API keys. Returns metadata only — the actual key values are never retrievable after creation.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "keys": [
+    {
+      "id": 1,
+      "name": "CI/CD Pipeline",
+      "key_prefix": "op_a1b2c3d4",
+      "username": "admin",
+      "display_name": "Admin",
+      "last_used_at": "2026-03-05 14:30:00",
+      "created_at": "2026-02-01 10:00:00"
+    }
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=apikeys</span>
+      </div>
+      <p>Creates a new API key. The full key is returned <strong>once</strong> in the response — store it securely. It cannot be retrieved later. The key is linked to the currently authenticated user and inherits that user's role and permissions.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "name": "CI/CD Pipeline"
+}</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "key": "op_a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+  "id": 1,
+  "prefix": "op_a1b2c3d4"
+}</code></pre>
+
+    <div class="callout callout-warn">
+      <strong>One-time display</strong>
+      The <code>key</code> field is the only time the full key is returned. It is stored as a bcrypt hash — there is no way to retrieve it after this response.
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=apikeys&amp;id=N</span>
+      </div>
+      <p>Revokes (deletes) an API key. Any requests using this key will immediately receive <code>401 Unauthorized</code>.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true
+}</code></pre>
+
+    <h3>Using an API key</h3>
+
+    <p>Pass the key as a Bearer token in the <code>Authorization</code> header. No session cookie or CSRF token is required:</p>
+
+    <pre><code>curl -H "Authorization: Bearer op_a1b2c3d4e5f6..." \
+     "https://example.com/outpost/api.php?action=pages"</code></pre>
+
+    <p>API key requests are subject to the same role-based capability checks as session-authenticated requests. Rate limiting uses IP-based tracking instead of session-based.</p>
+
+    <h2>Revisions</h2>
+
+    <p>Content revision history — automatic snapshots on every save. Keeps the last 25 revisions per entity.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=revisions&amp;entity_type=page&amp;entity_id=N</span>
+      </div>
+      <p>Lists revisions for a page or collection item (newest first, max 25). Pass <code>entity_type</code> (<code>page</code> or <code>item</code>) and <code>entity_id</code>.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "revisions": [
+    {
+      "id": 42,
+      "entity_type": "page",
+      "entity_id": 5,
+      "created_at": "2025-03-01 10:00:00",
+      "created_by": 1,
+      "user": "Admin",
+      "field_count": 4
+    }
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=revisions/restore</span>
+      </div>
+      <p>Restores a revision. The current content is automatically snapshotted first so the restore itself is undoable. Body: <code>{ entity_type, entity_id, revision_id }</code>.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true
+}</code></pre>
+
+    <h2>Webhooks</h2>
+
+    <p>Send HTTP POST notifications to external URLs when content changes. Requires <code>settings.*</code> capability (admin+ only).</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=webhooks</span>
+      </div>
+      <p>Lists all configured webhooks (id, name, url, events, active status).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=webhooks&amp;id=N</span>
+      </div>
+      <p>Returns a single webhook's full details including custom headers (secret is never returned).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=webhooks</span>
+      </div>
+      <p>Creates a new webhook. Body: <code>{ name, url, events, headers, active }</code>. Returns the auto-generated signing secret (shown only once).</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "id": 1,
+  "secret": "a1b2c3..."
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=webhooks&amp;id=N</span>
+      </div>
+      <p>Updates a webhook. Body can include: <code>name</code>, <code>url</code>, <code>events</code>, <code>headers</code>, <code>active</code>.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=webhooks&amp;id=N</span>
+      </div>
+      <p>Deletes a webhook and all its delivery history.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=webhooks/regenerate-secret&amp;id=N</span>
+      </div>
+      <p>Regenerates the signing secret for a webhook. Returns the new secret (shown only once).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=webhooks/deliveries&amp;id=N</span>
+      </div>
+      <p>Returns the last 50 delivery attempts for a webhook (event, status, HTTP code, attempts, timestamps).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=webhooks/test&amp;id=N</span>
+      </div>
+      <p>Sends a test event to the webhook URL and returns the delivery result.</p>
+    </div>
+
+    <h3>Webhook payload</h3>
+
+    <p>Each webhook delivery sends a JSON POST with these headers:</p>
+    <ul>
+      <li><code>Content-Type: application/json</code></li>
+      <li><code>X-Outpost-Event</code> — the event name (e.g. <code>entry.published</code>)</li>
+      <li><code>X-Outpost-Signature</code> — <code>sha256=&lt;HMAC-SHA256 of body&gt;</code></li>
+      <li><code>X-Outpost-Delivery</code> — unique delivery ID</li>
+      <li><code>User-Agent: Outpost-CMS/1.0</code></li>
+    </ul>
+
+    <p>Body format:</p>
+    <pre><code>{
+  "event": "entry.published",
+  "timestamp": "2026-03-05T12:00:00Z",
+  "data": { ... }
+}</code></pre>
+
+    <h3>Supported events</h3>
+    <ul>
+      <li><code>entry.created</code>, <code>entry.updated</code>, <code>entry.published</code>, <code>entry.unpublished</code>, <code>entry.deleted</code></li>
+      <li><code>page.updated</code>, <code>page.published</code>, <code>page.unpublished</code>, <code>page.deleted</code></li>
+      <li><code>media.created</code>, <code>media.deleted</code></li>
+      <li><code>member.created</code>, <code>member.updated</code>, <code>member.deleted</code></li>
+      <li><code>form.submitted</code></li>
+      <li><code>cache.cleared</code></li>
+      <li><code>*</code> — wildcard, matches all events</li>
+    </ul>
+
+    <h3>Retry schedule</h3>
+    <p>Failed deliveries are retried up to 5 times via the cron endpoint: 1 min, 5 min, 30 min, 2 hours, 12 hours. Successful deliveries are cleaned up after 7 days, exhausted failures after 30 days.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

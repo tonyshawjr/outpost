@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sync API — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link active">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Sync API</h1>
+    <p class="lead">A machine-to-machine API used by the Outpost Builder desktop app to sync theme files between your local development environment and a live server. Authenticated with a static API key — no browser session required.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+
+    <p>The Sync API lives at <code>sync-api.php</code>, separate from all other Outpost API files. It is designed for use by the Outpost Builder Electron app, but you can also use it from any script or CI pipeline that needs to deploy theme files programmatically.</p>
+
+    <pre><code>GET  https://example.com/outpost/sync-api.php?action=pull
+POST https://example.com/outpost/sync-api.php?action=push
+GET  https://example.com/outpost/sync-api.php?action=backup/list
+POST https://example.com/outpost/sync-api.php?action=backup/restore</code></pre>
+
+    <div class="callout callout-warn">
+      <strong>HTTPS required</strong>
+      The Sync API enforces HTTPS on all non-localhost requests. Requests over plain HTTP from a non-local host will receive a <code>403 Forbidden</code> response.
+    </div>
+
+    <h2>Authentication</h2>
+
+    <p>Every request must include the sync API key in the <code>X-Outpost-Key</code> header:</p>
+
+    <pre><code>X-Outpost-Key: your-64-character-hex-key</code></pre>
+
+    <h3>Getting the sync key</h3>
+
+    <ol class="steps">
+      <li>Log in to the Outpost admin panel.</li>
+      <li>Navigate to Settings.</li>
+      <li>Find the "Builder Sync" section and copy the API key, or generate a new one.</li>
+      <li>Alternatively, use the Admin API: <code>GET api.php?action=sync/key</code> to view (masked), or <code>POST api.php?action=sync/key/regenerate</code> to rotate the key.</li>
+    </ol>
+
+    <div class="callout callout-warn">
+      <strong>Keep the key secret</strong>
+      The sync key grants write access to your theme files and (optionally) your database. Store it in environment variables or a secrets manager — never commit it to version control.
+    </div>
+
+    <h3>Rate limiting</h3>
+
+    <p>Failed authentication attempts are rate-limited per IP address: 5 failed attempts per hour. After 5 failures the server returns <code>429 Too Many Requests</code> with a <code>Retry-After</code> header indicating how many seconds to wait. Successful authentication resets the counter.</p>
+
+    <p>Missing the header entirely (no <code>X-Outpost-Key</code>) is not counted as a failed attempt — it returns <code>401</code> immediately.</p>
+
+    <h2>File handling</h2>
+
+    <p>Theme files are transported as base64-encoded strings. The Sync API enforces these constraints on all files:</p>
+
+    <table class="schema-table">
+      <thead><tr><th>Constraint</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Maximum file size</td><td>2 MB per file</td></tr>
+        <tr><td>Allowed extensions</td><td><code>php</code>, <code>html</code>, <code>htm</code>, <code>css</code>, <code>js</code>, <code>json</code>, <code>svg</code>, <code>txt</code>, <code>md</code>, <code>yml</code>, <code>yaml</code>, <code>xml</code></td></tr>
+        <tr><td>Path validation</td><td>All paths must stay within <code>themes/{theme-name}/</code> — traversal attempts are rejected</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Endpoints</h2>
+
+    <h3>Pull — fetch a full site snapshot</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">sync-api.php?action=pull</span>
+      </div>
+      <p>Returns a complete snapshot of the server: all theme files (base64-encoded), a list of uploaded media files (paths and URLs, no binary content), a database snapshot of safe content, and the raw database file (base64-encoded). Used by Outpost Builder when opening a remote site or pulling in the latest server state.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "outpost_version": "1.0.0",
+  "site_url": "https://example.com/outpost",
+  "pulled_at": "2024-03-01T10:00:00+00:00",
+  "theme": {
+    "active": "personal",
+    "all": ["personal", "starter"],
+    "files": {
+      "themes/personal/index.html": "&lt;base64-encoded content&gt;",
+      "themes/personal/post.html": "&lt;base64-encoded content&gt;",
+      "themes/personal/assets/style.css": "&lt;base64-encoded content&gt;",
+      "themes/personal/theme.json": "&lt;base64-encoded content&gt;"
+    }
+  },
+  "uploads": [
+    {
+      "path": "uploads/photo-abc123.jpg",
+      "url": "https://example.com/outpost/uploads/photo-abc123.jpg",
+      "size": 204800
+    }
+  ],
+  "db_snapshot": {
+    "settings": { "site_name": "My Blog", "active_theme": "personal" },
+    "pages": [ ... ],
+    "collections": [ ... ],
+    "collection_items": [ ... ],
+    "folders": [ ... ],
+    "labels": [ ... ]
+  },
+  "db_file": "&lt;base64-encoded SQLite database binary&gt;"
+}</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      The <code>db_snapshot</code> excludes the sync API key and all admin user credentials. The <code>db_file</code> contains the raw SQLite binary — it is included for Builder's local preview but should be handled with care.
+    </div>
+
+    <p>curl example:</p>
+    <pre><code>curl -H "X-Outpost-Key: your-key-here" \
+  "https://example.com/outpost/sync-api.php?action=pull" \
+  -o snapshot.json</code></pre>
+
+    <p>Node.js example — decode and save a theme file:</p>
+    <pre><code>const res = await fetch('https://example.com/outpost/sync-api.php?action=pull', {
+  headers: { 'X-Outpost-Key': process.env.OUTPOST_SYNC_KEY },
+});
+
+const snapshot = await res.json();
+
+for (const [path, b64] of Object.entries(snapshot.theme.files)) {
+  const content = Buffer.from(b64, 'base64').toString('utf8');
+  const fullPath = `./local-theme/${path}`;
+  await fs.mkdir(path.dirname(fullPath), { recursive: true });
+  await fs.writeFile(fullPath, content, 'utf8');
+}
+
+console.log(`Pulled ${Object.keys(snapshot.theme.files).length} files`);</code></pre>
+
+    <h3>Push — deploy theme files to the server</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">sync-api.php?action=push</span>
+      </div>
+      <p>Deploys theme files to the server. Before writing any files, the server automatically creates a timestamped backup of the current theme. The push is aborted if the backup fails. After writing, all page and template caches are cleared.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "theme": {
+    "name": "personal",
+    "files": {
+      "themes/personal/index.html": "&lt;base64-encoded content&gt;",
+      "themes/personal/assets/style.css": "&lt;base64-encoded content&gt;"
+    }
+  },
+  "push_content": false
+}</code></pre>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>theme.name</code></td><td>Yes</td><td>The theme directory name. Letters, numbers, hyphens, and underscores only.</td></tr>
+        <tr><td><code>theme.files</code></td><td>Yes</td><td>Object mapping relative file paths to base64-encoded content.</td></tr>
+        <tr><td><code>push_content</code></td><td>No</td><td>If <code>true</code>, also applies the <code>db_file</code> or <code>db_snapshot</code> from the body. Default: <code>false</code>.</td></tr>
+        <tr><td><code>db_file</code></td><td>No</td><td>Base64-encoded raw SQLite database binary. Applied when <code>push_content: true</code>. Takes priority over <code>db_snapshot</code>.</td></tr>
+        <tr><td><code>db_snapshot</code></td><td>No</td><td>Structured content snapshot. Applied when <code>push_content: true</code> and <code>db_file</code> is absent.</td></tr>
+      </tbody>
+    </table>
+
+    <p>File paths must start with <code>themes/{theme-name}/</code>. Any path that attempts directory traversal, uses a disallowed extension, or exceeds 2 MB is skipped and reported in the <code>diff.skipped</code> array.</p>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "backup_id": "2024-03-01T10-05-00-a1b2c3d4",
+  "diff": {
+    "added": ["themes/personal/new-page.html"],
+    "modified": ["themes/personal/index.html", "themes/personal/assets/style.css"],
+    "skipped": [
+      { "path": "themes/personal/../../../etc/passwd", "reason": "invalid path" }
+    ]
+  },
+  "push_content_applied": false
+}</code></pre>
+
+    <div class="callout callout-warn">
+      <strong>Content push caution</strong>
+      When <code>push_content: true</code> with <code>db_file</code>, the entire database on the server is replaced with the local copy. This will overwrite any member data, form submissions, analytics, and content created on the live server since the last pull. Only use this when you intentionally want the local database to be the authoritative source.
+    </div>
+
+    <p>curl example — push a single file:</p>
+    <pre><code>CONTENT=$(base64 -i themes/personal/index.html)
+
+curl -X POST "https://example.com/outpost/sync-api.php?action=push" \
+  -H "X-Outpost-Key: your-key-here" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"theme\": {
+      \"name\": \"personal\",
+      \"files\": {
+        \"themes/personal/index.html\": \"${CONTENT}\"
+      }
+    }
+  }"</code></pre>
+
+    <p>Node.js example — push all local theme files:</p>
+    <pre><code>import { readdir, readFile } from 'fs/promises';
+import { join, relative } from 'path';
+
+async function walkDir(dir, baseDir = dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = {};
+  for (const entry of entries) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      Object.assign(files, await walkDir(full, baseDir));
+    } else {
+      const rel = relative(baseDir, full).replace(/\\/g, '/');
+      const content = await readFile(full);
+      files[`themes/personal/${rel}`] = content.toString('base64');
+    }
+  }
+  return files;
+}
+
+const files = await walkDir('./themes/personal');
+
+const res = await fetch('https://example.com/outpost/sync-api.php?action=push', {
+  method: 'POST',
+  headers: {
+    'X-Outpost-Key': process.env.OUTPOST_SYNC_KEY,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    theme: { name: 'personal', files },
+    push_content: false,
+  }),
+});
+
+const result = await res.json();
+console.log(`Added: ${result.diff.added.length}`);
+console.log(`Modified: ${result.diff.modified.length}`);
+console.log(`Skipped: ${result.diff.skipped.length}`);</code></pre>
+
+    <h3>List backups</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">sync-api.php?action=backup/list</span>
+      </div>
+      <p>Returns all server-side theme backups, newest first. Automatically prunes backups older than 30 days before returning the list. Each backup was created automatically before a push operation.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "backups": [
+    {
+      "id": "2024-03-01T10-05-00-a1b2c3d4",
+      "theme": "personal",
+      "created_at": "2024-03-01T10:05:00+00:00",
+      "file_count": 12,
+      "size_bytes": 48320
+    },
+    {
+      "id": "2024-02-28T15-30-00-e5f6a7b8",
+      "theme": "personal",
+      "created_at": "2024-02-28T15:30:00+00:00",
+      "file_count": 11,
+      "size_bytes": 46100
+    }
+  ]
+}</code></pre>
+
+    <p>curl example:</p>
+    <pre><code>curl -H "X-Outpost-Key: your-key-here" \
+  "https://example.com/outpost/sync-api.php?action=backup/list"</code></pre>
+
+    <h3>Restore a backup</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">sync-api.php?action=backup/restore</span>
+      </div>
+      <p>Restores a specific backup by its ID. Before restoring, the server automatically creates a new backup of the current state so the restore can itself be rolled back. All page and template caches are cleared after the restore.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>backup_id</code></td><td>Yes</td><td>The backup ID from <code>backup/list</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Request body:</p>
+    <pre><code>{ "backup_id": "2024-03-01T10-05-00-a1b2c3d4" }</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "restored": 12,
+  "theme": "personal"
+}</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Backup not found" }        // HTTP 404
+{ "error": "Backup manifest missing" } // HTTP 500</code></pre>
+
+    <p>curl example:</p>
+    <pre><code>curl -X POST "https://example.com/outpost/sync-api.php?action=backup/restore" \
+  -H "X-Outpost-Key: your-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{"backup_id":"2024-03-01T10-05-00-a1b2c3d4"}'</code></pre>
+
+    <h2>Backup storage</h2>
+
+    <p>Server-side backups are stored in <code>outpost/backups/</code> (one subdirectory per backup). Each backup directory contains:</p>
+
+    <table class="schema-table">
+      <thead><tr><th>Path</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code>{backup-id}/manifest.json</code></td><td>Metadata: ID, theme name, creation time, file count.</td></tr>
+        <tr><td><code>{backup-id}/files/</code></td><td>Full copy of the theme directory at backup time.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Backups older than 30 days are automatically pruned when <code>backup/list</code> is called. There is no hard limit on the number of backups retained within that window.</p>
+
+    <h2>Database snapshot format</h2>
+
+    <p>The <code>db_snapshot</code> object included in a pull response (and accepted in a push body when <code>push_content: true</code> and no <code>db_file</code> is provided) has this structure:</p>
+
+    <pre><code>{
+  "settings": {
+    "site_name": "My Blog",
+    "site_url": "https://example.com",
+    "active_theme": "personal"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "meta_title": "",
+      "meta_description": "",
+      "fields": [
+        {
+          "field_name": "hero_title",
+          "field_type": "text",
+          "content": "Welcome",
+          "default_value": "",
+          "options": "",
+          "sort_order": 0
+        }
+      ]
+    }
+  ],
+  "collections": [
+    {
+      "slug": "blog",
+      "name": "Blog Posts",
+      "schema": "...",
+      "url_pattern": "/blog/{slug}"
+    }
+  ],
+  "collection_items": [
+    {
+      "slug": "my-first-post",
+      "collection_slug": "blog",
+      "status": "published",
+      "data": "...",
+      "published_at": "2024-02-01 08:00:00"
+    }
+  ],
+  "folders": [ ... ],
+  "labels": [ ... ]
+}</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Content push safety</strong>
+      When applying a <code>db_snapshot</code> (not a full <code>db_file</code>), only safe developer-owned data is updated. The following are never overwritten: admin user passwords, the sync API key, member accounts, analytics data, and form submissions. Settings are only updated for safe keys: <code>site_name</code>, <code>site_url</code>, <code>active_theme</code>, and <code>cache_enabled</code>.
+    </div>
+
+    <h2>Security considerations</h2>
+
+    <p>The Sync API is a powerful interface — it can overwrite theme files and (optionally) replace the entire database. Keep these points in mind:</p>
+
+    <ul>
+      <li>The API key should be rotated if you suspect it has been leaked. Use <code>POST api.php?action=sync/key/regenerate</code> to generate a new key immediately.</li>
+      <li>Requests over HTTP (not HTTPS) from non-localhost hosts are rejected with <code>403</code>.</li>
+      <li>All incoming file paths are validated to prevent directory traversal. Paths must stay within <code>themes/{name}/</code>.</li>
+      <li>Only files with permitted extensions (PHP, HTML, CSS, JS, JSON, SVG, etc.) are accepted. Binary image uploads should be done through the Admin API media upload endpoint.</li>
+      <li>Push operations always create a backup before modifying any files. If the backup fails, the push is aborted.</li>
+      <li>Rate limiting prevents brute-force attacks on the API key.</li>
+    </ul>
+
+    <h2>Error reference</h2>
+
+    <table class="schema-table">
+      <thead><tr><th>Status</th><th>Message</th><th>Cause</th></tr></thead>
+      <tbody>
+        <tr><td>400</td><td>Invalid JSON body</td><td>Request body is not valid JSON.</td></tr>
+        <tr><td>400</td><td>theme.name is required</td><td>Missing <code>theme.name</code> in push body.</td></tr>
+        <tr><td>400</td><td>theme.files must be a non-empty object</td><td>Missing or empty <code>theme.files</code> in push body.</td></tr>
+        <tr><td>400</td><td>Invalid theme name</td><td>Theme name contains characters outside <code>[a-zA-Z0-9_-]</code>.</td></tr>
+        <tr><td>400</td><td>backup_id required</td><td>Missing <code>backup_id</code> in restore body.</td></tr>
+        <tr><td>400</td><td>Invalid backup_id</td><td>Backup ID contains invalid characters.</td></tr>
+        <tr><td>401</td><td>X-Outpost-Key header required</td><td>No API key provided in the request.</td></tr>
+        <tr><td>401</td><td>Sync API not configured</td><td>No sync key exists in the database yet.</td></tr>
+        <tr><td>401</td><td>Invalid API key</td><td>Provided key does not match the stored key.</td></tr>
+        <tr><td>403</td><td>HTTPS required</td><td>Request made over HTTP to a non-localhost host.</td></tr>
+        <tr><td>404</td><td>Backup not found</td><td>No backup directory exists for the given ID.</td></tr>
+        <tr><td>404</td><td>Unknown action</td><td>The <code>action</code> query parameter is not recognised.</td></tr>
+        <tr><td>405</td><td>GET required / POST required</td><td>Wrong HTTP method for the endpoint.</td></tr>
+        <tr><td>429</td><td>Too many failed attempts</td><td>Rate limit exceeded. See <code>Retry-After</code> header.</td></tr>
+        <tr><td>500</td><td>Backup failed — push aborted</td><td>Server could not write the pre-push backup. Check directory permissions.</td></tr>
+        <tr><td>500</td><td>Backup manifest missing</td><td>Backup directory exists but has no <code>manifest.json</code>.</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

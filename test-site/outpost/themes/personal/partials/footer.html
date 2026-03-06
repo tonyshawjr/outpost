@@ -1,0 +1,37 @@
+{#---
+Partial:      footer.html
+Included by:  all page templates
+
+Global fields:
+  @footer_text   text   — copyright or tagline text in the footer
+
+Loops:
+  menu.footer    item.label, item.url, item.target
+
+Features demonstrated:
+  Menu loop          — menu.footer iterates links defined in Admin > Navigation
+  Global text field  — @footer_text renders the copyright line
+  Closes site-outer/site-surface divs opened in head.html
+  Loads main.js      — theme JS for dark mode toggle, hamburger, scroll animations
+---#}
+
+<footer class="footer">
+  <div class="footer-inner">
+
+    <nav class="footer-nav" aria-label="Footer navigation">
+      {% for item in menu.footer %}
+      <a href="{{ item.url }}" target="{{ item.target }}" class="footer-nav-link">{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+
+    <p class="footer-copyright">{{ @footer_text }}</p>
+
+  </div>
+</footer>
+
+  </div>{# /.site-surface #}
+</div>{# /.site-outer #}
+
+<script src="/outpost/themes/personal/assets/main.js"></script>
+</body>
+</html>

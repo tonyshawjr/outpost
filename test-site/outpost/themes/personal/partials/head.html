@@ -1,0 +1,57 @@
+{#---
+Partial:      head.html
+Included by:  all page templates
+
+Global fields used by {% seo %}:
+  @site_name       text    — site name appended to every <title>
+  @site_tagline    text    — fallback meta description for pages with none set
+  @og_image        image   — default Open Graph / Twitter Card image (1200×630px)
+  @twitter_handle  text    — Twitter/X handle incl. @ prefix, e.g. @mysite
+
+Other global fields:
+  @ga4_id          text    — Google Analytics 4 measurement ID; omit to disable GA
+
+Features demonstrated:
+  {% seo %}                 — full SEO block: title, description, OG, Twitter Card,
+                              canonical URL, JSON-LD Article schema (on post.html),
+                              pagination prev/next, robots noindex for protected pages
+  GA4 conditional injection — {% if @ga4_id %} block; only injects gtag when field is set
+  Dark mode flash prevention — inline script runs before first paint to set data-theme
+---#}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  {% seo %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/outpost/themes/personal/assets/style.css">
+
+  {% if @ga4_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ @ga4_id }}');
+  </script>
+  {% endif %}
+
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+<div class="site-outer">
+  <div class="site-surface">

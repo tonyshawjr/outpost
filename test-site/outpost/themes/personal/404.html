@@ -1,0 +1,53 @@
+{#---
+Template:   404.html
+Route:      (rendered when no route matches)
+Title:      404 Not Found
+
+Loops:
+  collection.post    limit:3 orderby:published_at   — recent posts fallback
+
+Features demonstrated:
+  Collection loop with limit + orderby   — collection.post limit:3 orderby:published_at
+  for/else empty state                   — shown when no posts are published yet
+  Includes                               — head, nav, footer partials
+---#}
+
+{% include 'head' %}
+{% include 'nav' %}
+
+<main>
+
+  <div class="not-found-page fade-up">
+
+    <div class="not-found-code">404</div>
+
+    <h1 class="not-found-title">Page not found</h1>
+
+    <p class="not-found-message">
+      The page you're looking for doesn't exist, has been moved, or the URL was mistyped.
+    </p>
+
+    <div class="not-found-actions">
+      <a href="/" class="btn btn-primary">Go home</a>
+      <a href="/blog" class="btn btn-secondary">Browse the blog</a>
+    </div>
+
+    <div class="not-found-recent">
+      <h2>Recent posts</h2>
+      <div class="not-found-post-list">
+        {% for post in collection.post limit:3 orderby:published_at %}
+        <a href="{{ post.url }}" class="not-found-post-link">
+          <span class="not-found-post-title">{{ post.title }}</span>
+          <time class="not-found-post-date" datetime="{{ post.published_at }}">{{ post.published_at }}</time>
+        </a>
+        {% else %}
+        <p>No posts published yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+{% include 'footer' %}

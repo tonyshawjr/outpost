@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caching — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link active">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Caching</h1>
+    <p class="lead">Outpost has two independent caching layers — a template compile cache that turns Liquid templates into PHP, and an HTML page cache that stores fully rendered pages on disk.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Both caches live in the <code>cache/</code> directory (configurable via <code>OUTPOST_CACHE_DIR</code>) and are file-based. There is no Redis, Memcached, or APCu dependency — just the filesystem.</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Cache Layer</th><th>What It Stores</th><th>Location</th><th>Invalidation</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Template cache</td>
+          <td>Compiled PHP from Liquid <code>.html</code> templates</td>
+          <td><code>cache/templates/</code></td>
+          <td>Auto — mtime comparison on source file</td>
+        </tr>
+        <tr>
+          <td>HTML page cache</td>
+          <td>Fully rendered HTML output for each URL</td>
+          <td><code>cache/</code> (root, <code>.html</code> files)</td>
+          <td>TTL expiry, manual clear, or admin action</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="template-cache">Template Cache (Compile Cache)</h2>
+    <p>Every Liquid theme template (<code>.html</code> file) is compiled to PHP the first time it is rendered. The compiled PHP is stored in <code>cache/templates/</code> and reused on all subsequent requests until the source file changes.</p>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li>When a request arrives for a page, <code>OutpostTemplate::render()</code> is called with the template path.</li>
+      <li>The method calculates the compiled path: <code>cache/templates/{md5(realpath($templateFile))}.php</code></li>
+      <li>If the compiled file doesn't exist, or if the source file's <code>mtime</code> is newer than the compiled file's <code>mtime</code>, the template is recompiled.</li>
+      <li>The compiled PHP is written to disk with <code>LOCK_EX</code> to prevent race conditions on concurrent first requests.</li>
+      <li>The compiled file is included with PHP's <code>include</code>.</li>
+    </ol>
+
+    <h3>Cache Key</h3>
+    <p>The cache key for a template is the MD5 hash of its real (resolved) filesystem path:</p>
+    <pre><code><span class="token variable">$hash</span> <span class="token operator">=</span> <span class="token function">md5</span><span class="token punctuation">(</span><span class="token function">realpath</span><span class="token punctuation">(</span><span class="token variable">$templateFile</span><span class="token punctuation">)</span> <span class="token operator">?:</span> <span class="token variable">$templateFile</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$compiledPath</span> <span class="token operator">=</span> <span class="token constant">OUTPOST_TEMPLATE_CACHE_DIR</span> <span class="token operator">.</span> <span class="token variable">$hash</span> <span class="token operator">.</span> <span class="token string">'.php'</span><span class="token punctuation">;</span></code></pre>
+
+    <p>This means moving or renaming a template file produces a new cache entry. Old orphaned entries are harmless but can be cleared manually.</p>
+
+    <h3>Auto-Invalidation</h3>
+    <p>The template cache invalidates itself automatically when you save a template file. The mtime check runs on every request — if the source is newer, it recompiles. No manual clearing is needed during normal theme development.</p>
+
+    <pre><code><span class="token comment">// Recompile if source is newer than cache</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">file_exists</span><span class="token punctuation">(</span><span class="token variable">$compiled</span><span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token function">filemtime</span><span class="token punctuation">(</span><span class="token variable">$templateFile</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token function">filemtime</span><span class="token punctuation">(</span><span class="token variable">$compiled</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token variable">$source</span> <span class="token operator">=</span> <span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token variable">$templateFile</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token variable">$php</span>    <span class="token operator">=</span> <span class="token class-name">OutpostTemplate</span><span class="token operator">::</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token variable">$source</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">file_put_contents</span><span class="token punctuation">(</span><span class="token variable">$compiled</span><span class="token punctuation">,</span> <span class="token variable">$php</span><span class="token punctuation">,</span> <span class="token constant">LOCK_EX</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+
+    <h3>Partials Are Cached Separately</h3>
+    <p>Each partial (<code>partials/*.html</code>) has its own cache entry and its own mtime check. When you edit a partial, only that partial's cache entry is invalidated. Template files that include the partial still use their own (unmodified) cache entry — but since partials are included via a PHP function call at runtime, the updated partial content is always rendered.</p>
+
+    <h3>Disabling the Template Cache</h3>
+    <p>During theme development, you can disable the template cache to force recompilation on every request:</p>
+    <pre><code><span class="token comment">// In outpost/config.php</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_TEMPLATE_CACHE'</span><span class="token punctuation">,</span> <span class="token keyword">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <div class="callout callout-tip">
+      <strong>When to disable.</strong> Disable template caching during active theme development to avoid the mtime delay — file system timestamps can have 1-second resolution on some systems, which can cause the old compiled version to be served if you edit and reload very quickly. Re-enable it in production.
+    </div>
+
+    <h3>Clearing the Template Cache Manually</h3>
+    <pre><code><span class="token comment"># Delete all compiled template files</span>
+rm -f outpost/cache/templates/*.php</code></pre>
+
+    <p>Or through PHP:</p>
+    <pre><code><span class="token class-name">OutpostTemplate</span><span class="token operator">::</span><span class="token function">clearCache</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <p>Or through the admin: Settings → Clear Cache.</p>
+
+    <hr>
+
+    <h2 id="html-cache">HTML Page Cache (Output Cache)</h2>
+    <p>The HTML page cache stores the complete rendered HTML output of each public page. On a cache hit, the raw HTML file is streamed directly to the browser — no PHP execution, no database queries, no template compilation. This makes cached pages extremely fast.</p>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li>On request, <code>outpost_init()</code> checks whether a cached file exists for the current URL.</li>
+      <li>If a cache file exists and is within the TTL window (<code>OUTPOST_CACHE_TTL</code> seconds, default 3600), it is served immediately with <code>readfile()</code> and PHP exits.</li>
+      <li>If the cache is stale or missing, normal rendering proceeds: field resolution, template execution, database queries.</li>
+      <li>The rendered output is buffered using <code>ob_start('outpost_cache_output')</code>. The buffer callback writes the output to the cache file, injects the GA4 snippet (into the cached copy), and also injects the admin bar (not cached — admin-session-only).</li>
+    </ol>
+
+    <h3>Cache Key</h3>
+    <p>The cache key is the MD5 of the full URL path including sorted query string. This means paginated pages, filtered pages, and search results each get their own cache entry:</p>
+
+    <pre><code><span class="token keyword">function</span> <span class="token function">outpost_cache_path</span><span class="token punctuation">(</span><span class="token keyword">string</span> <span class="token variable">$page_path</span><span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">string</span> <span class="token punctuation">{</span>
+    <span class="token variable">$query</span> <span class="token operator">=</span> <span class="token variable">$_GET</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token keyword">empty</span><span class="token punctuation">(</span><span class="token variable">$query</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token function">ksort</span><span class="token punctuation">(</span><span class="token variable">$query</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token variable">$page_path</span> <span class="token operator">.=</span> <span class="token string">'?'</span> <span class="token operator">.</span> <span class="token function">http_build_query</span><span class="token punctuation">(</span><span class="token variable">$query</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> <span class="token constant">OUTPOST_CACHE_DIR</span> <span class="token operator">.</span> <span class="token function">md5</span><span class="token punctuation">(</span><span class="token variable">$page_path</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string">'.html'</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+
+    <p>The query string is sorted before hashing so <code>/blog?page=2&amp;category=js</code> and <code>/blog?category=js&amp;page=2</code> produce the same cache file.</p>
+
+    <h3>When Pages Are NOT Cached</h3>
+    <p>Several conditions bypass the cache entirely — the page is always rendered fresh:</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Condition</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Admin is logged in</td>
+          <td>Admins see the admin toolbar, which contains session-specific data. The toolbar is injected into the live response and never written to cache.</td>
+        </tr>
+        <tr>
+          <td><code>?nocache=1</code> in URL</td>
+          <td>Forces a fresh render. The new output is written to cache, refreshing it.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_CACHE_ENABLED</code> is <code>false</code></td>
+          <td>Cache globally disabled (set in <code>config.php</code>).</td>
+        </tr>
+        <tr>
+          <td>Cache file doesn't exist</td>
+          <td>First visit after deploy or cache clear — renders fresh and writes cache.</td>
+        </tr>
+        <tr>
+          <td>Cache file is older than <code>OUTPOST_CACHE_TTL</code></td>
+          <td>TTL expired — renders fresh and writes a new cache file.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>Members are not cached out.</strong> Member session presence does not automatically bypass the HTML page cache. If you have member-gated content on a page, that page should not be cached — or the member-specific content will leak to unauthenticated visitors. Use the <code>visibility</code> setting to gate full pages, which are served by a separate code path before caching is checked.
+    </div>
+
+    <h3>GA4 Injection and Caching</h3>
+    <p>If a GA4 tracking ID is set in Global Fields, the GA4 <code>&lt;script&gt;</code> snippet is injected into the output buffer before the page is written to cache. This means the cached HTML includes GA4 — it's part of the cached content, not added dynamically on each request. Changing the GA4 ID requires clearing the cache for all pages to update the embedded snippet.</p>
+
+    <h3>Admin Bar and Caching</h3>
+    <p>The admin bar (the floating "Edit in Outpost" button) is injected into the live response by the <code>outpost_cache_output</code> buffer callback, but only if an admin session is active. It is never written to the cache file. This is correct and intentional — visitors never see the admin bar, and the cached HTML is clean.</p>
+
+    <hr>
+
+    <h2>Clearing the Cache</h2>
+
+    <h3>Method 1 — Admin Panel</h3>
+    <p>Admin → Settings → Clear Cache. Clears both the template cache and the HTML page cache in one action.</p>
+
+    <h3>Method 2 — Admin Bar</h3>
+    <p>When logged into Outpost and viewing any front-end page, the admin bar shows a refresh icon. Clicking it calls the API's <code>cache/clear</code> endpoint and reloads the page.</p>
+
+    <h3>Method 3 — URL Parameter</h3>
+    <p>Append <code>?nocache=1</code> to any URL to bypass the cache for that single request. The page renders fresh and a new cache entry is written. Useful for previewing content changes without affecting the cached versions for other visitors.</p>
+    <pre><code>https://mysite.com/blog?nocache=1
+https://mysite.com/post/my-article?nocache=1</code></pre>
+
+    <h3>Method 4 — Shell</h3>
+    <pre><code><span class="token comment"># Clear all HTML page cache files</span>
+rm -f outpost/cache/*.html
+
+<span class="token comment"># Clear compiled template files</span>
+rm -f outpost/cache/templates/*.php
+
+<span class="token comment"># Clear everything</span>
+rm -f outpost/cache/*.html outpost/cache/templates/*.php</code></pre>
+
+    <h3>Method 5 — PHP</h3>
+    <pre><code><span class="token comment">// Clear all page cache</span>
+<span class="token function">outpost_clear_cache</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Clear cache for a specific page only</span>
+<span class="token function">outpost_clear_cache</span><span class="token punctuation">(</span><span class="token string">'/blog'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">outpost_clear_cache</span><span class="token punctuation">(</span><span class="token string">'/post/hello-world'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Clear template cache</span>
+<span class="token class-name">OutpostTemplate</span><span class="token operator">::</span><span class="token function">clearCache</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <hr>
+
+    <h2>Configuring Cache TTL</h2>
+    <p>The default TTL is 3600 seconds (1 hour). Adjust it in <code>config.php</code>:</p>
+    <pre><code><span class="token comment">// Cache pages for 30 minutes</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_CACHE_TTL'</span><span class="token punctuation">,</span> <span class="token number">1800</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Cache pages for 24 hours (high-traffic, infrequently updated sites)</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_CACHE_TTL'</span><span class="token punctuation">,</span> <span class="token number">86400</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 10 minutes (frequently updated content like news sites)</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_CACHE_TTL'</span><span class="token punctuation">,</span> <span class="token number">600</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <h2>Disabling the HTML Cache Entirely</h2>
+    <pre><code><span class="token comment">// Disable HTML page caching (template cache still active)</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_CACHE_ENABLED'</span><span class="token punctuation">,</span> <span class="token keyword">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <p>With page caching disabled, every request goes through the full PHP rendering pipeline. Suitable for development environments or sites with highly dynamic content that can't tolerate any staleness.</p>
+
+    <hr>
+
+    <h2>Stale Content Warning</h2>
+
+    <div class="callout callout-warn">
+      <strong>Published content is not immediately visible.</strong> After publishing or updating content in the Outpost admin, visitors will continue seeing the cached (old) version until the TTL expires or you manually clear the cache. For time-sensitive changes, always clear the cache after publishing — use the admin bar refresh button or Admin → Settings → Clear Cache.
+    </div>
+
+    <p>Automatic scheduled publishing (<code>status = 'scheduled'</code>) also triggers a full cache clear when items are auto-published, because <code>outpost_auto_publish_scheduled()</code> calls <code>outpost_clear_cache()</code> after updating items.</p>
+
+    <hr>
+
+    <h2>Cache Directory Structure</h2>
+    <pre><code>outpost/cache/
+├── templates/                    ← compiled template PHP files
+│   ├── a3f8b2c1d4e5f6a7.php      ← index.html compiled
+│   ├── b2c3d4e5f6a7b8c9.php      ← blog.html compiled
+│   └── c3d4e5f6a7b8c9d0.php      ← partials/nav.html compiled
+├── a1b2c3d4e5f6a7b8.html         ← cached / (homepage)
+├── b2c3d4e5f6a7b8c9.html         ← cached /blog
+├── c3d4e5f6a7b8c9d0.html         ← cached /blog?page=2
+└── d4e5f6a7b8c9d0e1.html         ← cached /post/my-first-post</code></pre>
+
+    <p>The <code>cache/</code> directory and both subdirectories must be writable by the web server process (<code>www-data</code>, <code>apache</code>, or whatever user PHP runs as).</p>
+    <pre><code><span class="token comment"># Set correct permissions</span>
+chmod 755 outpost/cache outpost/cache/templates
+chown www-data:www-data outpost/cache outpost/cache/templates</code></pre>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

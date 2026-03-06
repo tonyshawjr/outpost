@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output (rebuilt from src/ on each release)
+dist/
+php/admin/
+
+# Database files (user data — never commit)
+*.db
+*.db-shm
+*.db-wal
+
+# Test site — user data
+test-site/outpost/data/
+test-site/outpost/uploads/
+test-site/outpost/cache/
+
+# Deployed copies (not source code)
+Outpost\ Website/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Claude Code auto-memory (local only)
+memory/
+.claude/

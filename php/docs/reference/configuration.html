@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuration — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link active">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Configuration</h1>
+    <p class="lead">All configuration constants defined in <code>outpost/config.php</code> — database paths, upload limits, caching, sessions, SMTP, and more.</p>
+  </div>
+  <div class="content">
+
+    <div class="callout callout-note">
+      <strong>Location:</strong> <code>outpost/config.php</code>. This file is created during initial setup. Constants are defined with PHP's <code>define()</code> and are available throughout the entire CMS. Never commit this file to version control if it contains credentials.
+    </div>
+
+    <h2>How Configuration Works</h2>
+    <p>Outpost reads configuration exclusively through PHP constants. There is no <code>.env</code> parsing, no YAML, no JSON config — just <code>define()</code> in a single PHP file. This keeps the setup minimal and dependency-free.</p>
+    <p>Constants are read once per request. To change a setting, edit <code>config.php</code> and the next request picks it up automatically — no restart needed on PHP-FPM or Apache.</p>
+
+    <h2>Minimal config.php</h2>
+    <p>A fresh install only needs a few constants to work:</p>
+    <pre><code><span class="token keyword">&lt;?php</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SITE_URL'</span><span class="token punctuation">,</span> <span class="token string">'https://mysite.com'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SYNC_KEY'</span><span class="token punctuation">,</span> <span class="token string">'your-random-secret-key'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <p>Everything else has sensible defaults and can be added as needed.</p>
+
+    <h2>Full Reference</h2>
+
+    <h3>Core</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_DB_PATH</code></td>
+          <td><code>data/cms.db</code></td>
+          <td>Path to the SQLite database file, relative to the <code>outpost/</code> directory. Change this to store the database outside the web root for additional security.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SITE_URL</code></td>
+          <td>(auto-detected)</td>
+          <td>Canonical site URL including scheme and domain, no trailing slash (e.g. <code>https://mysite.com</code>). Used for sitemap generation, password reset emails, and absolute URL construction. Auto-detects from <code>$_SERVER</code> if not set — always set this explicitly in production.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_DEBUG</code></td>
+          <td><code>false</code></td>
+          <td>When <code>true</code>, PHP errors and warnings are displayed inline. Never enable in production — error output can expose file paths, credentials, and SQL queries.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>File Uploads</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_MAX_UPLOAD_SIZE</code></td>
+          <td><code>10485760</code> (10 MB)</td>
+          <td>Maximum allowed file upload size in bytes. Must also be within PHP's <code>upload_max_filesize</code> and <code>post_max_size</code> ini values — whichever is smaller wins.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_UPLOAD_DIR</code></td>
+          <td><code>uploads/</code></td>
+          <td>Directory where uploaded media files are stored, relative to <code>outpost/</code>. Must be writable by the web server. Create it and set permissions (<code>chmod 755</code>) if it doesn't exist.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Caching</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_CACHE_DIR</code></td>
+          <td><code>cache/</code></td>
+          <td>Directory for all cache files (both compiled templates and HTML page cache), relative to <code>outpost/</code>. Must be writable by the web server.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_CACHE_TTL</code></td>
+          <td><code>3600</code> (1 hour)</td>
+          <td>HTML page cache time-to-live in seconds. After this duration, the next request re-renders the page and writes a fresh cache entry.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_TEMPLATE_CACHE</code></td>
+          <td><code>true</code></td>
+          <td>Enable or disable the compiled template cache. Set to <code>false</code> during theme development to always recompile templates on each request. Leave <code>true</code> in production.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Sessions</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_SESSION_NAME</code></td>
+          <td><code>outpost_session</code></td>
+          <td>Cookie name for the admin session. Change this if you run multiple Outpost installations on the same domain to avoid session conflicts.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_MEMBER_SESSION</code></td>
+          <td><code>outpost_member</code></td>
+          <td>Cookie name for the front-end member session.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SESSION_LIFETIME</code></td>
+          <td><code>86400</code> (24 hours)</td>
+          <td>How long an admin session stays valid in seconds. After this, the admin must log in again.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_MEMBER_LIFETIME</code></td>
+          <td><code>2592000</code> (30 days)</td>
+          <td>How long a member's "remember me" session stays valid in seconds.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Builder Sync</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_SYNC_KEY</code></td>
+          <td>(none)</td>
+          <td>Secret key for the Builder sync API. Must match the key configured in the desktop Builder app. Generate a long random string (32+ characters). Requests without the correct key are rejected with HTTP 403.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Email (SMTP)</h3>
+    <p>All SMTP constants are optional. If none are set, Outpost uses PHP's native <code>mail()</code> function as a fallback — which requires your server to have a working MTA configured. For reliable delivery, configure SMTP.</p>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_SMTP_HOST</code></td>
+          <td>(none)</td>
+          <td>SMTP server hostname (e.g. <code>smtp.mailgun.org</code>, <code>smtp.sendgrid.net</code>).</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SMTP_PORT</code></td>
+          <td><code>587</code></td>
+          <td>SMTP port. Use <code>587</code> for STARTTLS (recommended), <code>465</code> for SSL/TLS, or <code>25</code> for plain SMTP (not recommended).</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SMTP_USER</code></td>
+          <td>(none)</td>
+          <td>SMTP authentication username.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SMTP_PASS</code></td>
+          <td>(none)</td>
+          <td>SMTP authentication password.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SMTP_FROM</code></td>
+          <td>(none)</td>
+          <td>The <code>From:</code> email address for all outgoing mail (e.g. <code>noreply@mysite.com</code>).</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_SMTP_FROM_NAME</code></td>
+          <td>(none)</td>
+          <td>The display name shown in the <code>From:</code> header (e.g. <code>My Site</code>).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>reCAPTCHA</h3>
+    <p>Outpost supports Google reCAPTCHA v3 for form spam protection. Both keys are required for reCAPTCHA to work.</p>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_RECAPTCHA_SITE_KEY</code></td>
+          <td>(none)</td>
+          <td>Your reCAPTCHA v3 site key, embedded in the front-end JavaScript.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_RECAPTCHA_SECRET</code></td>
+          <td>(none)</td>
+          <td>Your reCAPTCHA v3 secret key, used server-side to verify tokens. Keep this private.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Members</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_LOGIN_REDIRECT</code></td>
+          <td><code>/</code></td>
+          <td>Where members are redirected after a successful login. Override with a custom URL like <code>/dashboard</code> or <code>/members/feed</code>.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_REGISTRATION_ENABLED</code></td>
+          <td><code>true</code></td>
+          <td>When <code>false</code>, the member registration endpoint returns an error and the sign-up form can be hidden. Use this to create an invite-only site where only admins can add members.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Complete Example config.php</h2>
+    <p>A production configuration with all sections filled in:</p>
+    <pre><code><span class="token keyword">&lt;?php</span>
+<span class="token comment">// ── Core ─────────────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SITE_URL'</span><span class="token punctuation">,</span>       <span class="token string">'https://mysite.com'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_DEBUG'</span><span class="token punctuation">,</span>          <span class="token keyword">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ── Uploads ──────────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_MAX_UPLOAD_SIZE'</span><span class="token punctuation">,</span> <span class="token number">20971520</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 20 MB</span>
+
+<span class="token comment">// ── Caching ──────────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_CACHE_TTL'</span><span class="token punctuation">,</span>      <span class="token number">1800</span><span class="token punctuation">)</span><span class="token punctuation">;</span>      <span class="token comment">// 30 minutes</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_TEMPLATE_CACHE'</span><span class="token punctuation">,</span>  <span class="token keyword">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ── Builder Sync ─────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SYNC_KEY'</span><span class="token punctuation">,</span>        <span class="token string">'sk_prod_aB3xQz9mLp2...'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ── SMTP ─────────────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SMTP_HOST'</span><span class="token punctuation">,</span>      <span class="token string">'smtp.mailgun.org'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SMTP_PORT'</span><span class="token punctuation">,</span>      <span class="token number">587</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SMTP_USER'</span><span class="token punctuation">,</span>      <span class="token string">'postmaster@mg.mysite.com'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SMTP_PASS'</span><span class="token punctuation">,</span>      <span class="token string">'your-smtp-password'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SMTP_FROM'</span><span class="token punctuation">,</span>      <span class="token string">'noreply@mysite.com'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_SMTP_FROM_NAME'</span><span class="token punctuation">,</span>  <span class="token string">'My Site'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ── reCAPTCHA ────────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_RECAPTCHA_SITE_KEY'</span><span class="token punctuation">,</span> <span class="token string">'6Lc...'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_RECAPTCHA_SECRET'</span><span class="token punctuation">,</span>   <span class="token string">'6Lc...'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ── Members ──────────────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_LOGIN_REDIRECT'</span><span class="token punctuation">,</span>         <span class="token string">'/dashboard'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_REGISTRATION_ENABLED'</span><span class="token punctuation">,</span>   <span class="token keyword">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <hr>
+
+    <h2>Security Checklist</h2>
+
+    <div class="callout callout-warn">
+      <strong>Production hardening.</strong> Before going live, verify these settings:
+      <ul>
+        <li>Set <code>OUTPOST_DEBUG</code> to <code>false</code> — never leave PHP error display on in production.</li>
+        <li>Set <code>OUTPOST_SITE_URL</code> explicitly — never rely on auto-detection.</li>
+        <li>Use a strong, random <code>OUTPOST_SYNC_KEY</code> if you use the Builder sync API.</li>
+        <li>Ensure <code>config.php</code> is not publicly accessible — it should be inside <code>outpost/</code> which is served through the admin SPA, not directly browsable.</li>
+        <li>Add <code>outpost/config.php</code> to your <code>.gitignore</code> to prevent credential leaks.</li>
+      </ul>
+    </div>
+
+    <h2>Database Outside the Web Root</h2>
+    <p>For maximum security, store the SQLite database outside the web-accessible directory:</p>
+    <pre><code><span class="token comment">// Store db one level above the public directory</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_DB_PATH'</span><span class="token punctuation">,</span> <span class="token function">dirname</span><span class="token punctuation">(</span><span class="token constant">__DIR__</span><span class="token punctuation">)</span> <span class="token operator">.</span> <span class="token string">'/../db/cms.db'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+    <p>The web server process must have read/write permission on the file and its containing directory.</p>
+
+    <h2>Disable Registration for Invite-Only Sites</h2>
+    <pre><code><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_REGISTRATION_ENABLED'</span><span class="token punctuation">,</span> <span class="token keyword">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+    <p>When disabled, the <code>/outpost/member-pages/register.php</code> endpoint returns a 403 error and the admin-visible "Members" registration toggle reflects this state.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

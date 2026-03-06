@@ -1,0 +1,6 @@
+data/cms.db
+data/.installed
+uploads/*
+!uploads/.htaccess
+cache/*
+!cache/.htaccess

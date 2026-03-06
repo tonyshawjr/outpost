@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collection Loops — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link active">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Collection Loops</h1>
+    <p class="lead">Iterate over published items in any collection. The most-used tag in every theme — list posts, products, events, portfolio pieces, or any structured content you define.</p>
+  </div>
+  <div class="content">
+
+    <h2>Basic Syntax</h2>
+    <p>The <code>{% for %}</code> tag iterates over all published items in a collection. The collection is identified by its slug — the same slug you set when creating the collection in Admin → Collections.</p>
+    <pre><code>{% for post in collection.post %}
+  {{ post.title }}
+  {{ post.url }}
+  {{ post.slug }}
+  {{ post.id }}
+  {{ post.body | raw }}
+  {{ post.excerpt }}
+  {{ post.excerpt | or_body }}
+  {{ post.featured_image }}
+  {{ post.published_at }}
+  {{ post.created_at }}
+  {{ post.any_custom_field }}
+{% endfor %}</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — Only <strong>published</strong> items appear in collection loops. Items with <code>draft</code> status or <code>scheduled</code> status with a future publish date are automatically excluded. You never need to filter for this yourself.</div>
+
+    <h2>Available Fields</h2>
+    <p>Every loop item exposes these fields, regardless of the collection's custom schema.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>title</code></td>
+          <td>string</td>
+          <td>Item title</td>
+        </tr>
+        <tr>
+          <td><code>slug</code></td>
+          <td>string</td>
+          <td>URL slug — unique within the collection</td>
+        </tr>
+        <tr>
+          <td><code>url</code></td>
+          <td>string</td>
+          <td>Full URL built from the collection's url_pattern (e.g., <code>/post/hello-world</code>)</td>
+        </tr>
+        <tr>
+          <td><code>id</code></td>
+          <td>integer</td>
+          <td>Database row ID</td>
+        </tr>
+        <tr>
+          <td><code>status</code></td>
+          <td>string</td>
+          <td>Item status: <code>published</code>, <code>draft</code>, or <code>scheduled</code></td>
+        </tr>
+        <tr>
+          <td><code>body</code></td>
+          <td>html</td>
+          <td>Rich text body content — always use the <code>| raw</code> filter to render HTML</td>
+        </tr>
+        <tr>
+          <td><code>excerpt</code></td>
+          <td>string</td>
+          <td>Short description set by the editor. Empty string if not set.</td>
+        </tr>
+        <tr>
+          <td><code>featured_image</code></td>
+          <td>string</td>
+          <td>Image URL. Empty string if no image is set — check with <code>{% if post.featured_image %}</code>.</td>
+        </tr>
+        <tr>
+          <td><code>published_at</code></td>
+          <td>string</td>
+          <td>Formatted publish date (e.g. "March 4, 2026")</td>
+        </tr>
+        <tr>
+          <td><code>created_at</code></td>
+          <td>string</td>
+          <td>Row creation timestamp</td>
+        </tr>
+        <tr>
+          <td><code>updated_at</code></td>
+          <td>string</td>
+          <td>Last-modified timestamp</td>
+        </tr>
+        <tr>
+          <td><code>{custom_field}</code></td>
+          <td>varies</td>
+          <td>Any field defined in the collection's schema — accessed by its field name</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Empty Loop — the else Branch</h2>
+    <p>Add an <code>{% else %}</code> clause to show a fallback when the collection has no published items (or no items match the current filter).</p>
+    <pre><code>{% for post in collection.post %}
+  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+{% else %}
+  &lt;p&gt;No posts published yet.&lt;/p&gt;
+{% endfor %}</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — Always include an <code>{% else %}</code> on filtered loops. When a visitor clicks a category that has no posts, they should see a friendly message, not an empty container.</div>
+
+    <h2>Loop Options</h2>
+    <p>Options are added after the collection name, space-separated. They can be combined freely (with one exception noted below).</p>
+
+    <h3>limit:N — Show a Fixed Number of Items</h3>
+    <p>Returns at most N items. Use this for "recent posts" sidebars, homepage highlights, and any widget that should never show more than a set count.</p>
+    <pre><code>{% for post in collection.post limit:3 %}
+  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+{% endfor %}</code></pre>
+
+    <h3>orderby:field — Sort by a Field</h3>
+    <p>Sort results by any item field. The sort is always <strong>descending</strong> (newest / highest first). The default order when no <code>orderby</code> is specified is by creation date, newest first.</p>
+    <pre><code>{% for post in collection.post orderby:published_at %}
+{% for event in collection.event orderby:date %}
+{% for product in collection.product orderby:price %}</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — <code>orderby</code> sorts descending. For <code>published_at</code> this gives newest-first, which is almost always what you want. For numeric fields like <code>price</code>, it gives highest-first.</div>
+
+    <h3>paginate:N — Paginate Results</h3>
+    <p>Shows N items per page and reads <code>?page=</code> from the URL to determine the current page. Pair it with <code>{% pagination %}</code> immediately after the loop to render page navigation.</p>
+    <pre><code>{% for post in collection.post paginate:10 %}
+  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+{% endfor %}
+{% pagination %}</code></pre>
+    <p>See <a href="loops/pagination.html">Pagination</a> for full styling and query-string details.</p>
+
+    <h3>filteredby:param — Filter by Folder Label</h3>
+    <p>Filters results to items tagged with the folder label whose slug matches the <code>?param=</code> query string value. When no query parameter is present, all items are returned.</p>
+    <pre><code>{% for post in collection.post filteredby:category %}
+  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+{% endfor %}</code></pre>
+    <p>A visitor at <code>/blog?category=technology</code> sees only posts tagged with the "technology" category. A visitor at <code>/blog</code> sees all posts. The parameter name must match the folder slug configured in Admin → Folders.</p>
+
+    <h3>related:var — Related Items</h3>
+    <p>Returns items that share folder labels with the item bound to <code>var</code>. Used inside a <code>{% single %}</code> block to build a "You might also like" section.</p>
+    <pre><code>{% single post from collection.post %}
+  &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
+
+  {% for related in collection.post related:post limit:3 %}
+    &lt;a href="{{ related.url }}"&gt;{{ related.title }}&lt;/a&gt;
+  {% endfor %}
+{% endsingle %}</code></pre>
+    <p>The current item is automatically excluded from the related results so it never appears in its own sidebar.</p>
+
+    <h2>Combining Options</h2>
+    <p>Options can be combined on the same tag in any order.</p>
+    <pre><code>{% for post in collection.post limit:6 orderby:published_at %}
+
+{% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
+
+{% for post in collection.post related:post limit:3 orderby:published_at %}</code></pre>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — <code>paginate:N</code> and <code>limit:N</code> are mutually exclusive. Using both on the same loop is undefined — pick one. Use <code>limit</code> for fixed-count widgets; use <code>paginate</code> for browsable archive pages.</div>
+
+    <h2>Accessing Custom Fields</h2>
+    <p>Any field you define in the collection schema is available on every loop item using its field name.</p>
+    <pre><code>{# Collection schema has fields: author, read_time, difficulty #}
+
+{% for post in collection.post %}
+  &lt;article&gt;
+    &lt;h2&gt;{{ post.title }}&lt;/h2&gt;
+    &lt;p class="meta"&gt;By {{ post.author }} &amp;middot; {{ post.read_time }} min read&lt;/p&gt;
+    &lt;span class="badge"&gt;{{ post.difficulty }}&lt;/span&gt;
+    &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+    &lt;a href="{{ post.url }}"&gt;Read more&lt;/a&gt;
+  &lt;/article&gt;
+{% endfor %}</code></pre>
+
+    <h2>Using Conditionals Inside Loops</h2>
+    <p>Use <code>{% if %}</code> inside a loop to handle optional fields — fields the editor may or may not have filled in.</p>
+    <pre><code>{% for post in collection.post %}
+  &lt;article&gt;
+    {% if post.featured_image %}
+      &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
+    {% endif %}
+    &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+    {% if post.excerpt %}
+      &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+    {% else %}
+      &lt;p&gt;{{ post.body | raw }}&lt;/p&gt;
+    {% endif %}
+  &lt;/article&gt;
+{% endfor %}</code></pre>
+
+    <p>The <code>| or_body</code> filter is a shorthand for this excerpt-or-body pattern:</p>
+    <pre><code>{{ post.excerpt | or_body }}</code></pre>
+    <p>If <code>excerpt</code> is empty, it falls back to rendering the <code>body</code> field as plain text (with HTML stripped). Useful for generating preview text without a separate <code>{% if %}</code> block.</p>
+
+    <h2>Full Blog List Example</h2>
+    <p>A complete archive page combining pagination, sorting, category filtering, featured images, and an empty state.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main class="blog-main"&gt;
+  &lt;header class="blog-header"&gt;
+    &lt;h1&gt;Blog&lt;/h1&gt;
+  &lt;/header&gt;
+
+  &lt;div class="post-grid"&gt;
+    {% for post in collection.post paginate:12 orderby:published_at filteredby:category %}
+      &lt;article class="post-card"&gt;
+        {% if post.featured_image %}
+          &lt;a href="{{ post.url }}" class="post-card-image"&gt;
+            &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
+          &lt;/a&gt;
+        {% endif %}
+        &lt;div class="post-card-body"&gt;
+          &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+          &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
+          &lt;time datetime="{{ post.published_at }}"&gt;{{ post.published_at }}&lt;/time&gt;
+        &lt;/div&gt;
+      &lt;/article&gt;
+    {% else %}
+      &lt;p class="empty-state"&gt;No posts found in this category.&lt;/p&gt;
+    {% endfor %}
+  &lt;/div&gt;
+
+  {% pagination %}
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <h2>Sidebar "Recent Posts" Widget</h2>
+    <p>A classic pattern: a full paginated list in the main column, plus a compact "recent" list in the sidebar using <code>limit</code>.</p>
+    <pre><code>&lt;div class="layout"&gt;
+  &lt;section class="main-col"&gt;
+    {% for post in collection.post paginate:10 orderby:published_at %}
+      &lt;article&gt;
+        &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+        &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
+      &lt;/article&gt;
+    {% endfor %}
+    {% pagination %}
+  &lt;/section&gt;
+
+  &lt;aside class="sidebar"&gt;
+    &lt;h3&gt;Recent Posts&lt;/h3&gt;
+    &lt;ul&gt;
+      {% for post in collection.post limit:5 orderby:published_at %}
+        &lt;li&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/li&gt;
+      {% endfor %}
+    &lt;/ul&gt;
+  &lt;/aside&gt;
+&lt;/div&gt;</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — Two separate <code>{% for %}</code> loops on the same page are perfectly valid. Each loop is independent. The paginated loop reads <code>?page=</code>; the <code>limit:5</code> loop always shows the 5 most recent posts regardless of the current page.</div>
+
+    <h2>Multiple Collections on One Page</h2>
+    <p>A homepage can pull from several collections at once.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;section class="featured-posts"&gt;
+  &lt;h2&gt;Latest Articles&lt;/h2&gt;
+  {% for post in collection.post limit:3 orderby:published_at %}
+    &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+  {% endfor %}
+&lt;/section&gt;
+
+&lt;section class="upcoming-events"&gt;
+  &lt;h2&gt;Upcoming Events&lt;/h2&gt;
+  {% for event in collection.event limit:4 orderby:date %}
+    &lt;div&gt;
+      &lt;strong&gt;{{ event.title }}&lt;/strong&gt;
+      &lt;span&gt;{{ event.date }}&lt;/span&gt;
+      &lt;a href="{{ event.url }}"&gt;Details&lt;/a&gt;
+    &lt;/div&gt;
+  {% endfor %}
+&lt;/section&gt;
+
+&lt;section class="portfolio-highlights"&gt;
+  &lt;h2&gt;Work&lt;/h2&gt;
+  {% for project in collection.portfolio limit:6 %}
+    {% if project.featured_image %}
+      &lt;a href="{{ project.url }}"&gt;
+        &lt;img src="{{ project.featured_image }}" alt="{{ project.title }}"&gt;
+      &lt;/a&gt;
+    {% endif %}
+  {% endfor %}
+&lt;/section&gt;
+
+{% include 'footer' %}</code></pre>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

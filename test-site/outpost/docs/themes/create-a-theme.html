@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a Theme — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link active">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Create a Theme</h1>
+    <p class="lead">A complete walkthrough for building an Outpost theme from scratch — from an empty directory to a fully functioning site with pages, a blog, and custom content fields.</p>
+  </div>
+  <div class="content">
+
+    <h2>Before you start</h2>
+    <p>Make sure Outpost is running and you can access the admin panel. You will be creating files in the <code>outpost/themes/</code> directory on your server (or local environment). You do not need to restart PHP or rebuild anything — Outpost picks up new theme files automatically on the next request.</p>
+
+    <h2>Step 1: Create the directory structure</h2>
+    <p>Choose a short, lowercase, hyphenated slug for your theme. This becomes the directory name and is used internally everywhere. Create the required subdirectories:</p>
+    <pre><code>mkdir -p outpost/themes/my-theme/partials
+mkdir outpost/themes/my-theme/assets</code></pre>
+    <p>At this point your theme directory looks like:</p>
+    <pre><code>outpost/themes/my-theme/
+  partials/
+  assets/</code></pre>
+
+    <h2>Step 2: Create theme.json</h2>
+    <p>Every theme requires a <code>theme.json</code> at its root. Without it, Outpost will not recognize the directory as a theme.</p>
+    <pre><code>{
+  "name": "My Theme",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "Clean and minimal."
+}</code></pre>
+    <p>See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
+
+    <h2>Step 3: Create partials/head.html</h2>
+    <p>The <code>head.html</code> partial is the standard place for the HTML document opening — <code>DOCTYPE</code>, <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>, meta tags, CSS links, and the opening <code>&lt;body&gt;</code> tag. It is included at the top of every page template.</p>
+    <p>Note the use of <code>{{ meta.title }}My Site{{ /meta.title }}</code> and <code>{{ meta.description }}{{ /meta.description }}</code> — these read per-page SEO values set in the admin. The content between the opening and closing tags is the default fallback used when no value has been entered. The GA4 block is conditional — it only renders the tracking snippet if the <code>ga4_id</code> global field has been filled in.</p>
+    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;{{ meta.title }}My Site{{ /meta.title }}&lt;/title&gt;
+  &lt;meta name="description" content="{{ meta.description }}{{ /meta.description }}"&gt;
+  &lt;meta property="og:title" content="{{ meta.title }}My Site{{ /meta.title }}"&gt;
+  &lt;meta property="og:description" content="{{ meta.description }}{{ /meta.description }}"&gt;
+  {% if @og_image %}&lt;meta property="og:image" content="{{ @og_image | image }}"&gt;{% endif %}
+  &lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
+  {% if @ga4_id %}
+  &lt;script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"&gt;&lt;/script&gt;
+  &lt;script&gt;
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date()); gtag('config', '{{ @ga4_id }}');
+  &lt;/script&gt;
+  {% endif %}
+&lt;/head&gt;
+&lt;body&gt;</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — The asset path <code>/outpost/themes/my-theme/assets/style.css</code> uses an absolute path with the theme slug hardcoded. When you rename or duplicate a theme, update these paths in your partials. The theme slug is the directory name, not the <code>name</code> field in <code>theme.json</code>.</div>
+
+    <h2>Step 4: Create partials/nav.html</h2>
+    <p>The navigation partial renders the site's main menu. The <code>{% for item in menu.main %}</code> loop iterates over items in the navigation menu named <code>main</code>, which you configure in Admin → Navigation. Each item exposes <code>item.url</code>, <code>item.label</code>, and <code>item.target</code>.</p>
+    <pre><code>&lt;nav class="site-nav"&gt;
+  &lt;a href="/" class="nav-logo"&gt;{{ @site_name }}&lt;/a&gt;
+  &lt;ul class="nav-links"&gt;
+  {% for item in menu.main %}
+    &lt;li&gt;&lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;&lt;/li&gt;
+  {% endfor %}
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre>
+    <p>The <code>{{ @site_name }}</code> tag reads the <code>site_name</code> global field. Global fields are set in Admin → Global Fields and are available on every page.</p>
+
+    <h2>Step 5: Create partials/footer.html</h2>
+    <p>The footer partial closes the page. It must include the closing <code>&lt;/body&gt;</code> and <code>&lt;/html&gt;</code> tags. This is also where you put any deferred JavaScript includes.</p>
+    <pre><code>&lt;footer class="site-footer"&gt;
+  &lt;p&gt;{{ @footer_text }}&lt;/p&gt;
+  &lt;p&gt;&amp;copy; {{ @site_name }}&lt;/p&gt;
+&lt;/footer&gt;
+&lt;script src="/outpost/themes/my-theme/assets/main.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+    <h2>Step 6: Create index.html</h2>
+    <p>The homepage template. It includes the three standard partials and defines the page's own content fields. Here we use <code>{{ hero_title }}Welcome{{ /hero_title }}</code> with a fallback default, and <code>{{ hero_subtitle | textarea }}</code> to register the field as a multi-line text area in the admin.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main class="page-home"&gt;
+  &lt;section class="hero"&gt;
+    &lt;h1&gt;{{ hero_title }}Welcome{{ /hero_title }}&lt;/h1&gt;
+    &lt;p&gt;{{ hero_subtitle | textarea }}&lt;/p&gt;
+    {% if hero_button_label %}
+    &lt;a href="{{ hero_button_url | link }}" class="btn"&gt;{{ hero_button_label }}&lt;/a&gt;
+    {% endif %}
+  &lt;/section&gt;
+
+  &lt;section class="intro"&gt;
+    {{ intro_body | raw }}
+  &lt;/section&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <h2>Step 7: Activate the theme</h2>
+    <p>Go to Admin → Themes. Your new theme should appear in the grid. Click Activate. Outpost will immediately scan all template files in the theme and create database stubs for every field it finds. You will not see errors if fields have no content yet — they simply output empty strings.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — If your theme does not appear in the admin after creating <code>theme.json</code>, double-check that the JSON is valid. A missing comma or trailing comma will prevent it from being parsed.</div>
+
+    <h2>Step 8: Add content in the admin</h2>
+    <p>With the theme active, navigate to Admin → Pages → Home. You will see all the fields from <code>index.html</code> listed and ready to fill in: <code>hero_title</code>, <code>hero_subtitle</code>, <code>hero_button_label</code>, <code>hero_button_url</code>, and <code>intro_body</code>. Fill them in, save, and visit your site's homepage.</p>
+    <p>Global fields like <code>site_name</code> and <code>footer_text</code> are managed in Admin → Global Fields. They are shared across all pages and all templates.</p>
+
+    <h2>Adding a blog with collections</h2>
+    <p>A blog requires two templates: a list page (<code>blog.html</code>) and a single post page (<code>post.html</code>). First create the collection in Admin → Collections with slug <code>post</code> and URL pattern <code>/post/{slug}</code>. Then create the templates.</p>
+
+    <h3>blog.html — the post list</h3>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main class="page-blog"&gt;
+  &lt;h1&gt;{{ page_title }}Blog{{ /page_title }}&lt;/h1&gt;
+  &lt;div class="post-list"&gt;
+  {% for post in collection.post %}
+    &lt;article class="post-card"&gt;
+      &lt;a href="{{ post.url }}"&gt;
+        {% if post.featured_image %}
+        &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
+        {% endif %}
+        &lt;h2&gt;{{ post.title }}&lt;/h2&gt;
+        &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+      &lt;/a&gt;
+    &lt;/article&gt;
+  {% endfor %}
+  &lt;/div&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <h3>post.html — the single post</h3>
+    <p>The <code>{% single post from collection.post %}</code> block reads the current URL's slug, looks up the matching post, and makes its fields available as <code>post.field_name</code>. The <code>{% else %}</code> block handles the 404 case where no matching post is found.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+{% single post from collection.post %}
+&lt;main class="page-post"&gt;
+  &lt;article&gt;
+    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
+    &lt;p class="post-meta"&gt;By {{ post.author }}&lt;/p&gt;
+    {% if post.featured_image %}
+    &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}" class="post-hero"&gt;
+    {% endif %}
+    &lt;div class="post-body"&gt;{{ post.body | raw }}&lt;/div&gt;
+  &lt;/article&gt;
+&lt;/main&gt;
+{% else %}
+&lt;main&gt;&lt;p&gt;Post not found.&lt;/p&gt;&lt;/main&gt;
+{% endsingle %}
+
+{% include 'footer' %}</code></pre>
+
+    <h2>Adding static pages</h2>
+    <p>Each page on your site is a separate <code>.html</code> template file. Creating <code>about.html</code> makes the <code>/about</code> URL available. Creating <code>contact.html</code> makes <code>/contact</code> available. There is no registration step — the template file is the page.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main class="page-about"&gt;
+  &lt;h1&gt;{{ page_title }}About Us{{ /page_title }}&lt;/h1&gt;
+  &lt;div class="about-body"&gt;{{ about_body | raw }}&lt;/div&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+    <p>After creating this file and loading <code>/about</code> once, Admin → Pages will show an "About" page entry with the <code>page_title</code> and <code>about_body</code> fields ready to edit.</p>
+
+    <h2>Adding a 404 page</h2>
+    <p>Create <code>404.html</code> in your theme root. Outpost renders this template whenever a URL cannot be matched to any page, collection item, or template file. If <code>404.html</code> does not exist, Outpost falls back to a plain built-in 404 response.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main class="page-404"&gt;
+  &lt;h1&gt;Page not found&lt;/h1&gt;
+  &lt;p&gt;The page you are looking for does not exist.&lt;/p&gt;
+  &lt;a href="/"&gt;Go home&lt;/a&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — The <code>404.html</code> template has no editable page fields in the admin. It is a static template. You can use globals (<code>{{ @site_name }}</code>, etc.) but there is no associated page record in the database for a 404 page.</div>
+
+    <h2>How field auto-scaffolding works</h2>
+    <p>Every time Outpost compiles a template for the first time — or after you modify it — it scans all <code>{{ field_name }}</code> tags and registers any fields that do not yet exist. This means:</p>
+    <ul>
+      <li>Adding a new field to a template makes it appear in the admin after the next page load.</li>
+      <li>Removing a field from a template makes it disappear from the admin editor. The data is not deleted — it is simply not shown. Add the tag back and the data returns.</li>
+      <li>Changing a field's filter (e.g., from plain text to <code>| textarea</code>) updates how it is displayed in the admin editor.</li>
+    </ul>
+
+    <h2>Theme duplication for safe experimentation</h2>
+    <p>When you want to make significant changes to a live theme, the safest approach is to duplicate it first. In Admin → Themes, click the Duplicate button on the active theme. This creates a full copy — all templates, partials, and assets — under a new slug (e.g., <code>my-theme-v2</code>). Activate the duplicate and make your changes there. The original theme remains untouched. If something goes wrong, switch back to the original immediately.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — Theme duplication copies files, but the content in the database (page fields, global fields, collection items) is shared across all themes. Activating a different theme does not lose any content — it just changes which template files are used to render it.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

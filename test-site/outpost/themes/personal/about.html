@@ -1,0 +1,101 @@
+{#---
+Template:   about.html
+Route:      /about
+Title:      About
+
+Page fields:
+  about_heading      text      — main heading
+    {{ about_heading }}About Me{{ /about_heading }}
+  about_subheading   text      — optional subtitle
+    {{ about_subheading }}A little about who I am and what I do.{{ /about_subheading }}
+  about_body         raw       — richtext bio content; | raw renders HTML without escaping
+  about_skills       textarea  — legacy skills field (replaced by repeater.skills)
+
+Global fields:
+  @profile_photo   image   — profile photo shown in two-column layout
+  @author_name     text    — used as image alt text
+  @twitter_url     link    — X / Twitter profile URL
+  @github_url      link    — GitHub profile URL
+  @linkedin_url    link    — LinkedIn profile URL
+  @instagram_url   link    — Instagram profile URL
+  @contact_email   text    — email address for mailto link
+
+Loops:
+  repeater.skills    item.skill (text), item.level (text)
+
+Features demonstrated:
+  | raw richtext           — about_body | raw renders stored HTML
+  | textarea multi-line    — legacy about_skills field
+  Global image             — @profile_photo | image
+  Global conditionals      — each social link and contact email guarded with {% if %}
+  Global link filter       — @twitter_url | link, etc.
+  Repeater loop            — repeater.skills iterates structured skill rows
+---#}
+
+{% include 'head' %}
+{% include 'nav' %}
+
+<main>
+
+  <div class="page-hero fade-up">
+    <h1>{{ about_heading }}About Me{{ /about_heading }}</h1>
+    {% if about_subheading %}
+    <p class="page-hero-sub">{{ about_subheading }}A little about who I am and what I do.{{ /about_subheading }}</p>
+    {% endif %}
+  </div>
+
+  <div class="about-layout{% if @profile_photo %} about-layout--with-photo{% endif %} fade-up">
+
+    <div class="about-text prose">
+      {{ about_body | raw }}
+    </div>
+
+    {% if @profile_photo %}
+    <div class="about-image">
+      <img src="{{ @profile_photo | image }}" alt="{{ @author_name }}">
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="about-extras fade-up">
+
+    <div class="about-block">
+      <h2>Skills &amp; Expertise</h2>
+      <div class="skills-list">
+        {% for item in repeater.skills %}
+        <div class="skill-row">
+          <span class="skill-name">{{ item.skill }}</span>
+          <span class="skill-level">{{ item.level }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="about-block">
+      <h2>Find me online</h2>
+      <ul class="about-links">
+        {% if @twitter_url %}
+        <li><a href="{{ @twitter_url | link }}" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+        {% endif %}
+        {% if @github_url %}
+        <li><a href="{{ @github_url | link }}" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        {% endif %}
+        {% if @linkedin_url %}
+        <li><a href="{{ @linkedin_url | link }}" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+        {% endif %}
+        {% if @instagram_url %}
+        <li><a href="{{ @instagram_url | link }}" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        {% endif %}
+        {% if @contact_email %}
+        <li><a href="mailto:{{ @contact_email }}">{{ @contact_email }}</a></li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </div>
+
+
+</main>
+
+{% include 'footer' %}

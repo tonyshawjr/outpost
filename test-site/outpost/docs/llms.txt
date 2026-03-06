@@ -1,0 +1,1571 @@
+# Outpost CMS — Developer Reference
+
+> A developer-first headless CMS built on PHP + SQLite with a Liquid-style template engine, a Svelte 5 admin SPA, and zero Composer dependencies. The admin panel, API, database, uploads, and cache all live inside a single `/outpost/` directory.
+
+## Documentation
+
+- [Full Developer Docs](/outpost/docs/): Complete reference for themes, template syntax, collections, members, API, and deploy
+- [Template Syntax Reference](/outpost/docs/template-syntax/): All Liquid template tags
+- [Collection Loops](/outpost/docs/loops/collection-loops.html): Looping over collection items with options
+- [Flexible Content Loops](/outpost/docs/loops/flexible-content-loops.html): Layout builder loops with named layouts
+- [Relationship Loops](/outpost/docs/loops/relationship-loops.html): Linked content from other collections
+- [Conditional Logic](/outpost/docs/features/conditional-logic.html): Show/hide fields based on other field values
+- [Channels](/outpost/docs/features/channels.html): External data sources (REST API) with template loops
+- [Channel Loops](/outpost/docs/loops/channel-loops.html): Template syntax for channel data loops
+- [Members System](/outpost/docs/members/): Member registration, login, password reset
+- [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
+- [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
+
+---
+
+# Outpost CMS — Full Reference (llms-full)
+
+## Stack
+
+- PHP 8.x + SQLite (PDO) — no Composer, no frameworks
+- Svelte 5 SPA (Vite 6) for the admin UI — built to `php/admin/`
+- Liquid-style template engine that compiles `.html` templates to PHP and caches them
+- TipTap for rich text editing, SortableJS for drag-and-drop reorder
+
+## Admin URL
+
+The admin panel is at `/outpost/`. The `index.php` at the outpost root serves the Svelte SPA by loading `admin/index.html` and rewriting asset paths. There is no `/outpost/admin/` URL for end users — everything goes through `/outpost/`.
+
+## File Structure
+
+```
+your-site/
+  outpost/                     # entire CMS
+    admin/                     # built Svelte SPA (do not edit directly)
+    themes/
+      my-theme/
+        index.html             # / route
+        about.html             # /about
+        blog.html              # /blog
+        post.html              # /post/{slug} single item
+        partials/
+          head.html            # DOCTYPE through <body>
+          nav.html             # site navigation
+          footer.html          # </body></html>
+        assets/
+          style.css
+        theme.json
+    data/
+      cms.db                   # SQLite database
+    uploads/                   # media files
+    cache/                     # compiled template cache + HTML page cache
+    backups/                   # auto-created before each sync push
+    api.php                    # admin REST API
+    member-api.php             # member REST API
+    sync-api.php               # builder sync API
+    front-router.php           # PHP dev server router
+    engine.php                 # core CMS functions (cms_text, cms_global, etc.)
+    channels.php               # channel engine: sync, fetch, cache, template functions
+    template-engine.php        # Liquid compiler (OutpostTemplate::render)
+    mailer.php                 # SMTP / mail() email
+    members.php                # member session helpers (OutpostMember)
+    config.php                 # constants: DB path, SMTP, upload limits, etc.
+    docs/
+      index.html               # developer documentation
+      llms.txt                 # this file
+    member-pages/
+      login.php
+      register.php
+      forgot-password.php
+      reset-password.php
+      verify-email.php
+      logout.php
+      profile.php
+  index.php                    # Apache/Nginx front controller
+```
+
+## Routing
+
+Rules evaluated in order:
+1. Static files (images, CSS, JS) — served directly, no PHP
+2. `/outpost/` paths — served directly by outpost (admin, API, docs, etc.)
+3. `/sitemap.xml` — auto-generated sitemap
+4. Collection URL patterns (e.g. `/post/{slug}`) — router extracts slug, sets `$_GET['slug']`, renders the single template
+5. Channel URL patterns (e.g. `/listing/{slug}`) — same as collections but for external data channels
+6. Path maps to theme template file (e.g. `/about` → `about.html`)
+7. No match → 404
+
+URL pattern example: pattern `/post/{slug}` with URL `/post/my-article` → template `post.html`, `$_GET['slug'] = 'my-article'`
+
+Draft blocking: items with `status='draft'` return 404. Preview: append `?preview=TOKEN` (from `items/preview-token` API) to bypass draft blocking with a secure per-item token. Visibility enforcement runs before rendering (see Protecting Pages).
+
+## theme.json
+
+Every theme requires a `theme.json` at the root of the theme directory. It is purely informational — no functional effect on routing or compilation.
+
+```json
+{
+  "name": "My Theme",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "A clean theme for personal blogs.",
+  "screenshot": "screenshot.png"
+}
+```
+
+| Field | Required | Purpose |
+|---|---|---|
+| `name` | Yes | Display name in admin theme browser |
+| `version` | Yes | Semantic version badge on theme card |
+| `author` | Yes | Creator name shown in details panel |
+| `description` | Yes | Short summary shown in browser |
+| `screenshot` | No | Relative path to PNG/JPG preview image |
+
+The directory name is the slug (immutable); it is used as the `active_theme` setting value.
+
+## Template Scanning & Auto-Rescan
+
+`outpost_scan_theme_templates()` parses all `.html` template files in a theme and:
+1. Creates page stubs in the `pages` table for each template
+2. Creates field stubs in the `fields` table (never overwrites saved content)
+3. Upserts into `page_field_registry` with field type, default value, and sort order
+
+The scanner runs:
+- On **theme activation** (`PUT themes/activate`)
+- **Automatically on each frontend request** when any template file (top-level `.html` or `partials/*.html`) has been modified since the last scan
+
+Auto-rescan uses `filemtime()` comparison against a `last_template_scan_<theme>` setting stored in the `settings` table. Editing templates via the code editor or direct file access triggers an automatic re-scan on the next frontend request — no theme re-activation needed.
+
+The scanner extracts defaults from all syntax forms:
+- Inline: `{{ field "Default" }}`, `{{ field | type "Default" }}`
+- Closing-tag: `{{ field }}Default{{ /field }}`, `{{ field | raw }}Default HTML{{ /field }}`
+- Global closing-tag: `{{ @field }}Default{{ /@field }}`, `{{ @field | type }}Default{{ /@field }}`
+
+## Template Syntax — Complete Reference
+
+### Output Tags `{{ }}`
+
+All output tags register the field in the admin page editor automatically.
+
+```html
+{{ field_name }}              <!-- escaped text (default) -->
+{{ field_name }}Default{{ /field_name }}    <!-- with wrapping default value -->
+{{ field_name | raw }}        <!-- HTML as-is (rich text, TipTap output) -->
+{{ field_name | raw }}<p>Default HTML</p>{{ /field_name }}  <!-- richtext with wrapping default -->
+{{ field_name | image }}      <!-- image URL, opens media picker in admin -->
+{{ field_name | link }}       <!-- URL value, opens link input -->
+{{ field_name | textarea }}   <!-- multi-line text -->
+{{ field_name | select }}     <!-- dropdown selector -->
+{{ field_name | color }}      <!-- color picker -->
+{{ field_name | number }}     <!-- numeric input -->
+{{ field_name | date }}       <!-- date input -->
+{{ field_name | toggle }}     <!-- boolean toggle -->
+{{ field_name | or_body }}    <!-- text/excerpt fallback: uses auto-excerpt from body field if field is empty -->
+```
+
+Both inline (`{{ field "Default" }}`) and closing-tag (`{{ field }}Default{{ /field }}`) default syntax is fully supported. Closing-tag defaults also work with filters: `{{ field | raw }}<p>HTML</p>{{ /field }}`. Defaults are extracted by the template scanner and stored in `page_field_registry.default_value`, so the admin page editor pre-fills fields (including WYSIWYG richtext) with the template default when content is empty.
+
+### Global Fields `{{ @field }}`
+
+Site-wide settings shared across all pages. Appear in Admin → Globals.
+
+```html
+{{ @site_name }}
+{{ @site_name | raw }}
+{{ @logo | image }}
+{{ @footer_text | textarea }}
+```
+
+### Meta Tags
+
+```html
+{{ meta.title }}Default Site Title{{ /meta.title }}
+{{ meta.description }}Default description.{{ /meta.description }}
+```
+
+Outputs `<title>` and `<meta name="description">` tags.
+
+On single item pages (`{% single ... %}`): `meta.title` automatically falls back to the item's `title` field if no page-level meta title is set. `meta.description` auto-generates a 30-word excerpt from the item's `body` field if no page-level meta description is set.
+
+### Collection Loops
+
+```html
+{% for post in collection.post %}
+  {{ post.title }}
+  {{ post.slug }}
+  {{ post.url }}             <!-- built from collection url_pattern -->
+  {{ post.id }}              <!-- integer database ID -->
+  {{ post.published_at }}
+  {{ post.created_at }}
+  {{ post.updated_at }}
+  {{ post.body | raw }}      <!-- rich text -->
+  {{ post.any_field }}       <!-- any custom field -->
+{% else %}
+  No posts found.
+{% endfor %}
+```
+
+### Loop Options (space-separated after collection name)
+
+| Option | Example | Description |
+|---|---|---|
+| `limit:N` | `limit:5` | Max N items |
+| `orderby:field` | `orderby:published_at` | Order by field — always descending (DESC) |
+| `paginate:N` | `paginate:10` | N items per page, enables `{% pagination %}` |
+| `filteredby:param` | `filteredby:category` | Filter by `?param=slug` query string |
+| `related:var` | `related:post` | Items from same collection excluding current single item |
+
+Examples:
+```html
+{% for post in collection.post limit:3 orderby:published_at %}
+{% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
+{% for item in collection.post limit:3 related:post %}
+```
+
+`paginate:N` and `limit:N` are mutually exclusive.
+
+### Pagination
+
+Place `{% pagination %}` after a loop that uses `paginate:N`. Renders `<nav>` with numbered links, Prev/Next, ellipsis. Preserves all query params (e.g. `?category=coding&page=2`).
+
+```html
+{% for post in collection.post paginate:10 %}
+  ...
+{% endfor %}
+
+{% pagination %}
+```
+
+CSS classes: `.pagination`, `.page-link`, `.page-link.page-current`, `.page-ellipsis`
+
+### Single Items
+
+```html
+{% single post from collection.post %}
+  {{ post.title }}
+  {{ post.body | raw }}
+{% else %}
+  Not found.
+{% endsingle %}
+```
+
+Fetches by `?slug=` (set automatically by router). Related items inside a single:
+
+```html
+{% single post from collection.post %}
+  {% for item in collection.post limit:3 related:post %}
+    {{ item.title }}
+  {% endfor %}
+{% endsingle %}
+```
+
+### Channel Loops
+
+```html
+{% for item in channel.listings %}
+  {{ item.title }}
+  {{ item.description }}
+  {{ item.price }}
+{% else %}
+  No listings available.
+{% endfor %}
+```
+
+`listings` is the channel slug. Loop options: `limit:N` (max items), `orderby:field` (sort descending). Items come from cached external API data.
+
+### Channel Single Items
+
+```html
+{% single listing from channel.listings %}
+  {{ listing.title }}
+  {{ listing.description }}
+{% else %}
+  Listing not found.
+{% endsingle %}
+```
+
+Fetches by `?slug=` (set by channel URL pattern routing). Works identically to collection `{% single %}`.
+
+### Navigation Loops
+
+```html
+{% for item in menu.main %}
+  {{ item.label }}
+  {{ item.url }}
+  {{ item.target }}          <!-- _self or _blank -->
+  {% for child in item.children %}
+    {{ child.label }}
+    {{ child.url }}
+  {% endfor %}
+{% endfor %}
+```
+
+`main` is the menu slug. Menu items support one level of nesting via `item.children`.
+
+### Gallery Loops
+
+```html
+{% for img in gallery.photos %}
+  {{ img.url }}
+  {{ img.alt }}
+  {{ img.caption }}
+{% endfor %}
+```
+
+`photos` is the gallery field name on the current page or item.
+
+### Repeater Loops
+
+```html
+{% for row in repeater.team_members %}
+  {{ row.name }}
+  {{ row.role }}
+  {{ row.photo | image }}
+{% endfor %}
+```
+
+`team_members` is the repeater field name. Each row has the sub-fields defined in the repeater schema.
+
+### Flexible Content Loops
+
+Flexible Content fields are ACF Pro-style layout builders. Define named layouts (e.g. Hero, CTA, Testimonial) each with their own sub-fields. Editors add, remove, and reorder layout blocks.
+
+```html
+{% for block in flexible.page_sections %}
+  {% if block.layout == "hero" %}
+    <section class="hero">
+      <h1>{{ block.heading }}</h1>
+      <p>{{ block.subheading }}</p>
+    </section>
+  {% endif %}
+  {% if block.layout == "cta" %}
+    <section class="cta">
+      <h2>{{ block.title }}</h2>
+      <a href="{{ block.button_url }}">{{ block.button_text }}</a>
+    </section>
+  {% endif %}
+{% endfor %}
+```
+
+`page_sections` is the flexible content field name. Each block has a `block.layout` property identifying the layout type, plus all sub-fields defined for that layout. Sub-field values are auto-escaped (except richtext).
+
+**Layout definition:** Layouts are defined in the collection schema builder as a JSON object. Each key is a layout name, each value is an object of sub-field definitions:
+
+```json
+{
+  "hero": {
+    "heading": { "type": "text", "label": "Heading" },
+    "subheading": { "type": "textarea", "label": "Subheading" },
+    "bg_image": { "type": "image", "label": "Background Image" }
+  },
+  "cta": {
+    "title": { "type": "text", "label": "Title" },
+    "button_text": { "type": "text", "label": "Button Text" },
+    "button_url": { "type": "link", "label": "Button URL" }
+  }
+}
+```
+
+Supported sub-field types: text, textarea, richtext, image, link, select, color, number, date, toggle.
+
+**Storage:** Flexible content is stored as a JSON array in the item's `data` column. Each entry has a `_layout` key (mapped to `block.layout` in templates) plus sub-field values.
+
+**Engine function:** `cms_flexible_items(string $name): array` — decodes the JSON, escapes sub-field values (except `_layout` which becomes `layout`), returns an array of associative arrays.
+
+### Relationship Loops
+
+Relationship fields link content to items from another collection. Search and select items with reorder support. Stores item IDs, resolves full item data at render time.
+
+```html
+{% for item in relationship.related_posts %}
+  <a href="{{ item.url }}">
+    <h3>{{ item.title }}</h3>
+    <p>{{ item.excerpt }}</p>
+    <time>{{ item.published_at }}</time>
+  </a>
+{% endfor %}
+```
+
+`related_posts` is the relationship field name. Each item has all standard collection item fields: `id`, `slug`, `url`, `published_at`, `created_at`, `updated_at`, plus all custom fields defined in the related collection's schema.
+
+**Schema options:**
+- `collection` — slug of the collection to pull items from
+- `multiple` — `true` (default) for multi-select, `false` for single item
+- `max` — maximum number of items (0 = unlimited)
+
+**Storage:** Stored as a JSON array of item IDs (integers) in the item's `data` column. Items are resolved at render time via a database JOIN — only published items are returned, in the order they were selected.
+
+**Engine function:** `cms_relationship_items(string $name): array` — decodes the ID array, fetches full item records with collection URL patterns, escapes field values, returns ordered array of associative arrays.
+
+### Folder Loops
+
+```html
+{% for label in folder.categories %}
+  {{ label.name }}
+  {{ label.slug }}
+  {{ label.description }}
+  {{ label.count }}           <!-- number of published items with this label -->
+{% endfor %}
+```
+
+### Conditionals
+
+```html
+{% if field_name %}...{% endif %}
+{% if @global_name %}...{% endif %}
+{% if item.field %}...{% endif %}
+{% if item.field == "value" %}...{% endif %}
+{% if item.field != "value" %}...{% endif %}
+{% if field %}...{% else %}...{% endif %}
+{% if admin %}...{% endif %}   <!-- true only when previewing in the admin editor -->
+```
+
+### Includes
+
+```html
+{% include 'head' %}     <!-- loads partials/head.html -->
+{% include 'nav' %}
+{% include 'footer' %}
+{% include 'sidebar' %}
+{% include 'components/card' %}  <!-- loads partials/components/card.html -->
+```
+
+### Comments
+
+```html
+{# This is stripped at compile time — never appears in HTML #}
+```
+
+### Full Tag Reference
+
+| Tag | Description |
+|---|---|
+| `{{ field }}` | Output field value (escaped) |
+| `{{ field | raw }}` | Rich text / HTML unescaped |
+| `{{ field | image }}` | Image picker |
+| `{{ field | link }}` | Link input |
+| `{{ field | textarea }}` | Multiline text |
+| `{{ field | select }}` | Dropdown |
+| `{{ field | color }}` | Color picker |
+| `{{ field | number }}` | Number input |
+| `{{ field | date }}` | Date input |
+| `{{ field | toggle }}` | Boolean toggle |
+| `{{ field | or_body }}` | Text with auto-excerpt fallback from body |
+| `{{ @global }}` | Output global field |
+| `{{ meta.title }}Default{{ /meta.title }}` | `<title>` tag (legacy — use `{% seo %}` in new themes) |
+| `{{ meta.description }}Default{{ /meta.description }}` | `<meta name="description">` tag (legacy — use `{% seo %}` in new themes) |
+| `{% seo %}` | Full SEO block: title, description, OG, Twitter Card, canonical, JSON-LD, robots |
+| `{% for x in collection.slug %}` | Collection loop |
+| `{% single x from collection.slug %}` | Single item by slug |
+| `{% for x in folder.slug %}` | Folder label loop |
+| `{% for x in menu.slug %}` | Navigation menu loop |
+| `{% for x in gallery.field %}` | Gallery images loop |
+| `{% for x in repeater.field %}` | Repeater rows loop |
+| `{% for x in flexible.field %}` | Flexible content layout blocks loop |
+| `{% for x in relationship.field %}` | Relationship items loop |
+| `{% pagination %}` | Pagination nav |
+| `{% if expr %}` | Conditional |
+| `{% if admin %}` | True in admin editor preview |
+| `{% else %}` | Else branch |
+| `{% endif %}` / `{% endfor %}` / `{% endsingle %}` | Close blocks |
+| `{% include 'name' %}` | Insert partial |
+| `{# comment #}` | Template comment (stripped) |
+
+## Partials
+
+Stored in `partials/` inside the theme directory. Included via `{% include 'name' %}`. Subdirectories supported: `{% include 'components/card' %}` maps to `partials/components/card.html`. Each partial inherits the full template context from its parent.
+
+Standard partial names: `head` (DOCTYPE through `<body>`), `nav` (navigation), `footer` (closing tags).
+
+## Theme Assets
+
+Static files in `outpost/themes/my-theme/assets/` are served directly by the web server. Use absolute paths in templates:
+
+```html
+<link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+```
+
+No asset pipeline or build step. Cache busting: add `?v=2` to URLs. No OUTPOST variable for theme path — hardcode the theme directory name or use a global field.
+
+## Collections
+
+A collection = a type of repeating content (posts, team members, projects, etc.).
+
+Each collection has:
+- `name` — display name (e.g. "Blog Posts")
+- `slug` — used in templates (e.g. `post`) — immutable after creation
+- `singular_name` — used in admin UI
+- `url_pattern` — e.g. `/post/{slug}` — builds item URLs and routes single pages
+- `schema` — field definitions
+
+**Field types:** text, textarea, richtext, image, link, select, color, number, date, toggle, repeater, gallery, flexible, relationship.
+
+Items have statuses: `published`, `draft`, `scheduled`. Only `published` items with `published_at` in the past appear in loops and single templates.
+
+Single template naming: URL pattern `/post/{slug}` → template file `post.html` (first path segment).
+
+### Conditional Logic
+
+Collection schema fields support conditional logic — show/hide fields based on other field values. Conditions are evaluated in real-time in the editor; hidden fields are not rendered.
+
+**Operators:**
+| Operator | Description |
+|---|---|
+| `==` | Equals (string compare; also matches `true`/`1` and `false`/`0`/empty) |
+| `!=` | Not equal |
+| `not_empty` | Has any value (not empty, not `0`, not `false`) |
+| `empty` | Is empty, `0`, or `false` |
+
+**Schema definition:** Conditions are stored per-field in the collection's `schema` JSON:
+
+```json
+{
+  "category": { "type": "select", "label": "Category", "options": "news,event,product" },
+  "event_date": {
+    "type": "date",
+    "label": "Event Date",
+    "conditions": [
+      { "field": "category", "operator": "==", "value": "event" }
+    ]
+  }
+}
+```
+
+When `category` is not "event", the `event_date` field is hidden from the editor. Multiple conditions use AND logic (all must be true). Conditional logic is editor-side only — it does not affect template rendering or API output.
+
+## Scheduling
+
+Set a future publish date on any collection item. Outpost uses lazy publishing — no cron required.
+
+When an item is saved with `status = 'scheduled'` and a `scheduled_at` timestamp, it is invisible to visitors. On every incoming page request, Outpost promotes any scheduled items whose `scheduled_at` is in the past to `published`.
+
+To use: open item → set Status to "Scheduled" → pick date/time → Save.
+
+**Status transitions:**
+
+| From | To | How |
+|---|---|---|
+| draft | published | Manual in admin |
+| draft | scheduled | Set Scheduled + pick date |
+| scheduled | published | Automatic on next page request, or manual |
+| scheduled | draft | Manual cancel |
+| published | draft | Manual unpublish |
+
+**Time zones:** Scheduled times are stored as UTC. Set time zone in `config.php`:
+```php
+date_default_timezone_set('America/New_York');
+```
+
+**For low-traffic sites** add a cron job to trigger the lazy check:
+```
+*/5 * * * * curl -s https://yourdomain.com/ > /dev/null 2>&1
+```
+
+## Folders
+
+> Renamed in v1.0.0-beta.7: "Taxonomies" → **Folders**, "Terms" → **Labels**. Old syntax (`{% for term in taxonomy.slug %}`) and old API endpoints (`action=taxonomies`, `action=terms`) still work for backward compatibility.
+
+Create in Admin → Folders. Associate with a collection. Add labels. Types: `flat` (peer labels) or `hierarchical` (parent/child).
+
+```html
+{% for label in folder.categories %}
+  <a href="/blog?category={{ label.slug }}">{{ label.name }}</a>
+{% endfor %}
+
+{% for post in collection.post filteredby:category %}
+  ...
+{% endfor %}
+```
+
+Access item's labels inside a loop or single: `item.labels.category` (array).
+
+## Global Fields
+
+Site-wide. Admin → Globals. Use `{{ @field_name }}` in templates. Auto-scaffolded from templates on first load. Conditional rendering: `{% if @field_name %}`.
+
+Storage: key-value pairs in the `settings` table. Saving globals clears all HTML caches.
+
+## Media
+
+Upload files through Admin → Media or via image field pickers in page/item editors.
+
+**Supported types:** jpg, jpeg, png, gif, webp, avif, svg, pdf, mp4, webm, mp3, wav
+
+**Processing (raster images only):**
+- Images wider than 2400px are scaled down to 2400px (aspect ratio preserved)
+- Thumbnail generated at max 400×300px with `thumb_` prefix
+- Pixel dimensions stored in database
+- Filenames sanitized + Unix timestamp prefix added
+
+**Storage path:** `outpost/uploads/` (flat, no subdirectories)
+
+```
+outpost/uploads/1700000000_hero-photo.jpg         # original
+outpost/uploads/thumb_1700000000_hero-photo.jpg   # thumbnail
+```
+
+URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-photo.jpg`
+
+**SVG sanitization:** `<script>` tags, `on*` event handlers, and external `xlink:href` references are removed before saving.
+
+**In templates:**
+```html
+<img src="{{ hero_image | image }}" alt="{{ hero_title }}">
+{{ @logo | image }}
+<a href="{{ brochure_pdf | link }}" download>Download</a>
+```
+
+**Max upload size:** 10 MB default. Override in `config.php`:
+```php
+define('OUTPOST_MAX_UPLOAD_SIZE', 25 * 1024 * 1024);
+```
+
+Never delete `outpost/uploads/` — not regenerated automatically.
+
+## Members
+
+Built-in member system for front-end user accounts. Separate from admin users.
+
+**Member roles:** `free_member`, `paid_member`
+
+**Member status:** `active` (default), `suspended` (blocked from login). Manage in Admin → Members.
+
+Member pages at `outpost/member-pages/`:
+- `login.php` — sign in (shows resend-verification button for unverified members)
+- `register.php` — new account (shows "check your email" when verification enabled)
+- `forgot-password.php` — request reset email
+- `reset-password.php` — set new password via token
+- `verify-email.php` — email verification landing page (validates token, marks email verified)
+- `logout.php` — sign out
+- `profile.php` — view/edit member profile
+
+**Email verification** (optional): Enable in Admin → Settings → Members. When on, new members receive a verification email with a 24-hour token link. They cannot sign in until verified. Members registered before the setting was enabled are grandfathered in. Admins can manually verify from Admin → Members. Setting key: `require_email_verification` ('0'/'1').
+
+## Protecting Pages
+
+### Page-level visibility
+
+Every page in Admin → Pages has a visibility setting:
+
+| Setting | Who can access |
+|---|---|
+| `public` | Anyone (default) |
+| `members` | Any logged-in member |
+| `paid` | `paid_member` role only |
+
+Enforced by `front-router.php` and `index.php` before template renders. Non-public pages redirect to login with `?redirect=` param.
+
+### Template-level protection (PHP partial)
+
+```php
+<?php
+// partials/member-gate.php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+if (!OutpostMember::check()) {
+    header('Location: /outpost/member-pages/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+?>
+```
+
+Include in Liquid template:
+```html
+{% include 'member-gate' %}
+<!-- rest of template renders only for logged-in members -->
+```
+
+Paid-only gate:
+```php
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+$member = OutpostMember::current();
+if (!$member) {
+    header('Location: /outpost/member-pages/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+if ($member['role'] !== 'paid_member') {
+    header('Location: /upgrade');
+    exit;
+}
+?>
+```
+
+### OutpostMember methods
+
+```php
+OutpostMember::check()           // bool — is a member logged in?
+OutpostMember::current()         // array|null — full member record or null
+// member fields: id, email, display_name, role, member_expires, status
+```
+
+## Admin Roles
+
+Admin users have one of four roles (separate from front-end member roles):
+
+| Role | Description |
+|---|---|
+| `super_admin` | Full access + user management + site settings + destructive ops. Reserved for site owner. |
+| `admin` | Full content + themes + code editor + user management. Cannot change site-level settings. |
+| `developer` | Full content + code editor + theme files. No user/member management or settings. |
+| `editor` | Content only (pages, collections, media, globals, navigation, folders, forms). No themes, code, analytics, settings, or user management. |
+
+## Password Reset
+
+### Admin users
+
+1. "Forgot password?" on login page → `POST /outpost/api.php?action=auth/forgot` with `{ email }`
+2. API generates `bin2hex(random_bytes(32))` token, stores with 1-hour expiry, emails reset link
+3. Reset URL: `/outpost/?reset_token=TOKEN`
+4. Login SPA detects `?reset_token=` on mount, shows reset view, strips token from URL via `history.replaceState`
+5. `POST /outpost/api.php?action=auth/reset` with `{ token, password }` → token NULLed, password updated
+
+### Members
+
+1. `forgot-password.php` → `POST /outpost/member-api.php?action=forgot`
+2. Reset URL: `/outpost/member-pages/reset-password.php?token=TOKEN`
+3. `reset-password.php` validates token on load, shows form, updates on POST
+
+Security: tokens are 64-char hex, 1-hour expiry, single-use, endpoint always returns 200 (no email enumeration).
+
+## Forms
+
+### Visual Form Builder
+
+Create forms visually in Admin → Forms. The builder provides 14 field types: text, email, phone, url, number, textarea, select, radio, checkbox, date, time, hidden, html, section.
+
+Render a builder form in any template:
+
+```html
+{% form 'contact' %}
+```
+
+This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required.
+
+**Field settings:** label, machine name, required, placeholder, description, default value, CSS classes. Choice fields (select/radio/checkbox) support `Label|value` pairs. Number fields support min/max/step.
+
+**Form settings:** submit button label, honeypot toggle, confirmation type (message or redirect URL).
+
+**Submissions:** View in Admin → Submissions. Star, add notes, bulk actions (mark read, star, archive, delete), filter by form and status.
+
+### Manual HTML Forms
+
+You can also hand-code forms. Point form action at `/outpost/form.php`. Use hidden `_form` and `_redirect` fields:
+
+```html
+<form action="/outpost/form.php" method="POST">
+  <input type="hidden" name="_form" value="contact">
+  <input type="hidden" name="_redirect" value="/contact?sent=1">
+  <input type="hidden" name="_notify" value="you@example.com"> <!-- optional override -->
+  <input type="text" name="name" required>
+  <input type="email" name="email" required>
+  <textarea name="message"></textarea>
+  <button type="submit">Send</button>
+</form>
+```
+
+reCAPTCHA: add a hidden `g-recaptcha-response` field — `form.php` validates it automatically if a secret key is configured in settings.
+
+**URL pre-population:** Form fields auto-fill from query parameters (e.g. `?name=John` pre-fills the name field).
+
+### CSS Classes
+
+Builder forms use `outpost-form`, `outpost-field`, `outpost-field--{type}`, `outpost-form-submit`. Style with:
+
+```css
+.outpost-form { /* form wrapper */ }
+.outpost-field { /* field wrapper */ }
+.outpost-field label { /* field label */ }
+.outpost-field input, .outpost-field textarea, .outpost-field select { /* inputs */ }
+.outpost-required { /* required asterisk */ }
+.outpost-field-desc { /* help text */ }
+.outpost-form-submit { /* submit button */ }
+```
+
+## Channels (External Data Sources)
+
+Channels connect Outpost to external REST APIs. If Collections are content you create in the admin, Channels are content that flows in from somewhere else. No plugins, no Composer, no build step — connect to any JSON API, cache data in SQLite, and render it in templates with the same Liquid syntax.
+
+### Concept
+
+- **Collections** = content you create and edit in the admin panel
+- **Channels** = content that flows in from external APIs (read-only in Outpost)
+- Both use identical template syntax: `{% for item in collection.slug %}` vs `{% for item in channel.slug %}`
+- Both support URL patterns for single-item pages
+- Channel data is cached in SQLite with configurable TTL
+
+### Creating a Channel
+
+Navigate to Admin → Channels → New Channel. The 4-step builder wizard:
+
+1. **Connect** — enter API URL, choose auth method (None, API Key, Bearer Token, Basic Auth), add custom headers and query params, test connection
+2. **Schema** — view JSON response tree, set data path (dot notation), pick fields to include, set ID and slug fields
+3. **Configure** — name, slug, cache TTL (5min/15min/1hr/6hr/daily/manual), max items, sort field, URL pattern
+4. **Preview** — see cached items in table, get auto-generated template code
+
+### Authentication Types
+
+| Type | How it works |
+|---|---|
+| None | No authentication headers sent |
+| API Key | Custom header name + value (e.g. `X-API-Key: abc123`) |
+| Bearer Token | `Authorization: Bearer {token}` header |
+| Basic Auth | `Authorization: Basic {base64(user:pass)}` header |
+
+### Config JSON Structure
+
+The `config` column stores all connection settings as JSON:
+
+```json
+{
+  "url": "https://api.example.com/v1/listings",
+  "method": "GET",
+  "auth_type": "bearer",
+  "auth_config": { "bearer_token": "sk_live_..." },
+  "headers": { "Accept": "application/json" },
+  "params": { "status": "active", "limit": "100" },
+  "data_path": "data.listings",
+  "id_field": "id",
+  "slug_field": "slug",
+  "pagination": {
+    "type": "offset",
+    "page_param": "page",
+    "limit_param": "limit",
+    "per_page": 50,
+    "cursor_param": "after",
+    "cursor_path": "meta.next_cursor"
+  }
+}
+```
+
+### Data Path Extraction
+
+Dot-notation to target the array in the API response:
+- `data.listings` → `response['data']['listings']`
+- `results` → `response['results']`
+- `data.items.records` → `response['data']['items']['records']`
+- Empty string → response root (when API returns a plain array)
+
+### Channel Loops
+
+```html
+{% for item in channel.listings %}
+  <h2>{{ item.title }}</h2>
+  <p>{{ item.description }}</p>
+  <span>{{ item.price }}</span>
+{% else %}
+  <p>No listings available.</p>
+{% endfor %}
+```
+
+Loop options (space-separated after channel name):
+
+| Option | Example | Description |
+|---|---|---|
+| `limit:N` | `limit:5` | Show at most N items |
+| `orderby:field` | `orderby:price` | Sort by field (descending) |
+
+Combined: `{% for item in channel.listings limit:6 orderby:updated_at %}`
+
+### Single Channel Items
+
+```html
+{% single listing from channel.listings %}
+  <h1>{{ listing.title }}</h1>
+  <p>{{ listing.description }}</p>
+{% else %}
+  <p>Listing not found.</p>
+{% endsingle %}
+```
+
+Fetches by `?slug=` (set automatically by URL pattern routing, same as collections).
+
+### Channel URL Patterns
+
+Set a URL pattern in the Configure step (e.g. `/listing/{slug}`). The front router:
+1. Queries all active channels with a `url_pattern` set
+2. Matches the request URI against each pattern
+3. Extracts the slug from the URL
+4. Sets `$_GET['slug']` for use by `{% single %}`
+5. Renders `{channel-slug}.html` template, falls back to `channel.html`
+
+### Caching and Sync
+
+- Channel data is cached in the `channel_items` SQLite table
+- Each channel has a configurable TTL (5min, 15min, 1hr, 6hr, daily, manual-only)
+- **Auto-sync**: When a template renders a channel loop and the TTL has expired, Outpost syncs automatically before rendering
+- **Manual sync**: Click "Sync Now" in Admin → Channels → [channel] → Sync tab
+- **Sync log**: Every sync is logged with item counts (added/updated/removed), duration, and errors
+- If the external API is down, the last cached data is served
+
+### Pagination Support
+
+Channels support two pagination modes for APIs that return paginated data:
+
+- **Offset-based**: Uses `page` and `limit` query params. Outpost increments the page until no more data returns.
+- **Cursor-based**: Uses a cursor param (e.g. `after`) with the cursor value extracted from the response via a dot-notation path (e.g. `meta.next_cursor`).
+
+### Channel vs Collection Comparison
+
+| Feature | Collections | Channels |
+|---|---|---|
+| Data source | Admin editor | External REST API |
+| Template loop | `{% for item in collection.slug %}` | `{% for item in channel.slug %}` |
+| Single item | `{% single var from collection.slug %}` | `{% single var from channel.slug %}` |
+| URL patterns | `/post/{slug}` | `/listing/{slug}` |
+| Editable in admin | Yes | No (read-only cache) |
+| Storage | `collection_items` table | `channel_items` table (cache) |
+| Loop options | `limit`, `orderby`, `paginate`, `filteredby`, `related` | `limit`, `orderby` |
+
+### Mixing Channels and Collections
+
+```html
+{# Latest blog posts from your CMS #}
+{% for post in collection.post limit:3 orderby:published_at %}
+  <a href="{{ post.url }}">{{ post.title }}</a>
+{% endfor %}
+
+{# Latest property listings from external MLS API #}
+{% for listing in channel.mls limit:6 %}
+  <div class="listing-card">{{ listing.address }} — {{ listing.price }}</div>
+{% endfor %}
+```
+
+### Channel Admin API Endpoints
+
+| Action | Method | Description |
+|---|---|---|
+| `channels` | GET | List all channels with item counts |
+| `channels&id=X` | GET | Get single channel with full config |
+| `channels` | POST | Create channel |
+| `channels&id=X` | PUT | Update channel |
+| `channels&id=X` | DELETE | Delete channel (cascades items + log) |
+| `channels/sync&id=X` | POST | Trigger manual sync |
+| `channels/sync-log&id=X` | GET | Get sync history (last 50) |
+| `channels/discover` | POST | Schema discovery — fetch URL, return JSON schema tree |
+| `channels/items&id=X` | GET | Preview cached items (paginated) |
+
+### Channel Database Tables
+
+**`channels`:** `id`, `slug` (UNIQUE), `name`, `type` (default 'api'), `config` (JSON), `field_map` (JSON), `cache_ttl` (seconds), `url_pattern`, `sort_field`, `sort_direction`, `max_items`, `status` ('active'|'paused'), `last_sync_at`, `last_error`, `created_at`, `updated_at`
+
+**`channel_items`:** `id`, `channel_id` (FK → channels.id CASCADE), `external_id`, `slug`, `data` (JSON), `sort_value`, `created_at`, `updated_at`. Indexes: `(channel_id)`, `(channel_id, slug)`, `(channel_id, sort_value)`
+
+**`channel_sync_log`:** `id`, `channel_id` (FK → channels.id CASCADE), `status`, `items_synced`, `items_added`, `items_updated`, `items_removed`, `duration_ms`, `error_message`, `synced_at`
+
+## Sitemap
+
+Auto-generated at `/sitemap.xml`. No configuration needed. Includes all CMS pages and published collection items with `<lastmod>` dates. Base URL auto-detected from HTTP request (or from `OUTPOST_SITE_URL`).
+
+## Analytics
+
+Built-in tracker injected before `</body>` on every page. Fires GET to `/outpost/track.php`. Bot detection via user-agent. No cookies, no fingerprinting, all data in SQLite.
+
+GA4 integration (optional):
+```html
+{% if @ga4_id %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ @ga4_id }}');
+</script>
+{% endif %}
+```
+
+## SEO — `{% seo %}` tag
+
+Place `{% seo %}` once in `head.html`. It outputs a complete SEO block automatically for every page type. No parameters, no configuration, no manual OG tags needed in templates.
+
+```html
+<!-- partials/head.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% seo %}
+  <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+</head>
+<body>
+```
+
+**What it outputs by page type:**
+
+- **Static page** (`/about`): `<title>`, `<meta name="description">`, `<link rel="canonical">`, `og:type=website`, `og:site_name`, `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:site`
+- **Collection single** (`/post/slug`): All of the above with `og:type=article`, `article:published_time`, `article:author`, plus JSON-LD `Article` schema block
+- **Paginated list** (`/blog?page=2`): Adds `<link rel="prev">` and `<link rel="next">`
+- **Members/paid page**: Adds `<meta name="robots" content="noindex">`
+
+**Fallback chain:**
+
+| Tag | Priority |
+|---|---|
+| `<title>` | Page Meta Title → item `title` → page `title` → `@site_name` |
+| `meta description` | Page Meta Description → item `excerpt` → first 30 words of `body` → `@site_tagline` |
+| `og:image` / `twitter:image` | Page OG Image → item `featured_image` → `@og_image` |
+| `og:title` | Same as title, without ` — Site Name` suffix |
+| `canonical` | `OUTPOST_SITE_URL` + current path (omitted if constant not set) |
+| `og:type` | `article` on single pages, `website` elsewhere |
+| `article:author` | Item `author` field → `@author_name` |
+| `twitter:site` | `@twitter_handle` global (include `@` prefix) |
+
+**Title format:** `{Page Title} — {Site Name}`. Homepage: Meta Title if set, otherwise just site name.
+
+**Required global fields** (auto-registered on first use, set in Admin → Globals):
+- `@og_image` — default Open Graph image (1200×630px recommended)
+- `@twitter_handle` — Twitter/X handle with `@` prefix, e.g. `@mysite`
+- `@site_tagline` — fallback meta description for pages without one set
+
+**Required config:** `define('OUTPOST_SITE_URL', 'https://example.com');` in `config.php` for canonical URLs.
+
+**JSON-LD Article schema** (collection singles only):
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Item title",
+  "description": "Resolved description",
+  "image": "https://example.com/outpost/uploads/featured.jpg",
+  "datePublished": "2024-02-01T08:00:00+00:00",
+  "dateModified": "2024-02-10T12:00:00+00:00",
+  "url": "https://example.com/post/my-article",
+  "author": { "@type": "Person", "name": "Author Name" }
+}
+```
+
+`{% seo %}` replaces `{{ meta.title }}` and `{{ meta.description }}`. Do not use both — `{% seo %}` already outputs `<title>` and description. Individual meta tags still work in legacy themes.
+
+## WordPress Import
+
+Migrate posts from WordPress using the native WXR XML export.
+
+1. In WordPress: Tools → Export → Posts → Download Export File
+2. In Outpost: Admin → Import → upload `.xml` file → select target collection → configure options → Import
+
+**What gets imported:** title, body content (sanitized HTML), excerpt, slug, publish date, status, categories/tags (as folder labels if matched).
+
+**Import options:**
+- Posts to import: "Published only" or "All" (includes drafts)
+- On duplicate: "Skip" (keep existing) or "Overwrite" (replace by slug match)
+
+Images in post content still point to old WordPress domain after import — update manually.
+
+## Code Editor
+
+In-admin theme file editor at Admin → Code. Requires `developer` or higher role.
+
+Features: syntax highlighting (HTML, CSS, JS), tab bar with dirty-state indicator, file tree with create/rename/delete, find-in-files search, Outpost template autocomplete inside `{{ }}` and `{% %}`.
+
+Endpoints added to `code-editor.php`:
+- `code/files` GET — list theme code files
+- `code/read` GET — read a theme file
+- `code/write` PUT — write a theme file
+- `code/create` POST — create file or folder
+- `code/rename` POST — rename/move (validates extension)
+- `code/delete` DELETE — recursive for directories
+- `code/search` GET `?q=term` — full-text search, max 200 results
+- `code/context` GET — returns globals + collections + schema for autocomplete
+
+## Settings
+
+Stored as key-value pairs in `settings` table. Edit in Admin → Settings.
+
+Key settings: site name, active theme slug, SMTP host/port/user/pass, from name/email, form notification email, builder sync key.
+
+Read in PHP: `OutpostDB::setting('key', 'default')`
+
+## Configuration (config.php)
+
+All runtime configuration is set via PHP constants in `outpost/config.php`. No `.env`, no YAML.
+
+```php
+<?php
+// Minimal required config
+define('OUTPOST_SITE_URL', 'https://mysite.com');  // no trailing slash
+define('OUTPOST_SYNC_KEY', 'your-random-64-char-key');
+```
+
+### Full constant reference
+
+| Constant | Default | Description |
+|---|---|---|
+| `OUTPOST_DB_PATH` | `data/cms.db` | SQLite database path (relative to `outpost/`) |
+| `OUTPOST_SITE_URL` | auto-detected | Canonical URL for sitemap, emails, absolute links |
+| `OUTPOST_DEBUG` | `false` | Show PHP errors inline — never true in production |
+| `OUTPOST_MAX_UPLOAD_SIZE` | `10485760` (10 MB) | Max upload size in bytes |
+| `OUTPOST_UPLOAD_DIR` | `uploads/` | Media upload directory (relative to `outpost/`) |
+| `OUTPOST_CACHE_DIR` | `cache/` | Cache directory (relative to `outpost/`) |
+| `OUTPOST_CACHE_TTL` | `3600` | HTML page cache TTL in seconds |
+| `OUTPOST_TEMPLATE_CACHE` | `true` | Enable compiled template cache (set `false` during dev) |
+| `OUTPOST_SESSION_NAME` | `outpost_session` | Admin session cookie name |
+| `OUTPOST_MEMBER_SESSION` | `outpost_member` | Member session cookie name |
+| `OUTPOST_SESSION_LIFETIME` | `86400` (24h) | Admin session lifetime in seconds |
+| `OUTPOST_MEMBER_LIFETIME` | `2592000` (30 days) | Member "remember me" lifetime in seconds |
+| `OUTPOST_SYNC_KEY` | (none) | Builder sync API secret key |
+| `OUTPOST_SMTP_HOST` | (none) | SMTP hostname |
+| `OUTPOST_SMTP_PORT` | `587` | SMTP port (587=STARTTLS, 465=SSL, 25=plain) |
+| `OUTPOST_SMTP_USER` | (none) | SMTP username |
+| `OUTPOST_SMTP_PASS` | (none) | SMTP password |
+
+## REST API
+
+Base URL: `/outpost/api.php?action=ENDPOINT`
+
+All mutating requests require `X-CSRF-Token` header (token received at login). Session-based auth via cookies.
+
+### Public endpoints (no auth)
+
+| Action | Method | Description |
+|---|---|---|
+| `auth/forgot` | POST | Send password reset email |
+| `auth/reset` | POST | Set new password via token |
+
+### Admin endpoints (require auth)
+
+| Action | Methods | Description |
+|---|---|---|
+| `auth/login` | POST | Sign in |
+| `auth/logout` | POST | Sign out |
+| `auth/me` | GET | Current user |
+| `pages` | GET, PUT | List and update pages |
+| `fields/bulk` | PUT | Bulk page field update |
+| `globals` | GET | Global fields |
+| `collections` | GET, POST, PUT, DELETE | Collections CRUD |
+| `items` | GET, POST, PUT, DELETE | Collection items CRUD |
+| `items/inline` | PUT | Partial field update for collection items (on-page editing) |
+| `items/bulk-status` | PUT | Bulk update item status (draft/published) |
+| `items/bulk-delete` | DELETE | Bulk delete items |
+| `items/preview-token` | POST | Generate preview token for draft/scheduled items |
+| `folders` | GET, POST, PUT, DELETE | Folders CRUD |
+| `labels` | GET, POST, PUT, DELETE | Folder labels CRUD |
+| `item-labels` | GET, PUT | Label assignments |
+| `media` | GET, PUT, DELETE | Media library (PUT updates alt_text) |
+| `media/upload` | POST | Upload file |
+| `media/transform` | POST | Resize or crop a raster image (GD required) |
+| `users` | GET, POST, PUT, DELETE | Admin users CRUD |
+| `members` | GET, PUT, DELETE | Member management |
+| `menus` | GET, POST, PUT, DELETE | Navigation menus CRUD |
+| `loops` | GET, POST, DELETE | Saved query loops |
+| `settings` | GET, PUT | Site settings |
+| `themes` | GET, PUT, DELETE | Theme management |
+| `themes/activate` | PUT | Activate theme |
+| `themes/duplicate` | POST | Duplicate theme |
+| `forms` | GET | List form names with counts |
+| `forms/submissions` | GET, PUT, DELETE | Form submissions (supports `form`, `form_id`, `status`, `starred` filters) |
+| `forms/submissions/star` | PUT | Toggle star on submission |
+| `forms/submissions/status` | PUT | Change submission status (active/archived/trashed) |
+| `forms/submissions/notes` | PUT | Update submission notes |
+| `forms/submissions/bulk` | POST | Bulk actions: read, star, unstar, archive, delete, restore |
+| `forms/config` | GET, PUT | Form notification settings |
+| `forms/test-smtp` | POST | Send SMTP test email |
+| `forms/export` | GET | Export submissions as CSV |
+| `forms/builder` | GET, POST, PUT, DELETE | Form builder CRUD (create/read/update/delete form definitions) |
+| `forms/builder/duplicate` | POST | Duplicate a form |
+| `code/files` | GET | List theme code files |
+| `code/read` | GET | Read a theme file |
+| `code/write` | PUT | Write a theme file |
+| `code/create` | POST | Create file or folder |
+| `code/rename` | POST | Rename/move file |
+| `code/delete` | DELETE | Delete file or directory |
+| `code/search` | GET | Full-text search in theme files |
+| `code/context` | GET | Globals + collections for autocomplete |
+| `cache/clear` | POST | Clear HTML + template cache |
+| `dashboard/stats` | GET | Site stats snapshot |
+| `dashboard/analytics` | GET | Full analytics data |
+| `dashboard/activity` | GET | Recent activity log |
+| `dashboard/seo` | GET | SEO health data |
+| `dashboard/content` | GET | Content overview |
+| `dashboard/members` | GET | Member stats |
+| `content/schema` | GET | Public schema (read-only) |
+| `content/pages` | GET | Public pages (read-only) |
+| `content/collections` | GET | Public collections (read-only) |
+| `content/items` | GET | Public collection items (read-only) |
+| `content/folders` | GET | Public folders (read-only) |
+| `content/labels` | GET | Public folder labels (read-only) |
+| `import/wordpress` | POST | Import WordPress WXR export |
+| `sync/key` | GET, POST | Builder sync API key |
+| `sync/key/regenerate` | POST | Regenerate sync API key |
+| `channels` | GET, POST, PUT, DELETE | Channels CRUD (external data sources) |
+| `channels/sync` | POST | Trigger channel sync |
+| `channels/sync-log` | GET | Channel sync history |
+| `channels/discover` | POST | Schema discovery (fetch URL, return JSON schema) |
+| `channels/items` | GET | Preview cached channel items |
+| `revisions` | GET | List revisions for entity (entity_type, entity_id params) |
+| `revisions/restore` | POST | Restore a revision (snapshots current state first) |
+
+### Member API
+
+Base URL: `/outpost/member-api.php?action=ENDPOINT`
+
+| Action | Method | Description |
+|---|---|---|
+| `login` | POST | Member sign in |
+| `logout` | POST | Member sign out |
+| `register` | POST | New member registration |
+| `forgot` | POST | Send reset email (public) |
+| `reset` | POST | Reset password via token (public) |
+| `resend-verify` | POST | Resend verification email (public, 60s rate limit) |
+| `me` | GET | Current member |
+| `profile` | PUT | Update member profile |
+| `password` | PUT | Change member password (requires current password) |
+
+## Public Content API
+
+Read-only, unauthenticated. CORS open to all origins. Only published content returned.
+
+Base URL: `/outpost/api.php?action=content/ENDPOINT`
+
+All responses wrap payload in `data`. List endpoints include `meta.total`, `meta.limit`, `meta.offset`.
+
+### Schema
+```
+GET api.php?action=content/schema
+```
+Returns all collections (with field definitions), pages with fields, all folders.
+
+### Pages
+```
+GET api.php?action=content/pages
+GET api.php?action=content/pages&path=/about
+```
+Returns pages with `fields` as flat key-value map.
+
+### Items
+```
+GET api.php?action=content/items&collection=blog
+GET api.php?action=content/items&collection=blog&slug=my-post
+```
+
+Query params: `limit` (default 10, max 100), `offset`, `orderBy` (created_at|updated_at|published_at|slug|sort_order), `order` (ASC|DESC), `{folder-slug}=label-slug` for filtering.
+
+Response item fields: `id`, `slug`, `status`, `created_at`, `updated_at`, `published_at`, `fields{}` (all field values), `labels{}` (labels grouped by folder slug).
+
+### Folders / Labels
+```
+GET api.php?action=content/folders
+GET api.php?action=content/labels&folder=category
+```
+
+JavaScript examples:
+```js
+// Fetch blog listing with pagination
+const res = await fetch('/outpost/api.php?action=content/items&collection=blog&limit=10&orderBy=published_at&order=DESC');
+const { data: posts, meta } = await res.json();
+
+// Filter by folder label
+const res = await fetch('/outpost/api.php?action=content/items&collection=blog&category=tutorials');
+
+// Single post
+const res = await fetch('/outpost/api.php?action=content/items&collection=blog&slug=my-post');
+const { data: post } = await res.json();
+```
+
+## Sync API
+
+Machine-to-machine API for the Outpost Builder desktop app to sync theme files. Authenticated with a static API key in `X-Outpost-Key` header. HTTPS enforced on non-localhost.
+
+Base URL: `/outpost/sync-api.php?action=ENDPOINT`
+
+Rate limiting: 5 failed auth attempts per hour per IP → 429 with `Retry-After` header.
+
+File constraints: max 2 MB per file, allowed extensions: `php html htm css js json svg txt md yml yaml xml`, paths must stay within `themes/{theme-name}/`.
+
+### Endpoints
+
+| Action | Method | Description |
+|---|---|---|
+| `pull` | GET | Full site snapshot: all theme files (base64), media list, DB snapshot + raw DB file |
+| `push` | POST | Deploy theme files to server; auto-creates backup before writing; clears cache after |
+| `backup/list` | GET | List all server-side backups (newest first, auto-prunes >30 days old) |
+| `backup/restore` | POST | Restore a backup by ID; auto-creates backup of current state first |
+
+### Pull response structure
+```json
+{
+  "outpost_version": "1.0.0",
+  "site_url": "https://example.com/outpost",
+  "pulled_at": "2024-03-01T10:00:00+00:00",
+  "theme": {
+    "active": "personal",
+    "files": { "themes/personal/index.html": "<base64>" }
+  },
+  "uploads": [{ "path": "uploads/photo.jpg", "url": "...", "size": 204800 }],
+  "db_snapshot": { "settings": {}, "pages": [], "collections": [], ... },
+  "db_file": "<base64-encoded SQLite binary>"
+}
+```
+
+The `db_snapshot` excludes sync API key and admin credentials.
+
+### Push request body
+```json
+{
+  "theme": {
+    "name": "personal",
+    "files": { "themes/personal/index.html": "<base64>" }
+  },
+  "push_content": false
+}
+```
+
+`push_content: true` + `db_file` replaces the entire server database — overwrites all live data. Use with caution.
+
+### Backup storage
+`outpost/backups/{backup-id}/` with `manifest.json` + `files/` directory. Backups older than 30 days auto-pruned on `backup/list`.
+
+## Deploy
+
+Copy the `outpost/` directory to your server. First request initializes the DB.
+
+**Preserve on re-deploy:**
+- `outpost/data/` — SQLite database
+- `outpost/uploads/` — media files
+- `outpost/cache/` — safe to clear, not required to preserve
+
+**File permissions:**
+```bash
+chmod 755 outpost/data outpost/uploads outpost/cache
+```
+
+**Apache .htaccess:**
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+```
+
+**Nginx:**
+```nginx
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+```
+
+**Clear cache after template changes:**
+```bash
+rm -f outpost/cache/*.html
+rm -f outpost/cache/templates/*.php
+```
+
+Or use Clear Cache in the admin top bar.
+
+**Build admin SPA (if modifying `src/`):**
+```bash
+cd cms/
+npm install
+npm run build   # outputs to php/admin/
+```
+
+## Database Migrations
+
+Outpost uses idempotent inline migrations — no migration files or version tracking. Pattern:
+
+```php
+$db = OutpostDB::connect();
+$cols = array_column($db->query("PRAGMA table_info(users)")->fetchAll(), 'name');
+if (!in_array('new_column', $cols)) {
+    $db->exec("ALTER TABLE users ADD COLUMN new_column TEXT");
+}
+```
+
+Migrations run on first request to the relevant endpoint. Safe to run multiple times. Schema is created and evolved automatically — no manual SQL needed.
+
+## Database Schema
+
+Outpost uses 19 SQLite tables in five groups. Single `.db` file at `outpost/data/cms.db` (path set by `OUTPOST_DB_PATH`).
+
+**Content:** `pages`, `fields`, `collections`, `collection_items`
+**Channels:** `channels`, `channel_items`, `channel_sync_log`
+**Folder & Navigation:** `folders`, `labels`, `item_labels`, `menus`
+**Users & Members:** `users`, `members`, `settings`
+**Media, Forms & Logs:** `media`, `forms` (builder definitions), `form_configs`, `form_submissions` (with form_id, status, starred, notes, user_agent), `analytics_hits`, `activity_log`
+
+Key columns:
+
+**`pages`:** `id`, `title`, `slug`, `body`, `meta_title`, `meta_description`, `og_image`, `visibility` (`'public'|'members'|'paid'`), `status` (`'published'|'draft'`), `sort_order`, `created_at`, `updated_at`
+
+**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name)
+
+**`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`
+
+**`collection_items`:** `id`, `collection_id`, `slug`, `status` (`'published'|'draft'|'scheduled'`), `scheduled_at`, `published_at`, `data` (JSON), `created_at`, `updated_at`
+
+**`members`:** `id`, `email`, `password_hash`, `display_name`, `role` (`'free_member'|'paid_member'`), `status` (`'active'|'suspended'`), `member_expires`, `created_at`, `updated_at`
+
+**`settings`:** `id`, `key`, `value` — key-value store for site settings and globals
+
+## Cache
+
+Two cache layers:
+
+1. **HTML page cache** — full rendered HTML stored in `outpost/cache/{md5(path+query)}.html`. Keyed on path + sorted query string, so `?category=bricks` and `?page=2` get separate cache files. TTL: `OUTPOST_CACHE_TTL` (default 1 hour). Cleared on content save or via admin. Logged-in admins bypass it.
+
+2. **Template cache** — compiled PHP stored in `outpost/cache/templates/{md5(templatePath)}.php`. Recompiled when template file changes (mtime check). Disable with `OUTPOST_TEMPLATE_CACHE = false` during development.
+
+Cache bypass: `?nocache=1` in URL (development only).
+
+## Key PHP Classes & Functions
+
+| Symbol | Location | Purpose |
+|---|---|---|
+| `OutpostDB::connect()` | `db.php` | Returns PDO connection |
+| `OutpostDB::fetchOne($sql, $params)` | `db.php` | Fetch single row |
+| `OutpostDB::fetchAll($sql, $params)` | `db.php` | Fetch all rows |
+| `OutpostDB::update($table, $data, $where, $params)` | `db.php` | Update helper |
+| `OutpostDB::setting($key, $default)` | `db.php` | Read setting value |
+| `OutpostAuth::hashPassword($pw)` | `auth.php` | bcrypt hash via `password_hash()` |
+| `OutpostMember::check()` | `members.php` | Check member session (returns bool) |
+| `OutpostMember::current()` | `members.php` | Full member record or null |
+| `OutpostMember::login($id, $pw)` | `members.php` | Member login |
+| `OutpostMailer::fromSettings()` | `mailer.php` | Email instance from DB settings |
+| `OutpostTemplate::render($file, $themeDir)` | `template-engine.php` | Compile + render template |
+| `cms_text($page, $field, $default)` | `engine.php` | Render text field |
+| `cms_global($name, $type)` | `engine.php` | Render global field |
+| `cms_collection_list($slug, $opts, $cb)` | `engine.php` | Render collection loop |
+| `cms_pagination()` | `engine.php` | Render pagination nav |
+| `cms_flexible_items($name)` | `engine.php` | Render flexible content loop |
+| `cms_relationship_items($name)` | `engine.php` | Render relationship items loop |
+| `outpost_cache_path($path)` | `engine.php` | Build cache file path |
+
+## Recipes
+
+### Personal Blog
+
+Collections: `post` with fields `title`, `excerpt`, `featured_image`, `body` (richtext), URL pattern `/post/{slug}`.
+
+```html
+<!-- blog.html: list all posts -->
+{% include 'head' %}
+{% for post in collection.post paginate:10 orderby:published_at %}
+  <article>
+    <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+    <p>{{ post.excerpt | or_body }}</p>
+    <time>{{ post.published_at }}</time>
+  </article>
+{% endfor %}
+{% pagination %}
+{% include 'footer' %}
+
+<!-- post.html: single post -->
+{% include 'head' %}
+{% single post from collection.post %}
+  {{ meta.title post.title }}
+  <h1>{{ post.title }}</h1>
+  <div class="body">{{ post.body | raw }}</div>
+{% else %}
+  <p>Post not found.</p>
+{% endsingle %}
+{% include 'footer' %}
+```
+
+### Category Filtering
+
+```html
+<!-- Folder label list -->
+{% for label in folder.category %}
+  <a href="/blog?category={{ label.slug }}">{{ label.name }} ({{ label.count }})</a>
+{% endfor %}
+
+<!-- Filtered loop -->
+{% for post in collection.post paginate:10 filteredby:category %}
+  {{ post.title }}
+{% endfor %}
+{% pagination %}
+```
+
+### Dropdown Navigation
+
+```html
+<nav>
+  {% for item in menu.main %}
+    {% if item.children %}
+      <div class="has-dropdown">
+        <a href="{{ item.url }}">{{ item.label }}</a>
+        <ul class="dropdown">
+          {% for child in item.children %}
+            <li><a href="{{ child.url }}">{{ child.label }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <a href="{{ item.url }}">{{ item.label }}</a>
+    {% endif %}
+  {% endfor %}
+</nav>
+```
+
+### Membership Site
+
+```html
+<!-- Show teaser to non-members, full content to members -->
+{% include 'member-reveal' %}
+<!-- partials/member-reveal.php sets $GLOBALS['_outpost_member'] -->
+
+{% if @site_name %}
+<!-- Paywall CTA for non-members rendered via conditional in PHP partial -->
+{% endif %}
+```
+
+Page-level: set visibility to "Members Only" or "Paid Members" in the page editor sidebar. No code required.
+
+### Flexible Page Builder
+
+Use flexible content to build modular landing pages:
+
+```html
+<!-- landing.html -->
+{% include 'head' %}
+{% single page from collection.landing %}
+  <h1>{{ page.title }}</h1>
+  {% for block in flexible.sections %}
+    {% if block.layout == "hero" %}
+      <section class="hero" style="background-image: url({{ block.bg_image }})">
+        <h2>{{ block.heading }}</h2>
+        <p>{{ block.text }}</p>
+      </section>
+    {% endif %}
+    {% if block.layout == "features" %}
+      <section class="features">
+        <h2>{{ block.heading }}</h2>
+        <div class="body">{{ block.content | raw }}</div>
+      </section>
+    {% endif %}
+    {% if block.layout == "testimonial" %}
+      <blockquote>
+        <p>{{ block.quote }}</p>
+        <cite>{{ block.author }}</cite>
+      </blockquote>
+    {% endif %}
+  {% endfor %}
+{% endsingle %}
+{% include 'footer' %}
+```
+
+### Related Posts
+
+Use relationship fields to show hand-picked related content:
+
+```html
+{% single post from collection.post %}
+  <h1>{{ post.title }}</h1>
+  <div class="body">{{ post.body | raw }}</div>
+
+  {% for item in relationship.related_posts %}
+    <a href="{{ item.url }}">{{ item.title }}</a>
+  {% endfor %}
+{% endsingle %}
+```
+
+### Headless / API
+
+```js
+// Fetch all published posts
+const res = await fetch('/outpost/api.php?action=content/items&collection=post&orderBy=published_at&order=DESC');
+const { data: posts, meta } = await res.json();
+
+// Single post
+const res = await fetch('/outpost/api.php?action=content/items&collection=post&slug=my-slug');
+const { data: post } = await res.json();
+const title = post.fields.title;
+const html  = post.fields.body;  // rendered HTML
+
+// Filter by category
+const res = await fetch('/outpost/api.php?action=content/items&collection=post&category=tutorials');
+```

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Architecture — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link active">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Theme Architecture</h1>
+    <p class="lead">Outpost themes are directories of Liquid-style <code>.html</code> template files. There is no PHP in themes — you write plain HTML with template tags, and Outpost compiles it.</p>
+  </div>
+  <div class="content">
+
+    <h2>How themes work</h2>
+    <p>Outpost's theme system is built around a simple idea: your templates should look like HTML, not PHP. You write <code>.html</code> files with Liquid-style tags (<code>{{ field }}</code>, <code>{% for %}</code>, <code>{% if %}</code>), and Outpost's template engine compiles them into cached PHP at runtime.</p>
+    <p>This separation has a practical benefit for site builders: you can hand a theme to a designer who has never touched PHP, and they can read and edit the templates without confusion. The compiled PHP lives in a cache directory and is never meant to be touched directly.</p>
+    <p>The compile step happens automatically on first request — and again any time you modify a template file. Outpost compares the file modification time of the <code>.html</code> source against the cached <code>.php</code> output, and recompiles if the source is newer. You never need to manually trigger a build.</p>
+
+    <h2>Template engine pipeline</h2>
+    <p>When a request comes in for a page, the following happens:</p>
+    <ol>
+      <li>The router determines which <code>.html</code> template file corresponds to the URL.</li>
+      <li>The template engine checks whether a compiled cache exists at <code>outpost/cache/templates/{hash}.php</code>.</li>
+      <li>If the cache is stale or missing, the <code>.html</code> source is compiled into PHP and written to the cache directory.</li>
+      <li>The compiled PHP is <code>require</code>d, executing the template with the current page context.</li>
+    </ol>
+    <p>The hash used for the cache filename is an MD5 of the template file's real path, ensuring each template gets a stable, unique cache entry regardless of how the theme is organized.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> — Partials are compiled and cached independently. When a template includes a partial, the partial gets its own cache entry. This means changing a partial invalidates only that partial's cache, not every template that uses it.</div>
+
+    <h2>Theme directory structure</h2>
+    <p>A theme lives in its own directory under <code>outpost/themes/</code>. The directory name becomes the theme's slug and is used internally to reference the theme. Here is a complete example structure:</p>
+    <pre><code>outpost/themes/my-theme/
+  theme.json            ← required — display name, version, author, description
+  index.html            ← / route (homepage)
+  about.html            ← /about route
+  blog.html             ← /blog route
+  post.html             ← collection single (e.g. /post/{slug})
+  contact.html          ← /contact route
+  404.html              ← optional custom 404 page
+  partials/
+    head.html           ← standard: DOCTYPE through &lt;body&gt; opening tag
+    nav.html            ← standard: site navigation
+    footer.html         ← standard: &lt;/body&gt;&lt;/html&gt; and scripts
+    sidebar.html        ← custom partial example
+  assets/
+    style.css
+    main.js
+    logo.svg</code></pre>
+
+    <h2>URL routing overview</h2>
+    <p>Template files map directly to URL paths. The router converts a URL path into a filename by taking the first path segment and appending <code>.html</code>:</p>
+    <table>
+      <thead>
+        <tr><th>URL</th><th>Template file</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/</code></td><td><code>index.html</code></td><td>Homepage</td></tr>
+        <tr><td><code>/about</code></td><td><code>about.html</code></td><td>Static page</td></tr>
+        <tr><td><code>/blog</code></td><td><code>blog.html</code></td><td>Collection list page</td></tr>
+        <tr><td><code>/post/hello-world</code></td><td><code>post.html</code></td><td>Collection single; <code>?slug=hello-world</code> set automatically</td></tr>
+        <tr><td><code>/contact</code></td><td><code>contact.html</code></td><td>Static page</td></tr>
+        <tr><td><em>no match</em></td><td><code>404.html</code></td><td>Falls back to built-in 404 if file missing</td></tr>
+      </tbody>
+    </table>
+    <p>Collection URL patterns (configured in Admin → Collections → URL Pattern) tell the router which two-segment URLs belong to a collection. For example, setting the pattern to <code>/post/{slug}</code> means any request matching <code>/post/*</code> is routed to <code>post.html</code> with the slug passed as a query parameter.</p>
+    <p>See <a href="themes/routing.html">Routing</a> for the full algorithm including draft blocking, visibility, and the difference between the dev server and production.</p>
+
+    <h2>Field auto-registration</h2>
+    <p>One of Outpost's most useful features is that you never have to manually define fields in the admin before using them in a template. When a template is compiled for the first time, Outpost scans all the template tags and registers any new fields it finds in the database.</p>
+    <p>This means the workflow is: write your template, activate the theme, load the page once — and the fields appear in the admin ready to be filled in. You do not need to visit a "field settings" screen before the template works.</p>
+    <p>The same auto-registration happens for global fields (<code>{{ @global_name }}</code>), meta tags, and collection fields. The field type is inferred from the filter used — <code>{{ hero_image | image }}</code> registers as an image picker, <code>{{ bio | textarea }}</code> registers as a textarea, and so on.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — If you remove a field tag from a template, the field data in the database is not deleted — it simply stops appearing in the admin editor for that page. This is intentional: removing a field from a template is non-destructive. If you add the tag back later, the previously entered content will still be there.</div>
+
+    <h2>Active theme</h2>
+    <p>Only one theme is active at a time. The active theme is stored in the <code>settings</code> table under the key <code>active_theme</code>. You can change it through Admin → Themes → Activate, or by directly updating that database value.</p>
+    <p>When you activate a theme, Outpost immediately scans all its template files and scaffolds any fields that do not yet exist in the database. This means activating a brand-new theme on an existing site is safe — it creates the new field stubs without touching any existing content.</p>
+
+    <h2>Multiple themes</h2>
+    <p>You can have as many themes installed as you like. Only the active theme is rendered for visitors. The others sit in <code>outpost/themes/</code> untouched. This makes it easy to:</p>
+    <ul>
+      <li>Stage a redesign as a new theme and switch over when ready</li>
+      <li>Keep a backup copy of the previous theme</li>
+      <li>Offer multiple theme options for a multi-site setup</li>
+    </ul>
+
+    <h2>Theme duplication</h2>
+    <p>The admin provides a Duplicate button on each theme card. Duplicating a theme creates a complete copy — all template files, partials, and assets — under a new directory slug. The duplicate gets a new name based on the original (e.g., <code>my-theme-copy</code>).</p>
+    <p>Duplication is the recommended way to start a customization. Duplicate the base theme, activate the copy, and edit freely. The original stays intact as a reference or rollback point.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Deleting a theme removes its directory from disk. This cannot be undone. Make sure you are not deleting the active theme — Outpost will prevent this, but always double-check before deleting.</div>
+
+    <h2>Legacy PHP themes</h2>
+    <p>If a theme directory contains an <code>index.php</code> file at its root, Outpost treats it as a legacy PHP theme and <code>require</code>s that file directly, bypassing the Liquid compiler entirely. This exists for backward compatibility only. All new themes should use Liquid <code>.html</code> templates.</p>
+    <p>There is no migration tool to convert a PHP theme to Liquid — but in practice the conversion is straightforward: replace PHP <code>echo</code> calls with <code>{{ }}</code> tags and PHP control structures with <code>{% %}</code> blocks.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

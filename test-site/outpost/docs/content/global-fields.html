@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Fields — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link active">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Global Fields</h1>
+    <p class="lead">Site-wide content available in every template — site name, logo, social links, analytics IDs, contact information, footer text, and any other value shared across the whole site. Global fields auto-scaffold from templates and are edited from one place in the admin.</p>
+  </div>
+  <div class="content">
+
+    <h2>What are global fields?</h2>
+    <p>Global fields hold content that is shared across the entire site, not scoped to a single page or collection item. Where a page field like <code>{{ hero_title }}</code> only appears on the specific page that defines it, a global field like <code>{{ @site_name }}</code> is available in every template and every partial across every page of the site.</p>
+    <p>They live in <strong>Admin &rarr; Globals</strong>. Like page fields, global fields are <strong>auto-scaffolded</strong> — the admin discovers them automatically by scanning the active theme's templates for any tag using the <code>@</code> prefix. You never register them manually; just use them in your templates and they appear.</p>
+
+    <h2>Template syntax</h2>
+    <p>Global fields use the <code>@</code> prefix to distinguish them from page-scoped fields:</p>
+
+    <pre><code><span class="t-comment">{# Plain text — auto-escaped #}</span>
+<span class="t-out">{{ @site_name }}</span>
+
+<span class="t-comment">{# Image field — opens media picker in admin #}</span>
+<span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"{{ @logo | image }}"</span> <span class="t-attr">alt</span>=<span class="t-string">"{{ @site_name }}"</span><span class="t-tag">&gt;</span>
+
+<span class="t-comment">{# Richtext — render HTML as-is (no escaping) #}</span>
+<span class="t-out">{{ @bio | raw }}</span>
+
+<span class="t-comment">{# Link field — outputs the raw URL for use in href #}</span>
+<span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @twitter_url | link }}"</span><span class="t-tag">&gt;</span>Twitter<span class="t-tag">&lt;/a&gt;</span>
+
+<span class="t-comment">{# Conditional — only render if the global has a value #}</span>
+<span class="t-kw">{% if</span> <span class="t-out">@ga4_id</span> <span class="t-kw">%}</span>
+  <span class="t-tag">&lt;script</span> <span class="t-attr">async</span> <span class="t-attr">src</span>=<span class="t-string">"https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"</span><span class="t-tag">&gt;&lt;/script&gt;</span>
+<span class="t-kw">{% endif %}</span></code></pre>
+
+    <p>See <a href="template-syntax/global-fields.html">Template Syntax &rarr; Global Fields</a> for the complete syntax reference.</p>
+
+    <h2>Auto-scaffolding</h2>
+    <p>You do not register global fields in advance. When you add a new <code>{{ @field_name }}</code> tag anywhere in the active theme — including partials and all page templates — that field appears automatically in <strong>Admin &rarr; Globals</strong> the next time any page is rendered or the admin is opened.</p>
+
+    <pre><code><span class="t-comment">{# Add this to head.html — a "favicon" field appears in Admin → Globals immediately #}</span>
+<span class="t-tag">&lt;link</span> <span class="t-attr">rel</span>=<span class="t-string">"icon"</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @favicon | image }}"</span><span class="t-tag">&gt;</span></code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong> — Define all your site identity, social, analytics, and contact fields in your partials (<code>head.html</code>, <code>nav.html</code>, <code>footer.html</code>) during theme development. They all scaffold into Globals automatically at first render.
+    </div>
+
+    <h2>Field types for globals</h2>
+    <p>The admin input type is inferred from the filter in the template tag. Use the appropriate filter to get the right editor widget:</p>
+
+    <table>
+      <thead>
+        <tr><th>Template tag</th><th>Admin field type</th><th>Use for</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>{{ @field_name }}</code></td>
+          <td>Text input</td>
+          <td>Site name, tagline, phone number, GA4 ID, email address</td>
+        </tr>
+        <tr>
+          <td><code>{{ @field_name | textarea }}</code></td>
+          <td>Textarea</td>
+          <td>Multi-line plain text — short bio, address block</td>
+        </tr>
+        <tr>
+          <td><code>{{ @field_name | raw }}</code></td>
+          <td>Richtext (WYSIWYG)</td>
+          <td>Footer text with links, bio with formatting</td>
+        </tr>
+        <tr>
+          <td><code>{{ @field_name | image }}</code></td>
+          <td>Image (media picker)</td>
+          <td>Logo, favicon, profile photo, OG image</td>
+        </tr>
+        <tr>
+          <td><code>{{ @field_name | link }}</code></td>
+          <td>Link / URL input</td>
+          <td>Social profile URLs, CTA links</td>
+        </tr>
+        <tr>
+          <td><code>{{ @field_name | select }}</code></td>
+          <td>Select dropdown</td>
+          <td>Theme mode toggle, language selection</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Managing globals in admin</h2>
+    <p>Navigate to <strong>Admin &rarr; Globals</strong>. All global fields from all templates and partials in the active theme appear on a single form, grouped and ordered by the sequence they appear in the template source. Each field renders the appropriate editor widget based on its filter type.</p>
+    <p>Press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> or click <strong>Save</strong> to save all globals in one request. Saving global fields clears the HTML page cache so visitors immediately see the updated values.</p>
+
+    <h2>Common use cases with examples</h2>
+
+    <h3>Site identity and branding</h3>
+    <pre><code><span class="t-comment">{# In partials/head.html #}</span>
+<span class="t-tag">&lt;title&gt;</span><span class="t-out">{{ meta.title }}{{ @site_name }}{{ /meta.title }}</span> — <span class="t-out">{{ @site_name }}</span><span class="t-tag">&lt;/title&gt;</span>
+<span class="t-tag">&lt;meta</span> <span class="t-attr">name</span>=<span class="t-string">"description"</span> <span class="t-attr">content</span>=<span class="t-string">"{{ meta.description }}{{ @site_tagline }}{{ /meta.description }}"</span><span class="t-tag">&gt;</span>
+<span class="t-tag">&lt;link</span> <span class="t-attr">rel</span>=<span class="t-string">"icon"</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @favicon | image }}"</span><span class="t-tag">&gt;</span>
+
+<span class="t-comment">{# In partials/nav.html #}</span>
+<span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/"</span> <span class="t-attr">class</span>=<span class="t-string">"logo"</span><span class="t-tag">&gt;</span>
+  <span class="t-kw">{% if</span> <span class="t-out">@logo</span> <span class="t-kw">%}</span>
+    <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"{{ @logo | image }}"</span> <span class="t-attr">alt</span>=<span class="t-string">"{{ @site_name }}"</span> <span class="t-attr">height</span>=<span class="t-string">"32"</span><span class="t-tag">&gt;</span>
+  <span class="t-kw">{% else %}</span>
+    <span class="t-out">{{ @site_name }}</span>
+  <span class="t-kw">{% endif %}</span>
+<span class="t-tag">&lt;/a&gt;</span></code></pre>
+
+    <h3>Author / personal blog profile</h3>
+    <pre><code><span class="t-tag">&lt;aside</span> <span class="t-attr">class</span>=<span class="t-string">"author-bio"</span><span class="t-tag">&gt;</span>
+  <span class="t-kw">{% if</span> <span class="t-out">@profile_photo</span> <span class="t-kw">%}</span>
+    <span class="t-tag">&lt;img</span>
+      <span class="t-attr">src</span>=<span class="t-string">"{{ @profile_photo | image }}"</span>
+      <span class="t-attr">alt</span>=<span class="t-string">"{{ @author_name }}"</span>
+      <span class="t-attr">class</span>=<span class="t-string">"avatar"</span>
+    <span class="t-tag">&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+  <span class="t-tag">&lt;h3&gt;</span><span class="t-out">{{ @author_name }}</span><span class="t-tag">&lt;/h3&gt;</span>
+  <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ @bio_short }}</span><span class="t-tag">&lt;/p&gt;</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"social-links"</span><span class="t-tag">&gt;</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@twitter_url</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @twitter_url | link }}"</span><span class="t-tag">&gt;</span>Twitter<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@github_url</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @github_url | link }}"</span><span class="t-tag">&gt;</span>GitHub<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@linkedin_url</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @linkedin_url | link }}"</span><span class="t-tag">&gt;</span>LinkedIn<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-tag">&lt;/aside&gt;</span></code></pre>
+
+    <h3>Google Analytics 4</h3>
+    <pre><code><span class="t-comment">{# In head.html — only outputs GA script if ga4_id has been set in admin #}</span>
+<span class="t-kw">{% if</span> <span class="t-out">@ga4_id</span> <span class="t-kw">%}</span>
+<span class="t-tag">&lt;script</span> <span class="t-attr">async</span> <span class="t-attr">src</span>=<span class="t-string">"https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"</span><span class="t-tag">&gt;&lt;/script&gt;</span>
+<span class="t-tag">&lt;script&gt;</span>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '<span class="t-out">{{ @ga4_id }}</span>');
+<span class="t-tag">&lt;/script&gt;</span>
+<span class="t-kw">{% endif %}</span></code></pre>
+
+    <h3>Footer with contact info</h3>
+    <pre><code><span class="t-tag">&lt;footer&gt;</span>
+  <span class="t-out">{{ @footer_text | raw }}</span>
+
+  <span class="t-tag">&lt;address&gt;</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@contact_email</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"mailto:{{ @contact_email }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ @contact_email }}</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@phone</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"tel:{{ @phone }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ @phone }}</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@address</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;span&gt;</span><span class="t-out">{{ @address | textarea }}</span><span class="t-tag">&lt;/span&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+  <span class="t-tag">&lt;/address&gt;</span>
+<span class="t-tag">&lt;/footer&gt;</span></code></pre>
+
+    <h3>Promotional banner (optional global)</h3>
+    <pre><code><span class="t-comment">{# Only show if the admin has filled in the promo_banner field #}</span>
+<span class="t-kw">{% if</span> <span class="t-out">@promo_banner</span> <span class="t-kw">%}</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"promo-bar"</span><span class="t-tag">&gt;</span>
+    <span class="t-out">{{ @promo_banner }}</span>
+    <span class="t-kw">{% if</span> <span class="t-out">@promo_url</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @promo_url | link }}"</span><span class="t-tag">&gt;</span>Learn more &rarr;<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-kw">{% endif %}</span></code></pre>
+
+    <h2>Common global field names by category</h2>
+
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Field names</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Identity</td>
+          <td><code>site_name</code>, <code>site_tagline</code>, <code>logo</code>, <code>favicon</code>, <code>og_image</code></td>
+        </tr>
+        <tr>
+          <td>Author</td>
+          <td><code>author_name</code>, <code>profile_photo</code>, <code>bio_short</code>, <code>bio_full</code></td>
+        </tr>
+        <tr>
+          <td>Contact</td>
+          <td><code>contact_email</code>, <code>phone</code>, <code>address</code>, <code>whatsapp_url</code></td>
+        </tr>
+        <tr>
+          <td>Social</td>
+          <td><code>twitter_url</code>, <code>github_url</code>, <code>linkedin_url</code>, <code>instagram_url</code>, <code>facebook_url</code>, <code>youtube_url</code></td>
+        </tr>
+        <tr>
+          <td>Analytics</td>
+          <td><code>ga4_id</code>, <code>gtm_id</code>, <code>fb_pixel_id</code></td>
+        </tr>
+        <tr>
+          <td>Footer</td>
+          <td><code>footer_text</code>, <code>copyright_text</code></td>
+        </tr>
+        <tr>
+          <td>Promotional</td>
+          <td><code>promo_banner</code>, <code>promo_url</code>, <code>cta_text</code>, <code>cta_url</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Globals vs. page fields</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Page fields</th>
+          <th>Global fields</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Template syntax</strong></td><td><code>{{ field_name }}</code></td><td><code>{{ @field_name }}</code></td></tr>
+        <tr><td><strong>Scope</strong></td><td>One specific page template</td><td>All pages, all templates, all partials</td></tr>
+        <tr><td><strong>Edit location</strong></td><td>Admin &rarr; Pages &rarr; edit page</td><td>Admin &rarr; Globals</td></tr>
+        <tr><td><strong>Auto-scaffolded from</strong></td><td>That page's .html template</td><td>Any template using <code>@</code></td></tr>
+        <tr><td><strong>Best for</strong></td><td>Page-specific content (hero, CTA text, body copy)</td><td>Site-wide settings (brand, contact, analytics)</td></tr>
+        <tr><td><strong>Value scope</strong></td><td>One value per page</td><td>One value across the whole site</td></tr>
+        <tr><td><strong>Cache clearing</strong></td><td>Clears cache for that page only</td><td>Clears cache for all pages</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Globals in conditionals</h2>
+    <p>Use <code>{% if @field_name %}</code> to render a block only when a global has content. This is the standard pattern for optional fields — analytics IDs, social links, and promotional banners that may not always be active:</p>
+
+    <pre><code><span class="t-comment">{# Optional social icons — only show links that have been filled in #}</span>
+<span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"social"</span><span class="t-tag">&gt;</span>
+  <span class="t-kw">{% if</span> <span class="t-out">@instagram_url</span> <span class="t-kw">%}</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @instagram_url | link }}"</span><span class="t-tag">&gt;</span>Instagram<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+  <span class="t-kw">{% if</span> <span class="t-out">@twitter_url</span> <span class="t-kw">%}</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @twitter_url | link }}"</span><span class="t-tag">&gt;</span>Twitter<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+  <span class="t-kw">{% if</span> <span class="t-out">@youtube_url</span> <span class="t-kw">%}</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @youtube_url | link }}"</span><span class="t-tag">&gt;</span>YouTube<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+<span class="t-tag">&lt;/div&gt;</span></code></pre>
+
+    <h2>Storage and caching</h2>
+    <p>Global field values are stored in the <code>settings</code> table in the SQLite database as key-value pairs. The key is the field name (e.g., <code>site_name</code>) and the value is the content string (or a JSON string for richtext and image fields).</p>
+    <p>When a global field is saved in Admin &rarr; Globals, the entire HTML page cache is invalidated so all pages are regenerated on next request with the updated values. This ensures that globals used in partials (like the site name in the page title) are consistent across the site immediately after saving.</p>
+
+    <h2>Migrating a field from page-scoped to global</h2>
+    <p>If you initially put a field in one page template (<code>{{ author_name }}</code>) and later decide it should be available everywhere, rename it with the <code>@</code> prefix (<code>{{ @author_name }}</code>). The new global field scaffolds automatically. Content from the old page-scoped field does not carry over — copy the value manually to Admin &rarr; Globals after making the change.</p>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — Removing a tag from a template does not delete the stored value. The field simply stops appearing in the admin form. If you later re-add the tag, the previously stored value is still there.
+    </div>
+
+    <h2>Related docs</h2>
+    <ul>
+      <li><a href="template-syntax/global-fields.html">Template Syntax &rarr; Global Fields</a> — complete syntax reference, including PHP functions <code>cms_global()</code> and <code>cms_global_get()</code></li>
+      <li><a href="content/pages.html">Pages</a> — page-scoped fields and auto-scaffolding</li>
+      <li><a href="template-syntax/conditionals.html">Conditionals</a> — <code>{% if @global_name %}</code> syntax</li>
+      <li><a href="themes/partials.html">Partials</a> — placing globals in shared <code>head.html</code>, <code>nav.html</code>, <code>footer.html</code></li>
+      <li><a href="reference/database-schema.html">Database Schema</a> — <code>settings</code> table structure</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

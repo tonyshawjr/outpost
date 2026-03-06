@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collections — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link active">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Collections</h1>
+    <p class="lead">Custom content types for structured, repeating content — blog posts, portfolio projects, team members, products, and anything else that follows a consistent schema.</p>
+  </div>
+  <div class="content">
+
+    <h2>What is a collection?</h2>
+    <p>A collection is a custom content type made up of multiple items that share the same structure (schema). Where a <a href="content/pages.html">page</a> is a single unique piece of content, a collection item is one entry in a list of many.</p>
+
+    <p>Common examples:</p>
+    <table>
+      <thead>
+        <tr><th>Collection name</th><th>Slug</th><th>URL pattern</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Blog Posts</td><td><code>post</code></td><td><code>/post/{slug}</code></td></tr>
+        <tr><td>Portfolio Projects</td><td><code>project</code></td><td><code>/portfolio/{slug}</code></td></tr>
+        <tr><td>Team Members</td><td><code>member</code></td><td><code>/team/{slug}</code></td></tr>
+        <tr><td>Products</td><td><code>product</code></td><td><code>/product/{slug}</code></td></tr>
+        <tr><td>Case Studies</td><td><code>case-study</code></td><td><code>/case-studies/{slug}</code></td></tr>
+        <tr><td>Events</td><td><code>event</code></td><td><code>/events/{slug}</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Creating a collection</h2>
+    <p>Go to <strong>Admin &rarr; Collections &rarr; New Collection</strong>. Fill in the following required fields:</p>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Name</strong></td><td>Display name used throughout the admin (e.g., "Blog Posts").</td></tr>
+        <tr><td><strong>Slug</strong></td><td>URL-safe identifier used in template tags and API calls (e.g., <code>post</code>). <strong>Immutable after creation.</strong></td></tr>
+        <tr><td><strong>Singular Name</strong></td><td>Used for admin UI buttons and labels (e.g., "Post" for "New Post").</td></tr>
+        <tr><td><strong>URL Pattern</strong></td><td>Defines how item URLs are constructed and how single-item routes are matched (e.g., <code>/post/{slug}</code>).</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — The slug cannot be changed after creation because it is referenced by template tags (<code>collection.post</code>), stored data, folder associations, and API routes. Choose it carefully.</div>
+
+    <h2>URL patterns</h2>
+    <p>The URL pattern controls two things: the public URL of each item, and which template file handles the single-item view.</p>
+
+    <pre><code>/post/{slug}          → /post/hello-world
+/articles/{slug}      → /articles/my-article
+/portfolio/{slug}     → /portfolio/project-name
+/{slug}               → /hello-world  (root level)
+/news/{slug}          → /news/breaking-story</code></pre>
+
+    <p>Only the <code>{slug}</code> placeholder is supported. The slug is derived from the item's title when created and can be edited in the item editor.</p>
+
+    <h3>Template file naming from URL pattern</h3>
+    <p>The CMS derives the single-item template filename from the first path segment of the URL pattern:</p>
+
+    <table>
+      <thead>
+        <tr><th>URL pattern</th><th>Template file</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/post/{slug}</code></td><td><code>post.html</code></td></tr>
+        <tr><td><code>/articles/{slug}</code></td><td><code>articles.html</code></td></tr>
+        <tr><td><code>/portfolio/{slug}</code></td><td><code>portfolio.html</code> (not <code>project.html</code>)</td></tr>
+        <tr><td><code>/{slug}</code></td><td><code>post.html</code> (fallback)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> — The template file name comes from the URL pattern, not the collection slug. A collection with slug <code>project</code> and pattern <code>/portfolio/{slug}</code> needs a <code>portfolio.html</code> template, not <code>project.html</code>.</div>
+
+    <h2>Schema — field definitions</h2>
+    <p>The schema defines the fields that editors fill out when creating or editing items. Open a collection in admin and go to the Schema tab to add and reorder fields.</p>
+
+    <h3>Available field types</h3>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Use case</th><th>Template filter</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>text</code></td><td>Single-line text — title, headline, name, label</td><td>(none)</td></tr>
+        <tr><td><code>textarea</code></td><td>Multi-line plain text — address, short bio, notes</td><td><code>| textarea</code></td></tr>
+        <tr><td><code>richtext</code></td><td>WYSIWYG HTML body content (TipTap editor)</td><td><code>| raw</code></td></tr>
+        <tr><td><code>image</code></td><td>Single image via media picker</td><td><code>| image</code></td></tr>
+        <tr><td><code>link</code></td><td>URL input</td><td><code>| link</code></td></tr>
+        <tr><td><code>select</code></td><td>Dropdown with predefined choices</td><td>(none)</td></tr>
+        <tr><td><code>toggle</code></td><td>On/off boolean</td><td>(conditional)</td></tr>
+        <tr><td><code>color</code></td><td>Color picker — outputs hex value</td><td>(none)</td></tr>
+        <tr><td><code>number</code></td><td>Numeric input</td><td>(none)</td></tr>
+        <tr><td><code>date</code></td><td>Date picker</td><td>(none)</td></tr>
+        <tr><td><code>repeater</code></td><td>Ordered list of rows with typed sub-fields</td><td><code>{% for row in item.field %}</code></td></tr>
+        <tr><td><code>flexible content</code></td><td>Ordered blocks with named layouts, each with its own sub-fields</td><td><code>{% for block in flexible.field %}</code></td></tr>
+        <tr><td><code>relationship</code></td><td>References to items from another collection</td><td><code>{% for item in relationship.field %}</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Per-field options</h3>
+    <p>Every field in the schema has these configuration options:</p>
+    <ul>
+      <li><strong>Label</strong> — display label shown in the admin editor</li>
+      <li><strong>Machine name</strong> — the key used in template tags and the data JSON (e.g., <code>featured_image</code>)</li>
+      <li><strong>Placeholder</strong> — hint text shown in empty fields</li>
+      <li><strong>Description</strong> — helper text shown below the field in admin</li>
+      <li><strong>Default value</strong> — pre-filled value for new items</li>
+      <li><strong>Required</strong> — whether the field must be filled before saving</li>
+      <li><strong>Conditional logic</strong> — optionally show or hide this field based on another field's value. See <a href="features/conditional-logic.html">Conditional Logic</a>.</li>
+    </ul>
+
+    <p>For <code>select</code> fields, you define the list of choices in the field settings. Each choice has a label and a value.</p>
+    <p>For <code>relationship</code> fields, you configure the target collection, whether multiple or single items can be selected, and an optional max-items cap. See <a href="loops/relationship-loops.html">Relationship Loops</a>.</p>
+    <p>For <code>flexible content</code> fields, you define named layouts, each with its own set of typed sub-fields. See <a href="loops/flexible-content-loops.html">Flexible Content Loops</a>.</p>
+
+    <h2>Item statuses</h2>
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>draft</code></td><td>Not publicly visible. Not returned in <code>{% for %}</code> loops on the front end.</td></tr>
+        <tr><td><code>published</code></td><td>Publicly visible and returned in loops. Requires a <code>published_at</code> timestamp (set automatically when first published).</td></tr>
+        <tr><td><code>scheduled</code></td><td>Set a future publish date. The item auto-publishes when the scheduled time arrives. Not visible until then.</td></tr>
+      </tbody>
+    </table>
+
+    <p>See <a href="features/scheduling.html">Scheduling</a> for details on the scheduled publish workflow.</p>
+
+    <h2>Item data structure</h2>
+    <p>All custom field values are stored as a JSON object in the <code>collection_items.data</code> column. These standard fields are always present on every item:</p>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>Item title — also shown in the admin list view</td></tr>
+        <tr><td><code>slug</code></td><td>URL slug — unique within the collection (e.g., <code>hello-world</code>)</td></tr>
+        <tr><td><code>body</code></td><td>Richtext body — output from the block editor</td></tr>
+        <tr><td><code>excerpt</code></td><td>Short plain-text description — shown in list views and used for meta description</td></tr>
+        <tr><td><code>featured_image</code></td><td>Image URL for the item's thumbnail/hero image</td></tr>
+        <tr><td><em>custom fields</em></td><td>Any fields defined in the schema, stored alongside the standard fields</td></tr>
+      </tbody>
+    </table>
+
+    <p>Additionally, the <code>collection_items</code> table row has:</p>
+    <ul>
+      <li><code>status</code> — <code>draft</code>, <code>published</code>, or <code>scheduled</code></li>
+      <li><code>published_at</code> — timestamp of when the item was or will be published</li>
+      <li><code>url</code> — the built public URL (derived from URL pattern + slug)</li>
+    </ul>
+
+    <h2>The collection item editor</h2>
+    <p>Open any item in Admin &rarr; Collections to edit it. The editor has three areas:</p>
+
+    <h3>Block editor (main content)</h3>
+    <p>The primary body editor uses a block-based format. Available block types:</p>
+    <ul>
+      <li><strong>Text block</strong> — rich text via TipTap (bold, italic, links, headings, lists, etc.)</li>
+      <li><strong>Image block</strong> — single image with optional caption</li>
+      <li><strong>Markdown block</strong> — raw Markdown converted to HTML on render</li>
+      <li><strong>HTML block</strong> — raw HTML for custom embeds and components</li>
+      <li><strong>Divider block</strong> — horizontal rule separator</li>
+    </ul>
+    <p>Blocks can be reordered by drag-and-drop (SortableJS).</p>
+
+    <h3>Metadata section</h3>
+    <p>Below the block editor is the metadata section, which shows all custom fields defined in the collection schema. Fill these in per item.</p>
+
+    <h3>Top bar</h3>
+    <p>The toolbar includes a <strong>History</strong> button that opens a revision drawer — browse and restore previous versions of the item. See <a href="features/revisions.html">Revision History</a>.</p>
+
+    <h3>Right sidebar</h3>
+    <p>The sidebar contains:</p>
+    <ul>
+      <li><strong>Status</strong> — toggle between draft, published, and scheduled</li>
+      <li><strong>Slug</strong> — the URL segment for this item (auto-generated from title, editable)</li>
+      <li><strong>Featured image</strong> — image picker for the item's thumbnail</li>
+      <li><strong>Excerpt</strong> — short description for list views</li>
+      <li><strong>Folders</strong> — assign folder labels (if any folders are associated with this collection)</li>
+      <li><strong>SEO</strong> — per-item meta title and meta description</li>
+    </ul>
+
+    <h2>Accessing collections in templates</h2>
+    <p>Use <code>{% for %}</code> loops to output collection items in list templates:</p>
+
+    <pre><code>&lt;!-- Basic loop --&gt;
+{% for post in collection.post %}
+  &lt;article&gt;
+    &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+    &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+  &lt;/article&gt;
+{% endfor %}
+
+&lt;!-- With featured image --&gt;
+{% for post in collection.post %}
+  &lt;div class="card"&gt;
+    &lt;img src="{{ post.featured_image | image }}" alt="{{ post.title }}"&gt;
+    &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+    &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+  &lt;/div&gt;
+{% endfor %}
+
+&lt;!-- With custom schema fields --&gt;
+{% for member in collection.member %}
+  &lt;div class="team-card"&gt;
+    &lt;img src="{{ member.photo | image }}" alt="{{ member.name }}"&gt;
+    &lt;h3&gt;{{ member.name }}&lt;/h3&gt;
+    &lt;p&gt;{{ member.role }}&lt;/p&gt;
+  &lt;/div&gt;
+{% endfor %}</code></pre>
+
+    <h3>Single-item template</h3>
+    <p>Use <code>{% single %}</code> in the single-item template to fetch the item matching the current URL slug:</p>
+
+    <pre><code>&lt;!-- post.html --&gt;
+{% single post from collection.post %}
+  &lt;article&gt;
+    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
+    &lt;img src="{{ post.featured_image | image }}" alt="{{ post.title }}"&gt;
+    &lt;div class="body"&gt;{{ post.body | raw }}&lt;/div&gt;
+  &lt;/article&gt;
+{% else %}
+  &lt;p&gt;Post not found.&lt;/p&gt;
+{% endsingle %}</code></pre>
+
+    <p>See <a href="loops/collection-loops.html">Collection Loops</a> for pagination, ordering, limiting, and folder filtering options. See <a href="loops/single-items.html">Single Items</a> for the full <code>{% single %}</code> reference.</p>
+
+    <h2>Practical examples</h2>
+
+    <h3>Blog</h3>
+    <pre><code>Collection: Blog Posts
+Slug: post
+Singular: Post
+URL Pattern: /post/{slug}
+Schema: title, excerpt, featured_image, body (richtext), author (text)
+Template files: blog.html (list), post.html (single)</code></pre>
+
+    <h3>Portfolio</h3>
+    <pre><code>Collection: Projects
+Slug: project
+Singular: Project
+URL Pattern: /portfolio/{slug}
+Schema: title, excerpt, featured_image, body (richtext), client (text),
+        year (number), tags (text), live_url (link)
+Template files: portfolio.html (list), portfolio.html also handles /portfolio/{slug}</code></pre>
+
+    <h3>Team members (no single-item page)</h3>
+    <pre><code>Collection: Team
+Slug: member
+Singular: Member
+URL Pattern: /team/{slug}
+Schema: name (text), role (text), photo (image), bio (textarea), linkedin (link)
+Template: displayed only via loop on team.html — no single-item template needed</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — Not every collection needs a single-item template. If visitors never need to visit an individual item's page (e.g., team members listed on a single page), you can skip creating the single-item template entirely.</div>
+
+    <h2>Related pages</h2>
+    <ul>
+      <li><a href="loops/collection-loops.html">Collection Loops</a> — pagination, ordering, limiting, filtering</li>
+      <li><a href="loops/single-items.html">Single Items</a> — <code>{% single %}</code> tag reference</li>
+      <li><a href="content/folders.html">Folders</a> — categorizing collection items</li>
+      <li><a href="features/scheduling.html">Scheduling</a> — scheduled publish dates</li>
+      <li><a href="features/wordpress-import.html">WordPress Import</a> — import posts into a collection</li>
+      <li><a href="loops/repeater-loops.html">Repeater Loops</a> — structured multi-row data within items</li>
+      <li><a href="loops/flexible-content-loops.html">Flexible Content Loops</a> — modular page building with named layouts</li>
+      <li><a href="loops/relationship-loops.html">Relationship Loops</a> — linking items across collections</li>
+      <li><a href="features/conditional-logic.html">Conditional Logic</a> — show/hide fields based on other field values</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

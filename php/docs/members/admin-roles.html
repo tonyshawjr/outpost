@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Roles — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link active">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Admin Roles</h1>
+    <p class="lead">Admin panel users are assigned one of four roles that control what they can see and do. Roles are completely separate from front-end member roles — an admin user is not automatically a member and vice versa.</p>
+  </div>
+  <div class="content">
+
+    <h2>Role overview</h2>
+    <p>Each admin user account has exactly one role. The role determines which sections of the admin are visible and which API endpoints the user can call.</p>
+
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>super_admin</code></td>
+          <td>Unrestricted access to everything. The only role that can manage other <code>super_admin</code> accounts, change site-level settings, and perform destructive operations like database resets. Typically reserved for the site owner or lead developer.</td>
+        </tr>
+        <tr>
+          <td><code>admin</code></td>
+          <td>Full access to all content, themes, code editor, user management, and member management. Cannot change site settings or perform super-level operations. Can create users up to and including the <code>admin</code> role.</td>
+        </tr>
+        <tr>
+          <td><code>developer</code></td>
+          <td>Full content management access plus the code editor and theme files. Cannot manage other users, members, or change site settings. Suited for developers who need to modify templates and styles but should not manage accounts.</td>
+        </tr>
+        <tr>
+          <td><code>editor</code></td>
+          <td>Content management only — pages, collections and items, media, globals, navigation, folders, and forms. No access to themes, code, analytics, settings, or user management. Suited for content writers and marketing teams.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Capabilities by role</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>super_admin</th>
+          <th>admin</th>
+          <th>developer</th>
+          <th>editor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dashboard &amp; analytics</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Pages</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Collections &amp; items</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Media</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Global fields</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Navigation menus</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Folders &amp; labels</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Forms &amp; submissions</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <td>Themes (activate, duplicate)</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Code editor (theme files)</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Analytics dashboard</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Manage admin users</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Manage front-end members</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Site settings</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+        </tr>
+        <tr>
+          <td>Manage <code>super_admin</code> accounts</td>
+          <td>&#10003;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+          <td>&#10007;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — The <code>editor</code> role does not have access to the Analytics dashboard by default. This is intentional — analytics data can include visitor information that editors may not need. Grant <code>developer</code> or higher if analytics access is required.
+    </div>
+
+    <h2>Creating and assigning roles</h2>
+    <ol class="steps">
+      <li>Go to <strong>Admin &rarr; Users &rarr; New User</strong> (requires <code>admin</code> or <code>super_admin</code>).</li>
+      <li>Fill in the name, email, and initial password.</li>
+      <li>Select the role from the dropdown.</li>
+      <li>Save. The new user can log in immediately.</li>
+    </ol>
+    <p>To change an existing user's role, go to <strong>Admin &rarr; Users &rarr; [User] &rarr; Edit</strong> and change the Role field.</p>
+
+    <h3>Role assignment restrictions</h3>
+    <p>You cannot assign a role higher than your own. The table below shows what roles each admin role can create:</p>
+
+    <table>
+      <thead>
+        <tr><th>Your role</th><th>Can create users with role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>super_admin</code></td><td><code>super_admin</code>, <code>admin</code>, <code>developer</code>, <code>editor</code></td></tr>
+        <tr><td><code>admin</code></td><td><code>admin</code>, <code>developer</code>, <code>editor</code></td></tr>
+        <tr><td><code>developer</code></td><td>Cannot create or manage users</td></tr>
+        <tr><td><code>editor</code></td><td>Cannot create or manage users</td></tr>
+      </tbody>
+    </table>
+
+    <h2>The first super_admin</h2>
+    <p>The first account created during Outpost setup is always assigned the <code>super_admin</code> role automatically. There is no way to self-assign <code>super_admin</code> through the admin UI — it can only be granted by an existing <code>super_admin</code>.</p>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — If you ever lose access to the only <code>super_admin</code> account and cannot log in, you can recover access by updating the account directly in the SQLite database. Open <code>data/cms.db</code> with any SQLite tool and run: <code>UPDATE users SET role = 'super_admin', password = [new bcrypt hash] WHERE email = 'your@email.com'</code>.
+    </div>
+
+    <h2>Developer role security note</h2>
+
+    <div class="callout callout-warn">
+      <strong>Warning</strong> — The <code>developer</code> role includes full access to the code editor, which allows editing PHP template files on the server. A user with this role can execute arbitrary PHP code. Only grant this role to people you trust with equivalent access to the server filesystem.
+    </div>
+
+    <h2>Admin roles vs. member roles</h2>
+    <p>Admin roles and front-end member roles are completely separate systems:</p>
+
+    <table>
+      <thead>
+        <tr><th></th><th>Admin roles</th><th>Member roles</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Who it applies to</strong></td><td>Admin panel users</td><td>Front-end site visitors who have registered</td></tr>
+        <tr><td><strong>Roles</strong></td><td><code>super_admin</code>, <code>admin</code>, <code>developer</code>, <code>editor</code></td><td><code>free_member</code>, <code>paid_member</code></td></tr>
+        <tr><td><strong>Login URL</strong></td><td><code>/outpost/admin/</code></td><td><code>/outpost/login</code></td></tr>
+        <tr><td><strong>Session namespace</strong></td><td><code>outpost_session</code></td><td><code>outpost_member</code></td></tr>
+        <tr><td><strong>Managed in</strong></td><td>Admin &rarr; Users</td><td>Admin &rarr; Members</td></tr>
+        <tr><td><strong>Controls access to</strong></td><td>Admin panel features and capabilities</td><td>Front-end pages by visibility setting</td></tr>
+      </tbody>
+    </table>
+
+    <p>An admin user logging into the admin panel does not automatically have a front-end member session. Similarly, a front-end member cannot access the admin panel regardless of their member role.</p>
+
+    <h2>Session security</h2>
+
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Session duration</strong></td>
+          <td>24 hours from login. Sessions are not extended on activity — the admin must log in again after expiry.</td>
+        </tr>
+        <tr>
+          <td><strong>Server-side sessions</strong></td>
+          <td>Sessions are stored server-side. Deleting or suspending an admin user account invalidates their session on the next request.</td>
+        </tr>
+        <tr>
+          <td><strong>CSRF protection</strong></td>
+          <td>All mutating API requests (POST, PUT, DELETE) require a valid CSRF token in the <code>X-CSRF-Token</code> header. The token is issued at login and retrieved via <code>GET auth/me</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Session isolation</strong></td>
+          <td>Admin sessions use the <code>outpost_session</code> namespace, separate from front-end member sessions (<code>outpost_member</code>).</td>
+        </tr>
+        <tr>
+          <td><strong>Password hashing</strong></td>
+          <td>bcrypt at cost factor 12 via <code>password_hash()</code>. Passwords are never stored in plain text.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Recommended role setups by use case</h2>
+
+    <table>
+      <thead>
+        <tr><th>Scenario</th><th>Recommended setup</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Solo freelancer or developer</td>
+          <td><code>super_admin</code> for yourself. No other users needed.</td>
+        </tr>
+        <tr>
+          <td>Agency delivering a site to a client</td>
+          <td>Keep yourself as <code>super_admin</code>. Give the client an <code>editor</code> account so they can manage content without accessing themes, code, or settings.</td>
+        </tr>
+        <tr>
+          <td>Agency + client needs to update settings</td>
+          <td>Give the client's technical lead an <code>admin</code> account. Give content writers <code>editor</code> accounts.</td>
+        </tr>
+        <tr>
+          <td>Development team with multiple devs</td>
+          <td>Lead developer as <code>admin</code> or <code>super_admin</code>. Other developers as <code>developer</code> (code access, no settings). Content team as <code>editor</code>.</td>
+        </tr>
+        <tr>
+          <td>Large content team</td>
+          <td>One <code>admin</code> account to manage users and settings. Multiple <code>editor</code> accounts for writers. One <code>developer</code> account for the theme developer.</td>
+        </tr>
+        <tr>
+          <td>Client self-managing content, no dev access</td>
+          <td>Give the client an <code>editor</code> account. Theme changes only through you with <code>super_admin</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Activity log</h2>
+    <p>All admin actions are logged with the acting user's ID, the action type, the affected resource, and a timestamp. The activity log is viewable from <strong>Admin &rarr; Activity</strong>. Logged actions include:</p>
+    <ul>
+      <li>Content changes — page publishes, collection item saves, media uploads and deletions</li>
+      <li>Settings changes — any change to site settings or SMTP configuration</li>
+      <li>User management — user creation, role changes, password resets, deletions</li>
+      <li>Theme actions — theme activation, duplication, deletion</li>
+      <li>Login and logout events for all admin users</li>
+    </ul>
+    <p>The activity log is read-only. Entries cannot be deleted from the admin — they persist indefinitely in the database.</p>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong> — The activity log is particularly useful when you have multiple editors working on a site and need to track who changed what. It is accessible to <code>admin</code> and <code>super_admin</code> roles.
+    </div>
+
+    <h2>Related docs</h2>
+    <ul>
+      <li><a href="members/">Members Overview</a> — front-end member roles (<code>free_member</code>, <code>paid_member</code>)</li>
+      <li><a href="members/member-pages.html">Member Pages</a> — built-in login and registration pages</li>
+      <li><a href="members/protecting-pages.html">Protecting Pages</a> — restricting page visibility by member role</li>
+      <li><a href="members/password-reset.html">Password Reset</a> — how password reset works for admin users and members</li>
+      <li><a href="api/">API Overview &amp; Auth</a> — session authentication and CSRF token usage in the API</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

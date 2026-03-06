@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Headless / API — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link active">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Headless / API</h1>
+    <p class="lead">Use Outpost as a content backend. Manage everything in the admin, then pull your content via the public REST API into any frontend — React, Next.js, Vue, Astro, a mobile app, or a static site generator.</p>
+    <div class="hero-badges">
+      <span class="badge"><span class="badge-dot"></span>REST API</span>
+      <span class="badge"><span class="badge-dot"></span>No Auth Required</span>
+      <span class="badge"><span class="badge-dot"></span>CORS Open</span>
+      <span class="badge"><span class="badge-dot"></span>JSON</span>
+    </div>
+  </div>
+  <div class="content">
+
+    <h2>1. The public Content API</h2>
+    <p>Outpost includes a read-only public Content API that requires no authentication. It returns only published content and is open to cross-origin requests — no CORS configuration needed.</p>
+
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Base URL</td><td><code>https://yoursite.com/outpost/content/</code></td></tr>
+        <tr><td>Authentication</td><td>None — fully public</td></tr>
+        <tr><td>CORS</td><td>Open (<code>Access-Control-Allow-Origin: *</code>)</td></tr>
+        <tr><td>Content filter</td><td>Published items only — drafts are never exposed</td></tr>
+        <tr><td>Response format</td><td>JSON</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      The public Content API is separate from the admin API at <code>/outpost/api.php</code>. The admin API requires a session cookie and CSRF token. Use the Content API for all frontend reads.
+    </div>
+
+    <h2>2. Key endpoints</h2>
+
+    <table>
+      <thead>
+        <tr><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET /outpost/content/items?collection=post</code></td>
+          <td>List items from a collection</td>
+        </tr>
+        <tr>
+          <td><code>GET /outpost/content/item?collection=post&amp;slug=my-slug</code></td>
+          <td>Single item by slug</td>
+        </tr>
+        <tr>
+          <td><code>GET /outpost/content/globals</code></td>
+          <td>All global fields as a flat object</td>
+        </tr>
+        <tr>
+          <td><code>GET /outpost/content/folders?collection=post</code></td>
+          <td>All folder labels attached to a collection</td>
+        </tr>
+        <tr>
+          <td><code>GET /outpost/content/pages</code></td>
+          <td>All public pages</td>
+        </tr>
+        <tr>
+          <td><code>GET /outpost/content/menus?slug=main</code></td>
+          <td>A navigation menu with its items and children</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Query parameters</h2>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>string</td><td>Collection slug (required for item endpoints)</td></tr>
+        <tr><td><code>slug</code></td><td>string</td><td>Item slug (for single item fetch)</td></tr>
+        <tr><td><code>limit</code></td><td>integer</td><td>Max items to return (default: 20, max: 100)</td></tr>
+        <tr><td><code>offset</code></td><td>integer</td><td>Skip N items — use for manual pagination</td></tr>
+        <tr><td><code>orderby</code></td><td>string</td><td>Field to sort by, e.g. <code>published_at</code>, <code>title</code></td></tr>
+        <tr><td><code>order</code></td><td><code>asc</code> / <code>desc</code></td><td>Sort direction (default: <code>desc</code>)</td></tr>
+        <tr><td><code>filteredby</code></td><td>string</td><td>Folder slug to filter by, e.g. <code>category</code></td></tr>
+        <tr><td><code>label</code></td><td>string</td><td>Folder label slug to match (used with <code>filteredby</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Response shape</h2>
+    <p>All list endpoints return the same envelope:</p>
+
+    <pre><code>{
+  "ok": true,
+  "data": {
+    "items": [
+      {
+        "id": 42,
+        "slug": "my-first-post",
+        "title": "My First Post",
+        "status": "published",
+        "published_at": "2025-01-15 09:00:00",
+        "url": "/post/my-first-post",
+        "data": {
+          "excerpt": "A short summary of the post.",
+          "featured_image": "/outpost/uploads/2025/01/hero.jpg",
+          "body": "&lt;p&gt;Full richtext HTML...&lt;/p&gt;",
+          "author": "Jane Smith"
+        },
+        "labels": {
+          "category": [
+            { "id": 3, "name": "Engineering", "slug": "engineering" }
+          ],
+          "tag": [
+            { "id": 7, "name": "PHP", "slug": "php" }
+          ]
+        }
+      }
+    ],
+    "total": 48,
+    "limit": 10,
+    "offset": 0
+  }
+}</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      All custom field values are nested under <code>data</code>. The top-level properties (<code>id</code>, <code>slug</code>, <code>title</code>, <code>status</code>, <code>published_at</code>, <code>url</code>) are always present.
+    </div>
+
+    <h2>5. Basic JavaScript fetch</h2>
+    <p>Fetch and render a list of posts with plain JavaScript:</p>
+
+    <pre><code>const BASE = 'https://yoursite.com/outpost/content';
+
+async function getPosts(limit = 10) {
+  const res = await fetch(`${BASE}/items?collection=post&limit=${limit}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const { data } = await res.json();
+  return data.items;
+}
+
+async function renderPosts() {
+  const posts = await getPosts(6);
+  const container = document.querySelector('#posts');
+
+  container.innerHTML = posts.map(post => `
+    &lt;article&gt;
+      ${post.data.featured_image
+        ? `&lt;img src="${post.data.featured_image}" alt="${post.title}"&gt;`
+        : ''
+      }
+      &lt;h2&gt;&lt;a href="${post.url}"&gt;${post.title}&lt;/a&gt;&lt;/h2&gt;
+      &lt;p&gt;${post.data.excerpt || ''}&lt;/p&gt;
+      &lt;time&gt;${post.published_at}&lt;/time&gt;
+    &lt;/article&gt;
+  `).join('');
+}
+
+renderPosts();</code></pre>
+
+    <h2>6. Next.js — static generation</h2>
+    <p>Use <code>getStaticProps</code> (Pages Router) or <code>fetch</code> in a Server Component (App Router) to build statically at deploy time.</p>
+
+    <pre><code><span class="t-comment">// pages/blog/index.js — Next.js Pages Router</span>
+const BASE = process.env.OUTPOST_URL + '/outpost/content';
+
+export async function getStaticProps() {
+  const res = await fetch(`${BASE}/items?collection=post&limit=20`);
+  const { data } = await res.json();
+
+  return {
+    props: { posts: data.items },
+    revalidate: 60, <span class="t-comment">// ISR: revalidate every 60 seconds</span>
+  };
+}
+
+export default function BlogIndex({ posts }) {
+  return (
+    &lt;main&gt;
+      &lt;h1&gt;Blog&lt;/h1&gt;
+      {posts.map(post =&gt; (
+        &lt;article key={post.slug}&gt;
+          &lt;h2&gt;&lt;a href={post.url}&gt;{post.title}&lt;/a&gt;&lt;/h2&gt;
+          &lt;p&gt;{post.data.excerpt}&lt;/p&gt;
+        &lt;/article&gt;
+      ))}
+    &lt;/main&gt;
+  );
+}</code></pre>
+
+    <pre><code><span class="t-comment">// pages/blog/[slug].js — dynamic single post page</span>
+export async function getStaticPaths() {
+  const res = await fetch(`${BASE}/items?collection=post&limit=100`);
+  const { data } = await res.json();
+
+  return {
+    paths: data.items.map(p =&gt; ({ params: { slug: p.slug } })),
+    fallback: 'blocking',
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const res = await fetch(
+    `${BASE}/item?collection=post&slug=${params.slug}`
+  );
+  const { data } = await res.json();
+
+  if (!data.item) return { notFound: true };
+
+  return {
+    props: { post: data.item },
+    revalidate: 60,
+  };
+}
+
+export default function Post({ post }) {
+  return (
+    &lt;article&gt;
+      &lt;h1&gt;{post.title}&lt;/h1&gt;
+      &lt;div dangerouslySetInnerHTML={{ __html: post.data.body }} /&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+
+    <h2>7. Fetching global fields</h2>
+    <p>Global fields are useful for site-wide data like the site name, logo, and contact details. Fetch them once and pass them to a layout component.</p>
+
+    <pre><code>const globalsRes = await fetch(`${BASE}/globals`);
+const { data } = await globalsRes.json();
+
+// data.globals is a flat object:
+// {
+//   "site_name": "My Blog",
+//   "author_name": "Jane Smith",
+//   "profile_photo": "/outpost/uploads/photo.jpg",
+//   "twitter_url": "https://twitter.com/jane",
+//   ...
+// }
+
+console.log(data.globals.site_name);</code></pre>
+
+    <h2>8. Filtering by folder</h2>
+    <p>Use <code>filteredby</code> and <code>label</code> to fetch only items that belong to a specific folder label:</p>
+
+    <pre><code><span class="t-comment">// Posts in the "engineering" category</span>
+const res = await fetch(
+  `${BASE}/items?collection=post&filteredby=category&label=engineering&limit=10`
+);
+const { data } = await res.json();
+console.log(data.items);</code></pre>
+
+    <h2>9. When to use the Content API vs. the Admin API</h2>
+
+    <table>
+      <thead>
+        <tr><th>Situation</th><th>Use</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Reading published content in a frontend app</td>
+          <td>Content API — no auth, CORS open</td>
+        </tr>
+        <tr>
+          <td>Creating, updating, or deleting content programmatically</td>
+          <td>Admin API — requires session auth + CSRF token</td>
+        </tr>
+        <tr>
+          <td>Reading draft or unpublished content</td>
+          <td>Admin API</td>
+        </tr>
+        <tr>
+          <td>Server-side rendering at build time (Next.js, Astro)</td>
+          <td>Content API — fast, no credentials needed</td>
+        </tr>
+        <tr>
+          <td>Mobile app reading published articles</td>
+          <td>Content API</td>
+        </tr>
+        <tr>
+          <td>Syncing theme files from the Builder desktop app</td>
+          <td>Sync API</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>10. Using Outpost as a mobile app backend</h2>
+    <p>The Content API works for any HTTP client. In a React Native or Flutter app, point your fetch calls to your Outpost instance and render the content natively. Image URLs in the <code>data</code> object are absolute paths — prefix them with your Outpost base URL if needed.</p>
+
+    <pre><code><span class="t-comment">// React Native example</span>
+import React, { useEffect, useState } from 'react';
+import { FlatList, Text, Image, View } from 'react-native';
+
+const BASE = 'https://yoursite.com/outpost/content';
+
+export default function ArticleList() {
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    fetch(`${BASE}/items?collection=article&limit=20`)
+      .then(r =&gt; r.json())
+      .then(({ data }) =&gt; setArticles(data.items));
+  }, []);
+
+  return (
+    &lt;FlatList
+      data={articles}
+      keyExtractor={item =&gt; item.slug}
+      renderItem={({ item }) =&gt; (
+        &lt;View&gt;
+          &lt;Text&gt;{item.title}&lt;/Text&gt;
+          &lt;Text&gt;{item.data.excerpt}&lt;/Text&gt;
+        &lt;/View&gt;
+      )}
+    /&gt;
+  );
+}</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      Set <code>OUTPOST_URL</code> as an environment variable in your frontend project rather than hardcoding it. This makes it easy to point at a staging Outpost instance during development and production at deploy time.
+    </div>
+
+    <h2>11. Vue 3 / Nuxt pattern</h2>
+    <p>Fetching content in a Nuxt 3 server component or a Vue composable follows the same pattern as Next.js. Use <code>useFetch</code> in Nuxt for automatic SSR + caching:</p>
+
+    <pre><code><span class="t-comment">// composables/usePosts.js — Nuxt 3</span>
+export function usePosts(limit = 10) {
+  const config = useRuntimeConfig();
+  return useFetch(
+    `${config.public.outpostUrl}/outpost/content/items`,
+    {
+      query: { collection: 'post', limit },
+      transform: ({ data }) =&gt; data.items,
+    }
+  );
+}
+
+<span class="t-comment">// pages/blog.vue</span>
+&lt;script setup&gt;
+const { data: posts } = await usePosts(12);
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;article v-for="post in posts" :key="post.slug"&gt;
+    &lt;h2&gt;
+      &lt;a :href="post.url"&gt;{{ post.title }}&lt;/a&gt;
+    &lt;/h2&gt;
+    &lt;p&gt;{{ post.data.excerpt }}&lt;/p&gt;
+  &lt;/article&gt;
+&lt;/template&gt;</code></pre>
+
+    <h2>12. Astro static site generation</h2>
+    <p>Astro fetches at build time by default. Use <code>fetch</code> inside <code>---</code> frontmatter:</p>
+
+    <pre><code><span class="t-comment">---
+// src/pages/blog/index.astro</span>
+const BASE = import.meta.env.OUTPOST_URL + '/outpost/content';
+const res = await fetch(`${BASE}/items?collection=post&limit=50`);
+const { data } = await res.json();
+const posts = data.items;
+---
+
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;main&gt;
+      {posts.map(post =&gt; (
+        &lt;article&gt;
+          &lt;h2&gt;&lt;a href={post.url}&gt;{post.title}&lt;/a&gt;&lt;/h2&gt;
+          &lt;p&gt;{post.data.excerpt}&lt;/p&gt;
+        &lt;/article&gt;
+      ))}
+    &lt;/main&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      When using Astro with <code>output: 'static'</code>, all API calls happen at build time. Set up a webhook from your Outpost deploy pipeline (or a cron job) to trigger a rebuild whenever content changes.
+    </div>
+
+    <h2>13. Image URLs in API responses</h2>
+    <p>Image fields in the <code>data</code> object contain the path as stored — typically <code>/outpost/uploads/2025/01/image.jpg</code>. When using Outpost as a headless backend for a separate domain, prepend your Outpost base URL:</p>
+
+    <pre><code>const BASE_URL = 'https://cms.yoursite.com';
+
+data.items.forEach(post =&gt; {
+  const image = post.data.featured_image
+    ? BASE_URL + post.data.featured_image
+    : null;
+
+  console.log(image);
+  // https://cms.yoursite.com/outpost/uploads/2025/01/hero.jpg
+});</code></pre>
+
+    <h2>14. Error handling</h2>
+    <p>The API returns a consistent JSON envelope for both success and error responses. Always check <code>ok</code> before accessing <code>data</code>:</p>
+
+    <pre><code>async function fetchItems(collection, params = {}) {
+  const url = new URL('/outpost/content/items', BASE_URL);
+  url.searchParams.set('collection', collection);
+  Object.entries(params).forEach(([k, v]) =&gt; url.searchParams.set(k, v));
+
+  const res = await fetch(url.toString());
+  const json = await res.json();
+
+  if (!json.ok) {
+    throw new Error(json.error || 'API request failed');
+  }
+
+  return json.data;
+}
+
+<span class="t-comment">// Usage</span>
+try {
+  const { items, total } = await fetchItems('post', { limit: 10 });
+  console.log(`Loaded ${items.length} of ${total} posts`);
+} catch (err) {
+  console.error('Failed to load posts:', err.message);
+}</code></pre>
+
+    <h2>Next steps</h2>
+    <ul>
+      <li>Full endpoint reference — <a href="api/content-api.html">Public Content API</a></li>
+      <li>Admin API for write operations — <a href="api/admin-api.html">Admin API</a></li>
+      <li>Member authentication from a custom frontend — <a href="api/member-api.html">Member API</a></li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

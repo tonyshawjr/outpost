@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Structure — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link active">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>File Structure</h1>
+    <p class="lead">A complete map of every file and directory in an Outpost installation — what each one does, what you can edit, and what you must never delete when deploying updates.</p>
+  </div>
+  <div class="content">
+
+    <h2>Complete Directory Tree</h2>
+    <p>A full Outpost installation looks like this. Everything relevant to the CMS lives inside <code>outpost/</code>. The only file outside that directory is <code>index.php</code> at the web root, which acts as the front controller for Apache and Nginx.</p>
+
+    <pre><code>your-site/
+  outpost/
+    admin/
+    themes/
+      my-theme/
+        index.html
+        about.html
+        blog.html
+        post.html
+        contact.html
+        404.html
+        partials/
+          head.html
+          nav.html
+          footer.html
+          [other].html
+        assets/
+          style.css
+          main.js
+        theme.json
+    data/
+      cms.db
+    uploads/
+    cache/
+      templates/
+    api.php
+    member-api.php
+    front-router.php
+    engine.php
+    template-engine.php
+    mailer.php
+    members.php
+    form.php
+    sync-api.php
+    sitemap.php
+    track.php
+    docs/
+    member-pages/
+      login.php
+      register.php
+      forgot-password.php
+      reset-password.php
+      verify-email.php
+      logout.php
+      profile.php
+  index.php</code></pre>
+
+    <h2>Deploy Safety Reference</h2>
+    <p>Before diving into individual files, here is the most important information for anyone deploying updates to a live site:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Action on deploy</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>outpost/data/</code></td>
+          <td><strong>PRESERVE — never overwrite</strong></td>
+          <td>Contains the SQLite database with all your content</td>
+        </tr>
+        <tr>
+          <td><code>outpost/uploads/</code></td>
+          <td><strong>PRESERVE — never overwrite</strong></td>
+          <td>Contains all uploaded media files</td>
+        </tr>
+        <tr>
+          <td><code>outpost/cache/</code></td>
+          <td>Safe to delete entirely — rebuilds automatically</td>
+          <td>Compiled template cache and page HTML cache; stale after a deploy</td>
+        </tr>
+        <tr>
+          <td><code>outpost/admin/</code></td>
+          <td>Replace on each deploy if admin source changed</td>
+          <td>Pre-built SPA; must include <code>index.html</code> when updating</td>
+        </tr>
+        <tr>
+          <td><code>outpost/themes/</code></td>
+          <td>Replace your active theme directory</td>
+          <td>Your template files; safe to overwrite</td>
+        </tr>
+        <tr>
+          <td>All <code>outpost/*.php</code> files</td>
+          <td>Replace on each deploy</td>
+          <td>Core engine files; always deploy the latest version</td>
+        </tr>
+        <tr>
+          <td><code>index.php</code></td>
+          <td>Replace on each deploy</td>
+          <td>Apache/Nginx front controller</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Never delete or overwrite <code>outpost/data/</code> or <code>outpost/uploads/</code> when deploying. These directories contain your live content. All other directories can be replaced safely.</div>
+
+    <h2>outpost/admin/</h2>
+    <p>The pre-built Svelte 5 admin single-page application. This directory contains:</p>
+    <ul>
+      <li><code>index.html</code> — the SPA shell; references hashed JS and CSS filenames</li>
+      <li><code>assets/app-[hash].js</code> — the compiled JavaScript bundle</li>
+      <li><code>assets/index-[hash].css</code> — the compiled CSS</li>
+    </ul>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Never edit files in <code>admin/</code> directly. This directory is a build artifact. Any manual changes will be overwritten the next time the admin SPA is built and deployed. To modify the admin UI, edit the Svelte source in <code>cms/src/</code> and run <code>npm run build</code>.</div>
+
+    <p>The hashed filenames in <code>admin/assets/</code> change on every build. This is intentional — it busts browser caches automatically. When deploying a new admin build, you <em>must</em> copy <code>index.html</code> along with the new asset files, because <code>index.html</code> contains the references to the current hash. If you copy only the JS file and leave the old <code>index.html</code>, browsers will continue loading the old bundle.</p>
+
+    <h2>outpost/themes/</h2>
+    <p>All themes live here. Each theme is a subdirectory named by its slug. The active theme is tracked in the database — you can switch themes from Admin &rarr; Themes without touching any files.</p>
+
+    <p>You can have multiple themes installed simultaneously. Only the active theme is used to serve the public site.</p>
+
+    <h3>Theme template files (.html)</h3>
+    <p>Template files in the theme root map directly to URL paths. The filename (without extension) becomes the URL path component:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Handles URL</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>index.html</code></td>
+          <td><code>/</code></td>
+          <td>Required — homepage</td>
+        </tr>
+        <tr>
+          <td><code>about.html</code></td>
+          <td><code>/about</code></td>
+          <td>Any static page slug</td>
+        </tr>
+        <tr>
+          <td><code>blog.html</code></td>
+          <td><code>/blog</code></td>
+          <td>Collection archive page</td>
+        </tr>
+        <tr>
+          <td><code>post.html</code></td>
+          <td><code>/post/{slug}</code></td>
+          <td>Collection single item — slug passed via <code>?slug=</code></td>
+        </tr>
+        <tr>
+          <td><code>contact.html</code></td>
+          <td><code>/contact</code></td>
+          <td>Any custom page</td>
+        </tr>
+        <tr>
+          <td><code>404.html</code></td>
+          <td>No matching route</td>
+          <td>Optional — rendered when no template matches</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The URL-to-template mapping is direct: a request for <code>/portfolio</code> will render <code>portfolio.html</code> if it exists. Collection single-item URLs (e.g. <code>/post/my-title</code>) are detected by comparing the URL prefix to registered collection URL patterns and routing to the appropriate template.</p>
+
+    <h3>partials/</h3>
+    <p>Partials are reusable template fragments included from other templates using <code>{% include 'partial-name' %}</code>. They live in <code>partials/</code> inside the theme directory.</p>
+
+    <p>Three partials are standard across all Outpost themes:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Contains</th>
+          <th>Included in</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>partials/head.html</code></td>
+          <td><code>&lt;!DOCTYPE html&gt;</code> through the opening <code>&lt;body&gt;</code> tag; all <code>&lt;meta&gt;</code>, CSS, and font links</td>
+          <td>Every page template</td>
+        </tr>
+        <tr>
+          <td><code>partials/nav.html</code></td>
+          <td>Site navigation markup</td>
+          <td>Every page template</td>
+        </tr>
+        <tr>
+          <td><code>partials/footer.html</code></td>
+          <td>Footer markup, closing <code>&lt;/body&gt;&lt;/html&gt;</code></td>
+          <td>Every page template</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>You can create as many additional partials as you need. Common examples: <code>partials/hero.html</code>, <code>partials/post-card.html</code>, <code>partials/sidebar.html</code>. Reference them in templates with:</p>
+
+    <pre><code>{% include 'hero' %}
+{% include 'post-card' %}</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — Partials are compiled and cached independently. Modifying a partial file invalidates its cached version and triggers recompilation on the next request that uses it.</div>
+
+    <h3>assets/</h3>
+    <p>Static assets for the theme: CSS, JavaScript, fonts, and images used by the theme itself (not uploaded media). These files are served directly by the web server without going through PHP.</p>
+
+    <p>Reference assets in templates using a root-relative path or a path relative to the theme's assets directory. A common pattern is to reference them from <code>head.html</code>:</p>
+
+    <pre><code>&lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
+&lt;script src="/outpost/themes/my-theme/assets/main.js" defer&gt;&lt;/script&gt;</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — You can use any CSS or JavaScript in theme assets — vanilla, bundled, or from a CDN. Outpost imposes no build requirements on theme assets. Just write CSS and link it.</div>
+
+    <h3>theme.json</h3>
+    <p>A JSON metadata file for the theme. At minimum it contains:</p>
+
+    <pre><code>{
+  "name": "My Theme",
+  "version": "1.0.0",
+  "description": "A clean personal blog theme.",
+  "author": "Your Name"
+}</code></pre>
+
+    <p>This file is read by the admin's Themes page to display theme information. See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
+
+    <h2>outpost/data/</h2>
+    <p>Contains the SQLite database file <code>cms.db</code>. This is the single most important directory in your installation — it holds all your content, settings, users, and configuration.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Back up <code>outpost/data/cms.db</code> regularly. This single file is your entire site's content. Losing it means losing all pages, posts, settings, and user accounts. A simple daily <code>cp cms.db cms.db.bak</code> cron job or an off-site sync is strongly recommended.</div>
+
+    <p>The database is created automatically on first boot. Outpost runs all schema migrations on startup, so updates to the CMS engine that require new columns or tables are applied automatically without any manual SQL.</p>
+
+    <p>The database path is configured in <code>outpost/config.php</code> (if it exists) or falls back to the default location. In most installations you never need to change this.</p>
+
+    <h2>outpost/uploads/</h2>
+    <p>All files uploaded through the Media Library in the admin panel are stored here, organized in subdirectories by year and month. Outpost also stores automatically generated image thumbnails here.</p>
+
+    <p>Like <code>data/</code>, this directory must be preserved on every deployment. The database stores references to uploaded files by their path — deleting an upload without removing its database record will cause broken images and missing files in the admin.</p>
+
+    <p>The web server must have write permission to this directory. See the <a href="deploy.html">Deploy</a> guide for the correct permission settings.</p>
+
+    <h2>outpost/cache/</h2>
+    <p>Outpost uses two levels of caching:</p>
+
+    <h3>cache/templates/</h3>
+    <p>Compiled PHP versions of theme template files. When Outpost renders a template for the first time, it compiles the Liquid-syntax <code>.html</code> file to a plain <code>.php</code> file and saves it here. On subsequent requests, the compiled PHP is loaded directly, skipping the compilation step.</p>
+
+    <p>Outpost checks the modification time of the source <code>.html</code> file against the cached <code>.php</code> file. If the source is newer, the cache is automatically invalidated and recompiled. You never need to manually clear this during development.</p>
+
+    <h3>cache/*.html</h3>
+    <p>Optional full-page HTML cache. When enabled, Outpost saves the complete rendered output of each page as an HTML file here. On the next request for the same URL, the cached HTML is served directly, skipping all PHP execution and database queries entirely.</p>
+
+    <p>The page cache is cleared automatically when content is updated through the admin. It can also be cleared manually via Admin &rarr; Settings &rarr; Clear Cache, or by deleting the files directly.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — It is safe to delete the entire <code>cache/</code> directory at any time. Outpost will recreate it on the next request. Clearing the cache after a deploy is good practice to ensure visitors see fresh content immediately.</div>
+
+    <h2>Core PHP Files</h2>
+    <p>These files are the engine of Outpost. They are replaced on every deploy when you update the CMS. Do not modify them — all customisation happens in theme files.</p>
+
+    <h3>engine.php</h3>
+    <p>The core CMS functions library. Contains all the functions that theme templates compile down to: <code>cms_text()</code>, <code>cms_richtext()</code>, <code>cms_image()</code>, <code>cms_global()</code>, <code>cms_collection_list()</code>, <code>cms_collection_single()</code>, <code>cms_meta_title()</code>, <code>outpost_init()</code>, and many more. This file is included at the top of every compiled template.</p>
+
+    <h3>template-engine.php</h3>
+    <p>The Liquid-to-PHP compiler. Contains the <code>OutpostTemplate</code> class with its <code>render()</code> and <code>compile()</code> methods. When a request comes in, the router calls <code>OutpostTemplate::render($templateFile, $themeDir)</code>, which handles cache checking, compilation, and execution.</p>
+
+    <h3>front-router.php</h3>
+    <p>The PHP built-in server router. When you run <code>php -S localhost:8080 -t . outpost/front-router.php</code>, this file handles every request. It serves static files directly, routes admin requests to the admin SPA, and calls the template engine for all other requests.</p>
+
+    <p>This file is only used with the PHP built-in server. In production with Apache or Nginx, <code>index.php</code> at the web root handles routing instead.</p>
+
+    <h3>api.php</h3>
+    <p>The admin REST API. Routes requests by the <code>action</code> query parameter to handler functions. Requires session authentication and a CSRF token on all write operations. This is the only backend the admin SPA communicates with.</p>
+
+    <h3>member-api.php</h3>
+    <p>The member REST API. Handles front-end member operations: login, logout, registration, profile update, and password reset. Does not require admin authentication — it uses its own member session system.</p>
+
+    <h3>engine.php vs. api.php</h3>
+    <p><code>engine.php</code> is for rendering the public site. <code>api.php</code> is for the admin panel. They are entirely separate — <code>engine.php</code> does not make API calls, and <code>api.php</code> does not render pages.</p>
+
+    <h3>mailer.php</h3>
+    <p>Email sending helpers. Supports both PHP's built-in <code>mail()</code> function and SMTP via configured credentials in Admin &rarr; Settings. Used by the member password reset flow and contact form submissions.</p>
+
+    <h3>members.php</h3>
+    <p>Member session helper functions. Provides <code>cms_require_member()</code> and <code>cms_require_paid_member()</code> — called by the router when a page has restricted visibility. Also exposes member data to templates.</p>
+
+    <h3>form.php</h3>
+    <p>Form submission handler. Processes POST requests from front-end forms, validates fields, optionally emails the submission, and saves it to the database. Referenced by the <code>{% form %}</code> template tag.</p>
+
+    <h3>sync-api.php</h3>
+    <p>The builder sync API. Used by the Outpost desktop builder application to push and pull theme files over HTTP. Not relevant for typical web server deployments.</p>
+
+    <h3>sitemap.php</h3>
+    <p>Generates the XML sitemap at <code>/sitemap.xml</code>. Automatically includes all published pages and collection items. Respects visibility settings — members-only and paid content is excluded.</p>
+
+    <h3>track.php</h3>
+    <p>The analytics tracking endpoint. Receives beacon requests from <code>navigator.sendBeacon()</code> in the theme, records page views to the database, and powers the built-in analytics dashboard.</p>
+
+    <h2>outpost/member-pages/</h2>
+    <p>Pre-built PHP pages for the member authentication flow. These are served at standard URLs and can be styled by including theme partials.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>URL</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>login.php</code></td>
+          <td><code>/outpost/member-pages/login.php</code></td>
+          <td>Member login form</td>
+        </tr>
+        <tr>
+          <td><code>register.php</code></td>
+          <td><code>/outpost/member-pages/register.php</code></td>
+          <td>New member registration</td>
+        </tr>
+        <tr>
+          <td><code>forgot-password.php</code></td>
+          <td><code>/outpost/member-pages/forgot-password.php</code></td>
+          <td>Password reset request form</td>
+        </tr>
+        <tr>
+          <td><code>reset-password.php</code></td>
+          <td><code>/outpost/member-pages/reset-password.php</code></td>
+          <td>Password reset with token</td>
+        </tr>
+        <tr>
+          <td><code>verify-email.php</code></td>
+          <td><code>/outpost/member-pages/verify-email.php</code></td>
+          <td>Email verification landing page</td>
+        </tr>
+        <tr>
+          <td><code>logout.php</code></td>
+          <td><code>/outpost/member-pages/logout.php</code></td>
+          <td>Clears session and redirects</td>
+        </tr>
+        <tr>
+          <td><code>profile.php</code></td>
+          <td><code>/outpost/member-pages/profile.php</code></td>
+          <td>Member profile edit form</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>These pages include your theme's <code>head.html</code> and <code>footer.html</code> partials automatically, so they inherit your site's styles without any extra configuration.</p>
+
+    <h2>outpost/docs/</h2>
+    <p>This documentation site. A set of static HTML files served directly by the web server — no PHP required. Accessible at <code>/outpost/docs/</code>.</p>
+
+    <h2>index.php (web root)</h2>
+    <p>The Apache and Nginx front controller. This file sits at your web root (one level above <code>outpost/</code>) and handles all requests that reach PHP. It performs the same routing logic as <code>front-router.php</code> but is designed for Apache/Nginx rather than the PHP built-in server.</p>
+
+    <p>Specifically, <code>index.php</code>:</p>
+    <ul>
+      <li>Passes static file requests through to the file system</li>
+      <li>Routes <code>/outpost/</code> requests to the admin SPA or API</li>
+      <li>Routes all other requests to the template engine</li>
+      <li>Enforces page visibility (members-only, paid) before rendering</li>
+    </ul>
+
+    <div class="callout callout-note"><strong>Note</strong> — <code>index.php</code> and <code>front-router.php</code> do the same job in different environments. <code>front-router.php</code> is only used with <code>php -S</code>. In production with Apache or Nginx, only <code>index.php</code> is used, and your web server must be configured to route all requests to it. See the <a href="deploy.html">Deploy</a> guide.</div>
+
+    <h2>Admin SPA Source (Development Only)</h2>
+    <p>If you are modifying the admin UI, the source code lives outside the deployment in a separate directory structure:</p>
+
+    <pre><code>cms/
+  src/
+    App.svelte           ← root component
+    lib/
+      components/        ← shared UI components
+      pages/             ← admin page components (Dashboard, Posts, etc.)
+      stores/            ← Svelte stores
+  php/
+    admin/               ← build output (deployed to outpost/admin/)
+  vite.config.js
+  package.json</code></pre>
+
+    <p>This source is only needed on a developer machine where you are building custom admin modifications. It is not present on a production server and is not required for normal theme or content work.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

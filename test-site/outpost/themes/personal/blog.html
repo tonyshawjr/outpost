@@ -1,0 +1,90 @@
+{#---
+Template:   blog.html
+Route:      /blog
+Title:      Blog Archive
+
+Page fields:
+  blog_heading      text   — main heading
+    {{ blog_heading }}Writing{{ /blog_heading }}
+  blog_subheading   text   — optional subtitle below the heading
+    {{ blog_subheading }}Thoughts on technology, design, and everything in between.{{ /blog_subheading }}
+
+Loops:
+  folder.categories                                            — category filter nav (label.name, label.slug, label.count)
+  collection.post    paginate:10 orderby:published_at filteredby:category
+
+Features demonstrated:
+  Folder loop (label.name, label.slug, label.count)  — drives the category filter nav
+  Paginated collection loop                          — paginate:10 reads ?page= from the URL
+  filteredby query param                             — filteredby:category reads ?category= from the URL
+  {% pagination %}                                   — engine-rendered pagination controls, inherits ?category=
+  or_body filter                                     — shows excerpt if set, otherwise first ~40 words of body
+  for/else empty state                               — shown when no posts match the current filter
+---#}
+
+{% include 'head' %}
+{% include 'nav' %}
+
+<main>
+
+  <div class="page-hero fade-up">
+    <h1>{{ blog_heading }}Writing{{ /blog_heading }}</h1>
+    {% if blog_subheading %}
+    <p class="page-hero-sub">{{ blog_subheading }}Thoughts on technology, design, and everything in between.{{ /blog_subheading }}</p>
+    {% endif %}
+  </div>
+
+  <div class="blog-layout">
+
+    <nav class="category-filter fade-up" aria-label="Filter by category">
+      <a href="/blog" class="category-filter-link" data-slug="">All</a>
+      {% for label in folder.categories %}
+      <a href="/blog?category={{ label.slug }}" class="category-filter-link" data-slug="{{ label.slug }}">
+        {{ label.name }}
+        <span class="category-filter-count">{{ label.count }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+
+    <div class="articles-grid fade-up">
+      {% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
+
+      <a href="{{ post.url }}" class="article-card">
+        <div class="article-card-date">
+          <time datetime="{{ post.published_at }}">{{ post.published_at }}</time>
+        </div>
+        <h2 class="article-card-title">{{ post.title }}</h2>
+        <p class="article-card-excerpt">{{ post.excerpt | or_body }}</p>
+        <span class="article-card-link" aria-hidden="true">
+          Read article
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </span>
+      </a>
+
+      {% else %}
+      <p class="empty-state">No posts in this category yet.</p>
+      {% endfor %}
+    </div>
+
+    {% pagination %}
+
+  </div>
+
+</main>
+
+<script>
+(function () {
+  var cat = new URLSearchParams(location.search).get('category') || '';
+  document.querySelectorAll('.category-filter-link').forEach(function (a) {
+    if (a.dataset.slug === cat) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    }
+  });
+})();
+</script>
+
+{% include 'footer' %}

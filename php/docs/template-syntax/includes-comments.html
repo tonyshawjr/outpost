@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Includes &amp; Comments — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link active">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Includes &amp; Comments</h1>
+    <p class="lead">Split templates into reusable partials with <code>{% include %}</code>, and leave developer notes with <code>{# #}</code> comments that are stripped at compile time and never reach the browser.</p>
+  </div>
+  <div class="content">
+
+    <h2>Includes</h2>
+    <p>The <code>{% include %}</code> tag inserts another template file inline. It is the primary way to keep themes DRY — header, navigation, and footer markup is written once and shared across every page template.</p>
+    <pre><code>{% include 'partial-name' %}</code></pre>
+    <p>This loads <code>partials/partial-name.html</code> from the current theme directory. Do not include the file extension in the tag name.</p>
+
+    <h3>Standard Partial Names</h3>
+    <p>By convention, themes use these partial names. Sticking to these names makes themes easier to understand and share.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Tag</th>
+          <th>File</th>
+          <th>Contains</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>{% include 'head' %}</code></td>
+          <td><code>partials/head.html</code></td>
+          <td>DOCTYPE through opening <code>&lt;body&gt;</code> — charset, viewport, title, CSS, GA4</td>
+        </tr>
+        <tr>
+          <td><code>{% include 'nav' %}</code></td>
+          <td><code>partials/nav.html</code></td>
+          <td>Site header and navigation</td>
+        </tr>
+        <tr>
+          <td><code>{% include 'footer' %}</code></td>
+          <td><code>partials/footer.html</code></td>
+          <td>Footer content, closing <code>&lt;/body&gt;&lt;/html&gt;</code></td>
+        </tr>
+        <tr>
+          <td><code>{% include 'sidebar' %}</code></td>
+          <td><code>partials/sidebar.html</code></td>
+          <td>Sidebar content (optional)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Subdirectory Partials</h3>
+    <p>Partial names can include path segments to organize components into subdirectories. Forward slashes map to subdirectories inside <code>partials/</code>.</p>
+    <pre><code>{% include 'components/card' %}
+{# loads partials/components/card.html #}
+
+{% include 'components/hero' %}
+{# loads partials/components/hero.html #}
+
+{% include 'sections/pricing' %}
+{# loads partials/sections/pricing.html #}</code></pre>
+
+    <h3>Context Inheritance</h3>
+    <p>Partials have full access to all CMS functions and global variables. Loop variables from the parent template are also accessible inside an included partial. This enables component-style composition — write a card partial once and include it inside any loop.</p>
+    <pre><code>{# blog.html #}
+{% for post in collection.post limit:10 %}
+  {% include 'components/post-card' %}
+{% endfor %}</code></pre>
+    <pre><code>{# partials/components/post-card.html #}
+&lt;article class="post-card"&gt;
+  &lt;a href="{{ post.url }}"&gt;
+    {% if post.featured_image %}
+      &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
+    {% endif %}
+    &lt;h3&gt;{{ post.title }}&lt;/h3&gt;
+    &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
+    &lt;span class="read-more"&gt;Read more &amp;rarr;&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/article&gt;</code></pre>
+    <div class="callout callout-note"><strong>Note</strong> — The loop variable name you choose (here <code>post</code>) is the same name you use inside the partial. If your loop uses <code>{% for item in collection.post %}</code>, the partial accesses fields as <code>{{ item.title }}</code>, not <code>{{ post.title }}</code>.</div>
+
+    <h3>Compilation and Caching</h3>
+    <p>Partials are compiled to PHP and cached independently of the templates that include them. When you edit a partial, clear the template cache to see the change take effect. The cache is stored in <code>outpost/cache/templates/</code>.</p>
+
+    <h3>Typical Theme Page Structure</h3>
+    <p>A well-structured theme page template is mostly includes, with only the page-specific content in the middle.</p>
+    <pre><code>{# index.html — homepage #}
+{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main&gt;
+  &lt;section class="hero"&gt;
+    &lt;h1&gt;{{ hero_heading }}Welcome.{{ /hero_heading }}&lt;/h1&gt;
+    &lt;p&gt;{{ hero_subheading }}&lt;/p&gt;
+    {% if cta_url %}
+      &lt;a href="{{ cta_url | link }}" class="btn"&gt;{{ cta_label }}Get started{{ /cta_label }}&lt;/a&gt;
+    {% endif %}
+  &lt;/section&gt;
+
+  &lt;section class="posts"&gt;
+    &lt;h2&gt;Latest Posts&lt;/h2&gt;
+    {% for post in collection.post limit:3 %}
+      {% include 'components/post-card' %}
+    {% else %}
+      &lt;p&gt;No posts yet.&lt;/p&gt;
+    {% endfor %}
+  &lt;/section&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <h2>Comments</h2>
+    <p>Template comments use the <code>{# #}</code> syntax. They are stripped entirely during template compilation — they do not appear in the rendered HTML, and they do not exist in the compiled PHP cache. They are developer-only notes.</p>
+    <pre><code>{# This is a template comment — never output to the browser #}</code></pre>
+
+    <h3>Multi-line Comments</h3>
+    <pre><code>{#
+  TODO: Add folder filter bar here.
+  Will need the ?category= query param.
+  See loops/folder-loops for the syntax.
+#}</code></pre>
+
+    <h3>Use Cases</h3>
+    <p><strong>Documenting sections:</strong></p>
+    <pre><code>{# ============================================
+   HERO SECTION
+   Fields: hero_heading, hero_body, cta_label, cta_url
+   ============================================ #}
+&lt;section class="hero"&gt;
+  &lt;h1&gt;{{ hero_heading }}Build something great.{{ /hero_heading }}&lt;/h1&gt;
+  &lt;div&gt;{{ hero_body | raw }}&lt;/div&gt;
+  &lt;a href="{{ cta_url | link }}"&gt;{{ cta_label }}Learn more{{ /cta_label }}&lt;/a&gt;
+&lt;/section&gt;
+
+{# ============================================
+   FEATURED POSTS — shows 3 most recent
+   ============================================ #}
+&lt;section class="featured-posts"&gt;
+  {% for post in collection.post limit:3 %}
+    {% include 'components/post-card' %}
+  {% endfor %}
+&lt;/section&gt;</code></pre>
+
+    <p><strong>Temporarily disabling template code:</strong></p>
+    <pre><code>{# Sidebar disabled until content is ready
+&lt;aside class="sidebar"&gt;
+  {% include 'sidebar' %}
+&lt;/aside&gt;
+#}</code></pre>
+
+    <p><strong>Leaving notes for other developers:</strong></p>
+    <pre><code>{# The post.url field is auto-built from the collection url_pattern.
+   For this theme it outputs /post/{slug}.
+   Do not hardcode /post/ — the pattern could change. #}
+&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;</code></pre>
+
+    <h3>Template Comments vs. HTML Comments</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Syntax</th>
+          <th>Stripped at compile?</th>
+          <th>Visible in browser DevTools?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>{# template comment #}</code></td>
+          <td>Yes — removed before the PHP cache is written</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>&lt;!-- HTML comment --&gt;</code></td>
+          <td>No — compiled and output as-is</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Use <code>{# #}</code> for developer notes you never want to expose. Use <code>&lt;!-- --&gt;</code> only when you intentionally want the comment in the browser source, such as for IE conditional comments or structured HTML section markers.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — Template comments have zero runtime cost. Because they are removed at compile time (not render time), they do not affect page performance regardless of how many you write.</div>
+
+    <h2>Front Matter Convention</h2>
+    <p>By convention, Outpost theme templates use a <strong>front matter block</strong> at the very top of each file — a structured comment that describes the template's purpose, the fields it uses, and which engine features it demonstrates. This is purely a developer documentation convention; the engine strips all <code>{# #}</code> comments at compile time.</p>
+    <p>The format mirrors YAML front matter from static site generators like Jekyll and Hugo, making it immediately familiar to most developers.</p>
+    <pre><code>{#---
+Template:   index.html
+Route:      /
+Title:      Homepage
+
+Page fields:
+  home_heading   text   — hero headline
+    {{ home_heading }}Hello, I'm a Writer{{ /home_heading }}
+
+Global fields:
+  @profile_photo   image   — hero avatar
+  @bio_short       text    — short bio beneath headline
+  @author_name     text    — used in image alt text
+  @twitter_url     link
+  @github_url      link
+
+Loops:
+  collection.post    limit:3, orderby:published_at
+  gallery.gallery    — page gallery field, outputs {{ img.url }}
+
+Features demonstrated:
+  Global field conditionals   {% if @global %}
+  Global image                {{ @global | image }}
+  Global link filter          {{ @global | link }}
+  Collection loop             limit + orderby + for/else
+  Gallery loop                {{ img.url }}
+  or_body filter
+  Page text field with default value
+---#}</code></pre>
+    <h3>Why Use It</h3>
+    <ul>
+      <li><strong>Instant orientation</strong> — open any template and immediately know what fields it needs, what CMS features it uses, and what route it serves.</li>
+      <li><strong>Zero runtime cost</strong> — comments are stripped at compile time; front matter adds nothing to the rendered HTML.</li>
+      <li><strong>Self-documenting themes</strong> — when sharing or selling a theme, developers understand the structure without reading the full template.</li>
+      <li><strong>Field inventory</strong> — the front matter serves as a checklist of fields to configure in the admin before the page renders correctly.</li>
+    </ul>
+    <h3>Fields Reference in Front Matter</h3>
+    <table>
+      <thead>
+        <tr><th>Key</th><th>What to list</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Page fields:</code></td><td>Fields using <code>{{ field }}</code> — editable per page in Admin → Pages. For fields with defaults, show the wrapping syntax on the line below: <code>{{ field }}Default{{ /field }}</code></td></tr>
+        <tr><td><code>Global fields:</code></td><td>Fields using <code>{{ @global }}</code> — set once in Admin → Globals</td></tr>
+        <tr><td><code>Loops:</code></td><td>All <code>{% for %}</code> and <code>{% single %}</code> tags with their options</td></tr>
+        <tr><td><code>Features demonstrated:</code></td><td>Engine features used — helpful for starter themes used as learning examples</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-tip"><strong>Tip</strong> — The <code>---</code> delimiters inside the comment block are cosmetic only. They are part of the comment text and have no special meaning to the engine. Use them to visually distinguish front matter from regular comments.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

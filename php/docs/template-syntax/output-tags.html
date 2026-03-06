@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Output Tags &amp; Filters — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link active">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Output Tags &amp; Filters</h1>
+    <p class="lead">Output tags render field values into your HTML. Every field you reference in a template is automatically registered in the admin editor — no configuration required.</p>
+  </div>
+  <div class="content">
+
+    <h2>Basic Text Output</h2>
+    <p>The simplest output tag renders a field's value, HTML-escaped, directly into your markup.</p>
+    <pre><code>{{ field_name }}</code></pre>
+    <p>HTML-escaping means characters like <code>&lt;</code>, <code>&gt;</code>, and <code>&amp;</code> are converted to safe entities automatically, protecting against XSS. The field is registered in the admin page editor the first time the template is rendered.</p>
+    <pre><code>&lt;header&gt;
+  &lt;h1&gt;{{ page_title }}&lt;/h1&gt;
+  &lt;p class="lead"&gt;{{ page_subtitle }}&lt;/p&gt;
+&lt;/header&gt;</code></pre>
+
+    <h3>With a Default Value</h3>
+    <p>Wrap a default value between the opening and closing tag. The default is shown as a placeholder in the admin editor, and output on the front end when the field is empty. The closing tag uses the field name prefixed with <code>/</code>.</p>
+    <pre><code>{{ hero_heading }}Welcome to my site{{ /hero_heading }}
+{{ cta_label }}Get in touch{{ /cta_label }}</code></pre>
+    <pre><code>&lt;section class="hero"&gt;
+  &lt;h1&gt;{{ hero_heading }}Build something great.{{ /hero_heading }}&lt;/h1&gt;
+  &lt;p&gt;{{ hero_subheading }}We design and develop digital products.{{ /hero_subheading }}&lt;/p&gt;
+  &lt;a href="{{ cta_url | link }}" class="btn"&gt;{{ cta_label }}Learn more{{ /cta_label }}&lt;/a&gt;
+&lt;/section&gt;</code></pre>
+    <div class="callout callout-note"><strong>Note</strong> — The inline syntax <code>{{ field "Default" }}</code> is also supported for backwards compatibility, but wrapping tags are recommended because they support multiline content and HTML in defaults.</div>
+
+    <h2>Filters</h2>
+    <p>Append a filter with the pipe character <code>|</code> to change how a field is rendered and what input type appears in the admin editor.</p>
+
+    <h3><code>| raw</code> — Rich Text / HTML</h3>
+    <p>Outputs the field value without HTML escaping. Use this for fields that contain richtext editor content (TipTap). Content is sanitized before it is stored, so the output is safe.</p>
+    <pre><code>{{ field_name | raw }}</code></pre>
+    <pre><code>&lt;article&gt;
+  &lt;h1&gt;{{ post_title }}&lt;/h1&gt;
+  &lt;div class="prose"&gt;
+    {{ post_body | raw }}
+  &lt;/div&gt;
+&lt;/article&gt;</code></pre>
+    <div class="callout callout-warn"><strong>Warning</strong> — Only use <code>| raw</code> for content managed through the CMS richtext editor. Never use it for fields where an editor could enter arbitrary HTML from an untrusted source.</div>
+
+    <h3><code>| image</code> — Image URL</h3>
+    <p>Opens the media picker in the admin editor. Outputs the file path or URL of the selected image. Use it in <code>src</code> attributes and CSS background properties.</p>
+    <pre><code>{{ field_name | image }}</code></pre>
+    <pre><code>&lt;!-- Standard image tag --&gt;
+&lt;img src="{{ hero_image | image }}" alt="{{ hero_image_alt }}"&gt;
+
+&lt;!-- CSS background — note single quotes inside the attribute value --&gt;
+&lt;div class="banner" style="background-image: url('{{ banner_photo | image }}')"&gt;
+  &lt;h2&gt;{{ banner_heading }}&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;!-- With a conditional to avoid an empty src attribute --&gt;
+{% if featured_image %}
+  &lt;img src="{{ featured_image | image }}" alt="{{ post_title }}" class="post-thumb"&gt;
+{% endif %}</code></pre>
+
+    <h3><code>| link</code> — URL / Link Input</h3>
+    <p>Renders a URL input field in the admin editor. Outputs the URL as a plain string — use it in <code>href</code> attributes.</p>
+    <pre><code>{{ field_name | link }}</code></pre>
+    <pre><code>&lt;nav&gt;
+  &lt;a href="{{ primary_cta_url | link }}" class="btn btn-primary"&gt;
+    {{ primary_cta_label }}Get started{{ /primary_cta_label }}
+  &lt;/a&gt;
+  &lt;a href="{{ secondary_cta_url | link }}"&gt;
+    {{ secondary_cta_label }}Learn more{{ /secondary_cta_label }}
+  &lt;/a&gt;
+&lt;/nav&gt;</code></pre>
+
+    <h3><code>| textarea</code> — Multi-line Text</h3>
+    <p>Provides a multi-line textarea in the admin editor. Newlines in the stored value are converted to <code>&lt;br&gt;</code> tags on output. Ideal for bios, addresses, and short descriptions where paragraph breaks matter but full richtext is unnecessary.</p>
+    <pre><code>{{ field_name | textarea }}</code></pre>
+    <pre><code>&lt;!-- Author bio --&gt;
+&lt;aside class="author-card"&gt;
+  &lt;img src="{{ author_photo | image }}" alt="{{ author_name }}"&gt;
+  &lt;h3&gt;{{ author_name }}&lt;/h3&gt;
+  &lt;p&gt;{{ author_bio | textarea }}&lt;/p&gt;
+&lt;/aside&gt;
+
+&lt;!-- Contact address --&gt;
+&lt;address&gt;{{ office_address | textarea }}&lt;/address&gt;</code></pre>
+
+    <h3><code>| select</code> — Dropdown Selector</h3>
+    <p>The admin editor shows a dropdown with options defined in the collection schema. Outputs the selected option's string value.</p>
+    <pre><code>{{ field_name | select }}</code></pre>
+    <pre><code>&lt;!-- Display a category badge --&gt;
+&lt;article class="post-card"&gt;
+  &lt;span class="category"&gt;{{ post_category | select }}&lt;/span&gt;
+  &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+&lt;/article&gt;
+
+&lt;!-- Use the value to add a CSS class --&gt;
+&lt;div class="alert alert--{{ alert_type | select }}"&gt;
+  {{ alert_message }}
+&lt;/div&gt;</code></pre>
+
+    <h3><code>| toggle</code> — Boolean / Checkbox</h3>
+    <p>Renders a toggle switch in the admin editor. Returns <code>true</code> or <code>false</code> — do not use as direct output. Use it inside a <code>{% if %}</code> tag instead.</p>
+    <pre><code>{% if show_sidebar %}
+  &lt;aside class="sidebar"&gt;...&lt;/aside&gt;
+{% endif %}
+
+{% if is_featured %}
+  &lt;span class="badge"&gt;Featured&lt;/span&gt;
+{% endif %}</code></pre>
+    <div class="callout callout-note"><strong>Note</strong> — The filter declaration <code>{{ field | toggle }}</code> only needs to appear once in the template to register the field as a toggle type. In practice you will always reference the field inside <code>{% if %}</code> — the declaration is implicit.</div>
+
+    <h3><code>| color</code> — Color Picker</h3>
+    <p>Opens a color picker in the admin editor. Outputs a hex color string like <code>#14b8a6</code>. Use it in inline CSS or pass it to CSS custom properties.</p>
+    <pre><code>{{ field_name | color }}</code></pre>
+    <pre><code>&lt;section style="background-color: {{ section_bg | color }}; color: {{ section_text | color }};"&gt;
+  &lt;h2&gt;{{ section_heading }}&lt;/h2&gt;
+&lt;/section&gt;
+
+&lt;!-- Set a CSS custom property for use across child elements --&gt;
+&lt;div style="--brand: {{ brand_color | color }};"&gt;
+  &lt;button style="background: var(--brand);"&gt;{{ cta_label }}&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+
+    <h3><code>| number</code> — Numeric Input</h3>
+    <p>Renders a number input in the admin editor. Outputs the value as a string.</p>
+    <pre><code>{{ field_name | number }}</code></pre>
+    <pre><code>&lt;!-- Limit displayed in UI --&gt;
+&lt;p&gt;Showing up to {{ max_results | number }} results.&lt;/p&gt;
+
+&lt;!-- Pass to JavaScript --&gt;
+&lt;div id="slider" data-min="{{ slider_min | number }}" data-max="{{ slider_max | number }}"&gt;&lt;/div&gt;</code></pre>
+
+    <h3><code>| date</code> — Date Input</h3>
+    <p>Renders a date picker in the admin editor. Outputs the stored date in ISO 8601 format: <code>2025-03-04</code>. Format or localize it with JavaScript on the front end.</p>
+    <pre><code>{{ field_name | date }}</code></pre>
+    <pre><code>&lt;!-- Store as ISO and format client-side --&gt;
+&lt;time datetime="{{ event_date | date }}"&gt;{{ event_date | date }}&lt;/time&gt;
+
+&lt;script&gt;
+  document.querySelectorAll('time[datetime]').forEach(el =&gt; {
+    const d = new Date(el.getAttribute('datetime'));
+    el.textContent = d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  });
+&lt;/script&gt;</code></pre>
+
+    <h3><code>| or_body</code> — Excerpt with Body Fallback</h3>
+    <p>If the field (typically <code>excerpt</code>) is empty, this filter automatically generates a 40-word excerpt from the <code>body</code> field of the same item. This is the cleanest way to handle list pages where some items have manual excerpts and some do not.</p>
+    <pre><code>{{ field_name | or_body }}</code></pre>
+    <pre><code>&lt;!-- Blog post cards -- works whether or not an excerpt exists --&gt;
+{% for post in collection.post limit:10 %}
+&lt;article class="post-card"&gt;
+  {% if post.featured_image %}
+    &lt;a href="{{ post.url }}"&gt;
+      &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
+    &lt;/a&gt;
+  {% endif %}
+  &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+  &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
+  &lt;a href="{{ post.url }}"&gt;Read more &amp;rarr;&lt;/a&gt;
+&lt;/article&gt;
+{% endfor %}</code></pre>
+
+    <h2>Loop Variable Fields</h2>
+    <p>Inside a <code>{% for %}</code> or <code>{% single %}</code> block, access item fields using dot notation: <code>{{ item.field }}</code>. The same filters apply.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tag</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>{{ item.field }}</code></td>
+          <td>Escaped text output for any custom field.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.field | raw }}</code></td>
+          <td>Raw HTML output — for richtext fields.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.url }}</code></td>
+          <td>Auto-built URL from the collection's <code>url_pattern</code> (e.g. <code>/post/my-slug</code>).</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.slug }}</code></td>
+          <td>The item's URL slug.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.id }}</code></td>
+          <td>Database integer ID.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.published_at }}</code></td>
+          <td>Formatted publish date (e.g. "March 4, 2026").</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.status }}</code></td>
+          <td>Item status: <code>published</code>, <code>draft</code>, or <code>scheduled</code>.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.created_at }}</code></td>
+          <td>Creation timestamp.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.updated_at }}</code></td>
+          <td>Last-modified timestamp.</td>
+        </tr>
+        <tr>
+          <td><code>{{ item.featured_image }}</code></td>
+          <td>Direct access to the featured image field (escaped URL).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Real-world Examples</h2>
+
+    <h3>Blog Post Card</h3>
+    <pre><code>{% for post in collection.post limit:6 %}
+&lt;article class="card"&gt;
+  {% if post.featured_image %}
+    &lt;a href="{{ post.url }}" class="card-thumb"&gt;
+      &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
+    &lt;/a&gt;
+  {% endif %}
+  &lt;div class="card-body"&gt;
+    &lt;span class="label"&gt;{{ post.category | select }}&lt;/span&gt;
+    &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
+    &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
+    &lt;time datetime="{{ post.published_at }}"&gt;{{ post.published_at }}&lt;/time&gt;
+  &lt;/div&gt;
+&lt;/article&gt;
+{% else %}
+&lt;p&gt;No posts published yet.&lt;/p&gt;
+{% endfor %}</code></pre>
+
+    <h3>Hero Section</h3>
+    <pre><code>&lt;section class="hero" style="background-image: url('{{ hero_bg | image }}');"&gt;
+  &lt;div class="hero-inner"&gt;
+    &lt;h1&gt;{{ hero_heading }}We build things people love.{{ /hero_heading }}&lt;/h1&gt;
+    &lt;div class="hero-body"&gt;{{ hero_body | raw }}&lt;/div&gt;
+    {% if cta_url %}
+      &lt;a href="{{ cta_url | link }}" class="btn"&gt;{{ cta_label }}Get started{{ /cta_label }}&lt;/a&gt;
+    {% endif %}
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+
+    <h3>Portfolio Item (Single Page)</h3>
+    <pre><code>{% single project from collection.portfolio %}
+&lt;article class="project"&gt;
+  &lt;header&gt;
+    &lt;h1&gt;{{ project.title }}&lt;/h1&gt;
+    &lt;span class="tag"&gt;{{ project.type | select }}&lt;/span&gt;
+    {% if project.client_url %}
+      &lt;a href="{{ project.client_url | link }}" target="_blank"&gt;View live site &amp;rarr;&lt;/a&gt;
+    {% endif %}
+  &lt;/header&gt;
+  {% if project.hero_image %}
+    &lt;img src="{{ project.hero_image }}" alt="{{ project.title }}" class="project-hero"&gt;
+  {% endif %}
+  &lt;div class="prose"&gt;{{ project.body | raw }}&lt;/div&gt;
+  &lt;div class="project-meta"&gt;
+    &lt;span&gt;Completed: {{ project.completion_date | date }}&lt;/span&gt;
+    &lt;span style="color: {{ project.brand_color | color }};"&gt;Brand color&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/article&gt;
+{% else %}
+&lt;p&gt;Project not found.&lt;/p&gt;
+{% endsingle %}</code></pre>
+
+    <h3>Team Member Profile</h3>
+    <pre><code>{% for member in collection.team %}
+&lt;div class="team-card"&gt;
+  &lt;img src="{{ member.photo | image }}" alt="{{ member.name }}"&gt;
+  &lt;h3&gt;{{ member.name }}&lt;/h3&gt;
+  &lt;span class="role"&gt;{{ member.role | select }}&lt;/span&gt;
+  &lt;p&gt;{{ member.bio | textarea }}&lt;/p&gt;
+  {% if member.linkedin %}
+    &lt;a href="{{ member.linkedin | link }}" target="_blank"&gt;LinkedIn&lt;/a&gt;
+  {% endif %}
+&lt;/div&gt;
+{% endfor %}</code></pre>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

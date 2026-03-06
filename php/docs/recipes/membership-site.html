@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membership Site — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link active">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Membership Site</h1>
+    <p class="lead">Build a site with free and paid content tiers. Outpost handles registration, login, session management, and per-page or per-item access control — no third-party services needed.</p>
+    <div class="hero-badges">
+      <span class="badge"><span class="badge-dot"></span>Members</span>
+      <span class="badge"><span class="badge-dot"></span>Access Control</span>
+      <span class="badge"><span class="badge-dot"></span>Visibility</span>
+    </div>
+  </div>
+  <div class="content">
+
+    <h2>1. Enable member registration</h2>
+    <p>Go to <strong>Admin → Settings → Members</strong> and enable:</p>
+    <ul>
+      <li><strong>Allow registration</strong> — lets visitors create a free account at <code>/outpost/register</code></li>
+      <li><strong>Require email verification</strong> (optional) — sends a confirmation email before activating the account</li>
+    </ul>
+
+    <p>Member-facing URLs that Outpost provides automatically:</p>
+    <table>
+      <thead>
+        <tr><th>URL</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/outpost/login</code></td><td>Login form</td></tr>
+        <tr><td><code>/outpost/register</code></td><td>Registration form</td></tr>
+        <tr><td><code>/outpost/profile</code></td><td>Member profile / account settings</td></tr>
+        <tr><td><code>/outpost/logout</code></td><td>Clears session and redirects to homepage</td></tr>
+        <tr><td><code>/outpost/password-reset</code></td><td>Password reset request form</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      These are Outpost's own admin-area URLs. You can link to them from your theme templates. They use the admin CSS, not your theme's CSS. If you want custom-styled login/register pages, create theme templates that post to the <a href="api/member-api.html">Member API</a>.
+    </div>
+
+    <h2>2. Collection setup</h2>
+    <p>Create an <code>article</code> collection for member-gated content:</p>
+
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Name</td><td>Articles</td></tr>
+        <tr><td>Slug</td><td><code>article</code></td></tr>
+        <tr><td>URL pattern</td><td><code>/articles/{slug}</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>Fields:</p>
+    <table>
+      <thead>
+        <tr><th>Field name</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>Text</td><td>Article heading</td></tr>
+        <tr><td><code>excerpt</code></td><td>Textarea</td><td>Teaser shown to non-members</td></tr>
+        <tr><td><code>body</code></td><td>Richtext</td><td>Full article content — shown to members only</td></tr>
+        <tr><td><code>featured_image</code></td><td>Image</td><td>Article hero image</td></tr>
+        <tr><td><code>tier</code></td><td>Select</td><td>Options: <code>free</code>, <code>paid</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. Page-level visibility</h2>
+    <p>For standalone pages (not collection items), you can set visibility in the page editor under the SEO panel. Three options are available:</p>
+
+    <table>
+      <thead>
+        <tr><th>Visibility</th><th>Who can see it</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>public</code></td><td>Everyone (default)</td></tr>
+        <tr><td><code>members</code></td><td>Any logged-in member (free or paid)</td></tr>
+        <tr><td><code>paid</code></td><td>Paid members only</td></tr>
+      </tbody>
+    </table>
+
+    <p>When a visitor hits a page they are not authorised to view, Outpost redirects them to <code>/outpost/login</code> automatically. No template changes needed for page-level protection.</p>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      Page-level visibility is the simplest form of gating — flip a dropdown in the editor and the page is protected. For more fine-grained control (e.g. showing a teaser to free members and the full article to paid members), use the template-level approach below.
+    </div>
+
+    <h2>4. Template-level content gating</h2>
+    <p>Use <code>{% if paid_member %}</code> and <code>{% if member %}</code> conditionals to show different content to different tiers within the same template. This is the standard pattern for a "freemium" newsletter or magazine.</p>
+
+    <pre><code><span class="t-kw">{% include 'head' %}</span>
+<span class="t-kw">{% include 'nav' %}</span>
+
+<span class="t-tag">&lt;main&gt;</span>
+  <span class="t-kw">{% single article from collection.article %}</span>
+
+    <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"article-single"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;header&gt;</span>
+        <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ article.title }}</span><span class="t-tag">&lt;/h1&gt;</span>
+        <span class="t-tag">&lt;p</span> <span class="t-attr">class</span>=<span class="t-string">"article-meta"</span><span class="t-tag">&gt;</span><span class="t-out">{{ article.published_at }}</span><span class="t-tag">&lt;/p&gt;</span>
+      <span class="t-tag">&lt;/header&gt;</span>
+
+      <span class="t-comment">{# Check the custom tier field to decide what to render #}</span>
+      <span class="t-kw">{% if article.tier == "free" %}</span>
+
+        <span class="t-comment">{# Free article — everyone can read the full content #}</span>
+        <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"article-body"</span><span class="t-tag">&gt;</span>
+          <span class="t-out">{{ article.body | raw }}</span>
+        <span class="t-tag">&lt;/div&gt;</span>
+
+      <span class="t-kw">{% else %}</span>
+
+        <span class="t-comment">{# Paid article — show full body to paid members, teaser + CTA to others #}</span>
+        <span class="t-kw">{% if paid_member %}</span>
+
+          <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"article-body premium"</span><span class="t-tag">&gt;</span>
+            <span class="t-out">{{ article.body | raw }}</span>
+          <span class="t-tag">&lt;/div&gt;</span>
+
+        <span class="t-kw">{% else %}</span>
+
+          <span class="t-comment">{# Show excerpt / teaser to free and logged-out visitors #}</span>
+          <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"article-teaser"</span><span class="t-tag">&gt;</span>
+            <span class="t-kw">{% if article.excerpt %}</span>
+              <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ article.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+            <span class="t-kw">{% endif %}</span>
+          <span class="t-tag">&lt;/div&gt;</span>
+
+          <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"upgrade-cta"</span><span class="t-tag">&gt;</span>
+            <span class="t-tag">&lt;p&gt;</span>This article is for paid members.<span class="t-tag">&lt;/p&gt;</span>
+            <span class="t-kw">{% if member %}</span>
+              <span class="t-comment">{# Logged in as free member — show upgrade prompt #}</span>
+              <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/upgrade"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-upgrade"</span><span class="t-tag">&gt;</span>Upgrade to Paid<span class="t-tag">&lt;/a&gt;</span>
+            <span class="t-kw">{% else %}</span>
+              <span class="t-comment">{# Not logged in — show login and register options #}</span>
+              <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-primary"</span><span class="t-tag">&gt;</span>Create a free account<span class="t-tag">&lt;/a&gt;</span>
+              <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-secondary"</span><span class="t-tag">&gt;</span>Sign in<span class="t-tag">&lt;/a&gt;</span>
+            <span class="t-kw">{% endif %}</span>
+          <span class="t-tag">&lt;/div&gt;</span>
+
+        <span class="t-kw">{% endif %}</span>
+      <span class="t-kw">{% endif %}</span>
+    <span class="t-tag">&lt;/article&gt;</span>
+
+  <span class="t-kw">{% else %}</span>
+    <span class="t-tag">&lt;p&gt;</span>Article not found.<span class="t-tag">&lt;/p&gt;</span>
+  <span class="t-kw">{% endsingle %}</span>
+<span class="t-tag">&lt;/main&gt;</span>
+
+<span class="t-kw">{% include 'footer' %}</span></code></pre>
+
+    <h2>5. Protecting a whole page</h2>
+    <p>To require a paid membership to view an entire page — for example a members-only dashboard — set the page's visibility in the editor to <strong>Paid</strong>. Outpost enforces this at the router level; the page template is never rendered for unauthorised visitors.</p>
+
+    <ol class="steps">
+      <li>Open the page in <strong>Admin → Pages</strong></li>
+      <li>Scroll to the <strong>SEO &amp; Meta</strong> section</li>
+      <li>Set <strong>Visibility</strong> to <strong>Members</strong> or <strong>Paid</strong></li>
+      <li>Save. Non-authorised visitors will be redirected to <code>/outpost/login</code></li>
+    </ol>
+
+    <div class="callout callout-warn">
+      <strong>Warning</strong>
+      Page-level visibility only applies to pages managed in Admin → Pages. It does not automatically restrict collection item URLs. To gate individual collection items, use template-level conditionals as shown above.
+    </div>
+
+    <h2>6. Member nav links</h2>
+    <p>Show different navigation links depending on the member's login state. This goes in your <code>partials/nav.html</code>.</p>
+
+    <pre><code><span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"main-nav"</span><span class="t-tag">&gt;</span>
+  <span class="t-kw">{% for item in menu.main %}</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ item.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">{% endfor %}</span>
+
+  <span class="t-comment">{# Auth-aware member links #}</span>
+  <span class="t-kw">{% if member %}</span>
+    <span class="t-kw">{% if paid_member %}</span>
+      <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"member-badge"</span><span class="t-tag">&gt;</span>Paid<span class="t-tag">&lt;/span&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/profile"</span><span class="t-tag">&gt;</span>My Account<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/logout"</span><span class="t-tag">&gt;</span>Sign Out<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">{% else %}</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-primary"</span><span class="t-tag">&gt;</span>Join Free<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+<span class="t-tag">&lt;/nav&gt;</span></code></pre>
+
+    <h2>7. The two-tier model</h2>
+    <p>Outpost supports two membership tiers out of the box. The template variables are:</p>
+
+    <table>
+      <thead>
+        <tr><th>Variable</th><th>True when</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>{% if member %}</code></td><td>Visitor is logged in (free or paid)</td></tr>
+        <tr><td><code>{% if paid_member %}</code></td><td>Visitor is logged in with a paid subscription</td></tr>
+        <tr><td><code>{% if free_member %}</code></td><td>Visitor is logged in but does not have paid status</td></tr>
+      </tbody>
+    </table>
+
+    <p>A typical content-gating decision tree:</p>
+    <ol class="steps">
+      <li>Is this a free article? — show full content to everyone</li>
+      <li>Is the visitor a paid member? — show full content</li>
+      <li>Is the visitor a free member? — show teaser + upgrade CTA</li>
+      <li>Is the visitor logged out? — show teaser + register + login CTA</li>
+    </ol>
+
+    <h2>8. Listing articles in the archive</h2>
+    <p>Show the full list of articles to everyone, but mark paid-only items so visitors know what to expect before clicking.</p>
+
+    <pre><code><span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"articles-list"</span><span class="t-tag">&gt;</span>
+  <span class="t-kw">{% for article in collection.article paginate:10 %}</span>
+    <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"article-row"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;h2&gt;</span>
+        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ article.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ article.title }}</span><span class="t-tag">&lt;/a&gt;</span>
+        <span class="t-kw">{% if article.tier == "paid" %}</span>
+          <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"tier-badge"</span><span class="t-tag">&gt;</span>Members<span class="t-tag">&lt;/span&gt;</span>
+        <span class="t-kw">{% endif %}</span>
+      <span class="t-tag">&lt;/h2&gt;</span>
+      <span class="t-kw">{% if article.excerpt %}</span>
+        <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ article.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+      <span class="t-kw">{% endif %}</span>
+    <span class="t-tag">&lt;/article&gt;</span>
+  <span class="t-kw">{% endfor %}</span>
+<span class="t-tag">&lt;/div&gt;</span>
+<span class="t-kw">{% pagination %}</span></code></pre>
+
+    <h2>9. Upgrade flow with a payment provider</h2>
+    <p>Outpost does not include a built-in payment gateway. The recommended approach is to use a third-party payment provider (such as Stripe or Lemon Squeezy) and update the member's status via the Member API after a successful payment.</p>
+
+    <ol class="steps">
+      <li>Visitor clicks "Upgrade to Paid" and lands on your checkout page (or a Stripe payment link)</li>
+      <li>Payment provider processes the payment and fires a webhook to a URL on your server</li>
+      <li>Your webhook handler calls the <a href="api/member-api.html">Member API</a> to set the member's <code>paid</code> flag to <code>true</code></li>
+      <li>Member can now access paid content on their next page load</li>
+    </ol>
+
+    <pre><code><span class="t-comment">// Example webhook handler (standalone PHP file)</span>
+// webhook.php — called by Stripe after successful payment
+
+&lt;?php
+$payload = file_get_contents('php://input');
+$event = json_decode($payload, true);
+
+if ($event['type'] === 'checkout.session.completed') {
+  $email = $event['data']['object']['customer_details']['email'];
+
+  // Call Outpost Member API to upgrade the member
+  $ch = curl_init('https://yoursite.com/outpost/api.php?action=member_upgrade');
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'email' => $email,
+    'paid'  => true,
+  ]));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'X-API-Key: ' . getenv('OUTPOST_API_KEY'),
+  ]);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_exec($ch);
+  curl_close($ch);
+}
+
+http_response_code(200);</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      Always verify the webhook signature from your payment provider before processing the payload. Never trust the raw POST body without validation.
+    </div>
+
+    <h2>10. Customising the login page appearance</h2>
+    <p>The built-in login page at <code>/outpost/login</code> uses the admin CSS. To create a branded login experience within your theme, create a template page that posts to the Member API login endpoint directly.</p>
+
+    <pre><code><span class="t-comment">{# themes/mysite/login.html — custom branded login page #}</span>
+<span class="t-kw">{% include 'head' %}</span>
+<span class="t-kw">{% include 'nav' %}</span>
+
+<span class="t-tag">&lt;main</span> <span class="t-attr">class</span>=<span class="t-string">"auth-page"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"auth-box"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;h1&gt;</span>Sign in<span class="t-tag">&lt;/h1&gt;</span>
+    <span class="t-tag">&lt;form</span> <span class="t-attr">method</span>=<span class="t-string">"POST"</span> <span class="t-attr">action</span>=<span class="t-string">"/outpost/member/login"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;label&gt;</span>
+        Email
+        <span class="t-tag">&lt;input</span> <span class="t-attr">type</span>=<span class="t-string">"email"</span> <span class="t-attr">name</span>=<span class="t-string">"email"</span> <span class="t-attr">required</span> <span class="t-attr">autocomplete</span>=<span class="t-string">"email"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;/label&gt;</span>
+      <span class="t-tag">&lt;label&gt;</span>
+        Password
+        <span class="t-tag">&lt;input</span> <span class="t-attr">type</span>=<span class="t-string">"password"</span> <span class="t-attr">name</span>=<span class="t-string">"password"</span> <span class="t-attr">required</span> <span class="t-attr">autocomplete</span>=<span class="t-string">"current-password"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;/label&gt;</span>
+      <span class="t-tag">&lt;button</span> <span class="t-attr">type</span>=<span class="t-string">"submit"</span><span class="t-tag">&gt;</span>Sign in<span class="t-tag">&lt;/button&gt;</span>
+    <span class="t-tag">&lt;/form&gt;</span>
+    <span class="t-tag">&lt;p&gt;</span>No account? <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/register"</span><span class="t-tag">&gt;</span>Create one free<span class="t-tag">&lt;/a&gt;</span><span class="t-tag">&lt;/p&gt;</span>
+    <span class="t-tag">&lt;p&gt;</span><span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/password-reset"</span><span class="t-tag">&gt;</span>Forgot your password?<span class="t-tag">&lt;/a&gt;</span><span class="t-tag">&lt;/p&gt;</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-tag">&lt;/main&gt;</span>
+
+<span class="t-kw">{% include 'footer' %}</span></code></pre>
+
+    <h2>11. Conditional layout based on member state</h2>
+    <p>You can use member conditionals anywhere in a template — not just around content. A common pattern is to show different homepage layouts to logged-in members versus visitors:</p>
+
+    <pre><code><span class="t-kw">{% include 'head' %}</span>
+<span class="t-kw">{% include 'nav' %}</span>
+
+<span class="t-tag">&lt;main&gt;</span>
+  <span class="t-kw">{% if member %}</span>
+    <span class="t-comment">{# Personalised dashboard for logged-in members #}</span>
+    <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"member-dashboard"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;h1&gt;</span>Welcome back<span class="t-tag">&lt;/h1&gt;</span>
+      <span class="t-tag">&lt;h2&gt;</span>Latest for members<span class="t-tag">&lt;/h2&gt;</span>
+      <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"articles-grid"</span><span class="t-tag">&gt;</span>
+        <span class="t-kw">{% for article in collection.article limit:6 %}</span>
+          <span class="t-tag">&lt;article&gt;</span>
+            <span class="t-tag">&lt;h3&gt;&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ article.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ article.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h3&gt;</span>
+            <span class="t-out">{{ article.excerpt }}</span>
+          <span class="t-tag">&lt;/article&gt;</span>
+        <span class="t-kw">{% endfor %}</span>
+      <span class="t-tag">&lt;/div&gt;</span>
+    <span class="t-tag">&lt;/section&gt;</span>
+  <span class="t-kw">{% else %}</span>
+    <span class="t-comment">{# Marketing landing page for logged-out visitors #}</span>
+    <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"hero"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ @site_name }}</span><span class="t-tag">&lt;/h1&gt;</span>
+      <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ @site_tagline }}</span><span class="t-tag">&lt;/p&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-primary"</span><span class="t-tag">&gt;</span>Get started free<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;/section&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+<span class="t-tag">&lt;/main&gt;</span>
+
+<span class="t-kw">{% include 'footer' %}</span></code></pre>
+
+    <h2>12. theme.json routing for member pages</h2>
+    <p>Add your custom login and register pages to <code>theme.json</code> routes so Outpost can serve them as theme templates:</p>
+
+    <pre><code>{
+  "name": "Membership",
+  "version": "1.0.0",
+  "routes": {
+    "/": "index.html",
+    "/articles": "articles.html",
+    "/articles/{slug}": "article.html",
+    "/login": "login.html",
+    "/register": "register.html",
+    "/upgrade": "upgrade.html"
+  }
+}</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      Custom <code>/login</code> and <code>/register</code> routes in <code>theme.json</code> serve your branded theme templates. The built-in <code>/outpost/login</code> and <code>/outpost/register</code> URLs continue to work alongside them — you can redirect one to the other using a simple JavaScript redirect or a PHP header.
+    </div>
+
+    <h2>13. Member variables reference</h2>
+    <p>A quick reference for all member-related template variables and where to use them:</p>
+
+    <table>
+      <thead>
+        <tr><th>Variable / Tag</th><th>True / Output when</th><th>Typical use</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>{% if member %}</code></td>
+          <td>Visitor is logged in (any tier)</td>
+          <td>Show member-only UI; hide login/register links</td>
+        </tr>
+        <tr>
+          <td><code>{% if paid_member %}</code></td>
+          <td>Visitor is logged in with paid status</td>
+          <td>Show premium content</td>
+        </tr>
+        <tr>
+          <td><code>{% if free_member %}</code></td>
+          <td>Logged in but not paid</td>
+          <td>Show upgrade CTA to free members specifically</td>
+        </tr>
+        <tr>
+          <td><code>{{ member.email }}</code></td>
+          <td>Always when logged in</td>
+          <td>Personalised greeting</td>
+        </tr>
+        <tr>
+          <td><code>{{ member.name }}</code></td>
+          <td>When member has set a display name</td>
+          <td>Personalised greeting</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Next steps</h2>
+    <ul>
+      <li>Customise the login and register pages — see <a href="members/member-pages.html">Member Pages</a></li>
+      <li>Set up password reset emails — see <a href="members/password-reset.html">Password Reset</a></li>
+      <li>Manage member roles and permissions — see <a href="members/admin-roles.html">Admin Roles</a></li>
+      <li>Upgrade flow for paid tiers — connect a payment provider (Stripe, Lemon Squeezy) and use the <a href="api/member-api.html">Member API</a> to update member status on webhook receipt</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

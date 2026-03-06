@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protecting Pages — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link active">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Protecting Pages</h1>
+    <p class="lead">Gate any CMS page behind a member login or paid membership using a simple visibility setting — no code required. For fine-grained in-page control, use PHP partials.</p>
+  </div>
+  <div class="content">
+
+    <h2>Page-level visibility</h2>
+    <p>Every page managed through <strong>Admin → Pages</strong> has a visibility setting. Find it in the right sidebar of the page editor under the SEO / Settings panel. Three options are available:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Who can access</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Public</strong></td>
+          <td>Anyone — logged-in or not. This is the default.</td>
+        </tr>
+        <tr>
+          <td><strong>Members Only</strong></td>
+          <td>Any logged-in member (both <code>free_member</code> and <code>paid_member</code>).</td>
+        </tr>
+        <tr>
+          <td><strong>Paid Members</strong></td>
+          <td>Members with the <code>paid_member</code> role only.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>The setting is saved to the <code>pages.visibility</code> column (<code>'public'</code>, <code>'members'</code>, or <code>'paid'</code>) and enforced by both <code>front-router.php</code> and <code>index.php</code> before the template is rendered.</p>
+
+    <h2>What happens when access is denied</h2>
+    <p>The router checks the visitor's member session before rendering any protected page:</p>
+    <ul>
+      <li><strong>Not logged in → Members Only page</strong>: redirected to the member login page with the current URL passed as a <code>?redirect=</code> parameter. After login, the member is returned to the page they tried to visit.</li>
+      <li><strong>Free member → Paid Members page</strong>: redirected to the upgrade page so they can convert to a paid account.</li>
+      <li><strong>Correct access</strong>: the template renders normally.</li>
+    </ul>
+    <div class="callout callout-note"><strong>Note</strong> — Suspended members are blocked at login. A suspended member who somehow holds a valid session cookie will be rejected when the session is validated on each request.</div>
+
+    <h2>Scope of page visibility</h2>
+    <p>Visibility settings apply only to <strong>pages stored in the pages table</strong> — that is, CMS pages you create in Admin → Pages (e.g. <code>/about</code>, <code>/resources</code>, <code>/community</code>). Collection item pages (individual blog posts, portfolio items, etc.) are always public unless you implement custom PHP logic.</p>
+    <div class="callout callout-tip"><strong>Tip</strong> — To gate collection items, use a PHP partial inside your template. See the section below on checking member status in PHP.</div>
+
+    <h2>Protecting content within a template</h2>
+    <p>For in-page control — showing different content to logged-in vs. anonymous visitors within the same Liquid template — use a PHP partial. Create a file in your theme's <code>partials/</code> directory and call PHP functions there.</p>
+
+    <h3>Blocking access from within a partial</h3>
+    <pre><code>&lt;?php
+// partials/member-gate.php
+// Include this at the top of any template that requires a member login.
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+
+if (!OutpostMember::check()) {
+    header('Location: /outpost/member-pages/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+?&gt;</code></pre>
+    <p>Then include this partial at the top of the Liquid template:</p>
+    <pre><code>{% include 'member-gate' %}
+
+&lt;!-- rest of template renders only for logged-in members --&gt;
+{{ title }}
+{{ body | raw }}</code></pre>
+
+    <h3>Blocking paid-only content</h3>
+    <pre><code>&lt;?php
+// partials/paid-gate.php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+
+$member = OutpostMember::current();
+
+if (!$member) {
+    header('Location: /outpost/member-pages/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
+if ($member['role'] !== 'paid_member') {
+    header('Location: /upgrade');
+    exit;
+}
+?&gt;</code></pre>
+
+    <h2>Checking member status in PHP</h2>
+    <p>The <code>OutpostMember</code> class in <code>members.php</code> provides two key methods:</p>
+
+    <h3>OutpostMember::check()</h3>
+    <p>Returns <code>true</code> if a member is currently logged in and active. Returns <code>false</code> otherwise (not logged in, or session invalid).</p>
+    <pre><code>require_once '/path/to/outpost/members.php';
+
+if (!OutpostMember::check()) {
+    // visitor is not logged in — redirect or show teaser
+}</code></pre>
+
+    <h3>OutpostMember::current()</h3>
+    <p>Returns the full member record as an associative array, or <code>null</code> if no member is logged in.</p>
+    <pre><code>$member = OutpostMember::current();
+
+if ($member) {
+    echo 'Welcome, ' . htmlspecialchars($member['display_name']);
+}
+
+if ($member && $member['role'] === 'paid_member') {
+    // show paid content
+}
+
+if ($member && $member['member_expires'] && strtotime($member['member_expires']) &lt; time()) {
+    // membership has expired — treat as free or prompt to renew
+}</code></pre>
+
+    <h2>Showing teaser content to non-members</h2>
+    <p>A common pattern is to show a preview of content to anonymous visitors and reveal the full version only to members. Use a PHP partial to branch the output:</p>
+    <pre><code>&lt;?php
+// partials/member-reveal.php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+$GLOBALS['_outpost_member'] = OutpostMember::current();
+?&gt;</code></pre>
+    <p>Then in your Liquid template, use a conditional include or render the teaser inline. Because Liquid does not have direct PHP access, the simplest approach is to split the protected section into its own partial and gate it there.</p>
+
+    <h2>Login redirect</h2>
+    <p>When a protected page redirects to login, it appends the original URL as a query parameter:</p>
+    <pre><code>/outpost/member-pages/login.php?redirect=/resources/advanced-guide</code></pre>
+    <p>The login page reads this parameter on successful authentication and sends the member directly to the page they wanted. You do not need to implement this yourself — it is built into the login page.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Never rely solely on Liquid template conditionals to hide sensitive content. A conditional in a template only controls what is rendered in the HTML output; it does not prevent the server from processing the request. Always use PHP-level checks (either via page visibility settings or PHP partials) to truly block access.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

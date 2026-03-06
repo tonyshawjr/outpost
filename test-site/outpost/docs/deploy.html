@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link active">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Deploy</h1>
+    <p class="lead">Deploy Outpost to any PHP server — cPanel shared hosting, a VPS with Apache, or Nginx. No build step, no package manager — just upload the files, and you are live. An <code>.htaccess</code> and front controller are included.</p>
+  </div>
+  <div class="content">
+
+    <h2>PHP Requirements</h2>
+    <p>Before deploying, confirm your server meets these requirements:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Requirement</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>PHP version</td>
+          <td>PHP 8.0 or higher</td>
+        </tr>
+        <tr>
+          <td><code>pdo_sqlite</code></td>
+          <td>Required — for the SQLite database. Included in most PHP builds. Verify: <code>php -m | grep pdo_sqlite</code></td>
+        </tr>
+        <tr>
+          <td><code>gd</code></td>
+          <td>Strongly recommended — used to generate image thumbnails in the Media Library. Without it, thumbnail generation is skipped.</td>
+        </tr>
+        <tr>
+          <td><code>mbstring</code></td>
+          <td>Required — for multibyte string operations (used throughout the template engine and CMS functions)</td>
+        </tr>
+        <tr>
+          <td><code>json</code></td>
+          <td>Required — included in all standard PHP builds; used for API responses and database JSON columns</td>
+        </tr>
+        <tr>
+          <td><code>file_uploads</code></td>
+          <td>Must be <code>On</code> in <code>php.ini</code> to allow media uploads through the admin panel</td>
+        </tr>
+        <tr>
+          <td><code>upload_max_filesize</code></td>
+          <td>Recommended: <code>10M</code> or higher. Controls the maximum size of a single uploaded file.</td>
+        </tr>
+        <tr>
+          <td><code>post_max_size</code></td>
+          <td>Recommended: <code>12M</code> or higher. Must be larger than <code>upload_max_filesize</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>To check which extensions are loaded on your server, create a temporary file with <code>&lt;?php phpinfo();</code> and visit it in a browser, or run <code>php -m</code> from the command line.</p>
+
+    <h2>cPanel / Shared Hosting</h2>
+    <p>Outpost is designed primarily for cPanel shared hosting. Most cPanel servers come with Apache, <code>mod_rewrite</code>, and the required PHP extensions already enabled — so deployment is usually just uploading files.</p>
+
+    <h3>Step 1 — Upload files</h3>
+    <p>Using cPanel File Manager or an FTP client, upload the following to your <code>public_html/</code> directory:</p>
+
+    <pre><code>public_html/
+  .htaccess         ← Apache rewrite rules (included with Outpost)
+  index.php         ← front controller (included with Outpost)
+  outpost/          ← the entire CMS directory</code></pre>
+
+    <p>If you already have a <code>.htaccess</code> file in <code>public_html/</code> (some hosts create one by default), add the Outpost rewrite rules to it rather than replacing it. The rules you need are:</p>
+
+    <pre><code>RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]</code></pre>
+
+    <h3>Step 2 — Check PHP version</h3>
+    <p>Outpost requires PHP 8.0+. In cPanel, go to <strong>MultiPHP Manager</strong> (or <strong>PHP Selector</strong>) and set your domain to PHP 8.0 or higher.</p>
+
+    <h3>Step 3 — Check PHP extensions</h3>
+    <p>Go to <strong>MultiPHP INI Editor</strong> (or <strong>Select PHP Version → Extensions</strong>) and confirm these are enabled:</p>
+    <ul>
+      <li><code>pdo_sqlite</code> — required (the database)</li>
+      <li><code>mbstring</code> — required (text processing)</li>
+      <li><code>gd</code> — recommended (image thumbnails)</li>
+    </ul>
+    <p>Most cPanel installations have all three enabled by default.</p>
+
+    <h3>Step 4 — Set permissions</h3>
+    <p>In File Manager, right-click each of these directories and set permissions to <strong>755</strong>:</p>
+    <ul>
+      <li><code>outpost/data/</code></li>
+      <li><code>outpost/uploads/</code></li>
+      <li><code>outpost/cache/</code></li>
+    </ul>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — On most cPanel hosts, the default permissions are already correct. You only need to change them if the admin panel shows permission errors when saving content or uploading media.</div>
+
+    <h3>Step 5 — Visit your site</h3>
+    <p>Navigate to <code>https://your-domain.com/outpost/</code>. You should see the login screen. Log in with <code>admin</code> / <code>admin</code> and immediately change your password.</p>
+
+    <h3>SSL on cPanel</h3>
+    <p>Most cPanel hosts include free SSL via <strong>AutoSSL</strong> (Let's Encrypt). Check <strong>SSL/TLS Status</strong> in cPanel — if your domain shows a valid certificate, HTTPS is already working. After confirming, update your site URL in <strong>Admin &rarr; Settings &rarr; General</strong> to use <code>https://</code>.</p>
+
+    <h3>Subdirectory installs on cPanel</h3>
+    <p>To run Outpost in a subdirectory (e.g. <code>example.com/blog/</code>), create the folder in File Manager and upload all three items (<code>.htaccess</code>, <code>index.php</code>, <code>outpost/</code>) inside it. No extra configuration is needed — the <code>.htaccess</code> works the same way in a subdirectory.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> — The sections below cover VPS deployments where you manage Apache or Nginx directly. If you are on cPanel shared hosting, you can skip to <a href="#first-boot-on-production">First Boot on Production</a>.</div>
+
+    <h2>Copying Files</h2>
+    <p>Deployment is a file copy. Transfer the following to your server:</p>
+
+    <pre><code># What to copy to your web root
+outpost/          ← the entire CMS directory
+index.php         ← front controller for Apache/Nginx</code></pre>
+
+    <p>The simplest method is <code>rsync</code>, which handles incremental updates efficiently on subsequent deploys:</p>
+
+    <pre><code># Initial deploy or full update
+rsync -avz --exclude 'outpost/data/' \
+           --exclude 'outpost/uploads/' \
+           outpost/ user@your-server.com:/var/www/html/outpost/
+
+rsync -avz index.php user@your-server.com:/var/www/html/index.php</code></pre>
+
+    <p>Note the <code>--exclude</code> flags: the <code>rsync</code> command deliberately skips <code>data/</code> and <code>uploads/</code> to protect your live content.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Never overwrite or delete <code>outpost/data/</code> or <code>outpost/uploads/</code> on your production server. The <code>data/</code> directory contains your SQLite database — your entire site's content. The <code>uploads/</code> directory contains all uploaded media. Both must be preserved on every re-deploy.</div>
+
+    <h3>What to preserve on re-deploy</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>outpost/data/</code></td>
+          <td>Preserve — never overwrite or delete</td>
+        </tr>
+        <tr>
+          <td><code>outpost/uploads/</code></td>
+          <td>Preserve — never overwrite or delete</td>
+        </tr>
+        <tr>
+          <td><code>outpost/cache/</code></td>
+          <td>Safe to clear — Outpost rebuilds it automatically on next request</td>
+        </tr>
+        <tr>
+          <td>All other <code>outpost/</code> files</td>
+          <td>Replace with the new version</td>
+        </tr>
+        <tr>
+          <td><code>index.php</code></td>
+          <td>Replace with the new version</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Apache Configuration</h2>
+    <p>Apache needs a rewrite rule to send all non-file, non-directory requests to <code>index.php</code>. Place this <code>.htaccess</code> file at your web root (the same directory as <code>index.php</code>):</p>
+
+    <pre><code># .htaccess at web root
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]</code></pre>
+
+    <p>The two <code>RewriteCond</code> lines ensure that requests for real files (CSS, JS, images) and real directories are served directly without going through PHP. Only requests for paths that do not match an actual file or directory are routed to <code>index.php</code>.</p>
+
+    <p>The <code>mod_rewrite</code> module must be enabled. On Debian/Ubuntu:</p>
+    <pre><code>sudo a2enmod rewrite
+sudo systemctl restart apache2</code></pre>
+
+    <p>Your virtual host configuration must also allow <code>.htaccess</code> overrides. In your Apache virtual host block:</p>
+
+    <pre><code>&lt;VirtualHost *:80&gt;
+    ServerName example.com
+    DocumentRoot /var/www/html
+
+    &lt;Directory /var/www/html&gt;
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+&lt;/VirtualHost&gt;</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — The <code>AllowOverride All</code> directive is what enables <code>.htaccess</code> files to function. Without it, the rewrite rules are silently ignored and all URLs except the homepage will return 404.</div>
+
+    <h2>Nginx Configuration</h2>
+    <p>With Nginx there is no <code>.htaccess</code> — all configuration goes in your server block. The key directive is <code>try_files</code>, which serves real files directly and falls back to <code>index.php</code> for everything else:</p>
+
+    <pre><code>server {
+    listen 80;
+    server_name example.com;
+    root /var/www/html;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    # Deny direct access to sensitive Outpost directories
+    location ~ ^/outpost/(data|cache)/ {
+        deny all;
+        return 404;
+    }
+}</code></pre>
+
+    <p>Adjust the <code>fastcgi_pass</code> socket path to match your PHP-FPM version and configuration. Common paths:</p>
+    <ul>
+      <li>Ubuntu/Debian: <code>unix:/var/run/php/php8.2-fpm.sock</code></li>
+      <li>CentOS/RHEL: <code>unix:/run/php-fpm/www.sock</code></li>
+      <li>TCP (when PHP-FPM is on a separate host): <code>fastcgi_pass 127.0.0.1:9000;</code></li>
+    </ul>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — The <code>location</code> block that denies access to <code>outpost/data/</code> and <code>outpost/cache/</code> is a security best practice. While your SQLite database is not directly executable from the web, it is readable as a file. Blocking direct HTTP access prevents anyone from downloading your database file.</div>
+
+    <h2>File Permissions</h2>
+    <p>Outpost needs write access to three directories: <code>data/</code>, <code>uploads/</code>, and <code>cache/</code>. The web server process (typically <code>www-data</code> on Debian/Ubuntu, <code>nginx</code> or <code>apache</code> on other systems) must be able to write to these paths.</p>
+
+    <pre><code># Set directory permissions
+chmod 755 outpost/data outpost/uploads outpost/cache outpost/cache/templates
+
+# Set database file permissions (if it already exists)
+chmod 644 outpost/data/cms.db
+
+# If you need to set ownership (replace www-data with your web server user)
+chown -R www-data:www-data outpost/data
+chown -R www-data:www-data outpost/uploads
+chown -R www-data:www-data outpost/cache</code></pre>
+
+    <p>If the <code>data/</code>, <code>uploads/</code>, or <code>cache/</code> directories do not exist, create them first:</p>
+    <pre><code>mkdir -p outpost/data outpost/uploads outpost/cache/templates
+chmod 755 outpost/data outpost/uploads outpost/cache outpost/cache/templates</code></pre>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Do not use <code>chmod 777</code>. World-writable directories are a security risk. Use <code>755</code> for directories and ensure the web server user is the owner, or use group ownership with <code>775</code> if your deployment user and web server user share a group.</div>
+
+    <h2 id="first-boot-on-production">First Boot on Production</h2>
+    <p>If this is a fresh install (no database yet), the first HTTP request to your site automatically:</p>
+    <ol>
+      <li>Creates <code>outpost/data/cms.db</code></li>
+      <li>Runs all schema migrations to create every table</li>
+      <li>Seeds a default admin account and sample data</li>
+    </ol>
+
+    <p>Navigate to <code>https://your-domain.com/outpost/</code> and you will see the login screen. Log in with <code>admin</code> / <code>admin</code> and immediately change your password.</p>
+
+    <p>If you are deploying to a server where a database already exists (i.e., you are updating an existing installation), the migration system runs automatically and applies only the migrations that have not been applied yet. No manual SQL is ever required.</p>
+
+    <h2>Clearing the Cache After Deploy</h2>
+    <p>After copying updated PHP files or theme files to the server, clear the template cache to ensure visitors get the latest compiled templates. The page cache should also be cleared to avoid serving stale HTML.</p>
+
+    <pre><code># Clear page cache
+rm -f outpost/cache/*.html
+
+# Clear compiled template cache
+rm -f outpost/cache/templates/*.php</code></pre>
+
+    <p>Alternatively, use the button in the admin panel: <strong>Admin &rarr; Settings &rarr; Clear Cache</strong>. This clears both cache layers from the browser.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> — Clearing the cache is safe at any time. Outpost recompiles templates and rebuilds the page cache on the next request. There is no downtime and no data loss. The only effect is that the first request after clearing the cache may be slightly slower as it recompiles.</div>
+
+    <h2>HTTPS / SSL</h2>
+    <p>Outpost has no protocol-specific code — it works identically over HTTP and HTTPS. SSL configuration is handled entirely by your web server.</p>
+
+    <p>The recommended approach for a standard VPS is <a href="https://certbot.eff.org/">Certbot</a> with Let's Encrypt, which provides free SSL certificates and automates renewal:</p>
+
+    <pre><code># Install Certbot (Debian/Ubuntu with Nginx)
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain and install a certificate
+sudo certbot --nginx -d example.com -d www.example.com</code></pre>
+
+    <p>Certbot will modify your Nginx configuration to add the SSL block and set up automatic renewal via a cron job or systemd timer.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — Once HTTPS is configured, update your site URL in <strong>Admin &rarr; Settings &rarr; General</strong> to use <code>https://</code>. This ensures sitemap.xml, canonical tags, and any absolute URLs generated by the CMS use the correct protocol.</div>
+
+    <h2>Subdirectory Installs</h2>
+    <p>Outpost does not need to run at a domain root. You can install it at any subdirectory, such as <code>https://example.com/blog/</code>.</p>
+
+    <p>For a subdirectory install, place <code>index.php</code> inside the subdirectory and update the <code>.htaccess</code> or Nginx location to match that path. For example, with Nginx at <code>/blog/</code>:</p>
+
+    <pre><code>location /blog/ {
+    try_files $uri $uri/ /blog/index.php?$query_string;
+}
+
+location ~ ^/blog/.*\.php$ {
+    fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    fastcgi_index index.php;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+}</code></pre>
+
+    <p>Also update the site URL in Admin &rarr; Settings to reflect the subdirectory path so that generated URLs are correct.</p>
+
+    <h2>Multiple Sites on One Server</h2>
+    <p>Because Outpost is entirely self-contained in a single directory with its own SQLite database, running multiple sites on the same server is straightforward. Each site gets its own:</p>
+    <ul>
+      <li>Virtual host or server block pointing to its own document root</li>
+      <li><code>outpost/</code> directory with its own database at <code>outpost/data/cms.db</code></li>
+      <li>Independent uploads, cache, and themes</li>
+    </ul>
+
+    <p>There is no shared database, no shared configuration, and no cross-contamination between sites. You can update each site's Outpost engine files independently without affecting others.</p>
+
+    <h2>Deploying Admin SPA Updates</h2>
+    <p>If you have modified the admin SPA source (in <code>cms/src/</code>), you need to build and deploy the updated SPA files. Normal content and theme changes do not require this step.</p>
+
+    <pre><code># Build the admin SPA
+cd cms/
+npm install    # only needed once
+npm run build  # outputs to cms/php/admin/
+
+# Deploy to server (MUST include index.html — filenames are hashed)
+scp cms/php/admin/index.html user@server:/var/www/html/outpost/admin/index.html
+scp cms/php/admin/assets/app-*.js user@server:/var/www/html/outpost/admin/assets/
+scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/assets/</code></pre>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Always copy <code>index.html</code> when deploying a new admin build. The SPA uses hashed asset filenames (e.g. <code>app-3f7a2b1c.js</code>) that change on every build. <code>index.html</code> contains the references to the current filenames. If you deploy only the new JS file but leave the old <code>index.html</code>, the browser will continue loading the old bundle and your changes will never appear.</div>
+
+    <h2>Backup Strategy</h2>
+    <p>An Outpost backup is simple because all persistent state lives in exactly two places:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>What to back up</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>outpost/data/cms.db</code></td>
+          <td>All content, settings, users, and configuration</td>
+        </tr>
+        <tr>
+          <td><code>outpost/uploads/</code></td>
+          <td>All uploaded media files</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Theme files and PHP engine files can be restored from your version control repository. Only <code>data/</code> and <code>uploads/</code> contain data that exists nowhere else.</p>
+
+    <p>A simple daily cron backup:</p>
+    <pre><code># Add to crontab with: crontab -e
+# Daily backup at 2am, kept for 30 days
+0 2 * * * cp /var/www/html/outpost/data/cms.db /backups/cms-$(date +\%Y\%m\%d).db
+0 2 * * * find /backups/ -name "cms-*.db" -mtime +30 -delete</code></pre>
+
+    <p>For a more robust solution, use <code>rsync</code> to an off-site server or an object storage service (S3, Backblaze B2, etc.) to keep backups in a separate location from the live server.</p>
+
+    <h2>Production Checklist</h2>
+    <p>Before going live, work through this list:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>How to verify / action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Change default admin password</td>
+          <td>Admin &rarr; Settings &rarr; Account</td>
+        </tr>
+        <tr>
+          <td>Set site URL to HTTPS</td>
+          <td>Admin &rarr; Settings &rarr; General &rarr; Site URL</td>
+        </tr>
+        <tr>
+          <td>SSL certificate installed</td>
+          <td>Visit <code>https://your-domain.com</code> in a browser</td>
+        </tr>
+        <tr>
+          <td><code>outpost/data/</code> is not web-accessible</td>
+          <td>Request <code>https://your-domain.com/outpost/data/cms.db</code> — should return 403 or 404</td>
+        </tr>
+        <tr>
+          <td>File permissions correct</td>
+          <td>Upload an image in Admin &rarr; Media to confirm write access</td>
+        </tr>
+        <tr>
+          <td>PHP extensions present</td>
+          <td>Visit <code>/outpost/</code> — if the admin loads, <code>pdo_sqlite</code> is working</td>
+        </tr>
+        <tr>
+          <td>Cache cleared after deploy</td>
+          <td>Admin &rarr; Settings &rarr; Clear Cache, or delete <code>cache/</code> contents</td>
+        </tr>
+        <tr>
+          <td>Backup scheduled</td>
+          <td>Cron job or off-site sync targeting <code>data/</code> and <code>uploads/</code></td>
+        </tr>
+        <tr>
+          <td>Theme active</td>
+          <td>Admin &rarr; Themes — confirm a theme shows as Active</td>
+        </tr>
+        <tr>
+          <td>Sitemap accessible</td>
+          <td>Visit <code>https://your-domain.com/sitemap.xml</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repeater Loops — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link active">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Repeater Loops</h1>
+    <p class="lead">Loop over structured, multi-row data within a single collection item. Repeater fields let editors add as many rows as needed — each with its own typed sub-fields — making them ideal for feature lists, team members, FAQ items, pricing tiers, and more.</p>
+  </div>
+  <div class="content">
+
+    <h2>What Is a Repeater Field?</h2>
+    <p>A repeater is a schema field type that stores an ordered list of structured rows. Each row contains the same set of typed sub-fields that you define when building the schema. Unlike a gallery (which stores only images), a repeater can hold any combination of text, image, link, richtext, and other field types per row.</p>
+    <p>Think of a repeater as a mini-table attached to a collection item: you define the columns (sub-fields) once in the schema, and the editor adds as many rows as needed — without requiring a separate collection.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> — Repeaters are defined per collection schema. Go to Admin &rarr; Collections &rarr; select a collection &rarr; Edit Schema &rarr; Add Field &rarr; choose type <strong>Repeater</strong>, then add sub-fields to it.</div>
+
+    <h2>Basic Syntax</h2>
+    <p>Loop over a repeater field the same way you would any other loop. The outer variable is the collection item; the field name is the repeater's name in the schema; the inner variable gives you access to each row's sub-fields.</p>
+    <pre><code>{% for row in item.features %}
+  {{ row.title }}
+  {{ row.description }}
+{% endfor %}</code></pre>
+
+    <p>Where:</p>
+    <ul>
+      <li><code>item</code> is the loop variable from a collection loop or <code>{% single %}</code> block</li>
+      <li><code>features</code> is the name of the repeater field in the schema</li>
+      <li><code>row</code> is the loop variable representing one row of the repeater</li>
+      <li><code>row.title</code>, <code>row.description</code>, etc. are the sub-fields defined in that repeater</li>
+    </ul>
+
+    <h2>Sub-Field Filters</h2>
+    <p>Sub-fields use the same output filters as regular collection fields. Apply the appropriate filter based on the sub-field type.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Sub-field type</th>
+          <th>Template syntax</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Text</td>
+          <td><code>{{ row.label }}</code></td>
+          <td>Auto-escaped. No filter needed.</td>
+        </tr>
+        <tr>
+          <td>Textarea</td>
+          <td><code>{{ row.description | textarea }}</code></td>
+          <td>Preserves line breaks as <code>&lt;br&gt;</code> tags.</td>
+        </tr>
+        <tr>
+          <td>Richtext</td>
+          <td><code>{{ row.body | raw }}</code></td>
+          <td>Outputs HTML as-is. Only use <code>| raw</code> for trusted editor content.</td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td><code>{{ row.icon | image }}</code></td>
+          <td>Resolves to the full public URL of the uploaded image.</td>
+        </tr>
+        <tr>
+          <td>Link</td>
+          <td><code>{{ row.cta_url | link }}</code></td>
+          <td>Ensures the URL is safe to output in an <code>href</code> attribute.</td>
+        </tr>
+        <tr>
+          <td>Select</td>
+          <td><code>{{ row.tier | select }}</code></td>
+          <td>Outputs the selected option value.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Repeater Inside a Collection Loop</h2>
+    <p>Nest the repeater loop inside an outer collection loop to render structured data for each collection item on a listing page.</p>
+    <pre><code>{% for service in collection.service %}
+  &lt;article class="service-card"&gt;
+    &lt;h2&gt;{{ service.title }}&lt;/h2&gt;
+    &lt;p&gt;{{ service.description }}&lt;/p&gt;
+
+    {% if service.features %}
+      &lt;ul class="feature-list"&gt;
+        {% for feature in service.features %}
+          &lt;li&gt;
+            {% if feature.icon %}
+              &lt;img src="{{ feature.icon | image }}" alt="" aria-hidden="true"&gt;
+            {% endif %}
+            {{ feature.label }}
+          &lt;/li&gt;
+        {% endfor %}
+      &lt;/ul&gt;
+    {% endif %}
+
+    &lt;a href="{{ service.url }}"&gt;Learn more&lt;/a&gt;
+  &lt;/article&gt;
+{% endfor %}</code></pre>
+
+    <h2>Repeater Inside a Single Item</h2>
+    <p>Use a repeater on a detail page to render structured data that belongs to just that item.</p>
+    <pre><code>{% single product from collection.product %}
+  &lt;article&gt;
+    &lt;h1&gt;{{ product.title }}&lt;/h1&gt;
+    &lt;p class="price"&gt;{{ product.price }}&lt;/p&gt;
+    {{ product.description | raw }}
+
+    {% if product.specs %}
+      &lt;table class="spec-table"&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;&lt;th&gt;Specification&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          {% for spec in product.specs %}
+            &lt;tr&gt;
+              &lt;td&gt;{{ spec.name }}&lt;/td&gt;
+              &lt;td&gt;{{ spec.value }}&lt;/td&gt;
+            &lt;/tr&gt;
+          {% endfor %}
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    {% endif %}
+  &lt;/article&gt;
+{% endsingle %}</code></pre>
+
+    <h2>Empty Repeater</h2>
+    <p>If an editor has not added any rows to a repeater field, the loop body is silently skipped. No error is thrown. Use an <code>{% if item.repeater_field %}</code> check if you need to conditionally show a section heading alongside the loop.</p>
+    <pre><code>{% if product.specs %}
+  &lt;section class="specs"&gt;
+    &lt;h2&gt;Specifications&lt;/h2&gt;
+    {% for spec in product.specs %}
+      &lt;div class="spec-row"&gt;
+        &lt;strong&gt;{{ spec.name }}&lt;/strong&gt;
+        &lt;span&gt;{{ spec.value }}&lt;/span&gt;
+      &lt;/div&gt;
+    {% endfor %}
+  &lt;/section&gt;
+{% endif %}</code></pre>
+
+    <h2>Row Order</h2>
+    <p>Rows are returned in the order the editor arranged them in the admin. The repeater field supports drag-and-drop reordering — the template always reflects the saved order with no additional configuration.</p>
+
+    <h2>Common Use Cases</h2>
+    <p>The following table shows typical repeater field configurations for common content patterns.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Use case</th>
+          <th>Repeater field name</th>
+          <th>Sub-fields</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Feature list</td>
+          <td><code>features</code></td>
+          <td><code>icon</code> (image), <code>label</code> (text), <code>description</code> (text)</td>
+        </tr>
+        <tr>
+          <td>FAQ</td>
+          <td><code>faqs</code></td>
+          <td><code>question</code> (text), <code>answer</code> (richtext)</td>
+        </tr>
+        <tr>
+          <td>Team members</td>
+          <td><code>team</code></td>
+          <td><code>name</code> (text), <code>role</code> (text), <code>photo</code> (image), <code>bio</code> (textarea)</td>
+        </tr>
+        <tr>
+          <td>Pricing tiers</td>
+          <td><code>tiers</code></td>
+          <td><code>name</code> (text), <code>price</code> (text), <code>features</code> (textarea), <code>cta_label</code> (text), <code>cta_url</code> (link)</td>
+        </tr>
+        <tr>
+          <td>Testimonials</td>
+          <td><code>testimonials</code></td>
+          <td><code>quote</code> (textarea), <code>author</code> (text), <code>company</code> (text), <code>avatar</code> (image)</td>
+        </tr>
+        <tr>
+          <td>Timeline</td>
+          <td><code>timeline</code></td>
+          <td><code>date</code> (text), <code>event</code> (text), <code>description</code> (textarea)</td>
+        </tr>
+        <tr>
+          <td>Product specs</td>
+          <td><code>specs</code></td>
+          <td><code>name</code> (text), <code>value</code> (text)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Example: FAQ Accordion</h2>
+    <p>A service collection item with an <code>faqs</code> repeater (sub-fields: <code>question</code>, <code>answer</code>). The HTML uses the native <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> elements for a no-JavaScript accordion.</p>
+    <pre><code>{% single service from collection.service %}
+  &lt;h1&gt;{{ service.title }}&lt;/h1&gt;
+  {{ service.description | raw }}
+
+  {% if service.faqs %}
+    &lt;section class="faq-section"&gt;
+      &lt;h2&gt;Frequently Asked Questions&lt;/h2&gt;
+      {% for faq in service.faqs %}
+        &lt;details class="faq-item"&gt;
+          &lt;summary class="faq-question"&gt;{{ faq.question }}&lt;/summary&gt;
+          &lt;div class="faq-answer"&gt;
+            {{ faq.answer | raw }}
+          &lt;/div&gt;
+        &lt;/details&gt;
+      {% endfor %}
+    &lt;/section&gt;
+  {% endif %}
+{% endsingle %}</code></pre>
+
+    <pre><code>.faq-item {
+  border-bottom: 1px solid #e4e4e7;
+  padding: 4px 0;
+}
+.faq-question {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 14px 0;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-question::after {
+  content: "+";
+  font-size: 20px;
+  font-weight: 300;
+  color: #a1a1aa;
+}
+details[open] .faq-question::after { content: "2"; }
+.faq-answer { padding: 0 0 14px; color: #52525b; }</code></pre>
+
+    <h2>Example: Testimonials</h2>
+    <p>A collection item with a <code>testimonials</code> repeater (sub-fields: <code>quote</code>, <code>author</code>, <code>company</code>, <code>avatar</code>).</p>
+    <pre><code>&lt;section class="testimonials"&gt;
+  &lt;h2&gt;What People Say&lt;/h2&gt;
+  &lt;div class="testimonial-grid"&gt;
+    {% for t in page.testimonials %}
+      &lt;blockquote class="testimonial"&gt;
+        &lt;p&gt;"{{ t.quote }}"&lt;/p&gt;
+        &lt;footer&gt;
+          {% if t.avatar %}
+            &lt;img src="{{ t.avatar | image }}" alt="{{ t.author }}" class="avatar"&gt;
+          {% endif %}
+          &lt;div&gt;
+            &lt;strong&gt;{{ t.author }}&lt;/strong&gt;
+            {% if t.company %}
+              &lt;span&gt;{{ t.company }}&lt;/span&gt;
+            {% endif %}
+          &lt;/div&gt;
+        &lt;/footer&gt;
+      &lt;/blockquote&gt;
+    {% endfor %}
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+
+    <pre><code>.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.testimonial {
+  background: #fafafa;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 24px;
+}
+.testimonial p { font-style: italic; margin: 0 0 16px; }
+.testimonial footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.testimonial .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}</code></pre>
+
+    <h2>Example: Pricing Table</h2>
+    <p>A <code>pricing</code> collection item with a <code>tiers</code> repeater (sub-fields: <code>name</code>, <code>price</code>, <code>description</code>, <code>features</code>, <code>cta_label</code>, <code>cta_url</code>, <code>highlighted</code>).</p>
+    <pre><code>{% single page from collection.pricing %}
+  &lt;div class="pricing-grid"&gt;
+    {% for tier in page.tiers %}
+      &lt;div class="pricing-card {% if tier.highlighted %}is-featured{% endif %}"&gt;
+        &lt;h3&gt;{{ tier.name }}&lt;/h3&gt;
+        &lt;div class="price"&gt;{{ tier.price }}&lt;/div&gt;
+        {% if tier.description %}
+          &lt;p class="tier-desc"&gt;{{ tier.description }}&lt;/p&gt;
+        {% endif %}
+        {% if tier.features %}
+          &lt;ul class="tier-features"&gt;
+            {% for line in tier.features %}
+              &lt;li&gt;{{ line.item }}&lt;/li&gt;
+            {% endfor %}
+          &lt;/ul&gt;
+        {% endif %}
+        {% if tier.cta_label %}
+          &lt;a href="{{ tier.cta_url | link }}" class="btn {% if tier.highlighted %}btn-primary{% else %}btn-secondary{% endif %}"&gt;
+            {{ tier.cta_label }}
+          &lt;/a&gt;
+        {% endif %}
+      &lt;/div&gt;
+    {% endfor %}
+  &lt;/div&gt;
+{% endsingle %}</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — The <code>highlighted</code> sub-field above is a text field containing "true" or "false" as set by the editor (or a checkbox-style select). Use a conditional like <code>{% if tier.highlighted == "true" %}</code> to apply special styling to the recommended tier.</div>
+
+    <h2>Complete Example: Services Page with Feature Bullets</h2>
+    <p>A full <code>services.html</code> template. The <code>service</code> collection has a <code>bullets</code> repeater with sub-fields <code>icon</code> (image) and <code>text</code> (text).</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main&gt;
+  &lt;header class="page-header"&gt;
+    &lt;h1&gt;Services&lt;/h1&gt;
+  &lt;/header&gt;
+
+  &lt;div class="services-list"&gt;
+    {% for service in collection.service %}
+      &lt;section class="service-section"&gt;
+
+        &lt;div class="service-intro"&gt;
+          {% if service.featured_image %}
+            &lt;img src="{{ service.featured_image | image }}" alt="{{ service.title }}"
+                 class="service-image"&gt;
+          {% endif %}
+          &lt;div&gt;
+            &lt;h2&gt;{{ service.title }}&lt;/h2&gt;
+            &lt;p&gt;{{ service.excerpt }}&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        {% if service.bullets %}
+          &lt;ul class="bullet-list"&gt;
+            {% for bullet in service.bullets %}
+              &lt;li class="bullet-item"&gt;
+                {% if bullet.icon %}
+                  &lt;img src="{{ bullet.icon | image }}" alt="" aria-hidden="true"
+                       class="bullet-icon"&gt;
+                {% else %}
+                  &lt;span class="bullet-dot"&gt;&amp;#8226;&lt;/span&gt;
+                {% endif %}
+                &lt;span&gt;{{ bullet.text }}&lt;/span&gt;
+              &lt;/li&gt;
+            {% endfor %}
+          &lt;/ul&gt;
+        {% endif %}
+
+        &lt;a href="{{ service.url }}" class="service-link"&gt;
+          Learn more about {{ service.title }} &amp;rarr;
+        &lt;/a&gt;
+
+      &lt;/section&gt;
+    {% else %}
+      &lt;p&gt;No services listed yet.&lt;/p&gt;
+    {% endfor %}
+  &lt;/div&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <h2>Complete Example: Team Members</h2>
+    <p>An about page using a <code>team</code> repeater (sub-fields: <code>name</code>, <code>role</code>, <code>photo</code>, <code>bio</code>, <code>linkedin</code>). The repeater is on a collection item called "About" or can be on a global field group if the team list is site-wide.</p>
+    <pre><code>{% single about from collection.page %}
+  &lt;section class="team-section"&gt;
+    &lt;h2&gt;Our Team&lt;/h2&gt;
+    &lt;div class="team-grid"&gt;
+      {% for member in about.team %}
+        &lt;div class="team-member"&gt;
+          {% if member.photo %}
+            &lt;img src="{{ member.photo | image }}" alt="{{ member.name }}"
+                 class="member-photo"&gt;
+          {% endif %}
+          &lt;h3&gt;{{ member.name }}&lt;/h3&gt;
+          &lt;p class="member-role"&gt;{{ member.role }}&lt;/p&gt;
+          {% if member.bio %}
+            &lt;p class="member-bio"&gt;{{ member.bio }}&lt;/p&gt;
+          {% endif %}
+          {% if member.linkedin %}
+            &lt;a href="{{ member.linkedin | link }}" target="_blank"
+               rel="noopener"&gt;LinkedIn&lt;/a&gt;
+          {% endif %}
+        &lt;/div&gt;
+      {% endfor %}
+    &lt;/div&gt;
+  &lt;/section&gt;
+{% endsingle %}</code></pre>
+
+    <pre><code>.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 32px;
+}
+.team-member { text-align: center; }
+.member-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px;
+  display: block;
+}
+.member-role {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #71717a;
+  margin: 2px 0 8px;
+}</code></pre>
+
+    <h2>Conditionals on Sub-Fields</h2>
+    <p>Not every row in a repeater is guaranteed to have every sub-field filled in — editors may leave optional sub-fields blank. Always guard optional sub-fields with <code>{% if row.field %}</code> before rendering them.</p>
+    <pre><code>{% for step in guide.steps %}
+  &lt;div class="step"&gt;
+    &lt;h3&gt;{{ step.title }}&lt;/h3&gt;
+    {% if step.image %}
+      &lt;img src="{{ step.image | image }}" alt="{{ step.title }}"&gt;
+    {% endif %}
+    {% if step.note %}
+      &lt;aside class="step-note"&gt;{{ step.note }}&lt;/aside&gt;
+    {% endif %}
+    {{ step.body | raw }}
+  &lt;/div&gt;
+{% endfor %}</code></pre>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — Outputting an image sub-field without checking <code>{% if row.image %}</code> first will render a broken <code>&lt;img&gt;</code> tag when the editor leaves the field blank. Always guard image and link sub-fields with a conditional.</div>
+
+    <h2>Repeaters vs. Separate Collections</h2>
+    <p>Use a repeater when the rows belong to a single parent item and do not need their own URL, status, or search visibility. Use a separate collection when each row needs to be independently published, filtered, or linked to from other pages.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Use repeater when...</th>
+          <th>Use a separate collection when...</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Items only make sense as part of their parent (e.g., a product's spec rows)</td>
+          <td>Items have their own detail pages (e.g., blog posts, team member bios)</td>
+        </tr>
+        <tr>
+          <td>The number of rows is modest and managed by one editor</td>
+          <td>Items need individual publish status (draft / scheduled / published)</td>
+        </tr>
+        <tr>
+          <td>Items do not need to be filtered or queried independently</td>
+          <td>Items need to appear in multiple places (e.g., related posts, category pages)</td>
+        </tr>
+        <tr>
+          <td>Simple structured data — testimonials, FAQs, bullet points</td>
+          <td>Complex structured data with folder labels, SEO fields, or media</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

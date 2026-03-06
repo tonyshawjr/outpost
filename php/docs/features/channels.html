@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Channels — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link active">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Channels</h1>
+    <p class="lead">Connect to external REST APIs and pull data into your templates with the same Liquid syntax you use for collections. If Collections are content you create, Channels are content that flows in from somewhere else.</p>
+  </div>
+  <div class="content">
+
+    <h2>What are Channels?</h2>
+    <p>Collections store content you write inside Outpost. Channels do the opposite &mdash; they pull content <em>in</em> from external REST APIs and make it available to your templates with familiar Liquid syntax. No plugins, no Composer dependencies, no build step.</p>
+    <p>Connect to any JSON API &mdash; a headless CMS, a product catalog, a job board, a real-estate listing service, a weather feed &mdash; and render the data in your theme templates using the same <code>&#123;% for %&#125;</code> and <code>&#123;% single %&#125;</code> tags you already know from collections. Outpost caches the external data in SQLite so pages render instantly, and re-fetches automatically when the cache expires.</p>
+
+    <p>Common use cases:</p>
+    <ul>
+      <li>Display product listings from a Shopify or WooCommerce API</li>
+      <li>Show job openings from an ATS (Greenhouse, Lever, etc.)</li>
+      <li>Pull real-estate listings from an MLS feed</li>
+      <li>Aggregate blog posts from a headless CMS like Contentful or Strapi</li>
+      <li>Show upcoming events from an external calendar API</li>
+      <li>Display weather data, stock quotes, or any public JSON endpoint</li>
+    </ul>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Channels are read-only. They pull data in from external APIs but do not push data back. If you need to create or edit content directly, use collections.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Creating a Channel</h2>
+    <p>Navigate to <strong>Admin &rarr; Channels</strong> and click <strong>New Channel</strong>. Outpost walks you through a four-step wizard to connect, map, configure, and preview your external data source.</p>
+
+    <h3>Step 1 &mdash; Connect</h3>
+    <p>Enter the API endpoint URL and configure authentication. Outpost supports four authentication methods (see <a href="#authentication-methods">Authentication Methods</a> below). You can also add custom HTTP headers and query parameters that will be sent with every request.</p>
+    <ol>
+      <li>Enter the full API URL (e.g. <code>https://api.example.com/v2/listings</code>)</li>
+      <li>Choose an authentication method &mdash; None, API Key, Bearer Token, or Basic Auth</li>
+      <li>Add any custom headers your API requires (e.g. <code>Accept: application/json</code>)</li>
+      <li>Add query parameters that should be included on every request (e.g. <code>status=active</code>, <code>per_page=100</code>)</li>
+      <li>Click <strong>Test Connection</strong> to verify the API responds with a <code>200</code> status and valid JSON</li>
+    </ol>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; The test connection button sends a real request to the API and shows you the raw JSON response. Use this to verify your URL, auth credentials, and headers are correct before proceeding.</div>
+
+    <h3>Step 2 &mdash; Schema</h3>
+    <p>After a successful test connection, Outpost displays the JSON response as an interactive tree. This step lets you tell Outpost where the data lives and which fields to use.</p>
+    <ol>
+      <li><strong>Data path</strong> &mdash; set the dot-notation path to the array of items in the response (see <a href="#data-path-extraction">Data Path Extraction</a>). For example, if your API returns <code>{"data": {"listings": [...]}}</code>, enter <code>data.listings</code>.</li>
+      <li><strong>Select fields</strong> &mdash; check the fields you want to include from each item. Unchecked fields are ignored and not cached.</li>
+      <li><strong>ID field</strong> &mdash; choose the field that uniquely identifies each item (e.g. <code>id</code>, <code>uuid</code>, <code>_id</code>). This is used for cache updates and single-item lookups.</li>
+      <li><strong>Slug field</strong> &mdash; choose or generate the field used for URL-friendly slugs (e.g. <code>slug</code>, <code>handle</code>). If the API does not provide a slug, Outpost can auto-generate one from a text field like <code>title</code> or <code>name</code>.</li>
+    </ol>
+
+    <h3>Step 3 &mdash; Configure</h3>
+    <p>Set the channel&rsquo;s identity and behaviour.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong></td>
+          <td>Human-readable label shown in the admin (e.g. <code>Job Listings</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Slug</strong></td>
+          <td>URL-safe identifier used in templates &mdash; <code>channel.<em>slug</em></code> (e.g. <code>jobs</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Cache TTL</strong></td>
+          <td>How long cached data is considered fresh before Outpost re-fetches from the API. Options: 5 minutes, 15 minutes, 1 hour, 6 hours, Daily, Manual only</td>
+        </tr>
+        <tr>
+          <td><strong>Max items</strong></td>
+          <td>Maximum number of items to store from the API. Leave blank for unlimited</td>
+        </tr>
+        <tr>
+          <td><strong>Sort field</strong></td>
+          <td>Which field to sort items by when rendering in templates</td>
+        </tr>
+        <tr>
+          <td><strong>Sort direction</strong></td>
+          <td>Ascending or descending</td>
+        </tr>
+        <tr>
+          <td><strong>URL pattern</strong></td>
+          <td>Route pattern for single-item pages (e.g. <code>/listing/{slug}</code>). Leave blank if you do not need single-item pages</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Step 4 &mdash; Preview</h3>
+    <p>Outpost fetches the first batch of items and displays them in a table so you can verify the data looks correct. This step also provides auto-generated template code you can copy directly into your theme templates.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The preview performs a real sync. After completing the wizard, data is already cached and ready for template rendering.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="authentication-methods">Authentication Methods</h2>
+    <p>Outpost supports four methods for authenticating with external APIs. Choose the method your API provider requires.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>How it works</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>None</strong></td>
+          <td>No authentication headers are sent. Use this for public APIs that do not require credentials.</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><strong>API Key</strong></td>
+          <td>Sends a custom header with your API key. You specify both the header name and the key value.</td>
+          <td><code>X-API-Key: sk_live_abc123</code></td>
+        </tr>
+        <tr>
+          <td><strong>Bearer Token</strong></td>
+          <td>Sends an <code>Authorization</code> header with a Bearer token prefix.</td>
+          <td><code>Authorization: Bearer eyJhbGci...</code></td>
+        </tr>
+        <tr>
+          <td><strong>Basic Auth</strong></td>
+          <td>Sends an <code>Authorization</code> header with Base64-encoded <code>username:password</code> credentials.</td>
+          <td><code>Authorization: Basic dXNlcjpwYXNz</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn"><strong>Warning</strong> &mdash; API keys and tokens are stored in your SQLite database. Keep your <code>outpost/data/</code> directory protected and never expose it to the public web. Use server-level restrictions to limit access to the <code>data/</code> directory.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="data-path-extraction">Data Path Extraction</h2>
+    <p>Most APIs do not return a bare JSON array. Instead, the items you care about are nested inside the response under one or more keys. The <strong>data path</strong> tells Outpost where to find the array of items using dot notation.</p>
+
+    <h3>Example</h3>
+    <p>Given this API response:</p>
+    <pre><code>{
+  "status": "ok",
+  "meta": {
+    "total": 142,
+    "page": 1
+  },
+  "data": {
+    "listings": [
+      { "id": 1, "title": "Oceanfront Villa", "price": 850000 },
+      { "id": 2, "title": "Downtown Loft", "price": 425000 },
+      { "id": 3, "title": "Mountain Cabin", "price": 310000 }
+    ]
+  }
+}</code></pre>
+
+    <p>Set the data path to <code>data.listings</code> and Outpost extracts the three listing objects. The <code>status</code> and <code>meta</code> keys are ignored.</p>
+
+    <h3>Common data paths</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>API response shape</th>
+          <th>Data path</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>[{...}, {...}]</code> (bare array at the top level)</td>
+          <td><em>(leave blank)</em></td>
+        </tr>
+        <tr>
+          <td><code>{"data": [{...}]}</code></td>
+          <td><code>data</code></td>
+        </tr>
+        <tr>
+          <td><code>{"results": [{...}]}</code></td>
+          <td><code>results</code></td>
+        </tr>
+        <tr>
+          <td><code>{"response": {"items": [{...}]}}</code></td>
+          <td><code>response.items</code></td>
+        </tr>
+        <tr>
+          <td><code>{"data": {"listings": [{...}]}}</code></td>
+          <td><code>data.listings</code></td>
+        </tr>
+        <tr>
+          <td><code>{"feed": {"entries": [{...}]}}</code></td>
+          <td><code>feed.entries</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you are unsure of the response shape, use the <strong>Test Connection</strong> button in Step 1. The raw JSON response is displayed in a collapsible panel so you can inspect the structure. In Step 2, Outpost auto-detects the most likely data path for you to confirm or adjust.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Rendering in Templates</h2>
+    <p>Channel data is rendered in your Liquid templates using the same loop syntax as collections, with <code>channel.</code> instead of <code>collection.</code>.</p>
+
+    <h3>Basic channel loop</h3>
+    <pre><code>&#123;% for item in channel.listings %&#125;
+  &lt;div class="listing-card"&gt;
+    &lt;h2&gt;&#123;&#123; item.title &#125;&#125;&lt;/h2&gt;
+    &lt;p class="price"&gt;$&#123;&#123; item.price &#125;&#125;&lt;/p&gt;
+    &lt;p&gt;&#123;&#123; item.description &#125;&#125;&lt;/p&gt;
+    &lt;a href="&#123;&#123; item.url &#125;&#125;"&gt;View details&lt;/a&gt;
+  &lt;/div&gt;
+&#123;% else %&#125;
+  &lt;p&gt;No listings found.&lt;/p&gt;
+&#123;% endfor %&#125;</code></pre>
+
+    <p>The <code>&#123;% else %&#125;</code> block is optional and renders when the channel has no cached items.</p>
+
+    <h3>Loop options</h3>
+    <p>Channel loops support the same inline options as collection loops:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Option</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>limit</code></td>
+          <td>Maximum number of items to render</td>
+          <td><code>&#123;% for item in channel.listings limit:6 %&#125;</code></td>
+        </tr>
+        <tr>
+          <td><code>orderby</code></td>
+          <td>Sort by a specific field (overrides the default sort configured on the channel)</td>
+          <td><code>&#123;% for item in channel.listings orderby:price %&#125;</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Accessing fields</h3>
+    <p>Inside the loop, use <code>&#123;&#123; item.field_name &#125;&#125;</code> to output any field you selected during the schema mapping step. Field values are auto-escaped by default. Use the <code>| raw</code> filter for fields that contain HTML:</p>
+    <pre><code>&#123;&#123; item.title &#125;&#125;              &lt;!-- auto-escaped --&gt;
+&#123;&#123; item.body | raw &#125;&#125;         &lt;!-- HTML rendered as-is --&gt;
+&#123;&#123; item.featured_image | image &#125;&#125;  &lt;!-- image tag --&gt;</code></pre>
+
+    <h3>Full example &mdash; job board page</h3>
+    <pre><code>{#--- Template: Careers | Route: /careers ---#}
+&#123;% include 'head' %&#125;
+&#123;% include 'nav' %&#125;
+
+&lt;main class="careers-page"&gt;
+  &lt;h1&gt;Open Positions&lt;/h1&gt;
+
+  &#123;% for job in channel.jobs limit:20 %&#125;
+    &lt;article class="job-posting"&gt;
+      &lt;h2&gt;&lt;a href="/careers/&#123;&#123; job.slug &#125;&#125;"&gt;&#123;&#123; job.title &#125;&#125;&lt;/a&gt;&lt;/h2&gt;
+      &lt;div class="job-meta"&gt;
+        &lt;span&gt;&#123;&#123; job.department &#125;&#125;&lt;/span&gt;
+        &lt;span&gt;&#123;&#123; job.location &#125;&#125;&lt;/span&gt;
+        &lt;span&gt;&#123;&#123; job.type &#125;&#125;&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;p&gt;&#123;&#123; job.excerpt &#125;&#125;&lt;/p&gt;
+    &lt;/article&gt;
+  &#123;% else %&#125;
+    &lt;p&gt;No open positions at this time. Check back soon.&lt;/p&gt;
+  &#123;% endfor %&#125;
+&lt;/main&gt;
+
+&#123;% include 'footer' %&#125;</code></pre>
+
+    <p>For full loop syntax details and additional examples, see <a href="loops/channel-loops.html">Channel Loops</a>.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Single Item Pages</h2>
+    <p>Channels support single-item detail pages, just like collections. To enable them, set a <strong>URL pattern</strong> when creating the channel (Step 3 of the wizard). The URL pattern uses <code>{slug}</code> as a placeholder for the item&rsquo;s slug value.</p>
+
+    <h3>Setting up</h3>
+    <ol>
+      <li>Set the <strong>URL pattern</strong> in the channel configuration (e.g. <code>/listing/{slug}</code>)</li>
+      <li>Create a matching template file in your theme (e.g. <code>listing.html</code>)</li>
+      <li>Use the <code>&#123;% single %&#125;</code> tag in the template to load the item by its slug</li>
+    </ol>
+
+    <p>The front router extracts the slug from the URL, sets <code>$_GET['slug']</code>, and renders the matching template &mdash; the same routing mechanism used for collections.</p>
+
+    <h3>The single tag</h3>
+    <pre><code>&#123;% single listing from channel.listings %&#125;
+  &lt;article class="listing-detail"&gt;
+    &lt;h1&gt;&#123;&#123; listing.title &#125;&#125;&lt;/h1&gt;
+    &lt;div class="price"&gt;$&#123;&#123; listing.price &#125;&#125;&lt;/div&gt;
+    &lt;div class="description"&gt;&#123;&#123; listing.description | raw &#125;&#125;&lt;/div&gt;
+    &lt;ul class="details"&gt;
+      &lt;li&gt;Bedrooms: &#123;&#123; listing.bedrooms &#125;&#125;&lt;/li&gt;
+      &lt;li&gt;Bathrooms: &#123;&#123; listing.bathrooms &#125;&#125;&lt;/li&gt;
+      &lt;li&gt;Square feet: &#123;&#123; listing.sqft &#125;&#125;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/article&gt;
+&#123;% else %&#125;
+  &lt;h1&gt;Listing not found&lt;/h1&gt;
+  &lt;p&gt;The listing you're looking for may have been removed or the URL is incorrect.&lt;/p&gt;
+&#123;% endsingle %&#125;</code></pre>
+
+    <p>The <code>&#123;% else %&#125;</code> block renders when no item matches the slug in the URL &mdash; useful for displaying a 404-style message within your theme&rsquo;s layout.</p>
+
+    <h3>Full example &mdash; single job page</h3>
+    <pre><code>{#--- Template: Job Detail | Route: /careers/{slug} ---#}
+&#123;% include 'head' %&#125;
+&#123;% include 'nav' %&#125;
+
+&lt;main class="job-detail-page"&gt;
+  &#123;% single job from channel.jobs %&#125;
+    &lt;article&gt;
+      &lt;h1&gt;&#123;&#123; job.title &#125;&#125;&lt;/h1&gt;
+      &lt;div class="job-meta"&gt;
+        &lt;span&gt;&#123;&#123; job.department &#125;&#125;&lt;/span&gt; &amp;middot;
+        &lt;span&gt;&#123;&#123; job.location &#125;&#125;&lt;/span&gt; &amp;middot;
+        &lt;span&gt;&#123;&#123; job.type &#125;&#125;&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class="job-body"&gt;
+        &#123;&#123; job.description | raw &#125;&#125;
+      &lt;/div&gt;
+      &lt;a href="&#123;&#123; job.apply_url &#125;&#125;" class="btn"&gt;Apply Now&lt;/a&gt;
+    &lt;/article&gt;
+  &#123;% else %&#125;
+    &lt;h1&gt;Position not found&lt;/h1&gt;
+    &lt;p&gt;This position may have been filled. &lt;a href="/careers"&gt;View all open positions&lt;/a&gt;.&lt;/p&gt;
+  &#123;% endsingle %&#125;
+&lt;/main&gt;
+
+&#123;% include 'footer' %&#125;</code></pre>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Caching and Sync</h2>
+    <p>Channels store fetched API data in your SQLite database, so templates never make HTTP requests at render time. Instead, Outpost manages a local cache that is refreshed based on the TTL you configure for each channel.</p>
+
+    <h3>How caching works</h3>
+    <ol>
+      <li>When a channel is first created (or manually synced), Outpost fetches data from the API and stores each item as a row in the <code>channel_items</code> table.</li>
+      <li>On every template render that includes a channel loop, Outpost checks whether the cache has expired based on the channel&rsquo;s TTL setting.</li>
+      <li>If the cache is still fresh, items are served directly from SQLite &mdash; no HTTP request is made.</li>
+      <li>If the cache has expired, Outpost re-fetches from the API in the background. The stale data is served immediately to avoid slow page loads, and the cache is updated for the next request.</li>
+    </ol>
+
+    <h3>Cache TTL options</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>TTL</th>
+          <th>Re-fetch interval</th>
+          <th>Best for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>5 minutes</strong></td>
+          <td>Every 5 min</td>
+          <td>Rapidly changing data (stock prices, live feeds)</td>
+        </tr>
+        <tr>
+          <td><strong>15 minutes</strong></td>
+          <td>Every 15 min</td>
+          <td>Frequently updated APIs (news, social feeds)</td>
+        </tr>
+        <tr>
+          <td><strong>1 hour</strong></td>
+          <td>Every 60 min</td>
+          <td>Moderately updated data (product catalogs, job boards)</td>
+        </tr>
+        <tr>
+          <td><strong>6 hours</strong></td>
+          <td>Every 6 hours</td>
+          <td>Slow-changing data (event calendars, directory listings)</td>
+        </tr>
+        <tr>
+          <td><strong>Daily</strong></td>
+          <td>Once per day</td>
+          <td>Rarely changing data (partner lists, static reference data)</td>
+        </tr>
+        <tr>
+          <td><strong>Manual only</strong></td>
+          <td>Never auto-refreshes</td>
+          <td>Data you want to control explicitly from the admin panel</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Manual sync</h3>
+    <p>Navigate to <strong>Admin &rarr; Channels &rarr; select a channel</strong> and click <strong>Sync Now</strong> to force an immediate re-fetch from the API, regardless of the TTL. This is useful when you know the upstream data has changed and you do not want to wait for the cache to expire.</p>
+
+    <h3>Sync dashboard</h3>
+    <p>Each channel displays sync status information in the admin:</p>
+    <ul>
+      <li><strong>Last synced</strong> &mdash; timestamp of the most recent successful sync</li>
+      <li><strong>Item count</strong> &mdash; how many items are currently cached</li>
+      <li><strong>Sync history</strong> &mdash; log of recent sync operations with timestamps, item counts (added, updated, removed), duration, and any errors</li>
+      <li><strong>Errors</strong> &mdash; if the last sync failed, the error message and HTTP status code are displayed. Common errors include authentication failures (401/403), rate limiting (429), and connection timeouts</li>
+    </ul>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; If a sync fails, Outpost keeps serving the previously cached data. Your templates will not break because of a temporary API outage &mdash; they will continue to display the last successfully fetched data until the next successful sync.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Pagination Support</h2>
+    <p>Many APIs return data in pages rather than all at once. Outpost supports two pagination strategies to automatically fetch all pages during a sync.</p>
+
+    <h3>Offset-based pagination</h3>
+    <p>The most common pattern. The API accepts <code>page</code> or <code>offset</code> query parameters, and Outpost increments them until all items are fetched.</p>
+    <p>Configure these settings when creating or editing a channel:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Page param</strong></td>
+          <td>The query parameter name for the page number</td>
+          <td><code>page</code></td>
+        </tr>
+        <tr>
+          <td><strong>Per-page param</strong></td>
+          <td>The query parameter name for items per page</td>
+          <td><code>per_page</code></td>
+        </tr>
+        <tr>
+          <td><strong>Per-page value</strong></td>
+          <td>Number of items to request per page</td>
+          <td><code>100</code></td>
+        </tr>
+        <tr>
+          <td><strong>Total path</strong></td>
+          <td>Dot-notation path to the total count in the response</td>
+          <td><code>meta.total</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Outpost starts at page 1 and keeps requesting subsequent pages until it has fetched all items (determined by the total count) or hits the <strong>Max items</strong> limit.</p>
+
+    <h3>Cursor-based pagination</h3>
+    <p>Some APIs use a cursor or token to indicate the next page of results. Outpost extracts the cursor from each response and includes it in the next request.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Cursor param</strong></td>
+          <td>The query parameter name to send the cursor value</td>
+          <td><code>cursor</code> or <code>after</code></td>
+        </tr>
+        <tr>
+          <td><strong>Cursor path</strong></td>
+          <td>Dot-notation path to the next cursor value in the response</td>
+          <td><code>meta.next_cursor</code> or <code>paging.next</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Outpost continues fetching pages until the cursor value is <code>null</code>, empty, or absent from the response, or until the <strong>Max items</strong> limit is reached.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If your API does not paginate (it returns all items in a single response), leave the pagination settings blank. Outpost will make a single request and cache whatever items are returned.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Channel vs Collection</h2>
+    <p>Channels and collections serve different purposes but share the same template interface. Here is a side-by-side comparison:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Collections</th>
+          <th>Channels</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Data source</strong></td>
+          <td>Created and edited in the Outpost admin</td>
+          <td>Fetched from an external REST API</td>
+        </tr>
+        <tr>
+          <td><strong>Template loop syntax</strong></td>
+          <td><code>&#123;% for item in collection.slug %&#125;</code></td>
+          <td><code>&#123;% for item in channel.slug %&#125;</code></td>
+        </tr>
+        <tr>
+          <td><strong>Single item syntax</strong></td>
+          <td><code>&#123;% single var from collection.slug %&#125;</code></td>
+          <td><code>&#123;% single var from channel.slug %&#125;</code></td>
+        </tr>
+        <tr>
+          <td><strong>URL patterns</strong></td>
+          <td>Yes</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><strong>Editing items</strong></td>
+          <td>Full WYSIWYG editor in admin</td>
+          <td>Read-only &mdash; data is managed at the source</td>
+        </tr>
+        <tr>
+          <td><strong>Storage</strong></td>
+          <td>SQLite (<code>collection_items</code> table)</td>
+          <td>SQLite cache (<code>channel_items</code> table) with TTL</td>
+        </tr>
+        <tr>
+          <td><strong>Freshness</strong></td>
+          <td>Always current (stored locally)</td>
+          <td>Depends on cache TTL and sync schedule</td>
+        </tr>
+        <tr>
+          <td><strong>Authentication</strong></td>
+          <td>N/A</td>
+          <td>None, API Key, Bearer Token, or Basic Auth</td>
+        </tr>
+        <tr>
+          <td><strong>Folders</strong></td>
+          <td>Yes</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><strong>Revisions</strong></td>
+          <td>Yes</td>
+          <td>No &mdash; historical data is not tracked</td>
+        </tr>
+        <tr>
+          <td><strong>Scheduling</strong></td>
+          <td>Yes (publish/unpublish dates)</td>
+          <td>No &mdash; items appear as soon as they are synced</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>API Endpoints</h2>
+    <p>Channels are managed through the admin API at <code>api.php?action=<em>endpoint</em></code>. All endpoints require session authentication and a valid CSRF token. For full details, see <a href="api/admin-api.html">Admin API</a>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>channels</code></td>
+          <td>List all channels</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>channels&amp;id=N</code></td>
+          <td>Get a single channel with its configuration and schema</td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>channels</code></td>
+          <td>Create a new channel</td>
+        </tr>
+        <tr>
+          <td><code>PUT</code></td>
+          <td><code>channels&amp;id=N</code></td>
+          <td>Update an existing channel&rsquo;s configuration</td>
+        </tr>
+        <tr>
+          <td><code>DELETE</code></td>
+          <td><code>channels&amp;id=N</code></td>
+          <td>Delete a channel and all its cached data</td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>channels/test</code></td>
+          <td>Test an API connection (URL, auth, headers) without saving</td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>channels/sync&amp;id=N</code></td>
+          <td>Trigger a manual sync for a specific channel</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>channels/items&amp;id=N</code></td>
+          <td>List cached items for a channel (with pagination)</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>channels/history&amp;id=N</code></td>
+          <td>Get sync history log for a channel</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Channel items are read-only through the API. There is no endpoint to create or update individual items &mdash; data flows in one direction, from the external API into the Outpost cache.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

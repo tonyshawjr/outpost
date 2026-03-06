@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Overview &amp; Auth — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link active">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>API Overview &amp; Auth</h1>
+    <p class="lead">Outpost exposes three separate APIs for different use cases: a session-authenticated Admin API for CMS operations, a public Content API for headless and frontend use, and a key-authenticated Sync API for the Outpost Builder desktop app.</p>
+  </div>
+  <div class="content">
+
+    <h2>The three APIs at a glance</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>API</th>
+          <th>Base URL</th>
+          <th>Auth</th>
+          <th>Use case</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Admin API</strong></td>
+          <td><code>api.php?action=&lt;endpoint&gt;</code></td>
+          <td>Session + CSRF <em>or</em> Bearer token</td>
+          <td>CMS admin UI, CI/CD, headless integrations</td>
+        </tr>
+        <tr>
+          <td><strong>Public Content API</strong></td>
+          <td><code>api.php?action=content/&lt;endpoint&gt;</code></td>
+          <td>None (open CORS)</td>
+          <td>Headless frontends, static site generators, JS apps</td>
+        </tr>
+        <tr>
+          <td><strong>Member API</strong></td>
+          <td><code>member-api.php?action=&lt;endpoint&gt;</code></td>
+          <td>Member session cookie + CSRF token</td>
+          <td>Member login, registration, profile updates</td>
+        </tr>
+        <tr>
+          <td><strong>Sync API</strong></td>
+          <td><code>sync-api.php?action=&lt;endpoint&gt;</code></td>
+          <td><code>X-Outpost-Key</code> header</td>
+          <td>Outpost Builder desktop app, theme file sync</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Base URL</h2>
+
+    <p>All API files live inside the <code>/outpost/</code> directory of your site. Assuming your site is at <code>https://example.com</code>:</p>
+
+    <pre><code>https://example.com/outpost/api.php?action=&lt;endpoint&gt;
+https://example.com/outpost/member-api.php?action=&lt;endpoint&gt;
+https://example.com/outpost/sync-api.php?action=&lt;endpoint&gt;</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      All requests return <code>Content-Type: application/json; charset=utf-8</code>. Send JSON request bodies with <code>Content-Type: application/json</code>.
+    </div>
+
+    <h2>HTTP methods and routing</h2>
+
+    <p>Each endpoint is addressed by combining the HTTP method with the <code>action</code> query parameter. The same <code>action</code> value may behave differently depending on the method:</p>
+
+    <pre><code>GET  api.php?action=pages         → list all pages
+GET  api.php?action=pages&id=5    → get a single page
+PUT  api.php?action=pages&id=5    → update a page
+POST api.php?action=collections   → create a collection
+DELETE api.php?action=items&id=12 → delete an item</code></pre>
+
+    <h2>Admin API authentication</h2>
+
+    <p>The Admin API supports two authentication methods: <strong>session-based</strong> (for the browser admin UI) and <strong>API key-based</strong> (for headless/external use). You can use either one — they access the same endpoints.</p>
+
+    <h3>Option A — API key (headless)</h3>
+
+    <p>For CI/CD pipelines, static site generators, and external tools, use a Bearer token. Create an API key in <strong>Settings &rarr; API Keys</strong>, then pass it in every request:</p>
+
+    <pre><code>Authorization: Bearer op_a1b2c3d4e5f6...</code></pre>
+
+    <p>No session cookie or CSRF token is needed — the Bearer token handles both authentication and authorization. The key inherits the role and permissions of the user it was created under.</p>
+
+    <p><strong>Example — curl:</strong></p>
+    <pre><code># Read pages
+curl -H "Authorization: Bearer op_a1b2c3d4e5f6..." \
+     "https://example.com/outpost/api.php?action=pages"
+
+# Create a collection item (no CSRF token needed)
+curl -X POST \
+     -H "Authorization: Bearer op_a1b2c3d4e5f6..." \
+     -H "Content-Type: application/json" \
+     -d '{"collection": 1, "slug": "my-post", "data": {"title": "Hello"}}' \
+     "https://example.com/outpost/api.php?action=items"</code></pre>
+
+    <div class="callout callout-warn">
+      <strong>Security</strong>
+      API keys are shown once on creation and stored as bcrypt hashes — they cannot be retrieved later. Treat them like passwords. Revoke compromised keys immediately in Settings.
+    </div>
+
+    <h3>Option B — Session + CSRF (browser)</h3>
+
+    <p>The browser admin UI uses session cookies. You must log in to obtain a session cookie, then pass a CSRF token on all mutating requests (POST, PUT, DELETE).</p>
+
+    <h3>Step 1 — Log in</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/login</span>
+      </div>
+      <p>Authenticates an admin user and sets the <code>outpost_session</code> cookie. This endpoint is public — no prior auth required.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "username": "admin",
+  "password": "your-password"
+}</code></pre>
+
+    <p>Success response (no 2FA):</p>
+    <pre><code>{
+  "success": true,
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "role": "super_admin"
+  },
+  "csrf_token": "a1b2c3..."
+}</code></pre>
+
+    <p>If the user has <a href="#two-factor-authentication-totp">two-factor authentication</a> enabled, the response will instead contain <code>requires_2fa</code> and a <code>totp_token</code> — see the 2FA section below for details.</p>
+
+    <p>The session cookie <code>outpost_session</code> is <code>HttpOnly</code> and has a 24-hour lifetime. All subsequent admin API requests must carry this cookie.</p>
+
+    <div class="callout callout-warn">
+      <strong>Rate limiting</strong>
+      The login endpoint is rate-limited to 5 failed attempts per 60 seconds per IP address. After 5 failures you will receive a <code>429 Too Many Requests</code> response.
+    </div>
+
+    <h3>Step 2 — Get a CSRF token</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=auth/me</span>
+      </div>
+      <p>Returns the currently authenticated user and a fresh CSRF token. Use this to bootstrap your frontend after login.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "display_name": "Admin",
+    "avatar": "",
+    "bio": "",
+    "role": "super_admin",
+    "totp_enabled": false
+  },
+  "csrf_token": "a1b2c3d4e5f6...",
+  "version": "1.0.0"
+}</code></pre>
+
+    <h3>Step 3 — Send CSRF token on mutations</h3>
+
+    <p>All POST, PUT, and DELETE requests to the Admin API require a valid CSRF token. Send it as an HTTP header:</p>
+
+    <pre><code>X-CSRF-Token: a1b2c3d4e5f6...</code></pre>
+
+    <p>Or as a field in the JSON body:</p>
+
+    <pre><code>{
+  "_csrf": "a1b2c3d4e5f6...",
+  "title": "My Page"
+}</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      The media upload endpoint (<code>media/upload</code>) and the WordPress import endpoint (<code>import/wordpress</code>) are exempt from the standard JSON CSRF check because they use multipart form uploads. They perform their own CSRF validation via a form field named <code>csrf_token</code>.
+    </div>
+
+    <h3>Full login example — curl</h3>
+
+    <pre><code># 1. Log in and save the session cookie
+curl -c cookies.txt -X POST https://example.com/outpost/api.php?action=auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"secret"}'
+
+# 2. Get CSRF token
+curl -b cookies.txt https://example.com/outpost/api.php?action=auth/me
+
+# 3. Use the token on a mutating request
+curl -b cookies.txt -X PUT \
+  "https://example.com/outpost/api.php?action=pages&id=1" \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: a1b2c3d4e5f6..." \
+  -d '{"title":"Home","status":"published"}'</code></pre>
+
+    <h3>Full login example — JavaScript fetch</h3>
+
+    <pre><code>// 1. Log in
+const loginRes = await fetch('/outpost/api.php?action=auth/login', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username: 'admin', password: 'secret' }),
+});
+
+// 2. Get CSRF token
+const meRes = await fetch('/outpost/api.php?action=auth/me', {
+  credentials: 'include',
+});
+const { csrf_token } = await meRes.json();
+
+// 3. Mutating request
+const updateRes = await fetch('/outpost/api.php?action=pages&id=1', {
+  method: 'PUT',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': csrf_token,
+  },
+  body: JSON.stringify({ title: 'Home', status: 'published' }),
+});
+const result = await updateRes.json();</code></pre>
+
+    <h3>Log out</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/logout</span>
+      </div>
+      <p>Destroys the admin session and clears the cookie. Requires an active session and a valid CSRF token.</p>
+    </div>
+
+    <h2>Admin password reset</h2>
+
+    <p>Admin users can reset their own password via a two-step flow. These endpoints are public — no session required.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/forgot</span>
+      </div>
+      <p>Sends a password reset email to the given address if it belongs to an admin account. Always returns <code>{"success": true}</code> regardless of whether the address exists, to prevent user enumeration.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "email": "admin@example.com" }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/reset</span>
+      </div>
+      <p>Completes a password reset. The token is valid for 1 hour. Requires a password of at least 8 characters.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "token": "64-char-hex-token-from-email",
+  "password": "new-password-min-8-chars"
+}</code></pre>
+
+    <h2>Two-factor authentication (TOTP)</h2>
+
+    <p>Outpost supports optional per-user TOTP two-factor authentication. When enabled, the login flow adds a second step — the user must enter a 6-digit code from their authenticator app (or a one-time backup code) after their password is verified.</p>
+
+    <div class="callout callout-note">
+      <strong>API key auth is unaffected</strong>
+      Two-factor authentication only applies to browser session login. API key (Bearer token) authentication bypasses 2FA entirely.
+    </div>
+
+    <h3>Login with 2FA enabled</h3>
+
+    <p>When a user with 2FA enabled logs in via <code>auth/login</code>, the response changes:</p>
+
+    <pre><code>{
+  "success": true,
+  "requires_2fa": true,
+  "totp_token": "base64-signed-token..."
+}</code></pre>
+
+    <p>No session is created yet. The <code>totp_token</code> is a signed, time-limited token (5 minutes) that proves the password was verified. You must pass it to the verify endpoint along with the TOTP code.</p>
+
+    <h3>Verify TOTP code</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/totp/verify</span>
+      </div>
+      <p>Public endpoint. Validates a TOTP code (or backup code) against the signed token from login. On success, creates the session and returns the same response as a normal login.</p>
+    </div>
+
+    <p>Request body (authenticator code):</p>
+    <pre><code>{
+  "code": "123456",
+  "totp_token": "base64-signed-token..."
+}</code></pre>
+
+    <p>Request body (backup code):</p>
+    <pre><code>{
+  "code": "abcd234567",
+  "totp_token": "base64-signed-token...",
+  "is_backup": true
+}</code></pre>
+
+    <p>Success response (same as normal login):</p>
+    <pre><code>{
+  "success": true,
+  "user": { "id": 1, "username": "admin", "role": "super_admin" },
+  "csrf_token": "a1b2c3..."
+}</code></pre>
+
+    <h3>2FA management endpoints</h3>
+
+    <p>These endpoints require an active admin session and a valid CSRF token.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=auth/totp/status</span>
+      </div>
+      <p>Returns the current user's 2FA status and remaining backup code count.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "enabled": true,
+  "backup_codes_remaining": 7
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/totp/setup</span>
+      </div>
+      <p>Generates a new TOTP secret and returns it along with the <code>otpauth://</code> URI for QR code rendering. The secret is stored but 2FA is <strong>not yet enabled</strong> — you must call <code>auth/totp/enable</code> with a valid code to activate it.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "secret": "JBSWY3DPEHPK3PXP...",
+  "uri": "otpauth://totp/Outpost%20CMS:admin?secret=JBSWY3DPEHPK3PXP...&issuer=Outpost%20CMS&algorithm=SHA1&digits=6&period=30"
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/totp/enable</span>
+      </div>
+      <p>Verifies a 6-digit code against the stored secret and enables 2FA. Returns 8 plaintext backup codes that the user must save — they are stored as bcrypt hashes and cannot be retrieved again.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "code": "123456" }</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "backup_codes": [
+    "abcd234567", "efgh891234", "jkmn567890", "pqrs234567",
+    "tuvw891234", "xyz2345678", "abcd567890", "efgh234567"
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/totp/disable</span>
+      </div>
+      <p>Disables 2FA for the current user. Requires password confirmation. Clears the TOTP secret and all backup codes.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "password": "your-password" }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=auth/totp/backup-codes</span>
+      </div>
+      <p>Regenerates backup codes for the current user. Requires password confirmation. Invalidates all existing backup codes and returns 8 new ones.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "password": "your-password" }</code></pre>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true,
+  "backup_codes": [ "abcd234567", "efgh891234", ... ]
+}</code></pre>
+
+    <h2>Response format</h2>
+
+    <p>All Admin API responses follow one of two shapes:</p>
+
+    <p><strong>Success — read operations</strong></p>
+    <pre><code>{
+  "pages": [ ... ],
+  "collection": { ... }
+}</code></pre>
+
+    <p><strong>Success — write operations</strong></p>
+    <pre><code>{ "success": true }
+// or with a created ID:
+{ "success": true, "id": 42 }</code></pre>
+
+    <p><strong>Error</strong></p>
+    <pre><code>{ "error": "Human-readable error message" }</code></pre>
+
+    <h2>HTTP status codes</h2>
+
+    <table class="schema-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>200</code></td><td>Success</td></tr>
+        <tr><td><code>201</code></td><td>Created (resource was created)</td></tr>
+        <tr><td><code>204</code></td><td>No content (OPTIONS preflight)</td></tr>
+        <tr><td><code>400</code></td><td>Bad request — missing or invalid parameters</td></tr>
+        <tr><td><code>401</code></td><td>Unauthorized — not logged in, or invalid credentials</td></tr>
+        <tr><td><code>403</code></td><td>Forbidden — logged in but insufficient role, or invalid CSRF token</td></tr>
+        <tr><td><code>404</code></td><td>Not found — resource does not exist, or unknown action</td></tr>
+        <tr><td><code>429</code></td><td>Too many requests — rate limit exceeded</td></tr>
+        <tr><td><code>500</code></td><td>Server error</td></tr>
+      </tbody>
+    </table>
+
+    <h2>CORS policy</h2>
+
+    <p>The Admin API only allows CORS requests from <code>localhost</code> origins. This covers local development but prevents cross-origin requests from arbitrary production domains.</p>
+
+    <p>The Public Content API (<code>content/</code> actions) sets <code>Access-Control-Allow-Origin: *</code> — any origin can call it, no credentials required.</p>
+
+    <h2>Roles and capabilities</h2>
+
+    <p>Admin API endpoints enforce role-based access. Certain resource groups require specific capabilities:</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr>
+          <th>Action prefix</th>
+          <th>Required capability</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>settings</code></td><td><code>settings.*</code></td></tr>
+        <tr><td><code>users</code></td><td><code>users.*</code></td></tr>
+        <tr><td><code>code</code></td><td><code>code.*</code></td></tr>
+        <tr><td><code>loops</code></td><td><code>code.*</code></td></tr>
+        <tr><td><code>cache</code></td><td><code>cache.*</code></td></tr>
+        <tr><td><code>members</code></td><td><code>members.*</code></td></tr>
+        <tr><td><code>themes</code></td><td><code>settings.*</code></td></tr>
+        <tr><td><code>sync</code></td><td><code>settings.*</code></td></tr>
+        <tr><td><code>apikeys</code></td><td><code>settings.*</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>See <a href="members/admin-roles.html">Admin Roles</a> for the full role-to-capability matrix.</p>
+
+    <h2>Content API authentication</h2>
+
+    <p>The Public Content API requires no authentication. It is completely open — any client from any domain can call <code>api.php?action=content/...</code> endpoints. Only published content is returned.</p>
+
+    <p>See <a href="api/content-api.html">Public Content API</a> for the full endpoint reference.</p>
+
+    <h2>Member API authentication</h2>
+
+    <p>The Member API uses a separate session system from the Admin API. Members authenticate via <code>member-api.php</code>. The session cookie is named <code>outpost_member</code> and lasts 30 days.</p>
+
+    <p>CSRF protection works the same way as the Admin API — get a token from <code>member-api.php?action=me</code> after login, then pass it as <code>X-CSRF-Token</code> on mutations.</p>
+
+    <p>See <a href="api/member-api.html">Member API</a> for the full endpoint reference.</p>
+
+    <h2>Sync API authentication</h2>
+
+    <p>The Sync API uses a static 64-character hex key stored in the site's settings database. Pass it in every request as a header:</p>
+
+    <pre><code>X-Outpost-Key: your-64-char-hex-key</code></pre>
+
+    <p>Generate or view the sync key in the Outpost admin under Settings. The Sync API also enforces HTTPS on non-localhost requests and rate-limits failed authentication attempts to 5 per hour.</p>
+
+    <p>See <a href="api/sync-api.html">Sync API</a> for the full endpoint reference.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

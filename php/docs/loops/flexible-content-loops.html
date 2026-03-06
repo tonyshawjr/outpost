@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flexible Content Loops — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link active">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Flexible Content Loops</h1>
+    <p class="lead">Build dynamic page layouts from modular content blocks. Flexible content fields let editors compose pages from named layouts &mdash; each with its own set of sub-fields &mdash; enabling freeform page building within a structured schema.</p>
+  </div>
+  <div class="content">
+
+    <h2>What Is a Flexible Content Field?</h2>
+    <p>A flexible content field is a schema field type that stores an ordered list of blocks, where each block belongs to a named <strong>layout</strong>. Unlike a repeater (where every row has the same fields), each layout in a flexible content field defines its own set of typed sub-fields. The editor chooses which layouts to add and in what order, creating a unique page structure per item.</p>
+    <p>Think of it as a page builder inside your collection schema: you define the available building blocks (layouts) and the editor assembles them into a page. Each layout can have completely different sub-fields &mdash; a "hero" layout might have a title, image, and CTA, while a "testimonial" layout has a quote, author, and photo.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Flexible content fields are defined per collection schema. Go to Admin &rarr; Collections &rarr; select a collection &rarr; Edit Schema &rarr; Add Field &rarr; choose type <strong>Flexible Content</strong>, then define your layouts and their sub-fields.</div>
+
+    <h2>Basic Syntax</h2>
+    <p>Loop over a flexible content field using the <code>flexible.</code> prefix. Each iteration yields a block object with a <code>layout</code> property and the sub-fields defined for that layout.</p>
+    <pre><code>{% for block in flexible.field_name %}
+  {{ block.layout }}
+  {{ block.sub_field }}
+{% endfor %}</code></pre>
+
+    <p>Where:</p>
+    <ul>
+      <li><code>flexible.field_name</code> identifies the flexible content field by its machine name in the schema</li>
+      <li><code>block</code> is the loop variable representing one block in the list</li>
+      <li><code>block.layout</code> returns the layout type name as a string (e.g., <code>"hero"</code>, <code>"testimonial"</code>, <code>"text_block"</code>)</li>
+      <li><code>block.sub_field</code> accesses sub-fields defined for that particular layout</li>
+    </ul>
+
+    <h2>Rendering by Layout Type</h2>
+    <p>Since each layout has different sub-fields, use <code>{% if block.layout == "name" %}</code> conditionals to render the correct HTML for each layout type.</p>
+    <pre><code>{% for block in flexible.page_sections %}
+  {% if block.layout == "hero" %}
+    &lt;section class="hero"&gt;
+      &lt;h1&gt;{{ block.title }}&lt;/h1&gt;
+      &lt;p&gt;{{ block.subtitle }}&lt;/p&gt;
+      {% if block.image %}
+        &lt;img src="{{ block.image | image }}" alt="{{ block.title }}"&gt;
+      {% endif %}
+    &lt;/section&gt;
+  {% endif %}
+
+  {% if block.layout == "testimonial" %}
+    &lt;blockquote class="testimonial"&gt;
+      {{ block.quote | raw }}
+      &lt;cite&gt;{{ block.author }}&lt;/cite&gt;
+    &lt;/blockquote&gt;
+  {% endif %}
+
+  {% if block.layout == "text_block" %}
+    &lt;section class="prose"&gt;
+      {{ block.body | raw }}
+    &lt;/section&gt;
+  {% endif %}
+{% endfor %}</code></pre>
+
+    <h2>Sub-Field Filters</h2>
+    <p>Sub-fields use the same output filters as any other field. Apply the appropriate filter based on the sub-field type defined in the layout.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Sub-field type</th>
+          <th>Template syntax</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Text</td>
+          <td><code>{{ block.heading }}</code></td>
+          <td>Auto-escaped. No filter needed.</td>
+        </tr>
+        <tr>
+          <td>Textarea</td>
+          <td><code>{{ block.description | textarea }}</code></td>
+          <td>Preserves line breaks as <code>&lt;br&gt;</code> tags.</td>
+        </tr>
+        <tr>
+          <td>Richtext</td>
+          <td><code>{{ block.body | raw }}</code></td>
+          <td>Outputs HTML as-is. Only use <code>| raw</code> for trusted editor content.</td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td><code>{{ block.photo | image }}</code></td>
+          <td>Resolves to the full public URL of the uploaded image.</td>
+        </tr>
+        <tr>
+          <td>Link</td>
+          <td><code>{{ block.cta_url | link }}</code></td>
+          <td>Ensures the URL is safe to output in an <code>href</code> attribute.</td>
+        </tr>
+        <tr>
+          <td>Select</td>
+          <td><code>{{ block.style | select }}</code></td>
+          <td>Outputs the selected option value.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Defining Layouts in the Schema Builder</h2>
+    <p>When you add a flexible content field to a collection schema, you define one or more <strong>layouts</strong>. Each layout has:</p>
+    <ul>
+      <li><strong>Layout name</strong> &mdash; the identifier used in <code>block.layout</code> comparisons (e.g., <code>hero</code>, <code>cta</code>, <code>gallery</code>)</li>
+      <li><strong>Layout label</strong> &mdash; the display name shown to editors in the admin (e.g., "Hero Section", "Call to Action")</li>
+      <li><strong>Sub-fields</strong> &mdash; the fields available when the editor adds a block of this layout type. Each sub-field has a type (text, image, richtext, etc.), machine name, label, and optional configuration.</li>
+    </ul>
+
+    <p>Example schema definition for a <code>page_sections</code> flexible content field:</p>
+    <pre><code>Field: page_sections
+Type: Flexible Content
+Layouts:
+  hero        &rarr; title (text), subtitle (text), image (image), cta_label (text), cta_url (link)
+  text_block  &rarr; body (richtext)
+  testimonial &rarr; quote (richtext), author (text), company (text), avatar (image)
+  cta         &rarr; heading (text), description (text), button_label (text), button_url (link), style (select)
+  gallery     &rarr; heading (text), images (gallery)</code></pre>
+
+    <h2>Inside a Single Item</h2>
+    <p>Use a flexible content loop on a detail page to render the composed page structure for a single item.</p>
+    <pre><code>{% single page from collection.landing %}
+  &lt;article&gt;
+    &lt;h1&gt;{{ page.title }}&lt;/h1&gt;
+
+    {% for block in flexible.page_sections %}
+      {% if block.layout == "hero" %}
+        &lt;section class="hero-section"&gt;
+          &lt;div class="hero-content"&gt;
+            &lt;h2&gt;{{ block.title }}&lt;/h2&gt;
+            &lt;p&gt;{{ block.subtitle }}&lt;/p&gt;
+            {% if block.cta_label %}
+              &lt;a href="{{ block.cta_url | link }}" class="btn btn-primary"&gt;
+                {{ block.cta_label }}
+              &lt;/a&gt;
+            {% endif %}
+          &lt;/div&gt;
+          {% if block.image %}
+            &lt;img src="{{ block.image | image }}" alt="{{ block.title }}" class="hero-image"&gt;
+          {% endif %}
+        &lt;/section&gt;
+      {% endif %}
+
+      {% if block.layout == "text_block" %}
+        &lt;section class="content-section"&gt;
+          &lt;div class="prose"&gt;{{ block.body | raw }}&lt;/div&gt;
+        &lt;/section&gt;
+      {% endif %}
+
+      {% if block.layout == "testimonial" %}
+        &lt;section class="testimonial-section"&gt;
+          &lt;blockquote&gt;
+            {{ block.quote | raw }}
+            &lt;footer&gt;
+              {% if block.avatar %}
+                &lt;img src="{{ block.avatar | image }}" alt="{{ block.author }}" class="avatar"&gt;
+              {% endif %}
+              &lt;div&gt;
+                &lt;strong&gt;{{ block.author }}&lt;/strong&gt;
+                {% if block.company %}
+                  &lt;span&gt;{{ block.company }}&lt;/span&gt;
+                {% endif %}
+              &lt;/div&gt;
+            &lt;/footer&gt;
+          &lt;/blockquote&gt;
+        &lt;/section&gt;
+      {% endif %}
+
+      {% if block.layout == "cta" %}
+        &lt;section class="cta-section {% if block.style == "dark" %}cta-dark{% endif %}"&gt;
+          &lt;h2&gt;{{ block.heading }}&lt;/h2&gt;
+          {% if block.description %}
+            &lt;p&gt;{{ block.description }}&lt;/p&gt;
+          {% endif %}
+          {% if block.button_label %}
+            &lt;a href="{{ block.button_url | link }}" class="btn"&gt;{{ block.button_label }}&lt;/a&gt;
+          {% endif %}
+        &lt;/section&gt;
+      {% endif %}
+    {% endfor %}
+  &lt;/article&gt;
+{% else %}
+  &lt;p&gt;Page not found.&lt;/p&gt;
+{% endsingle %}</code></pre>
+
+    <h2>Empty Flexible Content</h2>
+    <p>If an editor has not added any blocks to a flexible content field, the loop body is silently skipped. No error is thrown. Use an <code>{% if %}</code> check if you need to conditionally show a section wrapper alongside the loop.</p>
+    <pre><code>{% if page.page_sections %}
+  &lt;div class="page-builder"&gt;
+    {% for block in flexible.page_sections %}
+      {# ... layout rendering ... #}
+    {% endfor %}
+  &lt;/div&gt;
+{% else %}
+  &lt;div class="prose"&gt;{{ page.body | raw }}&lt;/div&gt;
+{% endif %}</code></pre>
+
+    <h2>Block Order</h2>
+    <p>Blocks are returned in the order the editor arranged them in the admin. The flexible content field supports drag-and-drop reordering &mdash; the template always reflects the saved order with no additional configuration.</p>
+
+    <h2>Common Use Cases</h2>
+    <p>The following table shows typical flexible content configurations for common page-building patterns.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Use case</th>
+          <th>Flexible content field</th>
+          <th>Layouts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Landing page</td>
+          <td><code>page_sections</code></td>
+          <td><code>hero</code>, <code>features</code>, <code>testimonial</code>, <code>cta</code>, <code>text_block</code></td>
+        </tr>
+        <tr>
+          <td>Case study</td>
+          <td><code>content_blocks</code></td>
+          <td><code>intro</code>, <code>challenge</code>, <code>solution</code>, <code>results</code>, <code>quote</code></td>
+        </tr>
+        <tr>
+          <td>Product page</td>
+          <td><code>sections</code></td>
+          <td><code>hero</code>, <code>specs</code>, <code>gallery</code>, <code>reviews</code>, <code>faq</code>, <code>cta</code></td>
+        </tr>
+        <tr>
+          <td>About page</td>
+          <td><code>about_sections</code></td>
+          <td><code>mission</code>, <code>team</code>, <code>timeline</code>, <code>values</code>, <code>contact</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Flexible Content vs. Repeaters</h2>
+    <p>Both field types store ordered lists of data, but they serve different purposes.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Use flexible content when...</th>
+          <th>Use a repeater when...</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Each block can have a different structure (different layouts)</td>
+          <td>Every row has the same fields (uniform structure)</td>
+        </tr>
+        <tr>
+          <td>Editors need to compose freeform page layouts</td>
+          <td>Editors are filling in a list of identical items</td>
+        </tr>
+        <tr>
+          <td>The template needs <code>block.layout</code> to decide what to render</td>
+          <td>The template renders every row the same way</td>
+        </tr>
+        <tr>
+          <td>Landing pages, case studies, product pages</td>
+          <td>FAQ lists, feature bullets, team members, pricing tiers</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Complete Example: Landing Page Builder</h2>
+    <p>A full <code>landing.html</code> template for a <code>landing</code> collection with a <code>sections</code> flexible content field containing <code>hero</code>, <code>features</code>, <code>testimonials</code>, and <code>cta</code> layouts.</p>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+{% single page from collection.landing %}
+&lt;main&gt;
+  {% for block in flexible.sections %}
+
+    {% if block.layout == "hero" %}
+      &lt;section class="hero"&gt;
+        &lt;div class="hero-inner"&gt;
+          &lt;h1&gt;{{ block.heading }}&lt;/h1&gt;
+          &lt;p class="hero-sub"&gt;{{ block.subheading }}&lt;/p&gt;
+          {% if block.cta_label %}
+            &lt;a href="{{ block.cta_url | link }}" class="btn btn-primary"&gt;
+              {{ block.cta_label }}
+            &lt;/a&gt;
+          {% endif %}
+        &lt;/div&gt;
+        {% if block.background_image %}
+          &lt;img src="{{ block.background_image | image }}" alt="" class="hero-bg"&gt;
+        {% endif %}
+      &lt;/section&gt;
+    {% endif %}
+
+    {% if block.layout == "features" %}
+      &lt;section class="features"&gt;
+        &lt;h2&gt;{{ block.heading }}&lt;/h2&gt;
+        {% if block.description %}
+          &lt;p class="features-desc"&gt;{{ block.description }}&lt;/p&gt;
+        {% endif %}
+        {{ block.features_content | raw }}
+      &lt;/section&gt;
+    {% endif %}
+
+    {% if block.layout == "testimonials" %}
+      &lt;section class="testimonials"&gt;
+        &lt;blockquote&gt;
+          &lt;p&gt;"{{ block.quote }}"&lt;/p&gt;
+          &lt;footer&gt;
+            {% if block.avatar %}
+              &lt;img src="{{ block.avatar | image }}" alt="{{ block.author }}" class="avatar"&gt;
+            {% endif %}
+            &lt;cite&gt;{{ block.author }}{% if block.role %}, {{ block.role }}{% endif %}&lt;/cite&gt;
+          &lt;/footer&gt;
+        &lt;/blockquote&gt;
+      &lt;/section&gt;
+    {% endif %}
+
+    {% if block.layout == "cta" %}
+      &lt;section class="cta-banner"&gt;
+        &lt;h2&gt;{{ block.heading }}&lt;/h2&gt;
+        &lt;p&gt;{{ block.body_text }}&lt;/p&gt;
+        {% if block.button_text %}
+          &lt;a href="{{ block.button_url | link }}" class="btn btn-primary"&gt;
+            {{ block.button_text }}
+          &lt;/a&gt;
+        {% endif %}
+      &lt;/section&gt;
+    {% endif %}
+
+  {% endfor %}
+&lt;/main&gt;
+{% else %}
+&lt;main&gt;
+  &lt;p&gt;Page not found.&lt;/p&gt;
+&lt;/main&gt;
+{% endsingle %}
+
+{% include 'footer' %}</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Break large flexible content templates into partials. Create a partial for each layout type (e.g., <code>partials/block-hero.html</code>, <code>partials/block-testimonial.html</code>) and include them with <code>{% include 'block-hero' %}</code> to keep your main template readable.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

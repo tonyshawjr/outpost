@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Blog — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-brand">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.24 8.18" style="height:10px;width:auto;display:block;fill:#fff;margin-bottom:3px" aria-label="Outpost"><path d="M5.32,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63C.28,7.06.02,6.38.02,5.45l-.02-1.48C0,2.35.21,1.29.62.79,1.04.29,2.03.04,3.59.04l1.73-.04ZM4,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23.3-.15.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49s.6.38,1.28.38Z"/><path d="M23.16,4.66v.47c0,1.25-.33,2.07-.98,2.47-.65.4-1.66.59-3.02.59h-1.99c-1.05-.01-1.86-.07-2.42-.18-.56-.11-1.01-.4-1.36-.85-.34-.46-.52-1.17-.52-2.15V.1h2.44v4.19c0,.8.1,1.32.29,1.56.19.24.68.36,1.45.36h1.09s1.01,0,1.01,0c.66,0,1.09-.1,1.28-.31s.28-.63.28-1.26V.1h2.45v4.56Z"/><path d="M28.09,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/><path d="M41.94.08c1.21,0,2.05.2,2.51.59s.7,1.18.7,2.36c0,1.12-.18,1.91-.55,2.37-.36.46-1.13.69-2.29.69h-4.43v1.99h-2.44V.08h6.48ZM42.7,3.12c0-.45-.1-.74-.29-.88-.19-.14-.53-.21-1.01-.21h-3.5v2.12h3.54c.46,0,.79-.07.98-.2.19-.13.28-.41.28-.83Z"/><path d="M52.03,0h1.94c1.42.01,2.4.25,2.92.72.52.47.79,1.42.79,2.83v.38c0,1.66-.21,2.78-.62,3.34-.42.56-1.47.85-3.16.85l-1.84.04h-.77s-1.66-.05-1.66-.05c-.93,0-1.64-.21-2.15-.63-.5-.42-.76-1.1-.76-2.03l-.02-1.48c0-1.62.21-2.69.62-3.19s1.4-.75,2.96-.75l1.73-.04ZM50.71,6.18l1.31.02h1.25c.69-.01,1.18-.09,1.48-.23s.45-.52.45-1.1l.02-1.08c0-.37-.02-.68-.07-.95-.04-.26-.13-.45-.27-.58-.14-.12-.34-.21-.61-.25-.27-.04-.55-.06-.86-.06h-2.42c-.55.01-.97.07-1.26.18s-.45.35-.5.72-.07.67-.07.91v.54c0,.74.09,1.24.26,1.49.17.26.6.38,1.28.38Z"/><path d="M61.91,5.66c0,.33.11.53.33.62s.53.13.92.13h1.15s1.63-.04,1.63-.04c.45,0,.74-.06.88-.17s.2-.29.2-.53c0-.22-.08-.39-.23-.52-.16-.13-.45-.19-.89-.19h-.4l-4.01-.08c-.75,0-1.28-.19-1.59-.57-.31-.38-.46-.96-.46-1.75,0-.66.1-1.18.29-1.55.2-.37.55-.62,1.07-.75.52-.13,1.19-.21,2.03-.23.84-.02,1.4-.04,1.69-.04l1.7.02c.68,0,1.23.05,1.64.16.42.11.71.31.88.59s.28.55.33.78c.05.23.07.55.07.96h-2.39c0-.28-.08-.48-.25-.59-.16-.11-.39-.17-.69-.17h-1.18s-1.86.05-1.86.05c-.25,0-.46.05-.63.14s-.26.25-.26.46c0,.3.1.49.31.58.2.09.48.14.83.14h.25l1.63.02h1.61c1.03.01,1.78.17,2.25.5.47.32.7.97.7,1.95s-.21,1.59-.63,1.94c-.42.35-1.11.53-2.08.53l-3.12.08-1.63-.04c-.86,0-1.5-.14-1.91-.42s-.61-.84-.61-1.69v-.48h2.4v.13Z"/><path d="M74.24,8.09V2.09h-3.58V.08h9.58v2h-3.56v6h-2.44Z"/></svg>
+        <div class="sidebar-brand-sub">Developer Docs</div>
+      </div>
+    </a>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="index.html" class="nav-link">Overview</a>
+      <a href="quick-start.html" class="nav-link">Quick Start</a>
+      <a href="file-structure.html" class="nav-link">File Structure</a>
+      <a href="deploy.html" class="nav-link">Deploy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Themes</div>
+      <a href="themes/" class="nav-link">Architecture</a>
+      <a href="themes/theme-json.html" class="nav-link">theme.json</a>
+      <a href="themes/create-a-theme.html" class="nav-link">Create a Theme</a>
+      <a href="themes/partials.html" class="nav-link">Partials</a>
+      <a href="themes/assets.html" class="nav-link">Assets</a>
+      <a href="themes/routing.html" class="nav-link">Routing</a>
+      <a href="themes/caching.html" class="nav-link">Template Cache</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Template Syntax</div>
+      <a href="template-syntax/" class="nav-link">All Tags</a>
+      <a href="template-syntax/output-tags.html" class="nav-link">Output Tags &amp; Filters</a>
+      <a href="template-syntax/global-fields.html" class="nav-link">Global Fields</a>
+      <a href="template-syntax/meta-tags.html" class="nav-link">Meta Tags</a>
+      <a href="template-syntax/conditionals.html" class="nav-link">Conditionals</a>
+      <a href="template-syntax/includes-comments.html" class="nav-link">Includes &amp; Comments</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Content</div>
+      <a href="content/pages.html" class="nav-link">Pages</a>
+      <a href="content/collections.html" class="nav-link">Collections</a>
+      <a href="content/folders.html" class="nav-link">Folders</a>
+      <a href="content/navigation.html" class="nav-link">Navigation Menus</a>
+      <a href="content/media.html" class="nav-link">Media</a>
+      <a href="content/global-fields.html" class="nav-link">Global Fields</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Loops &amp; Queries</div>
+      <a href="loops/collection-loops.html" class="nav-link">Collection Loops</a>
+      <a href="loops/channel-loops.html" class="nav-link">Channel Loops</a>
+      <a href="loops/pagination.html" class="nav-link">Pagination</a>
+      <a href="loops/single-items.html" class="nav-link">Single Items</a>
+      <a href="loops/folder-loops.html" class="nav-link">Folder Loops</a>
+      <a href="loops/menu-loops.html" class="nav-link">Menu Loops</a>
+      <a href="loops/gallery-loops.html" class="nav-link">Gallery Loops</a>
+      <a href="loops/repeater-loops.html" class="nav-link">Repeater Loops</a>
+      <a href="loops/flexible-content-loops.html" class="nav-link">Flexible Content</a>
+      <a href="loops/relationship-loops.html" class="nav-link">Relationship Loops</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Members &amp; Access</div>
+      <a href="members/" class="nav-link">Overview</a>
+      <a href="members/protecting-pages.html" class="nav-link">Protecting Pages</a>
+      <a href="members/member-pages.html" class="nav-link">Member Pages</a>
+      <a href="members/password-reset.html" class="nav-link">Password Reset</a>
+      <a href="members/admin-roles.html" class="nav-link">Admin Roles</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Features</div>
+      <a href="features/channels.html" class="nav-link">Channels</a>
+      <a href="features/forms.html" class="nav-link">Forms</a>
+      <a href="features/analytics.html" class="nav-link">Analytics</a>
+      <a href="features/sitemap.html" class="nav-link">Sitemap</a>
+      <a href="features/wordpress-import.html" class="nav-link">WordPress Import</a>
+      <a href="features/code-editor.html" class="nav-link">Code Editor</a>
+      <a href="features/scheduling.html" class="nav-link">Scheduling</a>
+      <a href="features/seo.html" class="nav-link">SEO</a>
+      <a href="features/revisions.html" class="nav-link">Revision History</a>
+      <a href="features/conditional-logic.html" class="nav-link">Conditional Logic</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">API Reference</div>
+      <a href="api/" class="nav-link">Overview &amp; Auth</a>
+      <a href="api/admin-api.html" class="nav-link">Admin API</a>
+      <a href="api/content-api.html" class="nav-link">Public Content API</a>
+      <a href="api/member-api.html" class="nav-link">Member API</a>
+      <a href="api/sync-api.html" class="nav-link">Sync API</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="reference/database-schema.html" class="nav-link">Database Schema</a>
+      <a href="reference/configuration.html" class="nav-link">Configuration</a>
+      <a href="reference/php-classes.html" class="nav-link">PHP Classes</a>
+      <a href="reference/migrations.html" class="nav-link">Migrations</a>
+      <a href="reference/sanitization.html" class="nav-link">Sanitization</a>
+      <a href="reference/caching.html" class="nav-link">Caching</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Recipes</div>
+      <a href="recipes/" class="nav-link">What You Can Build</a>
+      <a href="recipes/personal-blog.html" class="nav-link active">Personal Blog</a>
+      <a href="recipes/portfolio.html" class="nav-link">Portfolio</a>
+      <a href="recipes/membership-site.html" class="nav-link">Membership Site</a>
+      <a href="recipes/headless-cms.html" class="nav-link">Headless / API</a>
+      <a href="recipes/category-filtering.html" class="nav-link">Category Filtering</a>
+      <a href="recipes/dropdown-navigation.html" class="nav-link">Dropdown Navigation</a>
+    </div>
+    <div class="nav-section">
+      <a href="llms.txt" class="nav-link" style="opacity:0.6">llms.txt</a>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Personal Blog</h1>
+    <p class="lead">A complete walkthrough for building a personal blog — posts, folders, author bio, paginated archive, and single post pages. This is the most thorough recipe and covers all core Outpost concepts.</p>
+    <div class="hero-badges">
+      <span class="badge"><span class="badge-dot"></span>Collections</span>
+      <span class="badge"><span class="badge-dot"></span>Folders</span>
+      <span class="badge"><span class="badge-dot"></span>Globals</span>
+      <span class="badge"><span class="badge-dot"></span>Pagination</span>
+    </div>
+  </div>
+  <div class="content">
+
+    <h2>1. Collection setup</h2>
+    <p>Go to <strong>Admin → Collections → New Collection</strong> and create a collection with the following settings:</p>
+
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Name</td><td>Posts</td></tr>
+        <tr><td>Slug</td><td><code>post</code></td></tr>
+        <tr><td>URL pattern</td><td><code>/post/{slug}</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>Add the following fields to the schema:</p>
+    <table>
+      <thead>
+        <tr><th>Field name</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>Text</td><td>Required. Used as the post heading and SEO title.</td></tr>
+        <tr><td><code>excerpt</code></td><td>Textarea</td><td>Short summary shown in listing pages and meta description.</td></tr>
+        <tr><td><code>featured_image</code></td><td>Image</td><td>Hero image for the post and the listing card.</td></tr>
+        <tr><td><code>body</code></td><td>Richtext</td><td>Full post content — TipTap editor.</td></tr>
+        <tr><td><code>author</code></td><td>Text</td><td>Author display name.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>2. Folder setup</h2>
+    <p>Go to <strong>Admin → Folders → New Folder</strong> and create two folders, both attached to the <code>post</code> collection:</p>
+
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Slug</th><th>Hierarchical</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Category</td><td><code>category</code></td><td>Yes — allows parent/child categories</td></tr>
+        <tr><td>Tag</td><td><code>tag</code></td><td>No — flat list</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+      <strong>Slug matching is exact</strong>
+      The slug you use in <code>folder.<em>slug</em></code> in your templates must match the slug you entered when creating the folder in the admin — exactly, including singular vs. plural. If the slug is <code>category</code>, use <code>folder.category</code>. A mismatch produces no output and no error. See <a href="loops/folder-loops.html">Folder Loops</a> for details.
+    </div>
+
+    <h2>2b. Work / experience collection (optional)</h2>
+    <p>A personal blog often includes a work history or resume section. Add a second collection for this:</p>
+
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Name</td><td>Work</td></tr>
+        <tr><td>Slug</td><td><code>work</code></td></tr>
+        <tr><td>URL pattern</td><td>(none — not publicly routed)</td></tr>
+      </tbody>
+    </table>
+
+    <p>Fields to add:</p>
+    <table>
+      <thead>
+        <tr><th>Field name</th><th>Type</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>company</code></td><td>Text</td></tr>
+        <tr><td><code>role</code></td><td>Text</td></tr>
+        <tr><td><code>start_date</code></td><td>Text</td></tr>
+        <tr><td><code>end_date</code></td><td>Text</td></tr>
+      </tbody>
+    </table>
+
+    <p>Then loop over it in your homepage sidebar:</p>
+    <pre><code><span class="t-kw">{% for job in collection.work limit:4 orderby:start_date %}</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"work-item"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"company"</span><span class="t-tag">&gt;</span><span class="t-out">{{ job.company }}</span><span class="t-tag">&lt;/span&gt;</span>
+    <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"role"</span><span class="t-tag">&gt;</span><span class="t-out">{{ job.role }}</span><span class="t-tag">&lt;/span&gt;</span>
+    <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"dates"</span><span class="t-tag">&gt;</span><span class="t-out">{{ job.start_date }}</span> — <span class="t-out">{{ job.end_date }}</span><span class="t-tag">&lt;/span&gt;</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-kw">{% endfor %}</span>
+
+<span class="t-comment">{# Optional CV download link #}</span>
+<span class="t-kw">{% if @cv_url %}</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ @cv_url | link }}</span>"</span> <span class="t-attr">target</span>=<span class="t-string">"_blank"</span><span class="t-tag">&gt;</span>Download CV<span class="t-tag">&lt;/a&gt;</span>
+<span class="t-kw">{% endif %}</span></code></pre>
+
+    <p>Add <code>cv_url</code> as a Link global field in Admin → Global Fields so users can enter the CV download URL.</p>
+
+    <h2>3. Global fields</h2>
+    <p>Go to <strong>Admin → Global Fields</strong> and add these fields. They will be available in every template via <code>{{ @field_name }}</code>.</p>
+
+    <table>
+      <thead>
+        <tr><th>Field name</th><th>Type</th><th>Used for</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>site_name</code></td><td>Text</td><td>Logo text, page title suffix</td></tr>
+        <tr><td><code>author_name</code></td><td>Text</td><td>Displayed in bio and post bylines</td></tr>
+        <tr><td><code>bio_short</code></td><td>Textarea</td><td>Short bio in sidebar and homepage</td></tr>
+        <tr><td><code>profile_photo</code></td><td>Image</td><td>Author avatar</td></tr>
+        <tr><td><code>twitter_url</code></td><td>Text</td><td>Social link</td></tr>
+        <tr><td><code>github_url</code></td><td>Text</td><td>Social link</td></tr>
+        <tr><td><code>linkedin_url</code></td><td>Text</td><td>Social link</td></tr>
+        <tr><td><code>instagram_url</code></td><td>Text</td><td>Social link</td></tr>
+        <tr><td><code>footer_text</code></td><td>Text</td><td>Copyright / footer text</td></tr>
+        <tr><td><code>ga4_id</code></td><td>Text</td><td>Google Analytics 4 measurement ID</td></tr>
+        <tr><td><code>cv_url</code></td><td>Link</td><td>CV / resume download URL (used in Work sidebar)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Theme file structure</h2>
+    <pre><code><span class="t-comment">themes/blog/</span>
+  <span class="t-tag">index.html</span>         <span class="t-comment">← homepage — recent posts + bio</span>
+  <span class="t-tag">blog.html</span>          <span class="t-comment">← all posts / paginated archive</span>
+  <span class="t-tag">post.html</span>          <span class="t-comment">← single post</span>
+  <span class="t-tag">about.html</span>         <span class="t-comment">← about page (add to theme.json routes as /about)</span>
+  <span class="t-tag">contact.html</span>       <span class="t-comment">← contact page (optional)</span>
+  <span class="t-tag">404.html</span>           <span class="t-comment">← not found page</span>
+  <span class="t-tag">partials/</span>
+    <span class="t-tag">head.html</span>        <span class="t-comment">← DOCTYPE through &lt;body&gt;</span>
+    <span class="t-tag">nav.html</span>         <span class="t-comment">← site navigation</span>
+    <span class="t-tag">footer.html</span>      <span class="t-comment">← &lt;/body&gt;&lt;/html&gt;</span>
+  <span class="t-tag">assets/</span>
+    <span class="t-tag">style.css</span>
+  <span class="t-tag">theme.json</span></code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Add front matter to every template</strong>
+      It is good practice to open each <code>.html</code> template with a <code>{#--- ---#}</code> front matter block that documents its route, fields, and loops. It is stripped at compile time so there is zero runtime cost. See <a href="template-syntax/includes-comments.html#front-matter">Front Matter Convention</a>.
+    </div>
+
+    <h2>5. partials/head.html</h2>
+    <p>This partial contains everything from <code>&lt;!DOCTYPE html&gt;</code> through the opening <code>&lt;body&gt;</code> tag. It is included at the top of every template.</p>
+
+    <pre><code><span class="t-html">&lt;!DOCTYPE html&gt;</span>
+<span class="t-tag">&lt;html</span> <span class="t-attr">lang</span>=<span class="t-string">"en"</span><span class="t-tag">&gt;</span>
+<span class="t-tag">&lt;head&gt;</span>
+  <span class="t-tag">&lt;meta</span> <span class="t-attr">charset</span>=<span class="t-string">"UTF-8"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;meta</span> <span class="t-attr">name</span>=<span class="t-string">"viewport"</span> <span class="t-attr">content</span>=<span class="t-string">"width=device-width, initial-scale=1.0"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;title&gt;</span><span class="t-out">{{ meta.title }}{{ @site_name }}{{ /meta.title }}</span><span class="t-tag">&lt;/title&gt;</span>
+  <span class="t-tag">&lt;meta</span> <span class="t-attr">name</span>=<span class="t-string">"description"</span> <span class="t-attr">content</span>=<span class="t-string">"<span class="t-out">{{ meta.description }}{{ @bio_short }}{{ /meta.description }}</span>"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;link</span> <span class="t-attr">rel</span>=<span class="t-string">"stylesheet"</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/themes/blog/assets/style.css"</span><span class="t-tag">&gt;</span>
+  <span class="t-comment">{# Google Analytics — only output if ga4_id global is set #}</span>
+  <span class="t-kw">{% if @ga4_id %}</span>
+  <span class="t-tag">&lt;script</span> <span class="t-attr">async</span> <span class="t-attr">src</span>=<span class="t-string">"https://www.googletagmanager.com/gtag/js?id=<span class="t-out">{{ @ga4_id }}</span>"</span><span class="t-tag">&gt;&lt;/script&gt;</span>
+  <span class="t-tag">&lt;script&gt;</span>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<span class="t-out">{{ @ga4_id }}</span>');
+  <span class="t-tag">&lt;/script&gt;</span>
+  <span class="t-kw">{% endif %}</span>
+<span class="t-tag">&lt;/head&gt;</span>
+<span class="t-tag">&lt;body&gt;</span></code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      <code>{{ meta.title }}{{ @site_name }}{{ /meta.title }}</code> uses the per-item SEO title when set, and falls back to the global <code>site_name</code> field. The <code>@</code> prefix means "look this up as a global field." See <a href="template-syntax/meta-tags.html">Meta Tags</a>.
+    </div>
+
+    <h2>6. partials/nav.html</h2>
+    <p>The navigation partial renders the site logo from a global field and a menu called <code>main</code> defined in Admin → Navigation.</p>
+
+    <pre><code><span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-string">"site-header"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"header-inner"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/"</span> <span class="t-attr">class</span>=<span class="t-string">"site-logo"</span><span class="t-tag">&gt;</span><span class="t-out">{{ @site_name }}</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"main-nav"</span><span class="t-tag">&gt;</span>
+      <span class="t-kw">{% for item in menu.main %}</span>
+        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ item.url }}</span>"</span> <span class="t-attr">class</span>=<span class="t-string">"nav-link"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
+      <span class="t-kw">{% endfor %}</span>
+    <span class="t-tag">&lt;/nav&gt;</span>
+    <span class="t-comment">{# Hamburger placeholder — wire up with JS or a CSS checkbox hack #}</span>
+    <span class="t-tag">&lt;button</span> <span class="t-attr">class</span>=<span class="t-string">"nav-toggle"</span> <span class="t-attr">aria-label</span>=<span class="t-string">"Menu"</span> <span class="t-attr">aria-controls</span>=<span class="t-string">"main-nav"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;</span>
+    <span class="t-tag">&lt;/button&gt;</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-tag">&lt;/header&gt;</span></code></pre>
+
+    <h2>7. index.html — Homepage</h2>
+    <p>The homepage shows a bio hero with author photo, recent posts in a grid (limit:6), and sidebar social links.</p>
+
+    <pre><code><span class="t-kw">{% include 'head' %}</span>
+<span class="t-kw">{% include 'nav' %}</span>
+
+<span class="t-tag">&lt;main&gt;</span>
+  <span class="t-comment">{# Author bio hero #}</span>
+  <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"bio-hero"</span><span class="t-tag">&gt;</span>
+    <span class="t-kw">{% if @profile_photo %}</span>
+      <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"<span class="t-out">{{ @profile_photo | image }}</span>"</span> <span class="t-attr">alt</span>=<span class="t-string">"<span class="t-out">{{ @author_name }}</span>"</span> <span class="t-attr">class</span>=<span class="t-string">"bio-avatar"</span><span class="t-tag">&gt;</span>
+    <span class="t-kw">{% endif %}</span>
+    <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"bio-text"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ @author_name }}</span><span class="t-tag">&lt;/h1&gt;</span>
+      <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ @bio_short }}</span><span class="t-tag">&lt;/p&gt;</span>
+      <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"bio-links"</span><span class="t-tag">&gt;</span>
+        <span class="t-kw">{% if @twitter_url %}</span>
+          <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ @twitter_url }}</span>"</span> <span class="t-attr">rel</span>=<span class="t-string">"noopener"</span><span class="t-tag">&gt;</span>Twitter<span class="t-tag">&lt;/a&gt;</span>
+        <span class="t-kw">{% endif %}</span>
+        <span class="t-kw">{% if @github_url %}</span>
+          <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ @github_url }}</span>"</span> <span class="t-attr">rel</span>=<span class="t-string">"noopener"</span><span class="t-tag">&gt;</span>GitHub<span class="t-tag">&lt;/a&gt;</span>
+        <span class="t-kw">{% endif %}</span>
+      <span class="t-tag">&lt;/div&gt;</span>
+    <span class="t-tag">&lt;/div&gt;</span>
+  <span class="t-tag">&lt;/section&gt;</span>
+
+  <span class="t-comment">{# Recent posts grid #}</span>
+  <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"posts-section"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;h2&gt;</span>Recent Posts<span class="t-tag">&lt;/h2&gt;</span>
+    <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"posts-grid"</span><span class="t-tag">&gt;</span>
+      <span class="t-kw">{% for post in collection.post limit:6 %}</span>
+        <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"post-card"</span><span class="t-tag">&gt;</span>
+          <span class="t-kw">{% if post.featured_image %}</span>
+            <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ post.url }}</span>"</span> <span class="t-attr">class</span>=<span class="t-string">"post-card-image"</span><span class="t-tag">&gt;</span>
+              <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"<span class="t-out">{{ post.featured_image | image }}</span>"</span> <span class="t-attr">alt</span>=<span class="t-string">"<span class="t-out">{{ post.title }}</span>"</span><span class="t-tag">&gt;</span>
+            <span class="t-tag">&lt;/a&gt;</span>
+          <span class="t-kw">{% endif %}</span>
+          <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-card-body"</span><span class="t-tag">&gt;</span>
+            <span class="t-tag">&lt;h3&gt;&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ post.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h3&gt;</span>
+            <span class="t-kw">{% if post.excerpt %}</span>
+              <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ post.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+            <span class="t-kw">{% endif %}</span>
+            <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"post-date"</span><span class="t-tag">&gt;</span><span class="t-out">{{ post.published_at }}</span><span class="t-tag">&lt;/span&gt;</span>
+          <span class="t-tag">&lt;/div&gt;</span>
+        <span class="t-tag">&lt;/article&gt;</span>
+      <span class="t-kw">{% endfor %}</span>
+    <span class="t-tag">&lt;/div&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog"</span> <span class="t-attr">class</span>=<span class="t-string">"view-all"</span><span class="t-tag">&gt;</span>View all posts<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;/section&gt;</span>
+<span class="t-tag">&lt;/main&gt;</span>
+
+<span class="t-kw">{% include 'footer' %}</span></code></pre>
+
+    <h2>8. blog.html — Paginated archive</h2>
+    <p>The archive page lists all posts with pagination and category filter links from the folder loop.</p>
+
+    <pre><code><span class="t-kw">{% include 'head' %}</span>
+<span class="t-kw">{% include 'nav' %}</span>
+
+<span class="t-tag">&lt;main&gt;</span>
+  <span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-string">"archive-header"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;h1&gt;</span>All Posts<span class="t-tag">&lt;/h1&gt;</span>
+  <span class="t-tag">&lt;/header&gt;</span>
+
+  <span class="t-comment">{# Category filter links — reads ?category= from the URL #}</span>
+  <span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"filter-nav"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog"</span> <span class="t-attr">class</span>=<span class="t-string">"filter-link"</span> <span class="t-attr">data-label</span>=<span class="t-string">""</span><span class="t-tag">&gt;</span>All<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% for label in folder.category %}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=<span class="t-out">{{ label.slug }}</span>"</span>
+         <span class="t-attr">class</span>=<span class="t-string">"filter-link"</span>
+         <span class="t-attr">data-label</span>=<span class="t-string">"<span class="t-out">{{ label.slug }}</span>"</span><span class="t-tag">&gt;</span>
+        <span class="t-out">{{ label.name }}</span> (<span class="t-out">{{ label.count }}</span>)
+      <span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/nav&gt;</span>
+
+  <span class="t-comment">{# Paginated, filterable post list #}</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"posts-list"</span><span class="t-tag">&gt;</span>
+    <span class="t-kw">{% for post in collection.post filteredby:category paginate:10 %}</span>
+      <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"post-row"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-row-meta"</span><span class="t-tag">&gt;</span>
+          <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"post-date"</span><span class="t-tag">&gt;</span><span class="t-out">{{ post.published_at }}</span><span class="t-tag">&lt;/span&gt;</span>
+        <span class="t-tag">&lt;/div&gt;</span>
+        <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-row-body"</span><span class="t-tag">&gt;</span>
+          <span class="t-tag">&lt;h2&gt;&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ post.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h2&gt;</span>
+          <span class="t-kw">{% if post.excerpt %}</span>
+            <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ post.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+          <span class="t-kw">{% endif %}</span>
+          <span class="t-kw">{% if post.author %}</span>
+            <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"post-author"</span><span class="t-tag">&gt;</span>by <span class="t-out">{{ post.author }}</span><span class="t-tag">&lt;/span&gt;</span>
+          <span class="t-kw">{% endif %}</span>
+        <span class="t-tag">&lt;/div&gt;</span>
+      <span class="t-tag">&lt;/article&gt;</span>
+    <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+
+  <span class="t-comment">{# Pagination controls — automatically preserves ?category= param #}</span>
+  <span class="t-kw">{% pagination %}</span>
+<span class="t-tag">&lt;/main&gt;</span>
+
+<span class="t-comment">{# Highlight the active filter using JS #}</span>
+<span class="t-tag">&lt;script&gt;</span>
+  const params = new URLSearchParams(location.search);
+  const active = params.get('category') || '';
+  document.querySelectorAll('.filter-link').forEach(a => {
+    if (a.dataset.label === active) a.classList.add('active');
+  });
+<span class="t-tag">&lt;/script&gt;</span>
+
+<span class="t-kw">{% include 'footer' %}</span></code></pre>
+
+    <h2>9. post.html — Single post</h2>
+    <p>The single post template renders all fields, folder labels, and a related posts section.</p>
+
+    <pre><code><span class="t-kw">{% include 'head' %}</span>
+<span class="t-kw">{% include 'nav' %}</span>
+
+<span class="t-tag">&lt;main&gt;</span>
+  <span class="t-kw">{% single post from collection.post %}</span>
+
+    <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"post-single"</span><span class="t-tag">&gt;</span>
+      <span class="t-comment">{# Featured image #}</span>
+      <span class="t-kw">{% if post.featured_image %}</span>
+        <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-hero-image"</span><span class="t-tag">&gt;</span>
+          <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"<span class="t-out">{{ post.featured_image | image }}</span>"</span> <span class="t-attr">alt</span>=<span class="t-string">"<span class="t-out">{{ post.title }}</span>"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;/div&gt;</span>
+      <span class="t-kw">{% endif %}</span>
+
+      <span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-string">"post-header"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/h1&gt;</span>
+        <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-meta"</span><span class="t-tag">&gt;</span>
+          <span class="t-kw">{% if post.author %}</span>
+            <span class="t-tag">&lt;span&gt;</span>by <span class="t-out">{{ post.author }}</span><span class="t-tag">&lt;/span&gt;</span>
+          <span class="t-kw">{% endif %}</span>
+          <span class="t-tag">&lt;span&gt;</span><span class="t-out">{{ post.published_at }}</span><span class="t-tag">&lt;/span&gt;</span>
+        <span class="t-tag">&lt;/div&gt;</span>
+      <span class="t-tag">&lt;/header&gt;</span>
+
+      <span class="t-comment">{# Richtext body — use | raw to render HTML #}</span>
+      <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-body"</span><span class="t-tag">&gt;</span>
+        <span class="t-out">{{ post.body | raw }}</span>
+      <span class="t-tag">&lt;/div&gt;</span>
+
+      <span class="t-comment">{# Folder labels — category and tag #}</span>
+      <span class="t-tag">&lt;footer</span> <span class="t-attr">class</span>=<span class="t-string">"post-footer"</span><span class="t-tag">&gt;</span>
+        <span class="t-kw">{% for label in post.labels.category %}</span>
+          <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=<span class="t-out">{{ label.slug }}</span>"</span> <span class="t-attr">class</span>=<span class="t-string">"post-tag"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
+        <span class="t-kw">{% endfor %}</span>
+        <span class="t-kw">{% for label in post.labels.tag %}</span>
+          <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?tag=<span class="t-out">{{ label.slug }}</span>"</span> <span class="t-attr">class</span>=<span class="t-string">"post-tag post-tag-secondary"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
+        <span class="t-kw">{% endfor %}</span>
+      <span class="t-tag">&lt;/footer&gt;</span>
+    <span class="t-tag">&lt;/article&gt;</span>
+
+    <span class="t-comment">{# Related posts #}</span>
+    <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"related-posts"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;h2&gt;</span>Related Posts<span class="t-tag">&lt;/h2&gt;</span>
+      <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"posts-grid"</span><span class="t-tag">&gt;</span>
+        <span class="t-kw">{% for related in collection.post related:post limit:3 %}</span>
+          <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"post-card"</span><span class="t-tag">&gt;</span>
+            <span class="t-tag">&lt;h3&gt;&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ related.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ related.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h3&gt;</span>
+            <span class="t-kw">{% if related.excerpt %}</span>
+              <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ related.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+            <span class="t-kw">{% endif %}</span>
+          <span class="t-tag">&lt;/article&gt;</span>
+        <span class="t-kw">{% endfor %}</span>
+      <span class="t-tag">&lt;/div&gt;</span>
+    <span class="t-tag">&lt;/section&gt;</span>
+
+  <span class="t-kw">{% else %}</span>
+    <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"not-found"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;h1&gt;</span>Post not found<span class="t-tag">&lt;/h1&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog"</span><span class="t-tag">&gt;</span>Back to all posts<span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;/div&gt;</span>
+  <span class="t-kw">{% endsingle %}</span>
+<span class="t-tag">&lt;/main&gt;</span>
+
+<span class="t-kw">{% include 'footer' %}</span></code></pre>
+
+    <h2>10. partials/footer.html</h2>
+    <p>The footer partial closes the page and includes the copyright line from a global field.</p>
+
+    <pre><code><span class="t-tag">&lt;footer</span> <span class="t-attr">class</span>=<span class="t-string">"site-footer"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"footer-inner"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ @footer_text }}</span><span class="t-tag">&lt;/p&gt;</span>
+    <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"footer-links"</span><span class="t-tag">&gt;</span>
+      <span class="t-kw">{% if @twitter_url %}</span>
+        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ @twitter_url }}</span>"</span> <span class="t-attr">rel</span>=<span class="t-string">"noopener"</span><span class="t-tag">&gt;</span>Twitter<span class="t-tag">&lt;/a&gt;</span>
+      <span class="t-kw">{% endif %}</span>
+      <span class="t-kw">{% if @github_url %}</span>
+        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ @github_url }}</span>"</span> <span class="t-attr">rel</span>=<span class="t-string">"noopener"</span><span class="t-tag">&gt;</span>GitHub<span class="t-tag">&lt;/a&gt;</span>
+      <span class="t-kw">{% endif %}</span>
+    <span class="t-tag">&lt;/div&gt;</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-tag">&lt;/footer&gt;</span>
+<span class="t-tag">&lt;/body&gt;</span>
+<span class="t-tag">&lt;/html&gt;</span></code></pre>
+
+    <h2>11. RSS feed</h2>
+    <p>Outpost does not auto-generate an RSS feed, but you can build one using the public Content API. Fetch from <code>/outpost/content/items?collection=post&amp;limit=20&amp;orderby=published_at&amp;order=desc</code> and transform the JSON response into an RSS XML document on your frontend or in a small standalone PHP script.</p>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      For a quick RSS feed, create a file called <code>feed.php</code> in your site root, set <code>Content-Type: application/rss+xml</code>, fetch from the Content API using <code>file_get_contents</code> or cURL, and template the XML manually. No Outpost dependencies needed.
+    </div>
+
+    <h2>12. SEO checklist</h2>
+    <p>Outpost handles most SEO fundamentals automatically — canonical URLs, sitemaps, and clean slug-based routing. For a blog specifically:</p>
+
+    <ul>
+      <li>Set the <code>excerpt</code> field on every post — it is used as the meta description fallback</li>
+      <li>Use the <code>{{ meta.title }}Default{{ /meta.title }}</code> and <code>{{ meta.description }}Default{{ /meta.description }}</code> tags in <code>head.html</code> — they output per-item overrides when set in the editor, and fall back to the defaults you provide</li>
+      <li>Add <code>featured_image</code> to every post — used for Open Graph previews when you add <code>&lt;meta property="og:image"&gt;</code> to <code>head.html</code></li>
+      <li>Add a <code>sitemap.xml</code> — Outpost generates one automatically; link to it in <code>robots.txt</code></li>
+    </ul>
+
+    <p>Open Graph tags in <code>partials/head.html</code>:</p>
+
+    <pre><code><span class="t-comment">{# Open Graph — for link previews in social and messaging apps #}</span>
+<span class="t-tag">&lt;meta</span> <span class="t-attr">property</span>=<span class="t-string">"og:title"</span> <span class="t-attr">content</span>=<span class="t-string">"<span class="t-out">{{ meta.title }}{{ @site_name }}{{ /meta.title }}</span>"</span><span class="t-tag">&gt;</span>
+<span class="t-tag">&lt;meta</span> <span class="t-attr">property</span>=<span class="t-string">"og:description"</span> <span class="t-attr">content</span>=<span class="t-string">"<span class="t-out">{{ meta.description }}{{ @bio_short }}{{ /meta.description }}</span>"</span><span class="t-tag">&gt;</span>
+<span class="t-tag">&lt;meta</span> <span class="t-attr">property</span>=<span class="t-string">"og:type"</span> <span class="t-attr">content</span>=<span class="t-string">"website"</span><span class="t-tag">&gt;</span>
+<span class="t-kw">{% if featured_image %}</span>
+  <span class="t-tag">&lt;meta</span> <span class="t-attr">property</span>=<span class="t-string">"og:image"</span> <span class="t-attr">content</span>=<span class="t-string">"<span class="t-out">{{ featured_image | image }}</span>"</span><span class="t-tag">&gt;</span>
+<span class="t-kw">{% endif %}</span></code></pre>
+
+    <h2>13. Scheduled publishing</h2>
+    <p>Outpost supports scheduled publishing — set a future <strong>Publish At</strong> date on a post and it will not appear in the frontend (or the Content API) until that date and time. This is useful for preparing posts in advance and publishing them on a schedule.</p>
+
+    <p>Scheduled posts appear as "Scheduled" in the admin post list. The status switches to "Published" automatically when the publish date is reached on the next request to the site.</p>
+
+    <div class="callout callout-note">
+      <strong>Note</strong>
+      Outpost does not run a background cron job. Scheduled posts become visible on the first page request after the publish time. For high-traffic sites this is effectively instant. For low-traffic sites, the post may appear slightly late if nobody visits the site exactly at the scheduled time.
+    </div>
+
+    <h2>14. theme.json</h2>
+    <p>Every theme needs a <code>theme.json</code> at its root. For the blog theme:</p>
+
+    <pre><code>{
+  "name": "Blog",
+  "version": "1.0.0",
+  "description": "A minimal personal blog theme",
+  "author": "Your Name",
+  "screenshot": "assets/screenshot.png",
+  "routes": {
+    "/": "index.html",
+    "/blog": "blog.html",
+    "/post/{slug}": "post.html"
+  }
+}</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      The <code>routes</code> object in <code>theme.json</code> maps URL patterns to template files. The router uses this to determine which template to render for each URL. Collection URL patterns (like <code>/post/{slug}</code>) automatically set <code>$_GET['slug']</code> for the <code>{% single %}</code> tag.
+    </div>
+
+    <h2>Next steps</h2>
+    <p>Once your blog is running, consider these common additions:</p>
+    <ul>
+      <li>Add a <code>members</code> tier — see the <a href="recipes/membership-site.html">Membership Site</a> recipe</li>
+      <li>Add category filtering with active states — see <a href="recipes/category-filtering.html">Category Filtering</a></li>
+      <li>Set up a dropdown nav for blog + about + contact — see <a href="recipes/dropdown-navigation.html">Dropdown Navigation</a></li>
+      <li>Enable Google Analytics by adding a <code>ga4_id</code> global field and the <code>{% if @ga4_id %}</code> block in <code>head.html</code></li>
+      <li>Use the Content API for an RSS feed — see <a href="recipes/headless-cms.html">Headless / API</a></li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>
