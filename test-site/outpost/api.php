@@ -4,10 +4,11 @@
  * All endpoints: api.php?action=<endpoint>
  */
 
-// Prevent PHP warnings/notices from corrupting JSON output
+// Prevent PHP warnings/notices/deprecations from corrupting JSON output
 ini_set('display_errors', '0');
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('log_errors', '1');
+ob_start(); // Buffer any stray output so it doesn't corrupt JSON
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
@@ -367,6 +368,8 @@ match (true) {
 
 // ── Helpers ──────────────────────────────────────────────
 function json_response(mixed $data, int $code = 200): void {
+    // Discard any stray output (PHP warnings, deprecation notices, etc.)
+    while (ob_get_level()) ob_end_clean();
     http_response_code($code);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
