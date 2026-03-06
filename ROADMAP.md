@@ -74,8 +74,16 @@ Freeze the feature set. Ship after beta feedback stabilizes.
 - **Phase 3:** Inbound webhooks
 - **Phase 4:** Outbound + advanced (filtering, pagination, channel-to-channel piping)
 
-### Also under consideration
+### Forms + Channels Cross-Pollination
 
+Both systems use HTTP requests, JSON handling, and similar admin UI patterns. As they mature, shared infrastructure will be extracted and new integrations unlocked:
+
+- **Shared HTTP utility** — extract `channel_fetch_api()` cURL wrapper into `php/http-client.php` for use by both Channels (inbound API) and Form Feeds (outbound webhooks). Trigger: when Form Feeds ship.
+- **Channel data → Form selects** — populate a form dropdown from a channel (e.g., "Pick a property" from MLS API, "Select a department" from HR system)
+- **Form submission → Channel push** — POST form data to an external API using the shared HTTP utility (form feeds as outbound channels)
+- **Schema discovery for Forms** — reuse `channel_discover_schema()` to auto-generate form fields from an API response schema
+- **Shared `KeyValueEditor` / `JsonTree` components** — already built for Channels, reuse in Forms for webhook header config and validation rule visualization
+- **Unified audit log** — replace `channel_sync_log` and form submission tracking with a shared audit table for all entity events
 
 **Why:** Every small business site eventually needs external data. Today that means custom PHP or plugins. Channels make it declarative: connect, map fields, loop in a template. No plugins, no Composer, no build step. This is what makes Outpost more than a CMS — it's a site engine.
 

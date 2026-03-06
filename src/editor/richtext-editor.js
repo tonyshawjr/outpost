@@ -4,6 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { queueSave } from './save-manager.js';
+import { setEditing } from './overlay.js';
 
 let editor = null;
 let activeField = null;
@@ -95,9 +96,14 @@ export function activate(field) {
   const el = field.el;
   originalContent = el.innerHTML;
 
+  setEditing(true);
+  el.classList.remove('ope-hover');
   el.classList.add('ope-editing');
 
-  // Initialize TipTap on the element
+  // Clear element before TipTap init — TipTap appends its own view inside the element,
+  // so leaving existing HTML causes duplication
+  el.innerHTML = '';
+
   editor = new Editor({
     element: el,
     extensions: [
@@ -105,7 +111,7 @@ export function activate(field) {
       Link.configure({ openOnClick: false }),
       Image,
     ],
-    content: el.innerHTML,
+    content: originalContent,
     onUpdate: () => updateActiveButtons(),
     onSelectionUpdate: () => updateActiveButtons(),
   });
@@ -164,6 +170,7 @@ function deactivate(save) {
 
   if (activeField) activeField.el.classList.remove('ope-editing');
   if (toolbar) toolbar.style.display = 'none';
+  setEditing(false);
   activeField = null;
   originalContent = '';
 }

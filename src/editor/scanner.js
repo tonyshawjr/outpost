@@ -3,7 +3,7 @@
 let fields = [];
 
 export function init() {
-  scan();
+  // scan is called explicitly from boot()
 }
 
 export function scan() {

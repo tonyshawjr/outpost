@@ -2,6 +2,7 @@
 import { getFields } from './scanner.js';
 
 let labelEl = null;
+let editing = false; // suppress hover while editing
 
 export function init() {
   labelEl = document.createElement('div');
@@ -19,7 +20,13 @@ export function enable() {
   }
 }
 
+export function setEditing(on) {
+  editing = on;
+  if (on && labelEl) labelEl.style.display = 'none';
+}
+
 function onEnter(e) {
+  if (editing) return;
   const el = e.currentTarget;
   el.classList.add('ope-hover');
 

@@ -1,5 +1,6 @@
 // Text editor — contenteditable for text and textarea fields
 import { queueSave } from './save-manager.js';
+import { setEditing } from './overlay.js';
 
 let activeField = null;
 let originalContent = '';
@@ -13,16 +14,16 @@ export function activate(field) {
   const el = field.el;
   originalContent = field.type === 'textarea' ? el.innerHTML : el.textContent;
 
-  el.setAttribute('contenteditable', 'true');
+  setEditing(true);
+  el.classList.remove('ope-hover');
   el.classList.add('ope-editing');
+  el.setAttribute('contenteditable', 'plaintext-only');
   el.focus();
 
-  // Select all text
-  const range = document.createRange();
-  range.selectNodeContents(el);
+  // Place cursor at end (instead of selecting all, which can feel jarring)
   const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
+  sel.selectAllChildren(el);
+  sel.collapseToEnd();
 
   el.addEventListener('blur', onBlur);
   el.addEventListener('keydown', onKeydown);
@@ -38,7 +39,6 @@ function onBlur() {
 
 function onKeydown(e) {
   if (e.key === 'Escape') {
-    // Restore original content
     if (activeField) {
       if (activeField.type === 'textarea') {
         activeField.el.innerHTML = originalContent;
@@ -49,7 +49,6 @@ function onKeydown(e) {
     }
     e.preventDefault();
   }
-  // Enter saves for single-line text (not textarea)
   if (e.key === 'Enter' && activeField && activeField.type === 'text') {
     e.preventDefault();
     deactivate(activeField, true);
@@ -62,6 +61,7 @@ function deactivate(field, save) {
   el.classList.remove('ope-editing');
   el.removeEventListener('blur', onBlur);
   el.removeEventListener('keydown', onKeydown);
+  setEditing(false);
 
   if (save) {
     const newContent = field.type === 'textarea'

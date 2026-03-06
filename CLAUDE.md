@@ -90,10 +90,48 @@ gh release create v1.0.0-beta.XX dist/outpost-v1.0.0-beta.XX.zip \
 - `Outpost Website/` — deployed production copy
 - `memory/`, `.claude/` — local Claude Code tooling
 
-### Auto-updater (built into admin)
-Live Outpost sites can check for and apply updates from the admin Settings page:
-- **Check**: `GET api.php?action=updates/check` — compares `OUTPOST_VERSION` against latest GitHub Release
-- **Apply**: `POST api.php?action=updates/apply` — downloads release zip, extracts core files only
-- **Never touches**: `themes/` (user themes), `data/` (database), `uploads/` (media), `cache/` (cleared after update)
-- **Safe files** (overwritten on update): all `.php` in root, `admin/`, `docs/`, `member-pages/`, `tools/`
-- Database migrations run automatically on next request after update
+### How the auto-updater works (end-to-end)
+
+The admin panel has a built-in updater at **Settings → Updates**. Here's the full flow:
+
+**Developer side (us):**
+1. Finish feature/fix → follow "After Every Feature" checklist (version bump, changelog, etc.)
+2. `npm run build` → builds admin SPA to `php/admin/`
+3. `npm run package` → creates `dist/outpost/` directory + `dist/outpost-vX.X.X.zip`
+4. Commit, push, tag, then create a **GitHub Release** with the zip attached:
+   ```bash
+   git add -A && git commit -m "v1.0.0-beta.XX — Description"
+   git push origin main
+   git tag -a v1.0.0-beta.XX -m "v1.0.0-beta.XX"
+   git push origin v1.0.0-beta.XX
+   gh release create v1.0.0-beta.XX dist/outpost-v1.0.0-beta.XX.zip \
+     --title "v1.0.0-beta.XX" --notes "Changelog here"
+   ```
+5. The GitHub Release is now live. All Outpost sites can see it.
+
+**Live site side (automatic):**
+1. Admin visits **Settings → Updates** → UI calls `GET api.php?action=updates/check`
+2. PHP fetches `https://api.github.com/repos/tonyshawjr/outpost/releases/latest` (cached 1 hour)
+3. Compares `OUTPOST_VERSION` (from `config.php`) against the release tag using `version_compare()`
+4. If newer version exists, UI shows update button with release notes
+5. Admin clicks **"Update now"** → UI calls `POST api.php?action=updates/apply` with the zip URL
+6. PHP downloads the zip, extracts to a temp directory, then copies **only core files**:
+   - All `.php` files in the outpost root (api.php, engine.php, config.php, etc.)
+   - `admin/` directory (entire SPA rebuild)
+   - `docs/` directory
+   - `member-pages/` directory
+   - `tools/` directory
+7. PHP clears `cache/templates/*.php` so recompiled templates pick up engine changes
+8. Admin SPA reloads automatically — now running the new version
+
+**What the updater NEVER touches (user data):**
+- `themes/` — custom user themes and modifications
+- `data/` — SQLite database (`cms.db`)
+- `uploads/` — user media files
+- `cache/` — cleared after update, rebuilds automatically
+
+**Database migrations** run automatically on the next request after update — the API bootstrap checks for missing columns/tables and applies schema changes.
+
+**Key constant:** `OUTPOST_GITHUB_REPO` (defined in `api.php`) = `'tonyshawjr/outpost'` — change this if the repo ever moves.
+
+**For sites that don't have the updater yet:** Manually copy the latest core PHP files + `admin/` directory to their `outpost/` folder. Once they have the updated `api.php` with the updater endpoints, they can use Settings → Updates going forward.
