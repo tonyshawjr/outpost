@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-beta.16] — 2026-03-06
+
+### Fixed
+- Dashboard empty state now only shows when there are truly zero pages (was triggering with 1 page)
+- Empty state CTA changed from "Create your first page" to "Choose a theme" since pages are auto-discovered from templates
+
+---
+
 ## [1.0.0-beta.15] — 2026-03-06
 
 ### Added
