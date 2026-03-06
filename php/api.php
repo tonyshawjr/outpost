@@ -4957,11 +4957,11 @@ function handle_channel_items(): void {
 function handle_updates_check(): void {
     $current = OUTPOST_VERSION;
 
-    // Check cache first (avoid hammering GitHub API)
+    // Check cache first (avoid hammering GitHub API — 60 req/hr unauthenticated limit)
     $cached = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'update_check_cache'");
     if ($cached) {
         $cache = json_decode($cached['value'], true);
-        if ($cache && (time() - ($cache['checked_at'] ?? 0)) < 3600) {
+        if ($cache && (time() - ($cache['checked_at'] ?? 0)) < 300) {
             json_response([
                 'current_version' => $current,
                 'latest_version'  => $cache['latest_version'],
