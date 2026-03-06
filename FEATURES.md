@@ -4,6 +4,18 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## User Content Directory (v1.4.0)
+
+- **Single `content/` directory** — all user-owned data (`data/`, `uploads/`, `themes/`, `backups/`) consolidated under `outpost/content/` for simpler backup, migration, and deployment
+- **Auto-migration** — existing sites automatically move directories into `content/` on first load, with zero manual intervention
+- **Symlink compatibility** — `outpost/uploads` and `outpost/themes` symlink to `content/uploads` and `content/themes`, preserving all existing media and theme asset URLs
+- **Updated installer** — fresh installs create the `content/` structure with symlinks and `.htaccess` protection
+- **Updated auto-updater** — skips the entire `content/` directory during updates (replaces individual skip entries for data, uploads, themes)
+- **Updated packager** — `npm run package` produces the new `content/` layout with symlinks in the distribution zip
+- **Files**: `php/config.php`, `php/install.php`, `php/api.php`, `php/content-api.php`, `php/front-router.php`, `php/sync-api.php`, `scripts/package.js`
+
+---
+
 ## Backup Includes Themes (v1.3.2)
 
 - **Themes included in backups** — `create_backup_zip()` now backs up the entire `themes/` directory alongside the database and uploads

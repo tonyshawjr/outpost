@@ -156,8 +156,8 @@
       <tbody>
         <tr>
           <td><code>OUTPOST_DB_PATH</code></td>
-          <td><code>data/cms.db</code></td>
-          <td>Path to the SQLite database file, relative to the <code>outpost/</code> directory. Change this to store the database outside the web root for additional security.</td>
+          <td><code>content/data/cms.db</code></td>
+          <td>Path to the SQLite database file, inside the <code>content/</code> directory. Change this to store the database outside the web root for additional security.</td>
         </tr>
         <tr>
           <td><code>OUTPOST_SITE_URL</code></td>
@@ -184,9 +184,9 @@
           <td>Maximum allowed file upload size in bytes. Must also be within PHP's <code>upload_max_filesize</code> and <code>post_max_size</code> ini values — whichever is smaller wins.</td>
         </tr>
         <tr>
-          <td><code>OUTPOST_UPLOAD_DIR</code></td>
-          <td><code>uploads/</code></td>
-          <td>Directory where uploaded media files are stored, relative to <code>outpost/</code>. Must be writable by the web server. Create it and set permissions (<code>chmod 755</code>) if it doesn't exist.</td>
+          <td><code>OUTPOST_UPLOADS_DIR</code></td>
+          <td><code>content/uploads/</code></td>
+          <td>Directory where uploaded media files are stored, inside the <code>content/</code> directory. A symlink at <code>outpost/uploads</code> ensures existing URLs continue to work. Must be writable by the web server.</td>
         </tr>
       </tbody>
     </table>

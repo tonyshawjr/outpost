@@ -24,7 +24,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
 // ── Sync constants ────────────────────────────────────────
-define('SYNC_BACKUPS_DIR',          OUTPOST_DIR . 'backups/');
+define('SYNC_BACKUPS_DIR',          OUTPOST_BACKUPS_DIR);
 define('SYNC_MAX_FILE_SIZE',        2 * 1024 * 1024); // 2 MB
 define('SYNC_RATE_LIMIT_ATTEMPTS',  5);
 define('SYNC_RATE_LIMIT_WINDOW',    3600);             // 1 hour

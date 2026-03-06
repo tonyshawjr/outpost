@@ -150,7 +150,17 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.4 — Editorial Workflow
+## v1.4 — User Content Directory (`content/`) — SHIPPED (v1.4.0)
+
+- All user-owned data consolidated under `outpost/content/` (`data/`, `uploads/`, `themes/`, `backups/`)
+- Auto-migration on first load for existing sites (detects old layout, moves dirs, creates symlinks)
+- Symlinks at `outpost/uploads` and `outpost/themes` preserve all existing URLs
+- Auto-updater skips `content/` entirely — one directory the engine never touches
+- Fresh installs create the full `content/` structure automatically
+
+---
+
+## v1.5 — Editorial Workflow
 
 Scheduled publishing works, but team content workflows need more structure:
 
@@ -164,7 +174,7 @@ Scheduled publishing works, but team content workflows need more structure:
 
 ---
 
-## v1.5 — Media Library Pro
+## v1.6 — Media Library Pro
 
 The current library handles basics. Real sites need more:
 
@@ -178,7 +188,7 @@ The current library handles basics. Real sites need more:
 
 ---
 
-## v1.6 — Internationalization
+## v1.7 — Internationalization
 
 Not full multi-language — just the groundwork to store and serve localized content:
 
@@ -192,7 +202,7 @@ Not full multi-language — just the groundwork to store and serve localized con
 
 ---
 
-## v1.7 — Developer Experience
+## v1.8 — Developer Experience
 
 Polish the theme development loop:
 
@@ -292,8 +302,9 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.1~~ | ~~Q1 2026~~ | ~~Channels Phase 2: RSS + CSV~~ **Shipped** |
 | ~~1.2~~ | ~~Q3 2026~~ | ~~On-page editing~~ **Shipped in beta.9** |
 | ~~1.3~~ | ~~Q4 2026~~ | ~~Backup & restore~~ **Shipped** |
-| 1.4 | Q4 2026 | Editorial workflow |
-| 1.5 | Q1 2027 | Media library pro |
-| 1.6 | Q1 2027 | Internationalization |
-| 1.7 | Q2 2027 | Developer experience |
+| ~~1.4~~ | ~~Q2 2026~~ | ~~User content directory (`content/`)~~ **Shipped** |
+| 1.5 | Q4 2026 | Editorial workflow |
+| 1.6 | Q1 2027 | Media library pro |
+| 1.7 | Q1 2027 | Internationalization |
+| 1.8 | Q2 2027 | Developer experience |
 | 2.0 | Q3 2027 | Headless-first |

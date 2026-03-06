@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] — 2026-03-06
+
+### Added
+- **User content directory** — all user-owned data consolidated under `outpost/content/` (`data/`, `uploads/`, `themes/`, `backups/`)
+- Auto-migration moves existing directories into `content/` on first load with symlinks for URL compatibility
+- Fresh installs create the `content/` structure automatically
+
+### Changed
+- Path constants in `config.php` now point to `content/` subdirectories
+- Auto-updater skip list simplified from `['data', 'uploads', 'cache', 'themes']` to `['content', 'cache']`
+- Package script produces `content/` layout with symlinks in distribution zip
+- Hardcoded theme/backup paths replaced with constants in `content-api.php`, `front-router.php`, `sync-api.php`
+
+### Security
+- Backup restore now validates zip entry paths against path traversal (zip slip prevention)
+- Backup restore uses `OUTPOST_UPLOADS_DIR` / `OUTPOST_THEMES_DIR` constants instead of `OUTPOST_DIR` concatenation
+- `outpost_rmdir_recursive()` no longer follows symlinks — removes the symlink itself instead of recursing into the target
+- `content/.htaccess` disables directory indexing
+
+---
+
 ## [1.3.2] — 2026-03-06
 
 ### Fixed

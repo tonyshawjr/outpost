@@ -10,9 +10,10 @@ php/admin/
 *.db-shm
 *.db-wal
 
-# Test site — user data
-test-site/outpost/data/
-test-site/outpost/uploads/
+# Test site — user data & symlinks
+test-site/outpost/content/
+test-site/outpost/uploads
+test-site/outpost/themes
 test-site/outpost/cache/
 
 # Deployed copies (not source code)

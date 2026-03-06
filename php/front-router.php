@@ -95,7 +95,7 @@ if ($path === '/sitemap.xml') {
 // Resolve active theme
 $themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
 $activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'starter';
-$themeDir    = $outpostDir . '/themes/' . $activeTheme;
+$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
 
 // ── PHP theme (legacy) ────────────────────────────────────
 if (file_exists($themeDir . '/index.php')) {

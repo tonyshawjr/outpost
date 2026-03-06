@@ -442,7 +442,7 @@ function handle_content_schema(): void {
     // Pages with their fields — derived from theme template files
     $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
     $activeThemeSlug = $activeTheme ? $activeTheme['value'] : '';
-    $themeDir = __DIR__ . '/themes/' . $activeThemeSlug;
+    $themeDir = OUTPOST_THEMES_DIR . $activeThemeSlug;
 
     $pages = OutpostDB::fetchAll(
         "SELECT * FROM pages WHERE path != '__global__' ORDER BY path ASC"

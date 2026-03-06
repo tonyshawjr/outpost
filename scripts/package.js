@@ -7,7 +7,7 @@
  * Or:    npm run package
  */
 
-import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync } from 'fs';
+import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync, symlinkSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
@@ -36,10 +36,9 @@ for (const file of phpFiles) {
   console.log(`  Copied ${file}`);
 }
 
-// ─── Directories to copy recursively ───
+// ─── Core directories to copy recursively ───
 const dirs = [
   { name: 'admin',        label: 'admin/ (compiled Svelte SPA)' },
-  { name: 'themes',       label: 'themes/ (starter + personal)' },
   { name: 'docs',         label: 'docs/ (developer documentation)' },
   { name: 'member-pages', label: 'member-pages/ (auth pages)' },
   { name: 'tools',        label: 'tools/ (utilities)' },
@@ -55,22 +54,50 @@ for (const { name, label } of dirs) {
   }
 }
 
-// ─── Create protected directories with .htaccess ───
+// ─── content/ — user data directory ───
+const CONTENT_DIR = resolve(DIST_DIR, 'content');
+mkdirSync(CONTENT_DIR, { recursive: true });
+writeFileSync(resolve(CONTENT_DIR, '.htaccess'), 'Options -Indexes\n');
+console.log('  Created content/.htaccess');
 
-// data/ — database storage, deny all web access
-mkdirSync(resolve(DIST_DIR, 'data'), { recursive: true });
-writeFileSync(resolve(DIST_DIR, 'data', '.htaccess'), 'Deny from all\n');
-console.log('  Created data/.htaccess');
+// content/data/ — database storage, deny all web access
+mkdirSync(resolve(CONTENT_DIR, 'data'), { recursive: true });
+writeFileSync(resolve(CONTENT_DIR, 'data', '.htaccess'), 'Deny from all\n');
+console.log('  Created content/data/.htaccess');
 
-// uploads/ — user uploads, block PHP execution
-mkdirSync(resolve(DIST_DIR, 'uploads'), { recursive: true });
+// content/uploads/ — user uploads, block PHP execution
+mkdirSync(resolve(CONTENT_DIR, 'uploads'), { recursive: true });
 writeFileSync(
-  resolve(DIST_DIR, 'uploads', '.htaccess'),
+  resolve(CONTENT_DIR, 'uploads', '.htaccess'),
   '<FilesMatch "\\.php$">\n    Deny from all\n</FilesMatch>\n'
 );
-console.log('  Created uploads/.htaccess');
+console.log('  Created content/uploads/.htaccess');
 
-// cache/ — compiled templates, deny all web access
+// content/themes/ — copy starter themes
+const themesSrc = resolve(PHP_DIR, 'themes');
+if (existsSync(themesSrc)) {
+  cpSync(themesSrc, resolve(CONTENT_DIR, 'themes'), { recursive: true });
+  console.log('  Copied content/themes/ (starter + personal)');
+} else {
+  mkdirSync(resolve(CONTENT_DIR, 'themes'), { recursive: true });
+  console.warn('  Warning: themes/ not found, created empty content/themes/');
+}
+
+// content/backups/ — backup storage, deny all web access
+mkdirSync(resolve(CONTENT_DIR, 'backups'), { recursive: true });
+writeFileSync(resolve(CONTENT_DIR, 'backups', '.htaccess'), 'Deny from all\n');
+console.log('  Created content/backups/.htaccess');
+
+// URL-compatible symlinks: outpost/uploads → outpost/content/uploads, outpost/themes → outpost/content/themes
+try {
+  symlinkSync('content/uploads', resolve(DIST_DIR, 'uploads'));
+  symlinkSync('content/themes', resolve(DIST_DIR, 'themes'));
+  console.log('  Created symlinks: uploads → content/uploads, themes → content/themes');
+} catch (err) {
+  console.warn('  Warning: Could not create symlinks (may need admin privileges on Windows)');
+}
+
+// cache/ — compiled templates, deny all web access (outside content/)
 mkdirSync(resolve(DIST_DIR, 'cache'), { recursive: true });
 mkdirSync(resolve(DIST_DIR, 'cache', 'templates'), { recursive: true });
 writeFileSync(resolve(DIST_DIR, 'cache', '.htaccess'), 'Deny from all\n');
@@ -104,10 +131,12 @@ console.log('  Created dist/.htaccess');
 // ─── .gitignore for runtime directories ───
 writeFileSync(
   resolve(DIST_DIR, '.gitignore'),
-  `data/cms.db
-data/.installed
-uploads/*
-!uploads/.htaccess
+  `content/data/cms.db
+content/data/.installed
+content/uploads/*
+!content/uploads/.htaccess
+content/backups/*
+!content/backups/.htaccess
 cache/*
 !cache/.htaccess
 `

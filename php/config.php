@@ -3,13 +3,20 @@
  * Outpost CMS — Configuration
  */
 
-define('OUTPOST_VERSION', '1.3.2');
+define('OUTPOST_VERSION', '1.4.0');
 
 // Paths (resolved relative to this file's location)
 define('OUTPOST_DIR', __DIR__ . '/');
-define('OUTPOST_DATA_DIR', OUTPOST_DIR . 'data/');
+
+// Content directory (user data)
+define('OUTPOST_CONTENT_DIR', OUTPOST_DIR . 'content/');
+define('OUTPOST_DATA_DIR', OUTPOST_CONTENT_DIR . 'data/');
 define('OUTPOST_DB_PATH', OUTPOST_DATA_DIR . 'cms.db');
-define('OUTPOST_UPLOADS_DIR', OUTPOST_DIR . 'uploads/');
+define('OUTPOST_UPLOADS_DIR', OUTPOST_CONTENT_DIR . 'uploads/');
+define('OUTPOST_THEMES_DIR', OUTPOST_CONTENT_DIR . 'themes/');
+define('OUTPOST_BACKUPS_DIR', OUTPOST_CONTENT_DIR . 'backups/');
+
+// Core directories (not under content/)
 define('OUTPOST_CACHE_DIR', OUTPOST_DIR . 'cache/');
 define('OUTPOST_ADMIN_DIR', OUTPOST_DIR . 'admin/');
 
@@ -38,9 +45,36 @@ define('OUTPOST_SESSION_NAME', 'outpost_session');
 // Cache
 define('OUTPOST_CACHE_ENABLED', true);
 
-// Backups
-define('OUTPOST_BACKUPS_DIR', OUTPOST_DIR . 'backups/');
-
-// Themes (code editor)
-define('OUTPOST_THEMES_DIR', OUTPOST_DIR . 'themes/');
+// Code editor
 define('OUTPOST_CODE_EXTENSIONS', ['php', 'html', 'htm', 'css', 'js', 'json', 'xml', 'svg', 'txt', 'md', 'yml', 'yaml']);
+
+// ── Auto-migrate old directory layout to content/ ──
+(function() {
+    // Already migrated or fresh install with content/ in place
+    if (is_dir(OUTPOST_CONTENT_DIR) && is_dir(OUTPOST_DATA_DIR)) return;
+
+    // Old layout detected: data/ exists at outpost root
+    $oldDataDir = OUTPOST_DIR . 'data/';
+    if (!is_dir($oldDataDir)) return; // Fresh install, nothing to migrate
+
+    // Create content/
+    if (!is_dir(OUTPOST_CONTENT_DIR)) mkdir(OUTPOST_CONTENT_DIR, 0755, true);
+
+    // Move directories into content/
+    $moves = [
+        'data'    => [OUTPOST_DIR . 'data/',    OUTPOST_CONTENT_DIR . 'data/'],
+        'uploads' => [OUTPOST_DIR . 'uploads/', OUTPOST_CONTENT_DIR . 'uploads/'],
+        'themes'  => [OUTPOST_DIR . 'themes/',  OUTPOST_CONTENT_DIR . 'themes/'],
+        'backups' => [OUTPOST_DIR . 'backups/', OUTPOST_CONTENT_DIR . 'backups/'],
+    ];
+
+    foreach ($moves as $name => [$old, $new]) {
+        if (is_dir($old) && !is_link($old)) {
+            rename($old, $new);
+            // Create symlink for URL compatibility (uploads + themes)
+            if ($name === 'uploads' || $name === 'themes') {
+                symlink($new, rtrim($old, '/'));
+            }
+        }
+    }
+})();

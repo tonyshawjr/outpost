@@ -611,14 +611,14 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 - Pixel dimensions stored in database
 - Filenames sanitized + Unix timestamp prefix added
 
-**Storage path:** `outpost/uploads/` (flat, no subdirectories)
+**Storage path:** `outpost/content/uploads/` (flat, no subdirectories). A symlink at `outpost/uploads` points to `content/uploads/` for URL compatibility.
 
 ```
-outpost/uploads/1700000000_hero-photo.jpg         # original
-outpost/uploads/thumb_1700000000_hero-photo.jpg   # thumbnail
+outpost/content/uploads/1700000000_hero-photo.jpg         # original
+outpost/content/uploads/thumb_1700000000_hero-photo.jpg   # thumbnail
 ```
 
-URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-photo.jpg`
+URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-photo.jpg` (served via symlink)
 
 **SVG sanitization:** `<script>` tags, `on*` event handlers, and external `xlink:href` references are removed before saving.
 
@@ -634,7 +634,7 @@ URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-ph
 define('OUTPOST_MAX_UPLOAD_SIZE', 25 * 1024 * 1024);
 ```
 
-Never delete `outpost/uploads/` — not regenerated automatically.
+Never delete `outpost/content/uploads/` — not regenerated automatically.
 
 ## Members
 
@@ -1160,13 +1160,15 @@ define('OUTPOST_SYNC_KEY', 'your-random-64-char-key');
 
 | Constant | Default | Description |
 |---|---|---|
-| `OUTPOST_DB_PATH` | `data/cms.db` | SQLite database path (relative to `outpost/`) |
+| `OUTPOST_CONTENT_DIR` | `content/` | User data directory containing data, uploads, themes, backups |
+| `OUTPOST_DB_PATH` | `content/data/cms.db` | SQLite database path |
 | `OUTPOST_SITE_URL` | auto-detected | Canonical URL for sitemap, emails, absolute links |
 | `OUTPOST_DEBUG` | `false` | Show PHP errors inline — never true in production |
 | `OUTPOST_MAX_UPLOAD_SIZE` | `10485760` (10 MB) | Max upload size in bytes |
-| `OUTPOST_UPLOAD_DIR` | `uploads/` | Media upload directory (relative to `outpost/`) |
-| `OUTPOST_CACHE_DIR` | `cache/` | Cache directory (relative to `outpost/`) |
-| `OUTPOST_BACKUPS_DIR` | `backups/` | Backup zip storage directory (relative to `outpost/`) |
+| `OUTPOST_UPLOADS_DIR` | `content/uploads/` | Media upload directory (symlinked at `outpost/uploads`) |
+| `OUTPOST_THEMES_DIR` | `content/themes/` | Themes directory (symlinked at `outpost/themes`) |
+| `OUTPOST_BACKUPS_DIR` | `content/backups/` | Backup zip storage directory |
+| `OUTPOST_CACHE_DIR` | `cache/` | Cache directory (not under content/ — regenerated) |
 | `OUTPOST_CACHE_TTL` | `3600` | HTML page cache TTL in seconds |
 | `OUTPOST_TEMPLATE_CACHE` | `true` | Enable compiled template cache (set `false` during dev) |
 | `OUTPOST_SESSION_NAME` | `outpost_session` | Admin session cookie name |
@@ -1390,20 +1392,19 @@ The `db_snapshot` excludes sync API key and admin credentials.
 `push_content: true` + `db_file` replaces the entire server database — overwrites all live data. Use with caution.
 
 ### Backup storage
-`outpost/backups/{backup-id}/` with `manifest.json` + `files/` directory. Backups older than 30 days auto-pruned on `backup/list`.
+`outpost/content/backups/{backup-id}/` with `manifest.json` + `files/` directory. Backups older than 30 days auto-pruned on `backup/list`.
 
 ## Deploy
 
 Copy the `outpost/` directory to your server. First request initializes the DB.
 
 **Preserve on re-deploy:**
-- `outpost/data/` — SQLite database
-- `outpost/uploads/` — media files
+- `outpost/content/` — entire user data directory (database, uploads, themes, backups)
 - `outpost/cache/` — safe to clear, not required to preserve
 
 **File permissions:**
 ```bash
-chmod 755 outpost/data outpost/uploads outpost/cache
+chmod -R 755 outpost/content outpost/cache
 ```
 
 **Apache .htaccess:**
@@ -1494,7 +1495,7 @@ Migrations run on first request to the relevant endpoint. Safe to run multiple t
 
 ## Database Schema
 
-Outpost uses 20 SQLite tables in five groups. Single `.db` file at `outpost/data/cms.db` (path set by `OUTPOST_DB_PATH`).
+Outpost uses 20 SQLite tables in five groups. Single `.db` file at `outpost/content/data/cms.db` (path set by `OUTPOST_DB_PATH`).
 
 **Content:** `pages`, `fields`, `collections`, `collection_items`
 **Channels:** `channels`, `channel_items`, `channel_sync_log`

@@ -5311,10 +5311,24 @@ function handle_backup_restore(): void {
 
         // Extract uploads and themes if present
         for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if (!str_starts_with($name, 'uploads/') && !str_starts_with($name, 'themes/')) continue;
+            $name = str_replace('\\', '/', $zip->getNameIndex($i));
 
-            $destPath = OUTPOST_DIR . $name;
+            // Zip slip prevention — reject path traversal
+            if (str_contains($name, '../') || str_contains($name, '/..') || str_starts_with($name, '/')) {
+                $zip->close();
+                json_error('Backup contains unsafe path: ' . $name, 400);
+            }
+
+            // Map zip prefixes to content/ directory constants
+            if (str_starts_with($name, 'uploads/')) {
+                $relPath = substr($name, strlen('uploads/'));
+                $destPath = OUTPOST_UPLOADS_DIR . $relPath;
+            } elseif (str_starts_with($name, 'themes/')) {
+                $relPath = substr($name, strlen('themes/'));
+                $destPath = OUTPOST_THEMES_DIR . $relPath;
+            } else {
+                continue;
+            }
 
             // Directory entry
             if (str_ends_with($name, '/')) {
@@ -5720,7 +5734,7 @@ function handle_updates_apply(): void {
         }
 
         // Define what to copy and what to skip
-        $skipDirs = ['data', 'uploads', 'cache', 'themes'];
+        $skipDirs = ['content', 'cache'];
         $updatedFiles = [];
 
         // Copy PHP files from root of source
@@ -5828,7 +5842,9 @@ function outpost_rmdir_recursive(string $dir): void {
     foreach ($items as $item) {
         if ($item === '.' || $item === '..') continue;
         $path = $dir . '/' . $item;
-        if (is_dir($path)) {
+        if (is_link($path)) {
+            unlink($path); // Remove symlink itself, don't follow
+        } elseif (is_dir($path)) {
             outpost_rmdir_recursive($path);
         } else {
             unlink($path);

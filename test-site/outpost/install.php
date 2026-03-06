@@ -41,16 +41,10 @@ function check_requirements(): array {
         'value' => extension_loaded('gd') ? 'Loaded' : 'Missing (optional, needed for thumbnails)',
     ];
 
-    $checks['data_writable'] = [
-        'label' => 'Data directory writable',
-        'pass' => is_writable(OUTPOST_DATA_DIR) || (is_dir(OUTPOST_DATA_DIR) === false && is_writable(OUTPOST_DIR)),
-        'value' => OUTPOST_DATA_DIR,
-    ];
-
-    $checks['uploads_writable'] = [
-        'label' => 'Uploads directory writable',
-        'pass' => is_writable(OUTPOST_UPLOADS_DIR) || (is_dir(OUTPOST_UPLOADS_DIR) === false && is_writable(OUTPOST_DIR)),
-        'value' => OUTPOST_UPLOADS_DIR,
+    $checks['content_writable'] = [
+        'label' => 'Content directory writable',
+        'pass' => is_writable(OUTPOST_CONTENT_DIR) || (!is_dir(OUTPOST_CONTENT_DIR) && is_writable(OUTPOST_DIR)),
+        'value' => OUTPOST_CONTENT_DIR,
     ];
 
     $checks['cache_writable'] = [
@@ -76,12 +70,20 @@ function do_install(string $username, string $password, string $email): array {
     if ($errors) return $errors;
 
     // Create directories
-    foreach ([OUTPOST_DATA_DIR, OUTPOST_UPLOADS_DIR, OUTPOST_CACHE_DIR] as $dir) {
+    foreach ([OUTPOST_CONTENT_DIR, OUTPOST_DATA_DIR, OUTPOST_UPLOADS_DIR, OUTPOST_BACKUPS_DIR, OUTPOST_CACHE_DIR] as $dir) {
         if (!is_dir($dir)) mkdir($dir, 0755, true);
     }
 
+    // Create URL-compatible symlinks (uploads + themes served via /outpost/uploads/ and /outpost/themes/)
+    $uploadsLink = OUTPOST_DIR . 'uploads';
+    $themesLink = OUTPOST_DIR . 'themes';
+    if (!file_exists($uploadsLink) && !is_link($uploadsLink)) symlink(OUTPOST_UPLOADS_DIR, $uploadsLink);
+    if (!file_exists($themesLink) && !is_link($themesLink)) symlink(OUTPOST_THEMES_DIR, $themesLink);
+
     // Write .htaccess files for security
+    file_put_contents(OUTPOST_CONTENT_DIR . '.htaccess', "Options -Indexes\n");
     file_put_contents(OUTPOST_DATA_DIR . '.htaccess', "Deny from all\n");
+    file_put_contents(OUTPOST_BACKUPS_DIR . '.htaccess', "Deny from all\n");
     file_put_contents(OUTPOST_CACHE_DIR . '.htaccess', "Deny from all\n");
     file_put_contents(OUTPOST_UPLOADS_DIR . '.htaccess', "<FilesMatch \"\\.php$\">\n    Deny from all\n</FilesMatch>\n");
 

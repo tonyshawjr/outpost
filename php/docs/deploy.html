@@ -211,8 +211,7 @@ RewriteRule ^ index.php [QSA,L]</code></pre>
     <h3>Step 4 — Set permissions</h3>
     <p>In File Manager, right-click each of these directories and set permissions to <strong>755</strong>:</p>
     <ul>
-      <li><code>outpost/data/</code></li>
-      <li><code>outpost/uploads/</code></li>
+      <li><code>outpost/content/</code> (and all subdirectories)</li>
       <li><code>outpost/cache/</code></li>
     </ul>
 
@@ -239,15 +238,14 @@ index.php         ← front controller for Apache/Nginx</code></pre>
     <p>The simplest method is <code>rsync</code>, which handles incremental updates efficiently on subsequent deploys:</p>
 
     <pre><code># Initial deploy or full update
-rsync -avz --exclude 'outpost/data/' \
-           --exclude 'outpost/uploads/' \
+rsync -avz --exclude 'outpost/content/' \
            outpost/ user@your-server.com:/var/www/html/outpost/
 
 rsync -avz index.php user@your-server.com:/var/www/html/index.php</code></pre>
 
-    <p>Note the <code>--exclude</code> flags: the <code>rsync</code> command deliberately skips <code>data/</code> and <code>uploads/</code> to protect your live content.</p>
+    <p>Note the <code>--exclude</code> flag: the <code>rsync</code> command deliberately skips <code>content/</code> to protect your live data (database, uploads, themes, and backups).</p>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Never overwrite or delete <code>outpost/data/</code> or <code>outpost/uploads/</code> on your production server. The <code>data/</code> directory contains your SQLite database — your entire site's content. The <code>uploads/</code> directory contains all uploaded media. Both must be preserved on every re-deploy.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Never overwrite or delete <code>outpost/content/</code> on your production server. This directory contains your SQLite database, uploaded media, themes, and backups — your entire site's data. It must be preserved on every re-deploy.</div>
 
     <h3>What to preserve on re-deploy</h3>
     <table>
@@ -259,11 +257,7 @@ rsync -avz index.php user@your-server.com:/var/www/html/index.php</code></pre>
       </thead>
       <tbody>
         <tr>
-          <td><code>outpost/data/</code></td>
-          <td>Preserve — never overwrite or delete</td>
-        </tr>
-        <tr>
-          <td><code>outpost/uploads/</code></td>
+          <td><code>outpost/content/</code></td>
           <td>Preserve — never overwrite or delete</td>
         </tr>
         <tr>
@@ -331,7 +325,7 @@ sudo systemctl restart apache2</code></pre>
     }
 
     # Deny direct access to sensitive Outpost directories
-    location ~ ^/outpost/(data|cache)/ {
+    location ~ ^/outpost/(content/data|content/backups|cache)/ {
         deny all;
         return 404;
     }
@@ -344,32 +338,31 @@ sudo systemctl restart apache2</code></pre>
       <li>TCP (when PHP-FPM is on a separate host): <code>fastcgi_pass 127.0.0.1:9000;</code></li>
     </ul>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — The <code>location</code> block that denies access to <code>outpost/data/</code> and <code>outpost/cache/</code> is a security best practice. While your SQLite database is not directly executable from the web, it is readable as a file. Blocking direct HTTP access prevents anyone from downloading your database file.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> — The <code>location</code> block that denies access to <code>content/data/</code>, <code>content/backups/</code>, and <code>cache/</code> is a security best practice. While your SQLite database is not directly executable from the web, it is readable as a file. Blocking direct HTTP access prevents anyone from downloading your database or backup files.</div>
 
     <h2>File Permissions</h2>
-    <p>Outpost needs write access to three directories: <code>data/</code>, <code>uploads/</code>, and <code>cache/</code>. The web server process (typically <code>www-data</code> on Debian/Ubuntu, <code>nginx</code> or <code>apache</code> on other systems) must be able to write to these paths.</p>
+    <p>Outpost needs write access to the <code>content/</code> and <code>cache/</code> directories. The web server process (typically <code>www-data</code> on Debian/Ubuntu, <code>nginx</code> or <code>apache</code> on other systems) must be able to write to these paths.</p>
 
     <pre><code># Set directory permissions
-chmod 755 outpost/data outpost/uploads outpost/cache outpost/cache/templates
+chmod -R 755 outpost/content outpost/cache
 
 # Set database file permissions (if it already exists)
-chmod 644 outpost/data/cms.db
+chmod 644 outpost/content/data/cms.db
 
 # If you need to set ownership (replace www-data with your web server user)
-chown -R www-data:www-data outpost/data
-chown -R www-data:www-data outpost/uploads
+chown -R www-data:www-data outpost/content
 chown -R www-data:www-data outpost/cache</code></pre>
 
-    <p>If the <code>data/</code>, <code>uploads/</code>, or <code>cache/</code> directories do not exist, create them first:</p>
-    <pre><code>mkdir -p outpost/data outpost/uploads outpost/cache/templates
-chmod 755 outpost/data outpost/uploads outpost/cache outpost/cache/templates</code></pre>
+    <p>If the directories do not exist, create them first:</p>
+    <pre><code>mkdir -p outpost/content/data outpost/content/uploads outpost/content/themes outpost/content/backups outpost/cache/templates
+chmod -R 755 outpost/content outpost/cache</code></pre>
 
     <div class="callout callout-warn"><strong>Warning</strong> — Do not use <code>chmod 777</code>. World-writable directories are a security risk. Use <code>755</code> for directories and ensure the web server user is the owner, or use group ownership with <code>775</code> if your deployment user and web server user share a group.</div>
 
     <h2 id="first-boot-on-production">First Boot on Production</h2>
     <p>If this is a fresh install (no database yet), the first HTTP request to your site automatically:</p>
     <ol>
-      <li>Creates <code>outpost/data/cms.db</code></li>
+      <li>Creates <code>outpost/content/data/cms.db</code></li>
       <li>Runs all schema migrations to create every table</li>
       <li>Seeds a default admin account and sample data</li>
     </ol>
@@ -450,7 +443,7 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
     <div class="callout callout-warn"><strong>Warning</strong> — Always copy <code>index.html</code> when deploying a new admin build. The SPA uses hashed asset filenames (e.g. <code>app-3f7a2b1c.js</code>) that change on every build. <code>index.html</code> contains the references to the current filenames. If you deploy only the new JS file but leave the old <code>index.html</code>, the browser will continue loading the old bundle and your changes will never appear.</div>
 
     <h2>Backup Strategy</h2>
-    <p>An Outpost backup is simple because all persistent state lives in exactly two places:</p>
+    <p>An Outpost backup is simple because all persistent state lives in one directory: <code>outpost/content/</code>.</p>
 
     <table>
       <thead>
@@ -461,25 +454,21 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
       </thead>
       <tbody>
         <tr>
-          <td><code>outpost/data/cms.db</code></td>
-          <td>All content, settings, users, and configuration</td>
-        </tr>
-        <tr>
-          <td><code>outpost/uploads/</code></td>
-          <td>All uploaded media files</td>
+          <td><code>outpost/content/</code></td>
+          <td>Database, uploads, themes, and backups — your entire site</td>
         </tr>
       </tbody>
     </table>
 
-    <p>Theme files and PHP engine files can be restored from your version control repository. Only <code>data/</code> and <code>uploads/</code> contain data that exists nowhere else.</p>
+    <p>PHP engine files, admin SPA, and docs can be restored from a release zip. Only <code>content/</code> contains data that exists nowhere else.</p>
 
     <p>A simple daily cron backup:</p>
     <pre><code># Add to crontab with: crontab -e
-# Daily backup at 2am, kept for 30 days
-0 2 * * * cp /var/www/html/outpost/data/cms.db /backups/cms-$(date +\%Y\%m\%d).db
+# Daily database backup at 2am, kept for 30 days
+0 2 * * * cp /var/www/html/outpost/content/data/cms.db /backups/cms-$(date +\%Y\%m\%d).db
 0 2 * * * find /backups/ -name "cms-*.db" -mtime +30 -delete</code></pre>
 
-    <p>For a more robust solution, use <code>rsync</code> to an off-site server or an object storage service (S3, Backblaze B2, etc.) to keep backups in a separate location from the live server.</p>
+    <p>For a full site backup (database + uploads + themes), use the built-in backup feature in <strong>Admin &rarr; Settings &rarr; Backups</strong>, or <code>rsync</code> the entire <code>content/</code> directory to an off-site server.</p>
 
     <h2>Upgrading from Beta to Stable</h2>
 
@@ -507,9 +496,8 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
     </ol>
 
     <div class="callout callout-warn">
-      <strong>Do NOT overwrite these directories:</strong>
-      <code>themes/</code>, <code>data/</code>, <code>uploads/</code>, <code>cache/</code> (except templates).
-      These contain your content, database, and customizations.
+      <strong>Do NOT overwrite <code>content/</code>.</strong>
+      This directory contains your database, uploads, themes, and backups. You may safely clear <code>cache/templates/</code>.
     </div>
 
     <h3>What changes between beta and stable</h3>
@@ -581,8 +569,8 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
           <td>Visit <code>https://your-domain.com</code> in a browser</td>
         </tr>
         <tr>
-          <td><code>outpost/data/</code> is not web-accessible</td>
-          <td>Request <code>https://your-domain.com/outpost/data/cms.db</code> — should return 403 or 404</td>
+          <td><code>outpost/content/data/</code> is not web-accessible</td>
+          <td>Request <code>https://your-domain.com/outpost/content/data/cms.db</code> — should return 403 or 404</td>
         </tr>
         <tr>
           <td>File permissions correct</td>
@@ -598,7 +586,7 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
         </tr>
         <tr>
           <td>Backup scheduled</td>
-          <td>Cron job or off-site sync targeting <code>data/</code> and <code>uploads/</code></td>
+          <td>Cron job or off-site sync targeting <code>content/</code></td>
         </tr>
         <tr>
           <td>Theme active</td>

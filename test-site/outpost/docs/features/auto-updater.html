@@ -195,16 +195,8 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>themes/</code></td>
-          <td>Contains your custom themes and any modifications you have made. The updater will never overwrite your theme files.</td>
-        </tr>
-        <tr>
-          <td><code>data/</code></td>
-          <td>Your SQLite database (<code>cms.db</code>). All your content, settings, and configuration live here.</td>
-        </tr>
-        <tr>
-          <td><code>uploads/</code></td>
-          <td>All user-uploaded media files (images, documents, etc.).</td>
+          <td><code>content/</code></td>
+          <td>The entire user data directory is skipped. This includes your database (<code>content/data/cms.db</code>), uploaded media (<code>content/uploads/</code>), themes (<code>content/themes/</code>), and backups (<code>content/backups/</code>).</td>
         </tr>
         <tr>
           <td><code>cache/</code></td>
@@ -213,7 +205,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Because themes are never overwritten, you can safely customize any theme file. Your changes will persist through every update.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Because the entire <code>content/</code> directory is protected, you can safely customize any theme file. Your changes will persist through every update.</div>
 
     <hr style="margin: 40px 0;">
 
@@ -328,7 +320,7 @@
     </ol>
     <p>Once the manual update includes the updated <code>api.php</code> with the updater endpoints, all future updates can be done through <strong>Settings &rarr; Updates</strong>.</p>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Do <em>not</em> overwrite the <code>themes/</code>, <code>data/</code>, <code>uploads/</code>, or <code>cache/</code> directories during a manual update. These contain your site-specific content and should be left in place.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Do <em>not</em> overwrite the <code>content/</code> directory during a manual update. This contains your database, uploads, themes, and backups. You may safely clear <code>cache/templates/</code>.</div>
 
     <hr style="margin: 40px 0;">
 

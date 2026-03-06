@@ -135,27 +135,31 @@
 
     <pre><code>your-site/
   outpost/
+    content/              &larr; everything the user owns
+      data/
+        cms.db
+      uploads/
+      themes/
+        my-theme/
+          index.html
+          about.html
+          blog.html
+          post.html
+          contact.html
+          404.html
+          partials/
+            head.html
+            nav.html
+            footer.html
+            [other].html
+          assets/
+            style.css
+            main.js
+          theme.json
+      backups/
+    uploads &rarr; content/uploads  (symlink)
+    themes &rarr; content/themes    (symlink)
     admin/
-    themes/
-      my-theme/
-        index.html
-        about.html
-        blog.html
-        post.html
-        contact.html
-        404.html
-        partials/
-          head.html
-          nav.html
-          footer.html
-          [other].html
-        assets/
-          style.css
-          main.js
-        theme.json
-    data/
-      cms.db
-    uploads/
     cache/
       templates/
     api.php
@@ -180,6 +184,8 @@
       profile.php
   index.php</code></pre>
 
+    <div class="callout callout-tip"><strong>Tip</strong> — The <code>content/</code> directory contains everything you own: database, uploads, themes, and backups. Back up this single folder and you have your entire site. The <code>uploads</code> and <code>themes</code> symlinks at the outpost root preserve existing URLs like <code>/outpost/uploads/photo.jpg</code> and <code>/outpost/themes/my-theme/assets/style.css</code>.</div>
+
     <h2>Deploy Safety Reference</h2>
     <p>Before diving into individual files, here is the most important information for anyone deploying updates to a live site:</p>
 
@@ -193,14 +199,9 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>outpost/data/</code></td>
+          <td><code>outpost/content/</code></td>
           <td><strong>PRESERVE — never overwrite</strong></td>
-          <td>Contains the SQLite database with all your content</td>
-        </tr>
-        <tr>
-          <td><code>outpost/uploads/</code></td>
-          <td><strong>PRESERVE — never overwrite</strong></td>
-          <td>Contains all uploaded media files</td>
+          <td>Contains all user data: database, uploads, themes, backups</td>
         </tr>
         <tr>
           <td><code>outpost/cache/</code></td>
@@ -211,11 +212,6 @@
           <td><code>outpost/admin/</code></td>
           <td>Replace on each deploy if admin source changed</td>
           <td>Pre-built SPA; must include <code>index.html</code> when updating</td>
-        </tr>
-        <tr>
-          <td><code>outpost/themes/</code></td>
-          <td>Replace your active theme directory</td>
-          <td>Your template files; safe to overwrite</td>
         </tr>
         <tr>
           <td>All <code>outpost/*.php</code> files</td>
@@ -230,7 +226,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Never delete or overwrite <code>outpost/data/</code> or <code>outpost/uploads/</code> when deploying. These directories contain your live content. All other directories can be replaced safely.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Never delete or overwrite <code>outpost/content/</code> when deploying. This directory contains your database, uploads, themes, and backups. Everything else can be replaced safely. The auto-updater already skips <code>content/</code> automatically.</div>
 
     <h2>outpost/admin/</h2>
     <p>The pre-built Svelte 5 admin single-page application. This directory contains:</p>
@@ -357,21 +353,26 @@
 
     <p>This file is read by the admin's Themes page to display theme information. See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
 
-    <h2>outpost/data/</h2>
-    <p>Contains the SQLite database file <code>cms.db</code>. This is the single most important directory in your installation — it holds all your content, settings, users, and configuration.</p>
+    <h2>outpost/content/</h2>
+    <p>The <code>content/</code> directory holds everything you own. It contains four subdirectories:</p>
+    <ul>
+      <li><code>content/data/</code> — SQLite database (<code>cms.db</code>) with all your content, settings, users, and configuration</li>
+      <li><code>content/uploads/</code> — all uploaded media files, organized by year and month</li>
+      <li><code>content/themes/</code> — your theme templates, CSS, and assets</li>
+      <li><code>content/backups/</code> — backup zip files created from Admin &rarr; Settings &rarr; Backups</li>
+    </ul>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Back up <code>outpost/data/cms.db</code> regularly. This single file is your entire site's content. Losing it means losing all pages, posts, settings, and user accounts. A simple daily <code>cp cms.db cms.db.bak</code> cron job or an off-site sync is strongly recommended.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Back up the <code>content/</code> directory regularly. This single folder is your entire site. Losing it means losing all pages, posts, media, themes, settings, and user accounts.</div>
 
     <p>The database is created automatically on first boot. Outpost runs all schema migrations on startup, so updates to the CMS engine that require new columns or tables are applied automatically without any manual SQL.</p>
 
-    <p>The database path is configured in <code>outpost/config.php</code> (if it exists) or falls back to the default location. In most installations you never need to change this.</p>
-
-    <h2>outpost/uploads/</h2>
-    <p>All files uploaded through the Media Library in the admin panel are stored here, organized in subdirectories by year and month. Outpost also stores automatically generated image thumbnails here.</p>
-
-    <p>Like <code>data/</code>, this directory must be preserved on every deployment. The database stores references to uploaded files by their path — deleting an upload without removing its database record will cause broken images and missing files in the admin.</p>
-
-    <p>The web server must have write permission to this directory. See the <a href="deploy.html">Deploy</a> guide for the correct permission settings.</p>
+    <h3>URL Symlinks</h3>
+    <p>Outpost creates symlinks at the <code>outpost/</code> root so that existing URLs continue to work:</p>
+    <ul>
+      <li><code>outpost/uploads</code> &rarr; <code>outpost/content/uploads</code></li>
+      <li><code>outpost/themes</code> &rarr; <code>outpost/content/themes</code></li>
+    </ul>
+    <p>URLs like <code>/outpost/uploads/photo.jpg</code> and <code>/outpost/themes/my-theme/assets/style.css</code> work exactly as before. The symlinks are created automatically during installation or migration.</p>
 
     <h2>outpost/cache/</h2>
     <p>Outpost uses two levels of caching:</p>
