@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte';
   import { getCsrfToken, getApiBase } from '$lib/api.js';
   import { humanFileSize } from '$lib/utils.js';
 
@@ -15,26 +16,32 @@
   let collapsed = $state(false);
   let visible = $state(false);
   let autoHideTimer = $state(null);
+  let lastFileBatch = $state(null);
 
   $effect(() => {
-    if (files.length > 0) {
-      const newItems = files.map((f, i) => ({
-        id: Date.now() + '_' + i,
-        file: f,
-        name: f.name,
-        size: f.size,
-        progress: 0,
-        status: 'pending', // pending | uploading | done | error | cancelled
-        error: null,
-        result: null,
-        savings: 0,
-        xhr: null,
-      }));
-      queue = [...queue, ...newItems];
-      visible = true;
-      collapsed = false;
-      if (autoHideTimer) clearTimeout(autoHideTimer);
-      processQueue();
+    // Only track `files` — untrack everything else to prevent reactive loops
+    const currentFiles = files;
+    if (currentFiles.length > 0 && currentFiles !== lastFileBatch) {
+      untrack(() => {
+        lastFileBatch = currentFiles;
+        const newItems = currentFiles.map((f, i) => ({
+          id: Date.now() + '_' + i,
+          file: f,
+          name: f.name,
+          size: f.size,
+          progress: 0,
+          status: 'pending', // pending | uploading | done | error | cancelled
+          error: null,
+          result: null,
+          savings: 0,
+          xhr: null,
+        }));
+        queue = [...queue, ...newItems];
+        visible = true;
+        collapsed = false;
+        if (autoHideTimer) clearTimeout(autoHideTimer);
+        processQueue();
+      });
     }
   });
 
