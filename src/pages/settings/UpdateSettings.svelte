@@ -74,8 +74,8 @@
       {#if updateInfo.update_available}
         <div class="update-available">
           {#if updateInfo.release_notes}
-            <details class="update-notes">
-              <summary>Release notes</summary>
+            <details class="update-notes" open>
+              <summary>What's new</summary>
               <div class="update-notes-body">{updateInfo.release_notes}</div>
             </details>
           {/if}
@@ -190,7 +190,7 @@
     color: var(--text-secondary);
     line-height: 1.6;
     white-space: pre-wrap;
-    max-height: 200px;
+    max-height: 400px;
     overflow-y: auto;
     padding: var(--space-sm);
     background: var(--bg-tertiary);

@@ -5903,8 +5903,8 @@ function handle_updates_check(): void {
         }
     }
 
-    // Fetch latest release from GitHub
-    $url = 'https://api.github.com/repos/' . OUTPOST_GITHUB_REPO . '/releases/latest';
+    // Fetch all releases from GitHub (returns up to 30, newest first)
+    $url = 'https://api.github.com/repos/' . OUTPOST_GITHUB_REPO . '/releases?per_page=30';
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -5928,24 +5928,46 @@ function handle_updates_check(): void {
         return;
     }
 
-    $release = json_decode($body, true);
-    $latestVersion = ltrim($release['tag_name'] ?? '', 'v');
-    $downloadUrl = '';
+    $releases = json_decode($body, true);
+    if (!is_array($releases) || empty($releases)) {
+        json_response([
+            'current_version' => $current,
+            'latest_version'  => $current,
+            'update_available' => false,
+        ]);
+        return;
+    }
 
-    // Find the .zip asset in the release
-    foreach (($release['assets'] ?? []) as $asset) {
+    // Latest release (first in array) — use for download URL and version
+    $latest = $releases[0];
+    $latestVersion = ltrim($latest['tag_name'] ?? '', 'v');
+    $downloadUrl = '';
+    foreach (($latest['assets'] ?? []) as $asset) {
         if (str_ends_with($asset['name'], '.zip')) {
             $downloadUrl = $asset['browser_download_url'];
             break;
         }
     }
 
+    // Collect notes from all releases newer than current version (newest first)
+    $combinedNotes = '';
+    foreach ($releases as $rel) {
+        if ($rel['draft'] ?? false) continue;
+        $ver = ltrim($rel['tag_name'] ?? '', 'v');
+        if (!$ver || !version_compare($ver, $current, '>')) continue;
+        $notes = trim($rel['body'] ?? '');
+        if ($notes) {
+            $combinedNotes .= $notes . "\n\n";
+        }
+    }
+    $combinedNotes = trim($combinedNotes);
+
     // Cache the result
     $cacheData = json_encode([
         'latest_version' => $latestVersion,
         'download_url'   => $downloadUrl,
-        'release_notes'  => $release['body'] ?? '',
-        'release_url'    => $release['html_url'] ?? '',
+        'release_notes'  => $combinedNotes,
+        'release_url'    => $latest['html_url'] ?? '',
         'checked_at'     => time(),
     ]);
     OutpostDB::query(
@@ -5958,8 +5980,8 @@ function handle_updates_check(): void {
         'current_version'  => $current,
         'latest_version'   => $latestVersion,
         'download_url'     => $downloadUrl,
-        'release_notes'    => $release['body'] ?? '',
-        'release_url'      => $release['html_url'] ?? '',
+        'release_notes'    => $combinedNotes,
+        'release_url'      => $latest['html_url'] ?? '',
         'update_available' => version_compare($latestVersion, $current, '>'),
     ]);
 }
