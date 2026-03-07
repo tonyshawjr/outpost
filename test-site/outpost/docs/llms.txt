@@ -158,6 +158,7 @@ All output tags register the field in the admin page editor automatically.
 {{ field_name | date }}       <!-- date input -->
 {{ field_name | toggle }}     <!-- boolean toggle -->
 {{ field_name | or_body }}    <!-- text/excerpt fallback: uses auto-excerpt from body field if field is empty -->
+{{ field_name | focal }}      <!-- focal point: outputs "X% Y%" for object-position/background-position -->
 ```
 
 Both inline (`{{ field "Default" }}`) and closing-tag (`{{ field }}Default{{ /field }}`) default syntax is fully supported. Closing-tag defaults also work with filters: `{{ field | raw }}<p>HTML</p>{{ /field }}`. Defaults are extracted by the template scanner and stored in `page_field_registry.default_value`, so the admin page editor pre-fills fields (including WYSIWYG richtext) with the template default when content is empty.
@@ -465,6 +466,7 @@ Relationship fields link content to items from another collection. Search and se
 | `{{ field | date }}` | Date input |
 | `{{ field | toggle }}` | Boolean toggle |
 | `{{ field | or_body }}` | Text with auto-excerpt fallback from body |
+| `{{ field | focal }}` | Focal point as CSS `X% Y%` for `object-position` |
 | `{{ @global }}` | Output global field |
 | `{{ meta.title }}Default{{ /meta.title }}` | `<title>` tag (legacy — use `{% seo %}` in new themes) |
 | `{{ meta.description }}Default{{ /meta.description }}` | `<meta name="description">` tag (legacy — use `{% seo %}` in new themes) |
@@ -635,24 +637,67 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 
 **Processing (raster images only):**
 - Images wider than 2400px are scaled down to 2400px (aspect ratio preserved)
+- JPEG and PNG auto-converted to WebP (configurable, enabled by default)
 - Thumbnail generated at max 400×300px with `thumb_` prefix
 - Pixel dimensions stored in database
 - Filenames sanitized + Unix timestamp prefix added
 
+**WebP auto-conversion:**
+- Converts JPEG and PNG uploads to WebP using GD (25–50% smaller)
+- Skips GIF (animation), SVG (vector), WebP (already optimized), AVIF, PDF, video
+- Preserves PNG alpha/transparency
+- Original file replaced on disk with `.webp` extension
+- Disable: `define('OUTPOST_WEBP_AUTO_CONVERT', false);`
+- Quality: `define('OUTPOST_WEBP_QUALITY', 85);` (0–100, default 85)
+- Existing files are not retroactively converted
+
+**Focal point:**
+- Every image has a focal point (default: 50% 50% center)
+- Set by clicking on the image preview in the media detail panel
+- Stored as `focal_x` and `focal_y` (0–100) in the database
+- Template filter: `{{ field | focal }}` outputs `X% Y%` for CSS
+- Use with `object-position` or `background-position`:
+```html
+<img src="{{ hero_image | image }}" style="object-fit: cover; object-position: {{ hero_image | focal }};">
+```
+- Works on collection items: `{{ post.featured_image | focal }}`
+- Returns `50% 50%` if no custom focal point set
+
+**Media folders:**
+- Organize files into folders (up to 3 levels of nesting)
+- Folder sidebar in media library: All Files, Unfiled, folder tree
+- Create, rename, delete folders via right-click context menu
+- Drag files from grid onto folders to move
+- Uploads auto-assigned to the currently active folder
+- Deleting a folder: files become unfiled, children re-parented
+- Folders are logical — files stay in `uploads/` on disk, URLs unchanged
+- API: `GET/POST/PUT/DELETE api.php?action=media-folders`
+- Move files: `PUT api.php?action=media/move` with `{ids: [...], folder_id: N}`
+- Filter media list: `GET api.php?action=media&folder_id=N` (or `unfiled`)
+
+**Bulk upload:**
+- Drop multiple files or select multiple in file picker
+- Upload queue drawer (bottom-right) with per-file progress bars
+- 2 concurrent uploads at a time
+- Shows WebP savings per file
+- Cancel individual uploads while in progress
+- Auto-collapses 3s after all complete
+
 **Storage path:** `outpost/content/uploads/` (flat, no subdirectories). A symlink at `outpost/uploads` points to `content/uploads/` for URL compatibility.
 
 ```
-outpost/content/uploads/1700000000_hero-photo.jpg         # original
-outpost/content/uploads/thumb_1700000000_hero-photo.jpg   # thumbnail
+outpost/content/uploads/1700000000_hero-photo.webp        # original (converted)
+outpost/content/uploads/thumb_1700000000_hero-photo.webp   # thumbnail
 ```
 
-URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-photo.jpg` (served via symlink)
+URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-photo.webp` (served via symlink)
 
 **SVG sanitization:** `<script>` tags, `on*` event handlers, and external `xlink:href` references are removed before saving.
 
 **In templates:**
 ```html
 <img src="{{ hero_image | image }}" alt="{{ hero_title }}">
+<img src="{{ hero_image | image }}" style="object-fit: cover; object-position: {{ hero_image | focal }};">
 {{ @logo | image }}
 <a href="{{ brochure_pdf | link }}" download>Download</a>
 ```
@@ -1193,6 +1238,8 @@ define('OUTPOST_SYNC_KEY', 'your-random-64-char-key');
 | `OUTPOST_SITE_URL` | auto-detected | Canonical URL for sitemap, emails, absolute links |
 | `OUTPOST_DEBUG` | `false` | Show PHP errors inline — never true in production |
 | `OUTPOST_MAX_UPLOAD_SIZE` | `10485760` (10 MB) | Max upload size in bytes |
+| `OUTPOST_WEBP_AUTO_CONVERT` | `true` | Auto-convert JPEG/PNG uploads to WebP |
+| `OUTPOST_WEBP_QUALITY` | `85` | WebP compression quality (0–100) |
 | `OUTPOST_UPLOADS_DIR` | `content/uploads/` | Media upload directory (symlinked at `outpost/uploads`) |
 | `OUTPOST_THEMES_DIR` | `content/themes/` | Themes directory (symlinked at `outpost/themes`) |
 | `OUTPOST_BACKUPS_DIR` | `content/backups/` | Backup zip storage directory |
@@ -1245,9 +1292,11 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `folders` | GET, POST, PUT, DELETE | Folders CRUD |
 | `labels` | GET, POST, PUT, DELETE | Folder labels CRUD |
 | `item-labels` | GET, PUT | Label assignments |
-| `media` | GET, PUT, DELETE | Media library (PUT updates alt_text) |
-| `media/upload` | POST | Upload file |
+| `media` | GET, PUT, DELETE | Media library (GET: ?folder_id= filter; PUT updates alt_text, focal_x, focal_y, folder_id) |
+| `media/upload` | POST | Upload file (optional folder_id form field) |
 | `media/transform` | POST | Resize or crop a raster image (GD required) |
+| `media/move` | PUT | Move media files to a folder (ids[], folder_id) |
+| `media-folders` | GET, POST, PUT, DELETE | Media folder CRUD (max 3 levels deep) |
 | `users` | GET, POST, PUT, DELETE | Admin users CRUD |
 | `users/grants` | GET, PUT | Collection grants for editor users (GET returns granted IDs, PUT replaces all grants) |
 | `members` | GET, PUT, DELETE | Member management |

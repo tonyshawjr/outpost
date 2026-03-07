@@ -176,12 +176,13 @@ export const users = {
 
 // Media
 export const media = {
-  list: () =>
-    request('media'),
-  upload: (file) => {
+  list: (folderId) =>
+    request('media', { params: folderId != null ? { folder_id: folderId } : {} }),
+  upload: (file, folderId) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('csrf_token', csrfToken);
+    if (folderId != null) formData.append('folder_id', folderId);
     return request('media/upload', { method: 'POST', body: formData });
   },
   update: (id, data) =>
@@ -190,7 +191,25 @@ export const media = {
     request('media/transform', { method: 'POST', body: data }),
   delete: (id) =>
     request('media', { method: 'DELETE', params: { id } }),
+  moveToFolder: (ids, folderId) =>
+    request('media/move', { method: 'PUT', body: { ids, folder_id: folderId } }),
 };
+
+// Media Folders
+export const mediaFolders = {
+  list: () =>
+    request('media-folders'),
+  create: (data) =>
+    request('media-folders', { method: 'POST', body: data }),
+  update: (id, data) =>
+    request('media-folders', { method: 'PUT', params: { id }, body: data }),
+  delete: (id) =>
+    request('media-folders', { method: 'DELETE', params: { id } }),
+};
+
+// CSRF & API base exports (for XHR uploads)
+export function getCsrfToken() { return csrfToken; }
+export function getApiBase() { return apiBase; }
 
 // Stats
 export const stats = {

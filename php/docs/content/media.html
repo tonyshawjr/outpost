@@ -83,7 +83,49 @@
     </table>
 
     <div class="callout callout-note">
-      <strong>Note</strong> — Processing (resize + thumbnail) only applies to raster images (jpg, png, gif, webp, avif). SVG, PDF, video, and audio files are stored as-is without processing.
+      <strong>Note</strong> — Processing (resize + thumbnail + WebP conversion) only applies to raster images (jpg, png, gif, webp, avif). SVG, PDF, video, and audio files are stored as-is without processing.
+    </div>
+
+    <h2>WebP auto-conversion</h2>
+    <p>When enabled, Outpost automatically converts uploaded JPEG and PNG images to WebP format using the GD library. This typically reduces file size by 25–50% with no visible quality loss.</p>
+
+    <table>
+      <thead>
+        <tr><th>Behavior</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Converted formats</strong></td>
+          <td>JPEG (<code>.jpg</code>, <code>.jpeg</code>) and PNG (<code>.png</code>) only.</td>
+        </tr>
+        <tr>
+          <td><strong>Skipped formats</strong></td>
+          <td>GIF (may be animated), SVG (vector), WebP (already optimized), AVIF, PDF, and video files are never converted.</td>
+        </tr>
+        <tr>
+          <td><strong>Alpha preservation</strong></td>
+          <td>PNG transparency is preserved in the converted WebP file.</td>
+        </tr>
+        <tr>
+          <td><strong>File replacement</strong></td>
+          <td>The original JPEG/PNG is replaced on disk with a <code>.webp</code> file. The database stores the <code>.webp</code> path and <code>image/webp</code> MIME type.</td>
+        </tr>
+        <tr>
+          <td><strong>Quality setting</strong></td>
+          <td>Configurable via <code>OUTPOST_WEBP_QUALITY</code> in <code>config.php</code> (default: 85). Range: 0–100.</td>
+        </tr>
+        <tr>
+          <td><strong>Existing files</strong></td>
+          <td>Already-uploaded images are not retroactively converted. Only new uploads are affected.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>To disable WebP conversion, set the constant in <code>config.php</code>:</p>
+    <pre><code>define('OUTPOST_WEBP_AUTO_CONVERT', false);</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — WebP conversion requires the PHP GD extension with WebP support. If GD is not available or does not support WebP, uploads proceed normally without conversion.
     </div>
 
     <h2>File storage paths</h2>
@@ -184,6 +226,87 @@
     <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"{{ post.featured_image | image }}"</span> <span class="t-attr">alt</span>=<span class="t-string">"{{ post.title }}"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;/figure&gt;</span>
 <span class="t-kw">{% endif %}</span></code></pre>
+
+    <h2>Focal point</h2>
+    <p>Every image has a focal point — the spot that should remain visible when the image is cropped by CSS <code>object-fit: cover</code> or <code>background-size: cover</code>. The default is <code>50% 50%</code> (center). Click anywhere on the image preview in the media detail panel to set a custom focal point.</p>
+
+    <h3>Setting a focal point</h3>
+    <ol>
+      <li>Open the media library and click an image to open its detail panel.</li>
+      <li>Click anywhere on the image preview — a white dot appears at the click position.</li>
+      <li>The focal point auto-saves immediately. No button click required.</li>
+      <li>Click <strong>Reset focal point</strong> below the preview to return to center (50/50).</li>
+    </ol>
+
+    <h3>Using focal points in templates — the <code>| focal</code> filter</h3>
+    <p>The <code>| focal</code> filter outputs the focal point as a CSS-ready <code>X% Y%</code> string. Use it with <code>object-position</code> or <code>background-position</code>.</p>
+
+    <pre><code><span class="t-comment">{# Image with focal-point-aware cropping #}</span>
+<span class="t-tag">&lt;img</span>
+  <span class="t-attr">src</span>=<span class="t-string">"{{ hero_image | image }}"</span>
+  <span class="t-attr">alt</span>=<span class="t-string">"{{ hero_title }}"</span>
+  <span class="t-attr">style</span>=<span class="t-string">"object-fit: cover; object-position: {{ hero_image | focal }};"</span>
+<span class="t-tag">&gt;</span>
+
+<span class="t-comment">{# CSS background image #}</span>
+<span class="t-tag">&lt;div</span> <span class="t-attr">style</span>=<span class="t-string">"background-image: url('{{ banner | image }}'); background-size: cover; background-position: {{ banner | focal }};"</span><span class="t-tag">&gt;</span>
+  ...
+<span class="t-tag">&lt;/div&gt;</span>
+
+<span class="t-comment">{# Collection item focal point #}</span>
+<span class="t-kw">{% for</span> post <span class="t-kw">in</span> <span class="t-out">collection.post</span> <span class="t-kw">%}</span>
+  <span class="t-tag">&lt;img</span>
+    <span class="t-attr">src</span>=<span class="t-string">"{{ post.featured_image | image }}"</span>
+    <span class="t-attr">style</span>=<span class="t-string">"object-fit: cover; object-position: {{ post.featured_image | focal }};"</span>
+  <span class="t-tag">&gt;</span>
+<span class="t-kw">{% endfor %}</span></code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong> — If no custom focal point has been set, <code>| focal</code> outputs <code>50% 50%</code> (the CSS default). It is safe to always include <code>| focal</code> on cover images — there is no performance penalty.
+    </div>
+
+    <h2>Media folders</h2>
+    <p>Organize media files into folders using the folder sidebar in the media library. Folders support up to 3 levels of nesting (e.g., <code>Photos → Events → 2026</code>).</p>
+
+    <h3>Creating folders</h3>
+    <ul>
+      <li>Click <strong>New Folder</strong> at the bottom of the folder sidebar.</li>
+      <li>Type a name and press Enter.</li>
+      <li>Right-click a folder and choose <strong>New subfolder</strong> to nest folders (max 3 levels).</li>
+    </ul>
+
+    <h3>Moving files to folders</h3>
+    <ul>
+      <li><strong>Drag and drop:</strong> Drag a file from the media grid onto a folder in the sidebar.</li>
+      <li><strong>Upload to folder:</strong> When a folder is selected, new uploads are automatically placed in that folder.</li>
+    </ul>
+
+    <h3>Filtering by folder</h3>
+    <ul>
+      <li><strong>All Files</strong> — shows every file across all folders.</li>
+      <li><strong>Unfiled</strong> — shows files not assigned to any folder.</li>
+      <li>Click any folder name to show only files in that folder.</li>
+    </ul>
+
+    <h3>Managing folders</h3>
+    <ul>
+      <li><strong>Rename:</strong> Right-click a folder → <strong>Rename</strong>, or double-click the folder name.</li>
+      <li><strong>Delete:</strong> Right-click → <strong>Delete</strong>. Files in a deleted folder become unfiled. Subfolders are re-parented to the deleted folder's parent.</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — Folders are a logical organization layer. Files remain in <code>outpost/uploads/</code> on disk. Moving a file between folders does not change its URL.
+    </div>
+
+    <h2>Bulk upload</h2>
+    <p>Drop multiple files at once onto the media library or use the file picker to select multiple files. Outpost uploads them in a queue with a progress drawer in the bottom-right corner of the screen.</p>
+    <ul>
+      <li>Up to 2 files upload concurrently.</li>
+      <li>Each file shows an individual progress bar.</li>
+      <li>For images converted to WebP, the savings are displayed (e.g., "-340 KB").</li>
+      <li>Cancel individual uploads while they are in progress.</li>
+      <li>The queue auto-collapses 3 seconds after all uploads complete.</li>
+    </ul>
 
     <h2>Documents and non-image files</h2>
     <p>For PDFs, audio, video, and other non-image files, use the <code>| link</code> filter in your template. This outputs the raw URL for use in an anchor tag or media element:</p>

@@ -4,6 +4,20 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Media Library Pro (v1.6.0)
+
+- **WebP auto-conversion** — JPEG and PNG uploads automatically converted to WebP using GD at configurable quality (default 85), reducing file sizes. GIF, SVG, and already-WebP files are skipped. Savings displayed per file in upload queue.
+- **Focal point picker** — click anywhere on an image preview in the media sidebar to set its focal point (stored as `focal_x`/`focal_y` 0-100). White marker shows current position, "Reset" link restores to center. New `{{ field | focal }}` template filter outputs `X% Y%` for `object-position` CSS.
+- **Media folder organization** — left sidebar folder tree for organizing uploads. Create, rename, delete folders (max 3 levels deep). Right-click context menu on folders. Drag media items from grid onto folders. "All Files" and "Unfiled" virtual folders with counts. Uploads auto-assigned to active folder.
+- **Bulk upload with progress** — fixed-position upload queue drawer (bottom-right) with per-file progress bars via XHR. 2 concurrent uploads. Cancel individual files. WebP savings shown per file. Auto-collapses 3 seconds after completion.
+- **MediaPicker folder browsing** — folder dropdown in the image picker modal, upload respects selected folder.
+- **New API endpoints** — `media-folders` CRUD, `media/move` for bulk folder assignment, `media` list accepts `folder_id` filter, `media/upload` accepts `folder_id` parameter.
+- **Database migrations** — auto-adds `focal_x`, `focal_y`, `folder_id` columns to `media` table; creates `media_folders` table.
+- **Config constants** — `OUTPOST_WEBP_AUTO_CONVERT`, `OUTPOST_WEBP_QUALITY` in `config.php`.
+- **Files**: `php/config.php`, `php/media.php`, `php/db.php`, `php/api.php`, `php/engine.php`, `php/template-engine.php`, `src/lib/api.js`, `src/pages/MediaLibrary.svelte`, `src/components/MediaPicker.svelte`, `src/components/UploadQueue.svelte` (new)
+
+---
+
 ## Editorial Workflow (v1.5.0)
 
 - **Review & Approval** — per-collection `require_review` toggle; editors submit items for review instead of publishing directly; admins approve or reject via bulk actions or inline buttons

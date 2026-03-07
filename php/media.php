@@ -60,6 +60,8 @@ class OutpostMedia {
         $width = 0;
         $height = 0;
         $thumbPath = '';
+        $originalSize = 0;
+        $webpSavings = 0;
 
         if (str_starts_with($mime, 'image/') && $ext !== 'svg') {
             $info = getimagesize($destPath);
@@ -75,6 +77,19 @@ class OutpostMedia {
                 if ($info) {
                     $width = $info[0];
                     $height = $info[1];
+                }
+            }
+
+            // Auto-convert to WebP
+            $originalSize = filesize($destPath);
+            $webpSavings = 0;
+            if (OUTPOST_WEBP_AUTO_CONVERT) {
+                $webpResult = self::convertToWebp($destPath, $mime);
+                if ($webpResult) {
+                    $destPath = $webpResult['path'];
+                    $filename = $webpResult['filename'];
+                    $mime = $webpResult['mime_type'];
+                    $webpSavings = $originalSize - $webpResult['file_size'];
                 }
             }
 
@@ -99,7 +114,12 @@ class OutpostMedia {
             'alt_text' => '',
         ]);
 
-        return OutpostDB::fetchOne('SELECT * FROM media WHERE id = ?', [$id]);
+        $record = OutpostDB::fetchOne('SELECT * FROM media WHERE id = ?', [$id]);
+        if ($webpSavings > 0) {
+            $record['webp_savings'] = $webpSavings;
+            $record['original_size'] = $originalSize;
+        }
+        return $record;
     }
 
     public static function delete(array $media): void {
@@ -130,6 +150,57 @@ class OutpostMedia {
 
     public static function regenerateThumbnail(string $sourcePath, string $filename): string {
         return self::generateThumbnail($sourcePath, $filename);
+    }
+
+    /**
+     * Convert a JPEG or PNG image to WebP format.
+     * Returns array with new path/filename/mime info, or false if skipped.
+     */
+    public static function convertToWebp(string $path, string $mime): array|false {
+        // Only convert JPEG and PNG
+        if (!in_array($mime, ['image/jpeg', 'image/png'])) {
+            return false;
+        }
+
+        if (!extension_loaded('gd') || !function_exists('imagewebp')) {
+            return false;
+        }
+
+        $source = match ($mime) {
+            'image/jpeg' => imagecreatefromjpeg($path),
+            'image/png' => imagecreatefrompng($path),
+            default => null,
+        };
+        if (!$source) return false;
+
+        // Preserve alpha for PNG
+        if ($mime === 'image/png') {
+            imagealphablending($source, true);
+            imagesavealpha($source, true);
+        }
+
+        // Build new .webp path
+        $webpPath = preg_replace('/\.(jpe?g|png)$/i', '.webp', $path);
+        $quality = defined('OUTPOST_WEBP_QUALITY') ? OUTPOST_WEBP_QUALITY : 85;
+
+        if (!imagewebp($source, $webpPath, $quality)) {
+            imagedestroy($source);
+            return false;
+        }
+        imagedestroy($source);
+
+        // Remove original file if different path
+        if ($webpPath !== $path && file_exists($path)) {
+            unlink($path);
+        }
+
+        $newFilename = basename($webpPath);
+        return [
+            'path' => $webpPath,
+            'filename' => $newFilename,
+            'mime_type' => 'image/webp',
+            'file_size' => filesize($webpPath),
+        ];
     }
 
     private static function generateThumbnail(string $sourcePath, string $filename): string {

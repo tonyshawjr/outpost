@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { media as mediaApi } from '$lib/api.js';
+  import { media as mediaApi, mediaFolders as foldersApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import { humanFileSize } from '$lib/utils.js';
 
@@ -14,14 +14,20 @@
   let uploading = $state(false);
   let selected = $state(null);
 
+  // Folders
+  let foldersList = $state([]);
+  let activeFolderId = $state(null);
+  let unfiledCount = $state(0);
+  let totalFileCount = $state(0);
+
   onMount(async () => {
-    await loadMedia();
+    await Promise.all([loadMedia(), loadFolders()]);
   });
 
   async function loadMedia() {
     loading = true;
     try {
-      const data = await mediaApi.list();
+      const data = await mediaApi.list(activeFolderId);
       items = (data.media || []).filter((m) =>
         m.mime_type.startsWith('image/')
       );
@@ -32,6 +38,22 @@
     }
   }
 
+  async function loadFolders() {
+    try {
+      const data = await foldersApi.list();
+      foldersList = data.folders || [];
+      unfiledCount = data.unfiled_count || 0;
+      totalFileCount = data.total_count || 0;
+    } catch {
+      // Folders may not be available
+    }
+  }
+
+  function selectFolder(folderId) {
+    activeFolderId = folderId;
+    loadMedia();
+  }
+
   async function handleUpload(e) {
     const files = e.target.files;
     if (!files?.length) return;
@@ -39,12 +61,14 @@
     uploading = true;
     try {
       for (const file of files) {
-        const data = await mediaApi.upload(file);
+        const fid = typeof activeFolderId === 'number' ? activeFolderId : undefined;
+        const data = await mediaApi.upload(file, fid);
         if (data.media) {
           items = [data.media, ...items];
         }
       }
       addToast('Upload complete', 'success');
+      loadFolders();
     } catch (err) {
       addToast('Upload failed: ' + err.message, 'error');
     } finally {
@@ -68,12 +92,22 @@
       </button>
     </div>
 
-    <div style="margin-bottom: var(--space-lg);">
+    <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg);">
       <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         {uploading ? 'Uploading...' : 'Upload'}
         <input type="file" accept="image/*" multiple onchange={handleUpload} hidden />
       </label>
+
+      {#if foldersList.length > 0}
+        <select class="picker-folder-select" onchange={(e) => selectFolder(e.target.value === 'all' ? null : e.target.value === 'unfiled' ? 'unfiled' : parseInt(e.target.value))}>
+          <option value="all" selected={activeFolderId === null}>All folders</option>
+          <option value="unfiled" selected={activeFolderId === 'unfiled'}>Unfiled</option>
+          {#each foldersList as f}
+            <option value={f.id} selected={activeFolderId === f.id}>{f.name} ({f.file_count})</option>
+          {/each}
+        </select>
+      {/if}
     </div>
 
     {#if loading}
@@ -115,3 +149,16 @@
     </div>
   </div>
 </div>
+
+<style>
+  .picker-folder-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    cursor: pointer;
+    outline: none;
+  }
+</style>

@@ -507,6 +507,9 @@ class OutpostTemplate {
                 if ($filter === 'image') {
                     return "<?= outpost_ope_item_image(\${$var}, '{$field}') ?>";
                 }
+                if ($filter === 'focal') {
+                    return "<?php outpost_item_focal(\${$var}, '{$field}'); ?>";
+                }
                 // or_body: use excerpt if set, otherwise auto-generate from body
                 if ($filter === 'or_body') {
                     return "<?= outpost_esc(\${$var}['{$field}'] ?: outpost_auto_excerpt(\${$var}['body'] ?? '')) ?>";
@@ -550,6 +553,7 @@ class OutpostTemplate {
                     'textarea' => "cms_textarea('{$name}', '{$default}')",
                     'select'   => "cms_text('{$name}', '{$default}')",
                     'toggle'   => "cms_toggle('{$name}')",
+                    'focal'    => "cms_focal('{$name}')",
                 ];
 
                 $call = $map[$filter] ?? "cms_text('{$name}', '{$default}')";
@@ -589,6 +593,7 @@ class OutpostTemplate {
                     'textarea' => "cms_textarea('{$name}', '{$default}')",
                     'select'   => "cms_text('{$name}', '{$default}')",
                     'toggle'   => "cms_toggle('{$name}')",
+                    'focal'    => "cms_focal('{$name}')",
                 ];
 
                 $call = $map[$filter] ?? "cms_text('{$name}', '{$default}')";

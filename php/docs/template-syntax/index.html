@@ -113,6 +113,11 @@
           <td><code>{{ publish_date | date }}</code></td>
         </tr>
         <tr>
+          <td><code>{{ field | focal }}</code></td>
+          <td>Focal point as CSS <code>X% Y%</code>. For <code>object-position</code> / <code>background-position</code>.</td>
+          <td><code>style="object-position: {{ hero | focal }};"</code></td>
+        </tr>
+        <tr>
           <td><code>{{ field | or_body }}</code></td>
           <td>Text/excerpt with auto-fallback from the <code>body</code> field (40 words) if empty.</td>
           <td><code>&lt;p&gt;{{ excerpt | or_body }}&lt;/p&gt;</code></td>

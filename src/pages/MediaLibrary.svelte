@@ -1,11 +1,11 @@
 <script>
   import { onMount } from 'svelte';
-  import { media as mediaApi } from '$lib/api.js';
+  import { media as mediaApi, mediaFolders as foldersApi } from '$lib/api.js';
   import { mediaList, addToast } from '$lib/stores.js';
   import { humanFileSize, formatDate } from '$lib/utils.js';
+  import UploadQueue from '../components/UploadQueue.svelte';
 
   let loading = $state(true);
-  let uploading = $state(false);
   let dragover = $state(false);
   let selected = $state(null);
 
@@ -13,6 +13,21 @@
   let search = $state('');
   let typeFilter = $state('all');
   let sortBy = $state('newest');
+
+  // Folders
+  let foldersList = $state([]);
+  let activeFolderId = $state(null); // null = all, 'unfiled' = unfiled, number = folder
+  let unfiledCount = $state(0);
+  let totalFileCount = $state(0);
+  let creatingFolder = $state(false);
+  let newFolderName = $state('');
+  let renamingFolderId = $state(null);
+  let renameFolderName = $state('');
+  let folderContextMenu = $state(null);
+  let folderDragOver = $state(null);
+
+  // Upload queue
+  let uploadFiles = $state([]);
 
   const docMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain'];
 
@@ -71,14 +86,39 @@
     sortBy = 'newest';
   }
 
+  // Build folder tree from flat list
+  let folderTree = $derived.by(() => {
+    const map = {};
+    for (const f of foldersList) map[f.id] = { ...f, children: [] };
+    const roots = [];
+    for (const f of foldersList) {
+      if (f.parent_id && map[f.parent_id]) {
+        map[f.parent_id].children.push(map[f.id]);
+      } else {
+        roots.push(map[f.id]);
+      }
+    }
+    return roots;
+  });
+
   onMount(() => {
+    loadMedia();
+    loadFolders();
+    document.addEventListener('click', closeFolderContextMenu);
+    return () => document.removeEventListener('click', closeFolderContextMenu);
+  });
+
+  // Reload media when folder filter changes
+  $effect(() => {
+    // Track activeFolderId
+    const _ = activeFolderId;
     loadMedia();
   });
 
   async function loadMedia() {
     loading = true;
     try {
-      const data = await mediaApi.list();
+      const data = await mediaApi.list(activeFolderId);
       mediaList.set(data.media || []);
     } catch (err) {
       addToast(err.message, 'error');
@@ -87,35 +127,33 @@
     }
   }
 
-  async function uploadFiles(files) {
-    uploading = true;
-    let count = 0;
+  async function loadFolders() {
     try {
-      for (const file of files) {
-        const data = await mediaApi.upload(file);
-        if (data.media) {
-          mediaList.update((m) => [data.media, ...m]);
-          count++;
-        }
-      }
-      addToast(`${count} file${count > 1 ? 's' : ''} uploaded`, 'success');
+      const data = await foldersApi.list();
+      foldersList = data.folders || [];
+      unfiledCount = data.unfiled_count || 0;
+      totalFileCount = data.total_count || 0;
     } catch (err) {
-      addToast('Upload failed: ' + err.message, 'error');
-    } finally {
-      uploading = false;
+      // Folder support may not be available yet
     }
   }
 
+  // ── Upload queue integration ──
   function handleFileInput(e) {
     const files = e.target.files;
-    if (files?.length) uploadFiles(Array.from(files));
+    if (files?.length) {
+      uploadFiles = Array.from(files);
+    }
+    e.target.value = '';
   }
 
   function handleDrop(e) {
     e.preventDefault();
     dragover = false;
     const files = e.dataTransfer?.files;
-    if (files?.length) uploadFiles(Array.from(files));
+    if (files?.length) {
+      uploadFiles = Array.from(files);
+    }
   }
 
   function handleDragOver(e) {
@@ -127,6 +165,15 @@
     dragover = false;
   }
 
+  function onUploadFileComplete(mediaItem) {
+    mediaList.update((m) => [mediaItem, ...m]);
+  }
+
+  function onUploadComplete() {
+    loadFolders(); // Refresh counts
+  }
+
+  // ── Item actions ──
   async function deleteItem(item) {
     if (!confirm(`Delete "${item.original_name}"?`)) return;
     try {
@@ -134,6 +181,7 @@
       mediaList.update((m) => m.filter((i) => i.id !== item.id));
       if (selected?.id === item.id) selected = null;
       addToast('File deleted', 'success');
+      loadFolders();
     } catch (err) {
       addToast(err.message, 'error');
     }
@@ -148,7 +196,6 @@
   let altText = $state('');
   let savingAlt = $state(false);
 
-  // Sync altText when selection changes
   $effect(() => {
     if (selected) {
       altText = selected.alt_text || '';
@@ -169,6 +216,50 @@
       addToast(err.message, 'error');
     } finally {
       savingAlt = false;
+    }
+  }
+
+  // ── Focal point ──
+  let focalX = $state(50);
+  let focalY = $state(50);
+
+  $effect(() => {
+    if (selected) {
+      focalX = selected.focal_x ?? 50;
+      focalY = selected.focal_y ?? 50;
+    }
+  });
+
+  async function handleFocalClick(e) {
+    if (!selected) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+    focalX = Math.max(0, Math.min(100, x));
+    focalY = Math.max(0, Math.min(100, y));
+    try {
+      const data = await mediaApi.update(selected.id, { focal_x: focalX, focal_y: focalY });
+      if (data.media) {
+        mediaList.update(m => m.map(i => i.id === data.media.id ? data.media : i));
+        selected = data.media;
+      }
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  async function resetFocal() {
+    focalX = 50;
+    focalY = 50;
+    if (!selected) return;
+    try {
+      const data = await mediaApi.update(selected.id, { focal_x: 50, focal_y: 50 });
+      if (data.media) {
+        mediaList.update(m => m.map(i => i.id === data.media.id ? data.media : i));
+        selected = data.media;
+      }
+    } catch (err) {
+      addToast(err.message, 'error');
     }
   }
 
@@ -255,6 +346,107 @@
   }
 
   let isRasterImage = $derived(selected && selected.mime_type?.startsWith('image/') && selected.mime_type !== 'image/svg+xml' && selected.width > 0);
+
+  // ── Folder management ──
+  async function createFolder() {
+    if (!newFolderName.trim()) return;
+    try {
+      const data = await foldersApi.create({ name: newFolderName.trim(), parent_id: null });
+      if (data.folder) foldersList = [...foldersList, data.folder];
+      newFolderName = '';
+      creatingFolder = false;
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  async function createSubfolder(parentId) {
+    const name = prompt('Subfolder name:');
+    if (!name?.trim()) return;
+    try {
+      const data = await foldersApi.create({ name: name.trim(), parent_id: parentId });
+      if (data.folder) foldersList = [...foldersList, data.folder];
+      folderContextMenu = null;
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  function startRenameFolder(folder) {
+    renamingFolderId = folder.id;
+    renameFolderName = folder.name;
+    folderContextMenu = null;
+  }
+
+  async function finishRenameFolder() {
+    if (!renameFolderName.trim() || !renamingFolderId) return;
+    try {
+      await foldersApi.update(renamingFolderId, { name: renameFolderName.trim() });
+      foldersList = foldersList.map(f => f.id === renamingFolderId ? { ...f, name: renameFolderName.trim() } : f);
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+    renamingFolderId = null;
+  }
+
+  async function deleteFolder(folder) {
+    if (!confirm(`Delete folder "${folder.name}"? Files will become unfiled.`)) return;
+    try {
+      await foldersApi.delete(folder.id);
+      foldersList = foldersList.filter(f => f.id !== folder.id);
+      if (activeFolderId === folder.id) activeFolderId = null;
+      folderContextMenu = null;
+      loadFolders();
+      loadMedia();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  function showFolderContext(e, folder) {
+    e.preventDefault();
+    folderContextMenu = { folder, x: e.clientX, y: e.clientY };
+  }
+
+  function closeFolderContextMenu() {
+    folderContextMenu = null;
+  }
+
+  // ── Drag to folder ──
+  let dragMediaId = $state(null);
+
+  function onMediaDragStart(e, item) {
+    dragMediaId = item.id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(item.id));
+  }
+
+  function onFolderDragOver(e, folderId) {
+    e.preventDefault();
+    folderDragOver = folderId;
+  }
+
+  function onFolderDragLeave() {
+    folderDragOver = null;
+  }
+
+  async function onFolderDrop(e, folderId) {
+    e.preventDefault();
+    folderDragOver = null;
+    const id = parseInt(e.dataTransfer.getData('text/plain'));
+    if (!id) return;
+    try {
+      await mediaApi.moveToFolder([id], folderId);
+      // Update local state
+      mediaList.update(m => m.map(i => i.id === id ? { ...i, folder_id: folderId } : i));
+      loadFolders();
+      // If we're viewing a specific folder, reload
+      if (activeFolderId !== null) loadMedia();
+      addToast('File moved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
 </script>
 
 <div class="media-page">
@@ -286,28 +478,13 @@
     style="margin-bottom: var(--space-xl);"
   >
     <div class="drop-zone-text">
-      {#if uploading}
-        <div class="spinner" style="margin: 0 auto var(--space-sm);"></div>
-        Uploading...
-      {:else}
-        <strong>Drop files here</strong> or click Upload above
-      {/if}
+      <strong>Drop files here</strong> or click Upload above
     </div>
   </div>
 
-  {#if loading}
+  {#if loading && totalCount === 0}
     <div class="loading-overlay">
       <div class="spinner"></div>
-    </div>
-  {:else if totalCount === 0}
-    <div class="card">
-      <div class="empty-state">
-        <div class="empty-state-icon">&#128247;</div>
-        <div class="empty-state-title">No media uploaded</div>
-        <p style="font-size: var(--font-size-sm);">
-          Drag and drop files or use the Upload button
-        </p>
-      </div>
     </div>
   {:else}
     <!-- Toolbar -->
@@ -340,8 +517,8 @@
       <select class="media-sort" bind:value={sortBy}>
         <option value="newest">Newest</option>
         <option value="oldest">Oldest</option>
-        <option value="name">Name A–Z</option>
-        <option value="name-desc">Name Z–A</option>
+        <option value="name">Name A-Z</option>
+        <option value="name-desc">Name Z-A</option>
         <option value="largest">Largest</option>
         <option value="smallest">Smallest</option>
       </select>
@@ -351,14 +528,82 @@
       </span>
     </div>
 
-    {#if items.length === 0}
+    {#if totalCount === 0 && !loading}
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#128247;</div>
+          <div class="empty-state-title">No media uploaded</div>
+          <p style="font-size: var(--font-size-sm);">
+            Drag and drop files or use the Upload button
+          </p>
+        </div>
+      </div>
+    {:else if items.length === 0 && isFiltered}
       <div class="media-empty-filter">
         <p>No files match your search</p>
         <button class="media-clear-link" onclick={clearFilters}>Clear filters</button>
       </div>
     {:else}
-    <div class="media-layout">
+    <div class="media-layout-3col">
+      <!-- Folder sidebar -->
+      <div class="folder-sidebar">
+        <button
+          class="folder-item"
+          class:active={activeFolderId === null}
+          onclick={() => activeFolderId = null}
+          ondragover={(e) => onFolderDragOver(e, null)}
+          ondragleave={onFolderDragLeave}
+          ondrop={(e) => onFolderDrop(e, null)}
+          class:drag-over={folderDragOver === null && dragMediaId}
+        >
+          <span class="folder-name">All Files</span>
+          <span class="folder-count">{totalFileCount}</span>
+        </button>
+        <button
+          class="folder-item"
+          class:active={activeFolderId === 'unfiled'}
+          onclick={() => activeFolderId = 'unfiled'}
+        >
+          <span class="folder-name">Unfiled</span>
+          <span class="folder-count">{unfiledCount}</span>
+        </button>
+
+        <div class="folder-divider"></div>
+
+        {#each folderTree as folder (folder.id)}
+          {@render folderNode(folder, 0)}
+        {/each}
+
+        {#if creatingFolder}
+          <div class="folder-item folder-create-input">
+            <input
+              type="text"
+              bind:value={newFolderName}
+              placeholder="Folder name..."
+              class="folder-inline-input"
+              onkeydown={(e) => {
+                if (e.key === 'Enter') createFolder();
+                if (e.key === 'Escape') creatingFolder = false;
+              }}
+              autofocus
+            />
+          </div>
+        {/if}
+
+        <button class="folder-add-btn" onclick={() => { creatingFolder = true; newFolderName = ''; }}>
+          + New Folder
+        </button>
+      </div>
+
+      <!-- Media grid -->
       <div class="media-layout-main">
+        {#if loading}
+          <div class="loading-overlay"><div class="spinner"></div></div>
+        {:else if items.length === 0}
+          <div class="media-empty-filter">
+            <p>No files in this folder</p>
+          </div>
+        {:else}
         <div class="media-grid">
           {#each items as item (item.id)}
             <div
@@ -368,6 +613,9 @@
               role="button"
               tabindex="0"
               onkeydown={(e) => e.key === 'Enter' && (selected = item)}
+              draggable="true"
+              ondragstart={(e) => onMediaDragStart(e, item)}
+              ondragend={() => dragMediaId = null}
             >
               {#if item.mime_type.startsWith('image/')}
                 <img
@@ -384,17 +632,38 @@
             </div>
           {/each}
         </div>
+        {/if}
       </div>
 
+      <!-- Detail sidebar -->
       {#if selected}
         <div class="media-sidebar">
           <h3 class="media-sidebar-title">Details</h3>
           {#if selected.mime_type.startsWith('image/')}
-            <img
-              src={selected.path}
-              alt={selected.alt_text || selected.original_name}
-              class="media-sidebar-preview"
-            />
+            <!-- Focal point picker -->
+            {#if isRasterImage}
+              <div class="focal-container" onclick={handleFocalClick} style="cursor: crosshair;">
+                <img
+                  src={selected.path}
+                  alt={selected.alt_text || selected.original_name}
+                  class="media-sidebar-preview"
+                  style="margin-bottom: 0;"
+                />
+                <div class="focal-marker" style="left: {focalX}%; top: {focalY}%"></div>
+              </div>
+              <div class="focal-info">
+                <span class="focal-label">Focal point: {focalX}%, {focalY}%</span>
+                {#if focalX !== 50 || focalY !== 50}
+                  <button class="focal-reset" onclick={resetFocal}>Reset</button>
+                {/if}
+              </div>
+            {:else}
+              <img
+                src={selected.path}
+                alt={selected.alt_text || selected.original_name}
+                class="media-sidebar-preview"
+              />
+            {/if}
           {/if}
           <div class="media-sidebar-meta">
             <div><strong>Name:</strong> {selected.original_name}</div>
@@ -501,6 +770,61 @@
     {/if}
   {/if}
 </div>
+
+<!-- Folder context menu -->
+{#if folderContextMenu}
+  <div class="context-menu" style="left: {folderContextMenu.x}px; top: {folderContextMenu.y}px;">
+    <button class="context-menu-item" onclick={() => startRenameFolder(folderContextMenu.folder)}>Rename</button>
+    <button class="context-menu-item" onclick={() => createSubfolder(folderContextMenu.folder.id)}>New subfolder</button>
+    <button class="context-menu-item danger" onclick={() => deleteFolder(folderContextMenu.folder)}>Delete</button>
+  </div>
+{/if}
+
+<!-- Upload Queue -->
+<UploadQueue
+  files={uploadFiles}
+  folderId={typeof activeFolderId === 'number' ? activeFolderId : null}
+  onfileComplete={onUploadFileComplete}
+  oncomplete={onUploadComplete}
+/>
+
+{#snippet folderNode(folder, depth)}
+  <button
+    class="folder-item"
+    class:active={activeFolderId === folder.id}
+    class:drag-over={folderDragOver === folder.id}
+    style="padding-left: {12 + depth * 16}px;"
+    onclick={() => activeFolderId = folder.id}
+    oncontextmenu={(e) => showFolderContext(e, folder)}
+    ondragover={(e) => onFolderDragOver(e, folder.id)}
+    ondragleave={onFolderDragLeave}
+    ondrop={(e) => onFolderDrop(e, folder.id)}
+  >
+    {#if renamingFolderId === folder.id}
+      <input
+        type="text"
+        class="folder-inline-input"
+        bind:value={renameFolderName}
+        onkeydown={(e) => {
+          if (e.key === 'Enter') finishRenameFolder();
+          if (e.key === 'Escape') renamingFolderId = null;
+        }}
+        onblur={finishRenameFolder}
+        onclick={(e) => e.stopPropagation()}
+        autofocus
+      />
+    {:else}
+      <svg class="folder-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+      <span class="folder-name">{folder.name}</span>
+      <span class="folder-count">{folder.file_count ?? 0}</span>
+    {/if}
+  </button>
+  {#if folder.children?.length}
+    {#each folder.children as child (child.id)}
+      {@render folderNode(child, depth + 1)}
+    {/each}
+  {/if}
+{/snippet}
 
 <style>
   .media-page {
@@ -639,7 +963,102 @@
     color: var(--text-primary);
   }
 
-  /* Sidebar */
+  /* 3-column layout: folder sidebar | grid | detail sidebar */
+  .media-layout-3col {
+    display: flex;
+    gap: var(--space-xl);
+  }
+
+  /* Folder sidebar */
+  .folder-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+
+  .folder-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    transition: background 0.1s, color 0.1s;
+  }
+  .folder-item:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+  .folder-item.active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .folder-item.drag-over {
+    background: var(--color-accent-light, rgba(59, 130, 246, 0.1));
+    outline: 1px dashed var(--color-accent, #3b82f6);
+  }
+
+  .folder-icon {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+  }
+
+  .folder-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .folder-count {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .folder-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 12px;
+  }
+
+  .folder-inline-input {
+    flex: 1;
+    padding: 2px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    outline: none;
+    min-width: 0;
+  }
+
+  .folder-add-btn {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    text-align: left;
+    margin-top: 4px;
+  }
+  .folder-add-btn:hover {
+    color: var(--text-primary);
+  }
+
+  /* Detail sidebar */
   .media-sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -677,6 +1096,50 @@
     letter-spacing: 0.04em;
     color: var(--text-tertiary);
     margin-bottom: var(--space-xs);
+  }
+
+  /* Focal point */
+  .focal-container {
+    position: relative;
+    margin-bottom: var(--space-sm);
+  }
+  .focal-container img {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+  .focal-marker {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid rgba(0,0,0,0.6);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .focal-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+  .focal-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+  .focal-reset {
+    background: none;
+    border: none;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .focal-reset:hover {
+    color: var(--text-primary);
   }
 
   /* Alt text */
@@ -772,20 +1235,56 @@
     border-color: var(--border-color);
   }
 
-  /* Layout: grid + sidebar */
-  .media-layout {
-    display: flex;
-    gap: var(--space-xl);
-  }
   .media-layout-main {
     flex: 1;
     min-width: 0;
   }
 
+  /* Context menu */
+  :global(.context-menu) {
+    position: fixed;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 1001;
+    min-width: 160px;
+    padding: 4px;
+  }
+  :global(.context-menu-item) {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+    border-radius: var(--radius-sm);
+  }
+  :global(.context-menu-item:hover) {
+    background: var(--bg-secondary);
+  }
+  :global(.context-menu-item.danger) {
+    color: var(--color-danger, #ef4444);
+  }
+
   /* ── Mobile ── */
   @media (max-width: 768px) {
-    .media-layout {
+    .media-layout-3col {
       flex-direction: column;
+    }
+
+    .folder-sidebar {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+
+    .folder-divider {
+      display: none;
     }
 
     .media-sidebar {

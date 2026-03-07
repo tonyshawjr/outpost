@@ -152,6 +152,30 @@
   });
 &lt;/script&gt;</code></pre>
 
+    <h3><code>| focal</code> — Focal Point Position</h3>
+    <p>Outputs the image's focal point as a CSS-ready <code>X% Y%</code> string. Use with <code>object-position</code> or <code>background-position</code> to ensure the important part of the image stays visible when cropped. Returns <code>50% 50%</code> (center) if no custom focal point has been set.</p>
+    <pre><code>{{ field_name | focal }}</code></pre>
+    <pre><code>&lt;!-- Image with focal-point-aware cropping --&gt;
+&lt;img
+  src="{{ hero_image | image }}"
+  alt="{{ hero_title }}"
+  style="object-fit: cover; object-position: {{ hero_image | focal }};"
+&gt;
+
+&lt;!-- CSS background image --&gt;
+&lt;div style="background-image: url('{{ banner | image }}'); background-size: cover; background-position: {{ banner | focal }};"&gt;
+  ...
+&lt;/div&gt;
+
+&lt;!-- Collection item focal point --&gt;
+{% for post in collection.post %}
+  &lt;img
+    src="{{ post.featured_image | image }}"
+    style="object-fit: cover; object-position: {{ post.featured_image | focal }};"
+  &gt;
+{% endfor %}</code></pre>
+    <div class="callout callout-note"><strong>Note</strong> — Set the focal point by clicking on an image preview in the media library detail panel. The <code>| focal</code> filter looks up the stored coordinates for the media file and outputs them as percentages.</div>
+
     <h3><code>| or_body</code> — Excerpt with Body Fallback</h3>
     <p>If the field (typically <code>excerpt</code>) is empty, this filter automatically generates a 40-word excerpt from the <code>body</code> field of the same item. This is the cleanest way to handle list pages where some items have manual excerpts and some do not.</p>
     <pre><code>{{ field_name | or_body }}</code></pre>

@@ -170,21 +170,29 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.6 — Media Library Pro
+## v1.6 — Media Library Pro — SHIPPED (v1.6.0)
 
-The current library handles basics. Real sites need more:
-
-- **Bulk upload** with per-file progress bars and drag-and-drop queue
-- **WebP auto-conversion** with quality slider (one-click optimize for existing images)
-- **Folder organization** for large media archives
-- **Focal point** — click to set the focal point on an image; CSS `object-position` in templates uses it
-- **CDN integration** — optional S3, Cloudflare R2, or Bunny CDN as storage backend (local remains default)
-
-**Why:** Media is where non-technical users spend the most time. Friction here costs the most.
+- **WebP auto-conversion** — JPEG/PNG uploads automatically converted to WebP via GD
+- **Focal point picker** — click-to-set focal point on images; `{{ field | focal }}` template filter
+- **Media folder organization** — folder sidebar, create/rename/delete, drag-to-folder, 3 levels max
+- **Bulk upload with progress** — XHR upload queue, per-file progress bars, 2 concurrent, cancel support
+- **MediaPicker folder browsing** — folder dropdown in image picker modal
 
 ---
 
-## v1.7 — Internationalization
+## v1.7 — Media Advanced (HappyFiles-inspired)
+
+- Multi-folder assignment (files in multiple folders)
+- Gallery creation from folders (template tag: `{% gallery folder.slug %}`)
+- Resizable media sidebar
+- Role-based folder management restrictions
+- Bulk folder creation (comma-separated names)
+- Right-click file context menu (see assigned folders, quick-move)
+- CDN integration — optional S3, Cloudflare R2, or Bunny CDN as storage backend
+
+---
+
+## v1.8 — Internationalization
 
 Not full multi-language — just the groundwork to store and serve localized content:
 
@@ -198,7 +206,7 @@ Not full multi-language — just the groundwork to store and serve localized con
 
 ---
 
-## v1.8 — Developer Experience
+## v1.9 — Developer Experience
 
 Polish the theme development loop:
 
@@ -300,7 +308,8 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.3~~ | ~~Q4 2026~~ | ~~Backup & restore~~ **Shipped** |
 | ~~1.4~~ | ~~Q2 2026~~ | ~~User content directory (`content/`)~~ **Shipped** |
 | ~~1.5~~ | ~~Q4 2026~~ | ~~Editorial workflow~~ **Shipped** |
-| 1.6 | Q1 2027 | Media library pro |
-| 1.7 | Q1 2027 | Internationalization |
-| 1.8 | Q2 2027 | Developer experience |
+| ~~1.6~~ | ~~Q1 2027~~ | ~~Media library pro~~ **Shipped** |
+| 1.7 | Q1 2027 | Media advanced (HappyFiles-inspired) |
+| 1.8 | Q2 2027 | Internationalization |
+| 1.9 | Q2 2027 | Developer experience |
 | 2.0 | Q3 2027 | Headless-first |

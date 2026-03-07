@@ -79,6 +79,25 @@
       </tbody>
     </table>
 
+    <h3>Image Processing</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Constant</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OUTPOST_WEBP_AUTO_CONVERT</code></td>
+          <td><code>true</code></td>
+          <td>When <code>true</code>, uploaded JPEG and PNG images are automatically converted to WebP format. GIF, SVG, WebP, and other formats are not converted. Requires the GD extension with WebP support.</td>
+        </tr>
+        <tr>
+          <td><code>OUTPOST_WEBP_QUALITY</code></td>
+          <td><code>85</code></td>
+          <td>WebP compression quality (0–100). Higher values produce better quality but larger files. Only applies when <code>OUTPOST_WEBP_AUTO_CONVERT</code> is enabled.</td>
+        </tr>
+      </tbody>
+    </table>
+
     <h3>Caching</h3>
     <table class="schema-table">
       <thead>
@@ -236,6 +255,10 @@
 
 <span class="token comment">// ── Uploads ──────────────────────────────────────────────</span>
 <span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_MAX_UPLOAD_SIZE'</span><span class="token punctuation">,</span> <span class="token number">20971520</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 20 MB</span>
+
+<span class="token comment">// ── Image Processing ─────────────────────────────────────</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_WEBP_AUTO_CONVERT'</span><span class="token punctuation">,</span> <span class="token keyword">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_WEBP_QUALITY'</span><span class="token punctuation">,</span>      <span class="token number">85</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token comment">// ── Caching ──────────────────────────────────────────────</span>
 <span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_CACHE_TTL'</span><span class="token punctuation">,</span>      <span class="token number">1800</span><span class="token punctuation">)</span><span class="token punctuation">;</span>      <span class="token comment">// 30 minutes</span>

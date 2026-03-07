@@ -3,7 +3,7 @@
  * Outpost CMS — Configuration
  */
 
-define('OUTPOST_VERSION', '1.5.2');
+define('OUTPOST_VERSION', '1.6.0');
 
 // Paths (resolved relative to this file's location)
 define('OUTPOST_DIR', __DIR__ . '/');
@@ -25,6 +25,8 @@ define('OUTPOST_MAX_UPLOAD_SIZE', 10 * 1024 * 1024); // 10 MB
 define('OUTPOST_THUMB_WIDTH', 400);
 define('OUTPOST_THUMB_HEIGHT', 300);
 define('OUTPOST_MAX_IMAGE_WIDTH', 2400);
+define('OUTPOST_WEBP_AUTO_CONVERT', true);
+define('OUTPOST_WEBP_QUALITY', 85);
 define('OUTPOST_ITEMS_PER_PAGE', 20);
 define('OUTPOST_RATE_LIMIT_ATTEMPTS', 5);
 define('OUTPOST_RATE_LIMIT_WINDOW', 60); // seconds

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] — 2026-03-07
+
+### Added
+- **WebP auto-conversion** — JPEG and PNG uploads automatically converted to WebP, reducing file sizes with configurable quality
+- **Focal point picker** — click image preview to set focal point, auto-saves; new `{{ field | focal }}` template filter for `object-position`
+- **Media folder organization** — folder sidebar with tree navigation, create/rename/delete folders, drag-to-folder, max 3 levels deep
+- **Bulk upload with progress** — upload queue drawer with per-file XHR progress bars, 2 concurrent uploads, cancel support, WebP savings display
+- **MediaPicker folder browsing** — folder dropdown in image picker modal
+- **5 new API endpoints** — `media-folders` CRUD + `media/move` for bulk folder assignment
+- `OUTPOST_WEBP_AUTO_CONVERT` and `OUTPOST_WEBP_QUALITY` config constants
+
+### Changed
+- Media library restructured to 3-column layout (folder sidebar | grid | detail sidebar)
+- `media.list()` and `media.upload()` API functions now accept optional `folderId` parameter
+
+---
+
 ## [1.5.2] — 2026-03-07
 
 ### Fixed

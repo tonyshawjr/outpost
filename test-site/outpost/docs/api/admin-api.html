@@ -530,8 +530,15 @@
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=media</span>
       </div>
-      <p>Returns all media files sorted newest first.</p>
+      <p>Returns all media files sorted newest first. Optionally filter by folder.</p>
     </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>folder_id</code></td><td>string</td><td>Optional. Filter by folder: omit for all files, <code>unfiled</code> for files with no folder, or a folder ID (integer) for a specific folder.</td></tr>
+      </tbody>
+    </table>
 
     <div class="endpoint">
       <div class="endpoint-line">
@@ -547,6 +554,7 @@
       <tbody>
         <tr><td><code>file</code></td><td>The file to upload.</td></tr>
         <tr><td><code>csrf_token</code></td><td>CSRF token from <code>auth/me</code>.</td></tr>
+        <tr><td><code>folder_id</code></td><td>Optional. Assign the upload to a media folder by ID.</td></tr>
       </tbody>
     </table>
 
@@ -559,13 +567,19 @@
     "original_name": "photo.jpg",
     "path": "/outpost/uploads/photo-abc123.jpg",
     "thumb_path": "/outpost/uploads/thumbs/photo-abc123.jpg",
-    "mime_type": "image/jpeg",
-    "file_size": 204800,
+    "mime_type": "image/webp",
+    "file_size": 153600,
     "width": 1200,
     "height": 800,
-    "alt_text": ""
+    "alt_text": "",
+    "focal_x": 50,
+    "focal_y": 50,
+    "folder_id": null,
+    "webp_savings": 51200
   }
 }</code></pre>
+
+    <div class="callout callout-note"><strong>WebP conversion</strong> — If <code>OUTPOST_WEBP_AUTO_CONVERT</code> is enabled and the uploaded file is JPEG or PNG, the response will show <code>image/webp</code> as the MIME type and include a <code>webp_savings</code> field (bytes saved). Files that are not converted will have <code>webp_savings: 0</code>.</div>
 
     <p>curl example:</p>
     <pre><code>curl -b cookies.txt \
@@ -578,11 +592,21 @@
         <span class="method method-put">PUT</span>
         <span class="endpoint-path">api.php?action=media&amp;id=7</span>
       </div>
-      <p>Updates media metadata. Currently supports <code>alt_text</code>.</p>
+      <p>Updates media metadata including alt text, focal point, and folder assignment.</p>
     </div>
 
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>alt_text</code></td><td>string</td><td>Alternative text for the image.</td></tr>
+        <tr><td><code>focal_x</code></td><td>integer</td><td>Focal point X coordinate (0–100, percentage from left). Default: 50.</td></tr>
+        <tr><td><code>focal_y</code></td><td>integer</td><td>Focal point Y coordinate (0–100, percentage from top). Default: 50.</td></tr>
+        <tr><td><code>folder_id</code></td><td>integer|null</td><td>Media folder ID, or <code>null</code> to unfile.</td></tr>
+      </tbody>
+    </table>
+
     <p>Request body:</p>
-    <pre><code>{ "alt_text": "A sunset over the mountains" }</code></pre>
+    <pre><code>{ "alt_text": "A sunset over the mountains", "focal_x": 30, "focal_y": 20 }</code></pre>
 
     <div class="endpoint">
       <div class="endpoint-line">
@@ -607,6 +631,85 @@
       </div>
       <p>Deletes a media file and its thumbnail from disk, and removes the database record.</p>
     </div>
+
+    <h2>Media Folders</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=media-folders</span>
+      </div>
+      <p>Returns all media folders as a flat list with file counts. Each folder includes its <code>parent_id</code> for building a tree client-side. Also returns <code>unfiled_count</code> and <code>total_count</code> at the top level.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "folders": [
+    { "id": 1, "name": "Photos", "parent_id": null, "sort_order": 0, "file_count": 12 },
+    { "id": 2, "name": "Events", "parent_id": 1, "sort_order": 0, "file_count": 5 }
+  ],
+  "unfiled_count": 8,
+  "total_count": 25
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=media-folders</span>
+      </div>
+      <p>Creates a new media folder. Maximum folder depth is 3 levels.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>string</td><td>Required. Folder name (max 100 characters).</td></tr>
+        <tr><td><code>parent_id</code></td><td>integer|null</td><td>Optional. Parent folder ID for nesting. Omit or <code>null</code> for a root folder.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=media-folders&amp;id=1</span>
+      </div>
+      <p>Renames or moves a folder. Circular references are prevented.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>string</td><td>New folder name.</td></tr>
+        <tr><td><code>parent_id</code></td><td>integer|null</td><td>New parent folder ID, or <code>null</code> to move to root.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=media-folders&amp;id=1</span>
+      </div>
+      <p>Deletes a folder. Files in the deleted folder become unfiled. Child folders are re-parented to the deleted folder's parent (or become root folders).</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=media/move</span>
+      </div>
+      <p>Moves one or more media files to a folder (or removes them from all folders). Maximum 500 files per request.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>ids</code></td><td>array</td><td>Required. Array of media IDs to move.</td></tr>
+        <tr><td><code>folder_id</code></td><td>integer|null</td><td>Target folder ID, or <code>null</code> to unfile.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Request body:</p>
+    <pre><code>{ "ids": [7, 12, 15], "folder_id": 2 }</code></pre>
 
     <h2>Settings</h2>
 

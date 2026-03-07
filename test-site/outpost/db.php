@@ -134,7 +134,18 @@ class OutpostDB {
                 width INTEGER DEFAULT 0,
                 height INTEGER DEFAULT 0,
                 alt_text TEXT DEFAULT '',
+                focal_x INTEGER DEFAULT 50,
+                focal_y INTEGER DEFAULT 50,
+                folder_id INTEGER DEFAULT NULL,
                 uploaded_at TEXT DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS media_folders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                parent_id INTEGER DEFAULT NULL REFERENCES media_folders(id) ON DELETE CASCADE,
+                sort_order INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT (datetime('now'))
             );
 
             CREATE TABLE IF NOT EXISTS users (

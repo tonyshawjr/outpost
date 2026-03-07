@@ -246,6 +246,19 @@ function cms_image(string $name, string $default = ''): void {
     }
 }
 
+function cms_focal(string $name): void {
+    // Look up the image path from the field, then find its focal point in the media table
+    $path = outpost_resolve_field($name, 'image', '');
+    if ($path) {
+        $media = OutpostDB::fetchOne('SELECT focal_x, focal_y FROM media WHERE path = ?', [$path]);
+        if ($media) {
+            echo (int) $media['focal_x'] . '% ' . (int) $media['focal_y'] . '%';
+            return;
+        }
+    }
+    echo '50% 50%';
+}
+
 function cms_link(string $name, string $default = ''): void {
     echo htmlspecialchars(outpost_resolve_field($name, 'link', $default), ENT_QUOTES, 'UTF-8');
 }
@@ -489,6 +502,21 @@ function outpost_ope_item_image(array $item, string $field): string {
         ];
     }
     return $val;
+}
+
+/**
+ * Output focal point for an item's image field (e.g. {{ item.featured_image | focal }}).
+ */
+function outpost_item_focal(array $item, string $field): void {
+    $path = $item[$field] ?? '';
+    if ($path) {
+        $media = OutpostDB::fetchOne('SELECT focal_x, focal_y FROM media WHERE path = ?', [$path]);
+        if ($media) {
+            echo (int) $media['focal_x'] . '% ' . (int) $media['focal_y'] . '%';
+            return;
+        }
+    }
+    echo '50% 50%';
 }
 
 /**
