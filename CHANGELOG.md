@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.1] — 2026-03-07
+
+### Fixed
+- Update notification dot on Settings icon rendered as a horizontal oval instead of a circle — replaced with a positioned green dot on the gear icon corner (like an avatar badge)
+- Docs sidebar refactored to single shared `sidebar.html` loaded via JS — adding a nav link now requires editing one file instead of 69
+
+---
+
 ## [1.5.0] — 2026-03-06
 
 ### Added
