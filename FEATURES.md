@@ -4,6 +4,22 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Editorial Workflow (v1.5.0)
+
+- **Review & Approval** — per-collection `require_review` toggle; editors submit items for review instead of publishing directly; admins approve or reject via bulk actions or inline buttons
+- **Pending review status** — new `pending_review` status with amber dot indicators in sidebar, item list, right sidebar, and collection editor
+- **Approve / Reject API** — `PUT items/approve` and `PUT items/reject` endpoints for bulk review management (admin/super_admin only)
+- **Editorial calendar** — month-grid calendar page showing scheduled and published items across all collections by date, with collection filter dropdown, prev/next/today navigation, and click-to-edit
+- **Bulk scheduling** — select multiple items in the collection items list and schedule them all to a specific date/time via a datetime picker modal
+- **Calendar API** — `GET calendar?start=&end=&collection=` returns items with `published_at` or `scheduled_at` within the date range
+- **Collection status counts** — `handle_collections_list()` returns per-collection `draft_count`, `scheduled_count`, `published_count`, `pending_count` for accurate sidebar counts
+- **Sidebar updates** — "Pending" sub-item for collections with `require_review` enabled; "Calendar" nav item in Content section
+- **Webhook events** — `entry.submitted_for_review`, `entry.approved`, `entry.rejected` fire to registered webhooks
+- **Database migrations** — auto-adds `reviewed_by`, `reviewed_at` columns to `collection_items`; `require_review` column to `collections`
+- **Files**: `php/api.php`, `src/lib/api.js`, `src/pages/Calendar.svelte` (new), `src/pages/CollectionItems.svelte`, `src/pages/CollectionEditor.svelte`, `src/pages/CollectionList.svelte`, `src/components/RightSidebar.svelte`, `src/components/Sidebar.svelte`, `src/App.svelte`
+
+---
+
 ## User Content Directory (v1.4.0)
 
 - **Single `content/` directory** — all user-owned data (`data/`, `uploads/`, `themes/`, `backups/`) consolidated under `outpost/content/` for simpler backup, migration, and deployment

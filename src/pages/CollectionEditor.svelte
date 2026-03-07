@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { items as itemsApi, collections as collectionsApi, media as mediaApi, ConflictError } from '$lib/api.js';
-  import { currentItemId, currentCollectionSlug, navigate, addToast, editorItem, editorCollection, editorReloadSignal, revisionReloadSignal } from '$lib/stores.js';
+  import { currentItemId, currentCollectionSlug, navigate, addToast, editorItem, editorCollection, editorReloadSignal, revisionReloadSignal, isEditor, isAdmin } from '$lib/stores.js';
   import RichTextEditor from '$components/RichTextEditor.svelte';
   import FlexibleField from '$components/FlexibleField.svelte';
   import RelationshipField from '$components/RelationshipField.svelte';
@@ -210,14 +210,50 @@
       const result = await itemsApi.update(item.id, payload);
       if (result.updated_at) itemVersion = result.updated_at;
       const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-      item = { ...item, data: newData, status: 'published', published_at: item.published_at || now };
+      if (result.submitted_for_review) {
+        item = { ...item, data: newData, status: 'pending_review' };
+        addToast('Submitted for review', 'success');
+      } else {
+        item = { ...item, data: newData, status: 'published', published_at: item.published_at || now };
+        addToast('Published', 'success');
+      }
       dirty = false;
       lastSaved = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       conflict = null;
       editorItem.set({ ...item });
-      addToast('Published', 'success');
     } catch (err) {
       handleConflict(err, publish);
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function approveItem() {
+    if (!item) return;
+    saving = true;
+    try {
+      await itemsApi.approve([item.id]);
+      const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      item = { ...item, status: 'published', published_at: item.published_at || now };
+      editorItem.set({ ...item });
+      addToast('Approved and published', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function rejectItem() {
+    if (!item) return;
+    saving = true;
+    try {
+      await itemsApi.reject([item.id]);
+      item = { ...item, status: 'draft' };
+      editorItem.set({ ...item });
+      addToast('Rejected — returned to draft', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
     } finally {
       saving = false;
     }
@@ -369,8 +405,8 @@
     });
   }
 
-  let statusText = $derived(() => {
-    const s = item?.status === 'published' ? 'Published' : 'Draft';
+  let statusText = $derived.by(() => {
+    const s = item?.status === 'published' ? 'Published' : item?.status === 'pending_review' ? 'In Review' : item?.status === 'scheduled' ? 'Scheduled' : 'Draft';
     if (saving) return s + ' - Saving...';
     if (dirty) return s + ' - Unsaved';
     if (lastSaved) return s + ' - Saved';
@@ -378,6 +414,9 @@
   });
 
   let collName = $derived(collection?.name || collSlug || 'Back');
+  let requiresReview = $derived(!!(collection?.require_review));
+  let editorRole = $derived($isEditor);
+  let adminRole = $derived($isAdmin);
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -396,7 +435,7 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           <span>{collName}</span>
         </button>
-        <span class="ed-status">{statusText()}</span>
+        <span class="ed-status">{statusText}</span>
       </div>
       <div class="ed-topbar-right">
         <button class="ed-btn ed-btn-ghost ed-btn-danger" onclick={deleteItem} type="button" title="Delete this item">
@@ -408,11 +447,23 @@
           <button class="ed-btn ed-btn-primary" onclick={save} type="button" disabled={saving}>
             {saving ? 'Saving...' : 'Update'}
           </button>
+        {:else if item.status === 'pending_review' && adminRole}
+          <button class="ed-btn ed-btn-outline ed-btn-danger-outline" onclick={rejectItem} type="button" disabled={saving}>Reject</button>
+          <button class="ed-btn ed-btn-primary" onclick={approveItem} type="button" disabled={saving}>
+            {saving ? 'Approving...' : 'Approve'}
+          </button>
+        {:else if item.status === 'pending_review'}
+          <button class="ed-btn ed-btn-outline" onclick={save} type="button" disabled={saving}>
+            {saving ? 'Saving...' : 'Save draft'}
+          </button>
+          <span style="font-size: 12px; color: var(--text-tertiary);">Awaiting review</span>
         {:else}
           <button class="ed-btn ed-btn-outline" onclick={save} type="button" disabled={saving}>
             {saving ? 'Saving...' : 'Save draft'}
           </button>
-          <button class="ed-btn ed-btn-primary" onclick={publish} type="button" disabled={saving}>Publish</button>
+          <button class="ed-btn ed-btn-primary" onclick={publish} type="button" disabled={saving}>
+            {requiresReview && editorRole ? 'Submit for Review' : 'Publish'}
+          </button>
         {/if}
       </div>
     </header>
@@ -727,6 +778,11 @@
   .ed-btn-danger:hover:not(:disabled) { background: #fef2f2; color: #e53e3e; }
   :global(.dark) .ed-btn-danger { color: #666; }
   :global(.dark) .ed-btn-danger:hover:not(:disabled) { background: #2d1a1a; color: #fc8181; }
+
+  .ed-btn-danger-outline { border-color: #e53e3e; color: #e53e3e; }
+  .ed-btn-danger-outline:hover:not(:disabled) { background: #fef2f2; }
+  :global(.dark) .ed-btn-danger-outline { border-color: #fc8181; color: #fc8181; }
+  :global(.dark) .ed-btn-danger-outline:hover:not(:disabled) { background: #2d1a1a; }
 
   /* ─── Canvas ─── */
   .ed-canvas {

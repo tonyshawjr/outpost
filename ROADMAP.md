@@ -160,17 +160,13 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.5 — Editorial Workflow
+## v1.5 — Editorial Workflow — SHIPPED (v1.5.0)
 
-Scheduled publishing works, but team content workflows need more structure:
-
-- **Review-required flag per collection** — items stay draft until explicitly approved by an admin or editor
-- **Approval notifications** — email or in-admin notification when content is submitted for review
-- **Bulk scheduling** — select multiple items, apply a publish date to all
-- **Editorial calendar view** — month/week view of scheduled and published content
-- **Webhook events** — `entry.submitted`, `entry.approved`, `entry.scheduled` fire to registered webhooks
-
-**Why:** Any team with more than one person editing content needs an approval step between drafting and publishing.
+- **Review & approval gate** — per-collection `require_review` toggle; editors submit for review, admins approve or reject
+- **Pending review status** — new `pending_review` status with amber indicators, sidebar counts, bulk approve/reject
+- **Editorial calendar** — month-grid calendar view of scheduled and published items across collections
+- **Bulk scheduling** — select multiple items, apply a publish date/time to all at once
+- **Webhook events** — `entry.submitted_for_review`, `entry.approved`, `entry.rejected`, `entry.scheduled`
 
 ---
 
@@ -303,7 +299,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.2~~ | ~~Q3 2026~~ | ~~On-page editing~~ **Shipped in beta.9** |
 | ~~1.3~~ | ~~Q4 2026~~ | ~~Backup & restore~~ **Shipped** |
 | ~~1.4~~ | ~~Q2 2026~~ | ~~User content directory (`content/`)~~ **Shipped** |
-| 1.5 | Q4 2026 | Editorial workflow |
+| ~~1.5~~ | ~~Q4 2026~~ | ~~Editorial workflow~~ **Shipped** |
 | 1.6 | Q1 2027 | Media library pro |
 | 1.7 | Q1 2027 | Internationalization |
 | 1.8 | Q2 2027 | Developer experience |

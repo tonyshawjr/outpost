@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editorial Workflow — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Editorial Workflow</h1>
+    <p class="lead">Review and approval gates, an editorial calendar, and bulk scheduling for team content workflows.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Outpost's editorial workflow adds structure to team content management. It consists of three features that work together:</p>
+    <ul>
+      <li><strong>Review &amp; Approval</strong> — require admin approval before editors can publish content</li>
+      <li><strong>Editorial Calendar</strong> — a month-grid view of scheduled and published items across collections</li>
+      <li><strong>Bulk Scheduling</strong> — schedule multiple items to a specific date/time at once</li>
+    </ul>
+
+    <h2>Review &amp; Approval</h2>
+    <p>Enable <strong>Require Review</strong> on any collection to add an approval gate. When enabled, editors who click "Publish" will have their item set to <code>pending_review</code> instead of <code>published</code>. An admin must then approve the item before it goes live.</p>
+
+    <h3>Enabling review</h3>
+    <ol class="steps">
+      <li>Go to <strong>Admin &rarr; Collections</strong>.</li>
+      <li>Click the edit icon on the collection you want to gate.</li>
+      <li>Check the <strong>Require review before publishing</strong> checkbox.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+
+    <div class="callout callout-note"><strong>Note</strong> — Only admins, super_admins, and developers can toggle the Require Review setting. Editors cannot change it, which prevents them from bypassing their own review gate.</div>
+
+    <h3>How it works</h3>
+    <table>
+      <thead>
+        <tr><th>User role</th><th>Behavior on a review-required collection</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Editor</td><td>Clicking "Publish" sets status to <code>pending_review</code>. The button label shows "Submit for Review".</td></tr>
+        <tr><td>Admin / Super Admin</td><td>Can publish directly (no gate). Can also approve or reject pending items.</td></tr>
+        <tr><td>Developer</td><td>Same as Admin — can publish directly and approve/reject.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Approving and rejecting items</h3>
+    <p>Admins can approve or reject pending items in two places:</p>
+    <ul>
+      <li><strong>Item editor</strong> — open a pending item and click <strong>Approve</strong> or <strong>Reject</strong> in the top bar.</li>
+      <li><strong>Collection items list</strong> — filter by "Pending", select items, and use the <strong>Approve</strong> bulk action.</li>
+    </ul>
+    <p>Approving sets the item to <code>published</code> with a <code>published_at</code> timestamp. Rejecting returns it to <code>draft</code>.</p>
+
+    <h3>Pending review status</h3>
+    <p>Items with <code>pending_review</code> status are treated identically to drafts on the front end:</p>
+    <ul>
+      <li>Not included in collection loops (<code>{% for %}</code>)</li>
+      <li>Not accessible via direct URL</li>
+      <li>Not included in the sitemap</li>
+    </ul>
+    <p>In the admin, pending items show an amber status indicator and appear in the "Pending" filter tab and sidebar count.</p>
+
+    <h3>Scheduling on review-required collections</h3>
+    <p>Editors cannot schedule items on collections with Require Review enabled. Since scheduled items auto-publish via the lazy check, allowing editors to schedule would bypass the review gate entirely. Only admins can schedule items on review-required collections.</p>
+
+    <h2>Editorial Calendar</h2>
+    <p>The calendar provides a month-grid view of all scheduled and published items across your collections. Access it from <strong>Admin &rarr; Calendar</strong> in the sidebar.</p>
+    <ul>
+      <li>Items are plotted by their <code>published_at</code> or <code>scheduled_at</code> date</li>
+      <li>Color-coded dots indicate status: green (published), blue (scheduled), amber (pending review)</li>
+      <li>Click any item pill to open it in the collection editor</li>
+      <li>Use the collection filter dropdown to focus on a single collection</li>
+      <li>Navigate between months with the prev/next arrows or jump to today</li>
+    </ul>
+
+    <h2>Bulk Scheduling</h2>
+    <p>Schedule multiple items at once from the collection items list:</p>
+    <ol class="steps">
+      <li>Go to <strong>Admin &rarr; Collections &rarr; your-collection</strong>.</li>
+      <li>Select the items you want to schedule using the checkboxes.</li>
+      <li>Click <strong>Schedule</strong> in the bulk actions bar.</li>
+      <li>Pick a future date and time in the modal.</li>
+      <li>Click <strong>Schedule</strong> to confirm.</li>
+    </ol>
+    <p>All selected items will be set to <code>scheduled</code> with the chosen timestamp. They will auto-publish when the time arrives.</p>
+
+    <h2>Webhook events</h2>
+    <p>The editorial workflow fires these webhook events:</p>
+    <table>
+      <thead>
+        <tr><th>Event</th><th>When</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>entry.submitted_for_review</code></td><td>An editor submits an item for review (status set to <code>pending_review</code>)</td></tr>
+        <tr><td><code>entry.approved</code></td><td>An admin approves a pending item</td></tr>
+        <tr><td><code>entry.rejected</code></td><td>An admin rejects a pending item</td></tr>
+        <tr><td><code>entry.scheduled</code></td><td>An item is scheduled (via individual or bulk scheduling)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>API endpoints</h2>
+    <table>
+      <thead>
+        <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>items/approve</code></td><td>PUT</td><td>Approve pending items. Body: <code>{ "ids": [1,2,3] }</code>. Admin+ only.</td></tr>
+        <tr><td><code>items/reject</code></td><td>PUT</td><td>Reject pending items back to draft. Body: <code>{ "ids": [1,2,3] }</code>. Admin+ only.</td></tr>
+        <tr><td><code>items/bulk-schedule</code></td><td>PUT</td><td>Schedule items. Body: <code>{ "ids": [1,2,3], "scheduled_at": "2026-04-01T09:00:00" }</code></td></tr>
+        <tr><td><code>calendar</code></td><td>GET</td><td>Items by date range. Params: <code>start</code>, <code>end</code> (YYYY-MM-DD), optional <code>collection</code> (slug filter).</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Database columns</h2>
+    <p>The editorial workflow adds these columns via automatic migration:</p>
+    <table>
+      <thead>
+        <tr><th>Table</th><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>collections</code></td><td><code>require_review</code></td><td>INTEGER DEFAULT 0</td><td>Whether this collection requires admin approval before publishing</td></tr>
+        <tr><td><code>collection_items</code></td><td><code>reviewed_by</code></td><td>INTEGER</td><td>User ID of the admin who approved the item</td></tr>
+        <tr><td><code>collection_items</code></td><td><code>reviewed_at</code></td><td>TEXT</td><td>ISO timestamp of when the item was approved</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Related pages</h2>
+    <ul>
+      <li><a href="content/collections.html">Collections</a> — collection schema, statuses, and field types</li>
+      <li><a href="features/scheduling.html">Scheduling</a> — scheduled publishing, auto-publish, and time zones</li>
+      <li><a href="members/admin-roles.html">Admin Roles</a> — role hierarchy and capabilities</li>
+      <li><a href="api/admin-api.html">Admin API</a> — full endpoint reference</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

@@ -119,6 +119,14 @@
     {/if}
     <button
       class="sidebar-item"
+      class:active={route === 'calendar'}
+      onclick={() => nav('calendar')}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Calendar
+    </button>
+    <button
+      class="sidebar-item"
       class:active={route === 'pages'}
       onclick={() => nav('pages')}
     >
@@ -183,13 +191,18 @@
                 <span class="sidebar-sub-text">All Items</span><span class="sidebar-sub-count">{stats?.item_count ?? coll.item_count ?? 0}</span>
               </button>
               <button class="sidebar-sub-item" class:sub-active={isSubActive(coll.slug, 'draft')} onclick={() => nav('collection-items', { collectionSlug: coll.slug, statusFilter: 'draft' })}>
-                <span class="sidebar-sub-text">Drafts</span><span class="sidebar-sub-count">{stats?.draft_count ?? 0}</span>
+                <span class="sidebar-sub-text">Drafts</span><span class="sidebar-sub-count">{stats?.draft_count ?? coll.draft_count ?? 0}</span>
               </button>
+              {#if coll.require_review}
+                <button class="sidebar-sub-item" class:sub-active={isSubActive(coll.slug, 'pending_review')} onclick={() => nav('collection-items', { collectionSlug: coll.slug, statusFilter: 'pending_review' })}>
+                  <span class="sidebar-sub-text">Pending</span><span class="sidebar-sub-count">{stats?.pending_count ?? coll.pending_count ?? 0}</span>
+                </button>
+              {/if}
               <button class="sidebar-sub-item" class:sub-active={isSubActive(coll.slug, 'scheduled')} onclick={() => nav('collection-items', { collectionSlug: coll.slug, statusFilter: 'scheduled' })}>
-                <span class="sidebar-sub-text">Scheduled</span><span class="sidebar-sub-count">{stats?.scheduled_count ?? 0}</span>
+                <span class="sidebar-sub-text">Scheduled</span><span class="sidebar-sub-count">{stats?.scheduled_count ?? coll.scheduled_count ?? 0}</span>
               </button>
               <button class="sidebar-sub-item" class:sub-active={isSubActive(coll.slug, 'published')} onclick={() => nav('collection-items', { collectionSlug: coll.slug, statusFilter: 'published' })}>
-                <span class="sidebar-sub-text">Published</span><span class="sidebar-sub-count">{stats?.published_count ?? 0}</span>
+                <span class="sidebar-sub-text">Published</span><span class="sidebar-sub-count">{stats?.published_count ?? coll.published_count ?? 0}</span>
               </button>
               {#if stats?.taxonomies?.length}
                 <div class="sidebar-sub-divider"></div>

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] — 2026-03-06
+
+### Added
+- **Review & Approval workflow** — per-collection `require_review` toggle; editors submit items for review instead of publishing directly; admins approve or reject
+- **Pending review status** — new `pending_review` item status with amber indicators throughout the admin UI (sidebar, item list, editor, right sidebar)
+- **Approve / Reject endpoints** — `PUT items/approve` and `PUT items/reject` for bulk review actions (admin+ only)
+- **Editorial calendar** — month-grid calendar view showing scheduled and published items across collections, with collection filter and click-to-edit navigation
+- **Bulk scheduling** — select multiple items and schedule them all to a specific date/time via a datetime picker modal
+- **Calendar API endpoint** — `GET calendar?start=&end=&collection=` returns items within a date range
+- **Collection status counts** — collections list now returns `draft_count`, `scheduled_count`, `published_count`, `pending_count` for accurate sidebar counts
+- **Webhook events** — `entry.submitted_for_review`, `entry.approved`, `entry.rejected`, `entry.scheduled` fire to registered webhooks
+
+---
+
 ## [1.4.0] — 2026-03-06
 
 ### Added

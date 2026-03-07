@@ -153,6 +153,12 @@ export const items = {
     request('items/bulk-status', { method: 'PUT', body: { ids, status } }),
   bulkDelete: (ids) =>
     request('items/bulk-delete', { method: 'DELETE', body: { ids } }),
+  bulkSchedule: (ids, scheduled_at) =>
+    request('items/bulk-schedule', { method: 'PUT', body: { ids, scheduled_at } }),
+  approve: (ids) =>
+    request('items/approve', { method: 'PUT', body: { ids } }),
+  reject: (ids) =>
+    request('items/reject', { method: 'PUT', body: { ids } }),
   previewToken: (id) =>
     request('items/preview-token', { method: 'POST', body: { id } }),
 };
@@ -190,6 +196,12 @@ export const media = {
 export const stats = {
   get: () =>
     request('stats'),
+};
+
+// Calendar
+export const calendar = {
+  get: (start, end, collection) =>
+    request('calendar', { params: { start, end, ...(collection && { collection }) } }),
 };
 
 // Folders (formerly Taxonomies)

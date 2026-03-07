@@ -47,6 +47,7 @@
   import ChannelsList from '$pages/ChannelsList.svelte';
   import ChannelBuilder from '$pages/ChannelBuilder.svelte';
   import Backups from '$pages/Backups.svelte';
+  import Calendar from '$pages/Calendar.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopBar from '$components/TopBar.svelte';
@@ -149,6 +150,8 @@
           {/if}
         {:else if route === 'dashboard'}
           <Dashboard />
+        {:else if route === 'calendar'}
+          <Calendar />
         {:else if route === 'pages'}
           <Pages />
         {:else if route === 'page-editor'}

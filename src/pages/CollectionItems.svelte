@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { items as itemsApi, collections as collectionsApi } from '$lib/api.js';
-  import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter } from '$lib/stores.js';
+  import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin } from '$lib/stores.js';
   import { formatDateOnly } from '$lib/utils.js';
 
   let activeSlug = $derived($currentCollectionSlug);
@@ -73,6 +73,51 @@
       items = items.filter(i => !ids.includes(i.id));
       addToast(`${count} item${count !== 1 ? 's' : ''} deleted`, 'success');
       selected = new Set();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      bulkBusy = false;
+    }
+  }
+
+  let adminRole = $derived($isAdmin);
+  let showScheduleModal = $state(false);
+  let scheduleDate = $state('');
+  let scheduleTime = $state('09:00');
+
+  async function bulkApprove() {
+    if (selected.size === 0 || bulkBusy) return;
+    bulkBusy = true;
+    try {
+      const ids = [...selected];
+      await itemsApi.approve(ids);
+      items = items.map(i => ids.includes(i.id)
+        ? { ...i, status: 'published', published_at: i.published_at || new Date().toISOString() }
+        : i
+      );
+      addToast(`${ids.length} item${ids.length !== 1 ? 's' : ''} approved`, 'success');
+      selected = new Set();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      bulkBusy = false;
+    }
+  }
+
+  async function bulkSchedule() {
+    if (selected.size === 0 || bulkBusy || !scheduleDate) return;
+    bulkBusy = true;
+    try {
+      const ids = [...selected];
+      const scheduledAt = `${scheduleDate}T${scheduleTime}:00`;
+      await itemsApi.bulkSchedule(ids, scheduledAt);
+      items = items.map(i => ids.includes(i.id)
+        ? { ...i, status: 'scheduled', scheduled_at: scheduledAt }
+        : i
+      );
+      addToast(`${ids.length} item${ids.length !== 1 ? 's' : ''} scheduled`, 'success');
+      selected = new Set();
+      showScheduleModal = false;
     } catch (err) {
       addToast(err.message, 'error');
     } finally {
@@ -247,11 +292,19 @@
     <div class="bulk-bar">
       <span class="bulk-count">{selected.size} selected</span>
       <div class="bulk-actions">
+        {#if adminRole && statusFilter === 'pending_review'}
+          <button class="btn btn-secondary btn-sm" onclick={bulkApprove} disabled={bulkBusy}>
+            Approve
+          </button>
+        {/if}
         <button class="btn btn-secondary btn-sm" onclick={() => bulkSetStatus('published')} disabled={bulkBusy}>
           Publish
         </button>
         <button class="btn btn-secondary btn-sm" onclick={() => bulkSetStatus('draft')} disabled={bulkBusy}>
           Unpublish
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick={() => { scheduleDate = ''; showScheduleModal = true; }} disabled={bulkBusy}>
+          Schedule
         </button>
         <button class="btn btn-secondary btn-sm btn-danger-text" onclick={bulkDelete} disabled={bulkBusy}>
           Delete
@@ -267,8 +320,8 @@
   {#if statusFilter !== 'all'}
     <div class="filter-pill-bar">
       <span class="filter-pill">
-        <span class="filter-pill-dot" class:draft={statusFilter === 'draft'} class:scheduled={statusFilter === 'scheduled'} class:published={statusFilter === 'published'}></span>
-        {statusFilter === 'draft' ? 'Drafts' : statusFilter === 'scheduled' ? 'Scheduled' : 'Published'}
+        <span class="filter-pill-dot" class:draft={statusFilter === 'draft'} class:scheduled={statusFilter === 'scheduled'} class:published={statusFilter === 'published'} class:pending={statusFilter === 'pending_review'}></span>
+        {statusFilter === 'draft' ? 'Drafts' : statusFilter === 'scheduled' ? 'Scheduled' : statusFilter === 'pending_review' ? 'Pending Review' : 'Published'}
       </span>
       <button class="filter-clear" onclick={() => setStatusFilter('all')}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -352,10 +405,11 @@
               class:status-published={item.status === 'published'}
               class:status-draft={item.status === 'draft'}
               class:status-scheduled={item.status === 'scheduled'}
+              class:status-pending={item.status === 'pending_review'}
               onclick={(e) => toggleStatus(e, item)}
               aria-label="Toggle status"
             >
-              {item.status}
+              {item.status === 'pending_review' ? 'in review' : item.status}
             </button>
             <span class="list-row-time">{formatDateOnly(getItemDate(item))}</span>
             <button
@@ -380,6 +434,24 @@
   {/if}
 </div>
 
+<!-- Schedule Modal -->
+{#if showScheduleModal}
+  <div class="schedule-overlay" onclick={() => showScheduleModal = false} role="presentation">
+    <div class="schedule-modal" onclick={(e) => e.stopPropagation()} role="dialog">
+      <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600;">Schedule {selected.size} item{selected.size !== 1 ? 's' : ''}</h3>
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="date" class="input" bind:value={scheduleDate} min={new Date().toISOString().split('T')[0]} style="flex: 1;" />
+        <input type="time" class="input" bind:value={scheduleTime} style="flex: 0 0 110px;" />
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn-secondary btn-sm" onclick={() => showScheduleModal = false}>Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick={bulkSchedule} disabled={!scheduleDate || bulkBusy}>
+          {bulkBusy ? 'Scheduling...' : 'Schedule'}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .ghost-list-view {
@@ -685,6 +757,7 @@
   .filter-pill-dot.draft { background: #C49A3D; }
   .filter-pill-dot.scheduled { background: #5A9BD5; }
   .filter-pill-dot.published { background: #5B8C5A; }
+  .filter-pill-dot.pending { background: #D97706; }
 
   .filter-clear {
     display: inline-flex;
@@ -709,6 +782,11 @@
     color: #5A9BD5;
   }
 
+  .status-pending {
+    background: rgba(217, 119, 6, 0.15);
+    color: #D97706;
+  }
+
   .list-row-delete {
     display: flex;
     align-items: center;
@@ -731,6 +809,59 @@
   .list-row-delete:hover {
     opacity: 1 !important;
     color: var(--error, #e53e3e);
+  }
+
+  .schedule-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .schedule-modal {
+    background: var(--bg-primary, #fff);
+    border-radius: 8px;
+    padding: 24px;
+    width: 340px;
+    max-width: 90vw;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  }
+
+  .schedule-modal h3 {
+    margin: 0 0 16px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .schedule-modal label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .schedule-modal input[type="date"],
+  .schedule-modal input[type="time"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    background: var(--bg-primary, #fff);
+    color: var(--text-primary);
+  }
+
+  .schedule-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
   }
 
   @media (max-width: 768px) {

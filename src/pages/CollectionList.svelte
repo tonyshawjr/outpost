@@ -14,6 +14,7 @@
   let formSlug = $state('');
   let formSingularName = $state('');
   let formUrlPattern = $state('');
+  let formRequireReview = $state(false);
   let formSchema = $state([
     { name: 'title', type: 'text', label: 'Title', required: true, placeholder: '', description: '', defaultValue: '', choices: '' },
     { name: 'body', type: 'richtext', label: 'Body', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }
@@ -68,6 +69,7 @@
     formSlug = '';
     formSingularName = '';
     formUrlPattern = '';
+    formRequireReview = false;
     formSchema = [
       { name: 'title', type: 'text', label: 'Title', required: true, placeholder: '', description: '', defaultValue: '', choices: '' },
       { name: 'body', type: 'richtext', label: 'Body', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }
@@ -88,6 +90,7 @@
     formSlug = coll.slug;
     formSingularName = coll.singular_name || coll.name;
     formUrlPattern = coll.url_pattern || `/${coll.slug}/{slug}`;
+    formRequireReview = !!(coll.require_review);
     const schema = JSON.parse(coll.schema || '{}');
     formSchema = Object.entries(schema).map(([name, def]) => ({
       name,
@@ -147,6 +150,7 @@
           singular_name: formSingularName || formName,
           schema,
           url_pattern: formUrlPattern || `/${formSlug}/{slug}`,
+          require_review: formRequireReview ? 1 : 0,
         });
         addToast('Collection updated', 'success');
       } else {
@@ -275,6 +279,14 @@
       <div class="form-group">
         <label class="form-label" for="coll-url">URL Pattern</label>
         <input id="coll-url" class="input" type="text" bind:value={formUrlPattern} placeholder="/{formSlug || 'slug'}/&#123;slug&#125;" />
+      </div>
+
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
+          <input type="checkbox" bind:checked={formRequireReview} style="accent-color: var(--accent);" />
+          Require review before publishing
+        </label>
+        <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Editors must submit for review; admins approve or reject.</span>
       </div>
 
       <div class="form-group">

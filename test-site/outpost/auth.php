@@ -170,6 +170,9 @@ class OutpostAuth {
                     'username' => $user['username'],
                     'role' => $user['role'],
                 ];
+                // Populate session vars so role/grant checks work for API key auth
+                $_SESSION['outpost_user_id'] = $user['id'];
+                $_SESSION['outpost_role'] = $user['role'];
                 // Update last_used_at
                 OutpostDB::update('api_keys', ['last_used_at' => date('Y-m-d H:i:s')], 'id = ?', [$row['id']]);
                 return true;

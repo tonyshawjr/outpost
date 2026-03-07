@@ -189,6 +189,9 @@ match (true) {
     $action === 'items/inline' && $method === 'PUT' => handle_item_inline_update(),
     $action === 'items/bulk-status' && $method === 'PUT' => handle_items_bulk_status(),
     $action === 'items/bulk-delete' && $method === 'DELETE' => handle_items_bulk_delete(),
+    $action === 'items/bulk-schedule' && $method === 'PUT' => handle_items_bulk_schedule(),
+    $action === 'items/approve' && $method === 'PUT' => handle_items_approve(),
+    $action === 'items/reject' && $method === 'PUT' => handle_items_reject(),
     $action === 'items/preview-token' && $method === 'POST' => handle_item_preview_token(),
 
     // Media
@@ -238,6 +241,7 @@ match (true) {
     // Dashboard
     $action === 'dashboard/stats'    && $method === 'GET' => handle_dashboard_stats(),
     $action === 'dashboard/activity' && $method === 'GET' => handle_dashboard_activity(),
+    $action === 'calendar' && $method === 'GET' => handle_calendar(),
 
     // Analytics
     $action === 'dashboard/analytics' && $method === 'GET' => handle_analytics(),
@@ -1357,14 +1361,26 @@ function handle_globals_get(): void {
 
 // ── Collection Handlers ──────────────────────────────────
 function handle_collections_list(): void {
+    ensure_collections_require_review_column();
     $collections = OutpostDB::fetchAll('SELECT * FROM collections ORDER BY name ASC');
-    // Add item counts
+    // Add item counts with status breakdown
     foreach ($collections as &$c) {
-        $count = OutpostDB::fetchOne(
-            'SELECT COUNT(*) as count FROM collection_items WHERE collection_id = ?',
+        $counts = OutpostDB::fetchOne(
+            "SELECT
+                COUNT(*) as item_count,
+                SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft_count,
+                SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled_count,
+                SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_count,
+                SUM(CASE WHEN status = 'pending_review' THEN 1 ELSE 0 END) as pending_count
+             FROM collection_items WHERE collection_id = ?",
             [$c['id']]
         );
-        $c['item_count'] = $count['count'] ?? 0;
+        $c['item_count'] = (int) ($counts['item_count'] ?? 0);
+        $c['draft_count'] = (int) ($counts['draft_count'] ?? 0);
+        $c['scheduled_count'] = (int) ($counts['scheduled_count'] ?? 0);
+        $c['published_count'] = (int) ($counts['published_count'] ?? 0);
+        $c['pending_count'] = (int) ($counts['pending_count'] ?? 0);
+        $c['require_review'] = (int) ($c['require_review'] ?? 0);
     }
 
     // Filter by grants for scoped editors
@@ -1413,12 +1429,20 @@ function handle_collection_update(): void {
     $current = OutpostDB::fetchOne('SELECT * FROM collections WHERE id = ?', [$id]);
     if (!$current) json_error('Collection not found', 404);
 
+    ensure_collections_require_review_column();
     $allowed = ['name', 'singular_name', 'schema', 'url_pattern', 'template_path',
                 'sort_field', 'sort_direction', 'items_per_page'];
     $update = [];
     foreach ($allowed as $key) {
         if (isset($data[$key])) {
             $update[$key] = $key === 'schema' ? json_encode($data[$key]) : $data[$key];
+        }
+    }
+    // Only admins+ can toggle require_review (editors must not bypass their own gate)
+    if (isset($data['require_review'])) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin', 'developer'])) {
+            $update['require_review'] = $data['require_review'] ? 1 : 0;
         }
     }
 
@@ -1521,6 +1545,20 @@ function handle_item_create(): void {
     $item_data = $data['data'] ?? [];
     $status = $data['status'] ?? 'draft';
 
+    // Review gate: editors cannot direct-publish on require_review collections
+    $submitted_for_review = false;
+    if ($status === 'published') {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if ($role === 'editor') {
+            ensure_collections_require_review_column();
+            $coll = OutpostDB::fetchOne('SELECT require_review FROM collections WHERE id = ?', [$collection_id]);
+            if ($coll && (int) ($coll['require_review'] ?? 0) === 1) {
+                $status = 'pending_review';
+                $submitted_for_review = true;
+            }
+        }
+    }
+
     $id = OutpostDB::insert('collection_items', [
         'collection_id' => $collection_id,
         'slug' => $slug,
@@ -1530,9 +1568,14 @@ function handle_item_create(): void {
         'scheduled_at' => ($status === 'scheduled' && !empty($data['scheduled_at']) && preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/', $data['scheduled_at'])) ? $data['scheduled_at'] : null,
     ]);
 
+    if ($submitted_for_review) {
+        dispatch_webhook('entry.submitted_for_review', ['id' => $id, 'collection_id' => $collection_id, 'slug' => $slug]);
+    }
     dispatch_webhook('entry.created', ['id' => $id, 'collection_id' => $collection_id, 'slug' => $slug, 'status' => $status, 'data' => $item_data]);
 
-    json_response(['success' => true, 'id' => $id], 201);
+    $response = ['success' => true, 'id' => $id];
+    if ($submitted_for_review) $response['submitted_for_review'] = true;
+    json_response($response, 201);
 }
 
 function handle_item_update(): void {
@@ -1574,9 +1617,23 @@ function handle_item_update(): void {
     if (isset($data['status'])) {
         $update['status'] = $data['status'];
         if ($data['status'] === 'published') {
-            $item = OutpostDB::fetchOne('SELECT published_at FROM collection_items WHERE id = ?', [$id]);
-            if (!$item['published_at']) {
-                $update['published_at'] = date('Y-m-d H:i:s');
+            // Check if collection requires review and user is an editor
+            $role = $_SESSION['outpost_role'] ?? '';
+            if ($role === 'editor') {
+                ensure_collections_require_review_column();
+                $coll = OutpostDB::fetchOne(
+                    'SELECT c.require_review FROM collection_items ci JOIN collections c ON ci.collection_id = c.id WHERE ci.id = ?',
+                    [$id]
+                );
+                if ($coll && (int) ($coll['require_review'] ?? 0) === 1) {
+                    $update['status'] = 'pending_review';
+                }
+            }
+            if ($update['status'] === 'published') {
+                $item = OutpostDB::fetchOne('SELECT published_at FROM collection_items WHERE id = ?', [$id]);
+                if (!$item['published_at']) {
+                    $update['published_at'] = date('Y-m-d H:i:s');
+                }
             }
         }
     }
@@ -1633,7 +1690,10 @@ function handle_item_update(): void {
     // Dispatch webhook
     $updated_item = OutpostDB::fetchOne('SELECT * FROM collection_items WHERE id = ?', [$id]);
     $wh_data = ['id' => $id, 'slug' => $updated_item['slug'] ?? '', 'collection_id' => $updated_item['collection_id'] ?? 0];
-    if (isset($data['status']) && $data['status'] === 'published') {
+    $finalStatus = $updated_item['status'] ?? '';
+    if ($finalStatus === 'pending_review') {
+        dispatch_webhook('entry.submitted_for_review', $wh_data);
+    } elseif (isset($data['status']) && $data['status'] === 'published' && $finalStatus === 'published') {
         dispatch_webhook('entry.published', $wh_data);
     } elseif (isset($data['status']) && $data['status'] === 'draft') {
         dispatch_webhook('entry.unpublished', $wh_data);
@@ -1641,7 +1701,11 @@ function handle_item_update(): void {
         dispatch_webhook('entry.updated', $wh_data);
     }
 
-    json_response(['success' => true, 'updated_at' => $newTimestamp]);
+    $response = ['success' => true, 'updated_at' => $newTimestamp];
+    if ($finalStatus === 'pending_review' && isset($data['status']) && $data['status'] === 'published') {
+        $response['submitted_for_review'] = true;
+    }
+    json_response($response);
 }
 
 function handle_item_inline_update(): void {
@@ -1770,29 +1834,93 @@ function handle_items_bulk_status(): void {
             }
         }
     }
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $update = ['status' => $status, 'updated_at' => date('Y-m-d H:i:s')];
+
+    // Review gate: editors on require_review collections get pending_review instead of published
+    // Apply per-collection so mixed selections work correctly
+    $reviewIds = [];
+    $publishIds = $ids;
     if ($status === 'published') {
-        $update['published_at'] = date('Y-m-d H:i:s');
-        // Only set published_at on items that don't have one yet
+        $role = $_SESSION['outpost_role'] ?? '';
+        if ($role === 'editor') {
+            ensure_collections_require_review_column();
+            // Build a set of collections that require review
+            $reviewCollIds = [];
+            $itemColls = [];
+            foreach ($ids as $itemId) {
+                $row = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$itemId]);
+                if ($row) $itemColls[$itemId] = (int) $row['collection_id'];
+            }
+            $uniqueCollIds = array_unique(array_values($itemColls));
+            foreach ($uniqueCollIds as $cid) {
+                $coll = OutpostDB::fetchOne('SELECT require_review FROM collections WHERE id = ?', [$cid]);
+                if ($coll && (int) ($coll['require_review'] ?? 0) === 1) {
+                    $reviewCollIds[] = $cid;
+                }
+            }
+            if (!empty($reviewCollIds)) {
+                $reviewIds = [];
+                $publishIds = [];
+                foreach ($ids as $itemId) {
+                    if (isset($itemColls[$itemId]) && in_array($itemColls[$itemId], $reviewCollIds, true)) {
+                        $reviewIds[] = $itemId;
+                    } else {
+                        $publishIds[] = $itemId;
+                    }
+                }
+            }
+        }
+    }
+
+    $now = date('Y-m-d H:i:s');
+    // Update items that can be published/set to requested status
+    if (!empty($publishIds)) {
+        $placeholders = implode(',', array_fill(0, count($publishIds), '?'));
+        if ($status === 'published') {
+            OutpostDB::query(
+                "UPDATE collection_items SET status = 'published', updated_at = ?, published_at = COALESCE(published_at, ?) WHERE id IN ($placeholders)",
+                array_merge([$now, $now], $publishIds)
+            );
+        } else {
+            OutpostDB::query(
+                "UPDATE collection_items SET status = ?, updated_at = ? WHERE id IN ($placeholders)",
+                array_merge([$status, $now], $publishIds)
+            );
+        }
+    }
+    // Update items that go to pending_review instead
+    if (!empty($reviewIds)) {
+        $placeholders = implode(',', array_fill(0, count($reviewIds), '?'));
         OutpostDB::query(
-            "UPDATE collection_items SET status = 'published', updated_at = ?, published_at = COALESCE(published_at, ?) WHERE id IN ($placeholders)",
-            array_merge([date('Y-m-d H:i:s'), date('Y-m-d H:i:s')], $ids)
-        );
-    } else {
-        OutpostDB::query(
-            "UPDATE collection_items SET status = ?, updated_at = ? WHERE id IN ($placeholders)",
-            array_merge([$status, date('Y-m-d H:i:s')], $ids)
+            "UPDATE collection_items SET status = 'pending_review', updated_at = ? WHERE id IN ($placeholders)",
+            array_merge([$now], $reviewIds)
         );
     }
+
     outpost_clear_cache();
     $count = count($ids);
-    log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' set to ' . $status);
-    $wh_event = $status === 'published' ? 'entry.published' : 'entry.unpublished';
-    foreach ($ids as $wh_id) {
-        dispatch_webhook($wh_event, ['id' => $wh_id]);
+    if (!empty($reviewIds) && !empty($publishIds)) {
+        log_activity('content', count($publishIds) . ' item(s) published, ' . count($reviewIds) . ' submitted for review');
+    } elseif (!empty($reviewIds)) {
+        log_activity('content', count($reviewIds) . ' item(s) submitted for review');
+    } else {
+        $label = $status === 'published' ? 'published' : $status;
+        log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' set to ' . $label);
     }
-    json_response(['success' => true, 'count' => $count]);
+    if ($status === 'published' || !empty($publishIds)) {
+        foreach ($publishIds as $wh_id) { dispatch_webhook('entry.published', ['id' => $wh_id]); }
+    }
+    if (!empty($reviewIds)) {
+        foreach ($reviewIds as $wh_id) { dispatch_webhook('entry.submitted_for_review', ['id' => $wh_id]); }
+    }
+    if ($status === 'draft') {
+        foreach ($ids as $wh_id) { dispatch_webhook('entry.unpublished', ['id' => $wh_id]); }
+    }
+    $response = ['success' => true, 'count' => $count];
+    if (!empty($reviewIds)) {
+        $response['submitted_for_review'] = true;
+        $response['review_count'] = count($reviewIds);
+    }
+    json_response($response);
 }
 
 function handle_items_bulk_delete(): void {
@@ -1837,6 +1965,166 @@ function handle_items_bulk_delete(): void {
     $count = count($ids);
     log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' deleted');
     json_response(['success' => true, 'count' => $count]);
+}
+
+function handle_items_bulk_schedule(): void {
+    $data = get_json_body();
+    $ids = $data['ids'] ?? [];
+    $scheduledAt = $data['scheduled_at'] ?? '';
+    if (!is_array($ids) || count($ids) === 0 || !$scheduledAt) {
+        json_error('ids (array) and scheduled_at required');
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/', $scheduledAt)) {
+        json_error('Invalid scheduled_at format');
+    }
+    if (strtotime($scheduledAt) <= time()) {
+        json_error('scheduled_at must be in the future');
+    }
+    $ids = array_map('intval', $ids);
+
+    // Check collection access for scoped editors
+    $granted = outpost_get_granted_collection_ids();
+    if ($granted !== null) {
+        foreach ($ids as $itemId) {
+            $ic = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$itemId]);
+            if ($ic && !in_array((int) $ic['collection_id'], $granted, true)) {
+                json_error('Permission denied', 403);
+            }
+        }
+    }
+
+    // Review gate: editors cannot schedule on require_review collections (scheduled items auto-publish)
+    $role = $_SESSION['outpost_role'] ?? '';
+    if ($role === 'editor') {
+        ensure_collections_require_review_column();
+        $collIds = array_unique(array_map(function($itemId) {
+            $ic = OutpostDB::fetchOne('SELECT collection_id FROM collection_items WHERE id = ?', [$itemId]);
+            return $ic ? (int) $ic['collection_id'] : 0;
+        }, $ids));
+        foreach ($collIds as $cid) {
+            if ($cid === 0) continue;
+            $coll = OutpostDB::fetchOne('SELECT require_review FROM collections WHERE id = ?', [$cid]);
+            if ($coll && (int) ($coll['require_review'] ?? 0) === 1) {
+                json_error('Items on review-required collections cannot be scheduled by editors', 403);
+            }
+        }
+    }
+
+    ensure_items_columns();
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $now = date('Y-m-d H:i:s');
+    OutpostDB::query(
+        "UPDATE collection_items SET status = 'scheduled', scheduled_at = ?, updated_at = ? WHERE id IN ($placeholders)",
+        array_merge([$scheduledAt, $now], $ids)
+    );
+    outpost_clear_cache();
+    $count = count($ids);
+    log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' scheduled for ' . $scheduledAt);
+    foreach ($ids as $wh_id) {
+        dispatch_webhook('entry.scheduled', ['id' => $wh_id, 'scheduled_at' => $scheduledAt]);
+    }
+    json_response(['success' => true, 'count' => $count]);
+}
+
+function handle_items_approve(): void {
+    ensure_items_review_columns();
+    $role = $_SESSION['outpost_role'] ?? '';
+    if (!in_array($role, ['super_admin', 'admin', 'developer'])) {
+        json_error('Only admins can approve items', 403);
+    }
+
+    $data = get_json_body();
+    $ids = $data['ids'] ?? [];
+    if (!is_array($ids) || count($ids) === 0) {
+        json_error('ids (array) required');
+    }
+    $ids = array_map('intval', $ids);
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $now = date('Y-m-d H:i:s');
+    $userId = (int) ($_SESSION['outpost_user_id'] ?? 0);
+    OutpostDB::query(
+        "UPDATE collection_items SET status = 'published', published_at = COALESCE(published_at, ?), reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id IN ($placeholders) AND status = 'pending_review'",
+        array_merge([$now, $userId, $now, $now], $ids)
+    );
+    outpost_clear_cache();
+    $count = count($ids);
+    log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' approved');
+    foreach ($ids as $wh_id) {
+        dispatch_webhook('entry.approved', ['id' => $wh_id]);
+    }
+    json_response(['success' => true, 'count' => $count]);
+}
+
+function handle_items_reject(): void {
+    ensure_items_review_columns();
+    $role = $_SESSION['outpost_role'] ?? '';
+    if (!in_array($role, ['super_admin', 'admin', 'developer'])) {
+        json_error('Only admins can reject items', 403);
+    }
+
+    $data = get_json_body();
+    $ids = $data['ids'] ?? [];
+    if (!is_array($ids) || count($ids) === 0) {
+        json_error('ids (array) required');
+    }
+    $ids = array_map('intval', $ids);
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $now = date('Y-m-d H:i:s');
+    OutpostDB::query(
+        "UPDATE collection_items SET status = 'draft', reviewed_by = NULL, reviewed_at = NULL, updated_at = ? WHERE id IN ($placeholders) AND status = 'pending_review'",
+        array_merge([$now], $ids)
+    );
+    outpost_clear_cache();
+    $count = count($ids);
+    log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' rejected');
+    foreach ($ids as $wh_id) {
+        dispatch_webhook('entry.rejected', ['id' => $wh_id]);
+    }
+    json_response(['success' => true, 'count' => $count]);
+}
+
+function handle_calendar(): void {
+    $start = $_GET['start'] ?? '';
+    $end = $_GET['end'] ?? '';
+    if (!$start || !$end) json_error('start and end dates required');
+
+    $collectionSlug = $_GET['collection'] ?? '';
+    $where = "(ci.published_at BETWEEN ? AND ? OR (ci.status = 'scheduled' AND ci.scheduled_at BETWEEN ? AND ?))";
+    $params = [$start, $end, $start, $end];
+
+    if ($collectionSlug) {
+        $where .= ' AND c.slug = ?';
+        $params[] = $collectionSlug;
+    }
+
+    // Respect collection grants for scoped editors
+    $granted = outpost_get_granted_collection_ids();
+    if ($granted !== null) {
+        $grantPlaceholders = implode(',', array_fill(0, count($granted), '?'));
+        $where .= " AND c.id IN ($grantPlaceholders)";
+        $params = array_merge($params, $granted);
+    }
+
+    $items = OutpostDB::fetchAll(
+        "SELECT ci.id, ci.slug, ci.status, ci.data, ci.published_at, ci.scheduled_at, ci.created_at,
+                c.slug as collection_slug, c.name as collection_name
+         FROM collection_items ci
+         JOIN collections c ON ci.collection_id = c.id
+         WHERE $where
+         ORDER BY COALESCE(ci.published_at, ci.scheduled_at) ASC",
+        $params
+    );
+
+    // Decode JSON data and extract title
+    foreach ($items as &$item) {
+        $data = json_decode($item['data'], true) ?: [];
+        $item['title'] = $data['title'] ?? $item['slug'];
+        unset($item['data']); // Don't send full data to calendar
+    }
+
+    json_response(['items' => $items]);
 }
 
 function handle_item_preview_token(): void {
@@ -2510,6 +2798,27 @@ function ensure_items_columns(): void {
     $colNames = array_column($cols, 'name');
     if (!in_array('scheduled_at', $colNames)) {
         $db->exec("ALTER TABLE collection_items ADD COLUMN scheduled_at TEXT");
+    }
+}
+
+function ensure_items_review_columns(): void {
+    $db = OutpostDB::connect();
+    $cols = $db->query("PRAGMA table_info(collection_items)")->fetchAll();
+    $colNames = array_column($cols, 'name');
+    if (!in_array('reviewed_by', $colNames)) {
+        $db->exec("ALTER TABLE collection_items ADD COLUMN reviewed_by INTEGER");
+    }
+    if (!in_array('reviewed_at', $colNames)) {
+        $db->exec("ALTER TABLE collection_items ADD COLUMN reviewed_at TEXT");
+    }
+}
+
+function ensure_collections_require_review_column(): void {
+    $db = OutpostDB::connect();
+    $cols = $db->query("PRAGMA table_info(collections)")->fetchAll();
+    $colNames = array_column($cols, 'name');
+    if (!in_array('require_review', $colNames)) {
+        $db->exec("ALTER TABLE collections ADD COLUMN require_review INTEGER DEFAULT 0");
     }
 }
 

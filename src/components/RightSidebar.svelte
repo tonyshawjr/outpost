@@ -265,9 +265,9 @@
         <!-- Status -->
         <div class="rs-field">
           <label class="rs-label">Status</label>
-          <div class="rs-status-badge" class:published={editItem.status === 'published'} class:scheduled={editItem.status === 'scheduled'}>
+          <div class="rs-status-badge" class:published={editItem.status === 'published'} class:scheduled={editItem.status === 'scheduled'} class:pending-review={editItem.status === 'pending_review'}>
             <span class="rs-status-dot"></span>
-            {editItem.status === 'published' ? 'Published' : editItem.status === 'scheduled' ? 'Scheduled' : 'Draft'}
+            {editItem.status === 'published' ? 'Published' : editItem.status === 'scheduled' ? 'Scheduled' : editItem.status === 'pending_review' ? 'In Review' : 'Draft'}
           </div>
         </div>
 
@@ -570,6 +570,10 @@
 
   .rs-status-badge.scheduled .rs-status-dot {
     background: #5A9BD5;
+  }
+
+  .rs-status-badge.pending-review .rs-status-dot {
+    background: #D97706;
   }
 
   /* ─── Slug display ─── */

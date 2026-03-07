@@ -514,7 +514,7 @@ Each collection has:
 
 **Field types:** text, textarea, richtext, image, link, select, color, number, date, toggle, repeater, gallery, flexible, relationship.
 
-Items have statuses: `published`, `draft`, `scheduled`. Only `published` items with `published_at` in the past appear in loops and single templates.
+Items have statuses: `published`, `draft`, `scheduled`, `pending_review`. Only `published` items with `published_at` in the past appear in loops and single templates. Items with `pending_review` status are treated as drafts (not visible to visitors).
 
 Single template naming: URL pattern `/post/{slug}` → template file `post.html` (first path segment).
 
@@ -560,7 +560,10 @@ To use: open item → set Status to "Scheduled" → pick date/time → Save.
 | From | To | How |
 |---|---|---|
 | draft | published | Manual in admin |
+| draft | pending_review | Editor publishes on require_review collection |
 | draft | scheduled | Set Scheduled + pick date |
+| pending_review | published | Admin approves |
+| pending_review | draft | Admin rejects |
 | scheduled | published | Automatic on next page request, or manual |
 | scheduled | draft | Manual cancel |
 | published | draft | Manual unpublish |
@@ -574,6 +577,31 @@ date_default_timezone_set('America/New_York');
 ```
 */5 * * * * curl -s https://yourdomain.com/ > /dev/null 2>&1
 ```
+
+## Editorial Workflow
+
+Collections can require review before publishing via the `require_review` toggle in the collection schema editor.
+
+**How it works:**
+- When `require_review` is enabled on a collection, editors who click "Publish" will have their item set to `pending_review` instead of `published`
+- Admins and super_admins can always publish directly, even on require_review collections
+- Items in `pending_review` are not visible to site visitors (treated same as drafts)
+- Admins approve or reject pending items via the collection items list (bulk or individual)
+- Approving sets the item to `published` with `reviewed_by` and `reviewed_at` timestamps
+- Rejecting returns the item to `draft` status
+
+**API endpoints:**
+- `PUT items/approve` — approve items (admin+ only), body: `{ ids: [1,2,3] }`
+- `PUT items/reject` — reject items (admin+ only), body: `{ ids: [1,2,3] }`
+- `PUT items/bulk-schedule` — schedule items, body: `{ ids: [1,2,3], scheduled_at: "2026-03-15T09:00:00" }`
+- `GET calendar?start=YYYY-MM-DD&end=YYYY-MM-DD&collection=slug` — items within date range for editorial calendar
+
+**Webhook events:** `entry.submitted_for_review`, `entry.approved`, `entry.rejected`
+
+**Database columns added:**
+- `collections.require_review` (INTEGER DEFAULT 0)
+- `collection_items.reviewed_by` (INTEGER, user ID)
+- `collection_items.reviewed_at` (TEXT, ISO timestamp)
 
 ## Folders
 
@@ -1207,9 +1235,13 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `collections` | GET, POST, PUT, DELETE | Collections CRUD |
 | `items` | GET, POST, PUT, DELETE | Collection items CRUD |
 | `items/inline` | PUT | Partial field update for collection items (on-page editing) |
-| `items/bulk-status` | PUT | Bulk update item status (draft/published) |
+| `items/bulk-status` | PUT | Bulk update item status (draft/published/pending_review) |
 | `items/bulk-delete` | DELETE | Bulk delete items |
+| `items/bulk-schedule` | PUT | Bulk schedule items to a specific date/time |
+| `items/approve` | PUT | Approve pending_review items (admin+ only) |
+| `items/reject` | PUT | Reject pending_review items back to draft (admin+ only) |
 | `items/preview-token` | POST | Generate preview token for draft/scheduled items |
+| `calendar` | GET | Items by date range for editorial calendar (params: start, end, collection) |
 | `folders` | GET, POST, PUT, DELETE | Folders CRUD |
 | `labels` | GET, POST, PUT, DELETE | Folder labels CRUD |
 | `item-labels` | GET, PUT | Label assignments |
@@ -1511,7 +1543,7 @@ Key columns:
 
 **`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`
 
-**`collection_items`:** `id`, `collection_id`, `slug`, `status` (`'published'|'draft'|'scheduled'`), `scheduled_at`, `published_at`, `data` (JSON), `created_at`, `updated_at`
+**`collection_items`:** `id`, `collection_id`, `slug`, `status` (`'published'|'draft'|'scheduled'|'pending_review'`), `scheduled_at`, `published_at`, `reviewed_by`, `reviewed_at`, `data` (JSON), `created_at`, `updated_at`
 
 **`members`:** `id`, `email`, `password_hash`, `display_name`, `role` (`'free_member'|'paid_member'`), `status` (`'active'|'suspended'`), `member_expires`, `created_at`, `updated_at`
 
