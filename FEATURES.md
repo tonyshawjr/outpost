@@ -4,6 +4,16 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Bulk Media Operations (v1.6.2)
+
+- **Multi-select mode** — "Select" button in page header enters bulk mode with checkbox overlays on grid items. Click to toggle, shift-click for range select, Select All / Deselect All.
+- **Bulk delete** — confirm dialog, then `DELETE media/bulk-delete` removes all selected files from disk and database (max 500 per request).
+- **Bulk move-to-folder** — dropdown of all folders, moves selected items in one request via existing `media/move` endpoint.
+- **displayName() helper** — shows actual stored filenames (with `.webp` extension after auto-conversion) instead of original upload names.
+- **Files**: `php/api.php`, `src/lib/api.js`, `src/pages/MediaLibrary.svelte`
+
+---
+
 ## Media Library Pro (v1.6.0)
 
 - **WebP auto-conversion** — JPEG and PNG uploads automatically converted to WebP using GD at configurable quality (default 85), reducing file sizes. GIF, SVG, and already-WebP files are skipped. Savings displayed per file in upload queue.

@@ -177,6 +177,7 @@ Edit content directly on the live site while logged in as an admin — no round-
 - **Media folder organization** — folder sidebar, create/rename/delete, drag-to-folder, 3 levels max
 - **Bulk upload with progress** — XHR upload queue, per-file progress bars, 2 concurrent, cancel support
 - **MediaPicker folder browsing** — folder dropdown in image picker modal
+- **Bulk media operations** — multi-select mode with shift-click range, bulk delete, bulk move-to-folder (v1.6.2)
 
 ---
 

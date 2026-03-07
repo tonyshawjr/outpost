@@ -9,6 +9,11 @@
   let dragover = $state(false);
   let selected = $state(null);
 
+  // Bulk selection
+  let selectedIds = $state(new Set());
+  let bulkMode = $state(false);
+  let lastClickedId = $state(null);
+
   // Search, filter & sort
   let search = $state('');
   let typeFilter = $state('all');
@@ -29,6 +34,12 @@
   // Upload queue
   let uploadFiles = $state([]);
 
+  function displayName(item) {
+    // Strip the Unix timestamp prefix (e.g. "1772552781_") from the stored filename
+    const name = item.filename || item.original_name;
+    return name.replace(/^\d{10,}_/, '');
+  }
+
   const docMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'text/plain'];
 
   function getTypeGroup(mime) {
@@ -44,7 +55,7 @@
     // Text search
     if (search) {
       const q = search.toLowerCase();
-      list = list.filter(i => i.original_name.toLowerCase().includes(q));
+      list = list.filter(i => (i.filename || i.original_name).toLowerCase().includes(q) || i.original_name.toLowerCase().includes(q));
     }
 
     // Type filter
@@ -410,6 +421,7 @@
 
   function closeFolderContextMenu() {
     folderContextMenu = null;
+    showBulkMoveMenu = false;
   }
 
   // ── Drag to folder ──
@@ -447,6 +459,99 @@
       addToast(err.message, 'error');
     }
   }
+
+  // ── Bulk selection ──
+  function enterBulkMode() {
+    bulkMode = true;
+    selectedIds = new Set();
+    lastClickedId = null;
+    selected = null;
+  }
+
+  function exitBulkMode() {
+    bulkMode = false;
+    selectedIds = new Set();
+    lastClickedId = null;
+  }
+
+  function toggleSelect(item, e) {
+    if (e?.shiftKey && lastClickedId !== null) {
+      // Shift-click range select
+      const ids = items.map(i => i.id);
+      const from = ids.indexOf(lastClickedId);
+      const to = ids.indexOf(item.id);
+      if (from !== -1 && to !== -1) {
+        const start = Math.min(from, to);
+        const end = Math.max(from, to);
+        const next = new Set(selectedIds);
+        for (let i = start; i <= end; i++) {
+          next.add(ids[i]);
+        }
+        selectedIds = next;
+      }
+    } else {
+      const next = new Set(selectedIds);
+      if (next.has(item.id)) {
+        next.delete(item.id);
+      } else {
+        next.add(item.id);
+      }
+      selectedIds = next;
+    }
+    lastClickedId = item.id;
+    // Auto-exit if nothing selected
+    if (selectedIds.size === 0) {
+      bulkMode = false;
+      lastClickedId = null;
+    }
+  }
+
+  function selectAll() {
+    selectedIds = new Set(items.map(i => i.id));
+  }
+
+  function deselectAll() {
+    selectedIds = new Set();
+  }
+
+  let bulkDeleting = $state(false);
+
+  async function bulkDelete() {
+    const count = selectedIds.size;
+    if (!confirm(`Delete ${count} file${count !== 1 ? 's' : ''}? This cannot be undone.`)) return;
+    bulkDeleting = true;
+    try {
+      await mediaApi.bulkDelete([...selectedIds]);
+      mediaList.update(m => m.filter(i => !selectedIds.has(i.id)));
+      addToast(`${count} file${count !== 1 ? 's' : ''} deleted`, 'success');
+      exitBulkMode();
+      loadFolders();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      bulkDeleting = false;
+    }
+  }
+
+  let bulkMoving = $state(false);
+
+  async function bulkMove(folderId) {
+    const count = selectedIds.size;
+    bulkMoving = true;
+    try {
+      await mediaApi.moveToFolder([...selectedIds], folderId);
+      addToast(`${count} file${count !== 1 ? 's' : ''} moved`, 'success');
+      exitBulkMode();
+      loadFolders();
+      if (activeFolderId !== null) loadMedia();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      bulkMoving = false;
+    }
+  }
+
+  let showBulkMoveMenu = $state(false);
 </script>
 
 <div class="media-page">
@@ -460,6 +565,9 @@
       <p class="page-subtitle">Upload and manage your media files</p>
     </div>
     <div class="page-header-actions">
+      {#if !bulkMode}
+        <button class="btn btn-secondary" onclick={enterBulkMode}>Select</button>
+      {/if}
       <label class="btn btn-primary" style="cursor: pointer;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Upload
@@ -527,6 +635,48 @@
         {#if isFiltered}{items.length} of {/if}{totalCount} file{totalCount !== 1 ? 's' : ''}
       </span>
     </div>
+
+    <!-- Bulk action bar -->
+    {#if bulkMode && selectedIds.size > 0}
+      <div class="bulk-action-bar">
+        <label class="bulk-checkbox-label">
+          <input
+            type="checkbox"
+            checked={selectedIds.size === items.length && items.length > 0}
+            onchange={() => selectedIds.size === items.length ? deselectAll() : selectAll()}
+          />
+          <span>{selectedIds.size} selected</span>
+        </label>
+        <div class="bulk-actions">
+          <div class="bulk-move-wrapper">
+            <button class="btn btn-secondary btn-sm" onclick={() => showBulkMoveMenu = !showBulkMoveMenu} disabled={bulkMoving}>
+              {bulkMoving ? 'Moving...' : 'Move to\u2026'}
+            </button>
+            {#if showBulkMoveMenu}
+              <div class="bulk-move-dropdown">
+                <button class="bulk-move-option" onclick={() => { bulkMove(null); showBulkMoveMenu = false; }}>
+                  Unfiled
+                </button>
+                {#each foldersList as folder (folder.id)}
+                  <button class="bulk-move-option" onclick={() => { bulkMove(folder.id); showBulkMoveMenu = false; }}>
+                    {folder.name}
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+          <button class="btn btn-danger btn-sm" onclick={bulkDelete} disabled={bulkDeleting}>
+            {bulkDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick={exitBulkMode}>Cancel</button>
+        </div>
+      </div>
+    {:else if bulkMode}
+      <div class="bulk-action-bar">
+        <span class="bulk-hint">Click items to select them. Shift-click for range.</span>
+        <button class="btn btn-secondary btn-sm" onclick={exitBulkMode}>Cancel</button>
+      </div>
+    {/if}
 
     {#if totalCount === 0 && !loading}
       <div class="card">
@@ -608,15 +758,37 @@
           {#each items as item (item.id)}
             <div
               class="media-item"
-              class:selected={selected?.id === item.id}
-              onclick={() => selected = item}
+              class:selected={!bulkMode && selected?.id === item.id}
+              class:bulk-selected={bulkMode && selectedIds.has(item.id)}
+              onclick={(e) => {
+                if (bulkMode) {
+                  toggleSelect(item, e);
+                } else {
+                  selected = item;
+                }
+              }}
               role="button"
               tabindex="0"
-              onkeydown={(e) => e.key === 'Enter' && (selected = item)}
-              draggable="true"
-              ondragstart={(e) => onMediaDragStart(e, item)}
+              onkeydown={(e) => {
+                if (e.key === 'Enter') {
+                  if (bulkMode) toggleSelect(item, e);
+                  else selected = item;
+                }
+              }}
+              draggable={!bulkMode}
+              ondragstart={(e) => !bulkMode && onMediaDragStart(e, item)}
               ondragend={() => dragMediaId = null}
             >
+              {#if bulkMode}
+                <div class="bulk-checkbox-overlay">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(item.id)}
+                    onclick={(e) => e.stopPropagation()}
+                    onchange={() => toggleSelect(item)}
+                  />
+                </div>
+              {/if}
               {#if item.mime_type.startsWith('image/')}
                 <img
                   src={item.thumb_path || item.path}
@@ -628,7 +800,7 @@
                   {item.mime_type.split('/')[1]?.toUpperCase()}
                 </div>
               {/if}
-              <div class="media-item-name">{item.original_name}</div>
+              <div class="media-item-name">{displayName(item)}</div>
             </div>
           {/each}
         </div>
@@ -636,7 +808,7 @@
       </div>
 
       <!-- Detail sidebar -->
-      {#if selected}
+      {#if selected && !bulkMode}
         <div class="media-sidebar">
           <h3 class="media-sidebar-title">Details</h3>
           {#if selected.mime_type.startsWith('image/')}
@@ -666,7 +838,7 @@
             {/if}
           {/if}
           <div class="media-sidebar-meta">
-            <div><strong>Name:</strong> {selected.original_name}</div>
+            <div><strong>Name:</strong> {displayName(selected)}</div>
             <div><strong>Size:</strong> {humanFileSize(selected.file_size)}</div>
             {#if selected.width}
               <div><strong>Dimensions:</strong> {selected.width} &times; {selected.height}</div>
@@ -1268,6 +1440,92 @@
   }
   :global(.context-menu-item.danger) {
     color: var(--color-danger, #ef4444);
+  }
+
+  /* Bulk action bar */
+  .bulk-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    gap: var(--space-md);
+  }
+  .bulk-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+  .bulk-checkbox-label input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+  }
+  .bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .bulk-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+  }
+  .bulk-move-wrapper {
+    position: relative;
+  }
+  .bulk-move-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 100;
+    min-width: 180px;
+    padding: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .bulk-move-option {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+    border-radius: var(--radius-sm);
+  }
+  .bulk-move-option:hover {
+    background: var(--bg-secondary);
+  }
+
+  /* Bulk checkbox overlay on grid items */
+  .bulk-checkbox-overlay {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 2;
+  }
+  .bulk-checkbox-overlay input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  :global(.media-item.bulk-selected) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
   }
 
   /* ── Mobile ── */

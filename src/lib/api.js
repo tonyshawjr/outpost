@@ -191,6 +191,8 @@ export const media = {
     request('media/transform', { method: 'POST', body: data }),
   delete: (id) =>
     request('media', { method: 'DELETE', params: { id } }),
+  bulkDelete: (ids) =>
+    request('media/bulk-delete', { method: 'DELETE', body: { ids } }),
   moveToFolder: (ids, folderId) =>
     request('media/move', { method: 'PUT', body: { ids, folder_id: folderId } }),
 };

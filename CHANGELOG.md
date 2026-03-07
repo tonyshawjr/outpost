@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.2] — 2026-03-07
+
+### Added
+- **Bulk media operations** — "Select" mode with multi-select, shift-click range select, bulk delete, and bulk move-to-folder
+- `media/bulk-delete` API endpoint (DELETE, accepts `{ ids: [...] }`, max 500 items)
+- `displayName()` helper shows actual stored filenames (with `.webp` extension) instead of original upload names
+
+---
+
 ## [1.6.1] — 2026-03-07
 
 ### Fixed

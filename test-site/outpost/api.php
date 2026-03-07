@@ -202,6 +202,7 @@ match (true) {
     $action === 'media' && $method === 'PUT' && isset($_GET['id']) => handle_media_update(),
     $action === 'media/transform' && $method === 'POST' => handle_media_transform(),
     $action === 'media' && $method === 'DELETE' && isset($_GET['id']) => handle_media_delete(),
+    $action === 'media/bulk-delete' && $method === 'DELETE' => handle_media_bulk_delete(),
     $action === 'media/move' && $method === 'PUT' => handle_media_move_to_folder(),
 
     // Media Folders
@@ -2240,6 +2241,30 @@ function handle_media_delete(): void {
     dispatch_webhook('media.deleted', ['id' => $id, 'filename' => $media['filename'] ?? '', 'path' => $media['path'] ?? '']);
 
     json_response(['success' => true]);
+}
+
+function handle_media_bulk_delete(): void {
+    $data = get_json_body();
+    $ids = $data['ids'] ?? [];
+    if (!is_array($ids) || count($ids) === 0) {
+        json_error('ids (array) required');
+    }
+    if (count($ids) > 500) {
+        json_error('Maximum 500 items per request');
+    }
+    $ids = array_map('intval', $ids);
+
+    require_once __DIR__ . '/media.php';
+    $deleted = 0;
+    foreach ($ids as $id) {
+        $media = OutpostDB::fetchOne('SELECT * FROM media WHERE id = ?', [$id]);
+        if (!$media) continue;
+        OutpostMedia::delete($media);
+        dispatch_webhook('media.deleted', ['id' => $id, 'filename' => $media['filename'] ?? '', 'path' => $media['path'] ?? '']);
+        $deleted++;
+    }
+    log_activity('media', $deleted . ' file' . ($deleted !== 1 ? 's' : '') . ' deleted');
+    json_response(['success' => true, 'deleted' => $deleted]);
 }
 
 function handle_media_update(): void {
