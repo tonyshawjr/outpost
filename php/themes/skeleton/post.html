@@ -66,10 +66,15 @@ Features demonstrated:
 
   {% else %}
     {# Not found — displayed when no item matches the URL slug #}
-    {{ meta.title }}Post Not Found{{ /meta.title }}
-    <h1>Post Not Found</h1>
-    <p style="color: var(--color-muted);">The post you're looking for doesn't exist or has been removed.</p>
-    <a href="/blog" style="color: var(--color-accent); text-decoration: none;">&larr; Back to blog</a>
+    {{ meta.title }}Not Found{{ /meta.title }}
+    <h1>Not Found</h1>
+    <div style="padding: 32px; background: #f9fafb; border-radius: 8px; color: var(--color-muted);">
+      <p style="margin: 0 0 8px;"><strong>Single item:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;% single post from collection.post %&#125;</code></p>
+      <p style="margin: 0 0 8px;">This fetches one item by its URL slug. Change <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">post</code> to your collection slug.</p>
+      <p style="margin: 0 0 8px;">The URL pattern (e.g. <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">/post/{slug}</code>) is set in the collection's settings.</p>
+      <p style="margin: 0;">This block shows when the slug doesn't match any item, or the collection doesn't exist.</p>
+    </div>
+    <a href="/blog" style="color: var(--color-accent); text-decoration: none; margin-top: 16px; display: inline-block;">&larr; Back to list</a>
   {% endsingle %}
 
 </main>

@@ -75,10 +75,12 @@ Features demonstrated:
     </article>
 
   {% else %}
-    {# Empty state — shown when no items exist in the collection #}
-    <div style="text-align: center; padding: 60px 0; color: var(--color-muted);">
-      <p>No posts published yet.</p>
-      <p><a href="/outpost/" style="color: var(--color-accent);">Create your first post</a></p>
+    {# Empty state — shown when the collection is empty or doesn't exist #}
+    <div style="padding: 32px; background: #f9fafb; border-radius: 8px; color: var(--color-muted);">
+      <p style="margin: 0 0 8px;"><strong>Collection loop:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;% for post in collection.post limit:100 orderby:published_at paginate:6 %&#125;</code></p>
+      <p style="margin: 0 0 8px;">Change <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">post</code> to your collection slug (e.g. <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">collection.projects</code>, <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">collection.recipes</code>).</p>
+      <p style="margin: 0 0 8px;">Options: <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">limit:N</code> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">orderby:field</code> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">paginate:N</code> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">filteredby:folder</code> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">related:var</code></p>
+      <p style="margin: 0;">Create a collection in <a href="/outpost/" style="color: var(--color-accent);">Admin</a> &rarr; Collections, then add items to see them here.</p>
     </div>
   {% endfor %}
 

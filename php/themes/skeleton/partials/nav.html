@@ -50,6 +50,9 @@ Features demonstrated:
           </ul>
           {% endif %}
         </div>
+      {% else %}
+        {# No menu items — instruct developer #}
+        <span style="color: var(--color-muted); font-size: 13px;">Menu: <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;font-size:12px;">menu.main</code> &mdash; create in Admin &rarr; Navigation</span>
       {% endfor %}
     </div>
 

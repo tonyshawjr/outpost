@@ -47,7 +47,11 @@ Features demonstrated:
       {% endif %}
     </div>
   {% else %}
-    <p style="color: var(--color-muted);">No skills added yet.</p>
+    <div style="padding: 32px; background: #f9fafb; border-radius: 8px; color: var(--color-muted);">
+      <p style="margin: 0 0 8px;"><strong>Repeater loop:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;% for item in repeater.skills %&#125;</code></p>
+      <p style="margin: 0 0 8px;">Change <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">skills</code> to your repeater field name. Access sub-fields with <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;&#123; item.field_name &#125;&#125;</code>.</p>
+      <p style="margin: 0;">Add a repeater field to this page's schema in the admin, then add rows to see them here.</p>
+    </div>
   {% endfor %}
 
 </main>

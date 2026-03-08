@@ -122,8 +122,12 @@ Features demonstrated:
       {% endif %}
     </article>
   {% else %}
-    {# This block renders when the collection is empty #}
-    <p style="color: var(--color-muted);">No posts yet. Create your first post in Admin > Collections.</p>
+    {# This block renders when the collection is empty or doesn't exist #}
+    <div style="padding: 32px; background: #f9fafb; border-radius: 8px; color: var(--color-muted);">
+      <p style="margin: 0 0 8px;"><strong>Collection loop:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;% for post in collection.post limit:3 %&#125;</code></p>
+      <p style="margin: 0 0 8px;">Change <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">post</code> to your collection slug (e.g. <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">collection.projects</code>, <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">collection.articles</code>).</p>
+      <p style="margin: 0;">Create a collection in <a href="/outpost/" style="color: var(--color-accent);">Admin</a> &rarr; Collections to see items here.</p>
+    </div>
   {% endfor %}
 
   <hr style="margin: 40px 0;">
@@ -137,7 +141,11 @@ Features demonstrated:
       {{ label.name }} ({{ label.count }})
     </span>
   {% else %}
-    <p style="color: var(--color-muted);">No categories yet. Create folders in Admin > Folders.</p>
+    <div style="padding: 32px; background: #f9fafb; border-radius: 8px; color: var(--color-muted);">
+      <p style="margin: 0 0 8px;"><strong>Folder loop:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;% for label in folder.categories %&#125;</code></p>
+      <p style="margin: 0 0 8px;">Change <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">categories</code> to your folder slug (e.g. <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">folder.tags</code>, <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">folder.topics</code>).</p>
+      <p style="margin: 0;">Create folders in <a href="/outpost/" style="color: var(--color-accent);">Admin</a> &rarr; Folders to see labels here.</p>
+    </div>
   {% endfor %}
 
   <hr style="margin: 40px 0;">

@@ -22,6 +22,8 @@ Features demonstrated:
     <a href="{{ item.url }}" target="{{ item.target }}" style="color: var(--color-muted); text-decoration: none; font-size: 14px;">
       {{ item.label }}
     </a>
+    {% else %}
+      <span style="color: var(--color-muted); font-size: 12px;">Footer menu: <code style="background:#e5e7eb;padding:2px 4px;border-radius:3px;font-size:11px;">menu.footer</code></span>
     {% endfor %}
 
     {# Admin-only: edit link visible only to logged-in admins #}
