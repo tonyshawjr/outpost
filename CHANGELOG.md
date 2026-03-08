@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.2] — 2026-03-08
+
+### Fixed
+- Body font no longer overrides heading font — engine and preview now pin non-customized font vars to their defaults, breaking CSS variable cascade (e.g. `--font-display: var(--font-sans)`)
+- Live preview now updates in real-time — fixed `postMessage` failing silently on Svelte 5 proxy objects (same `structuredClone` issue)
+- "System Default" font choice now properly outputs `system-ui` stack instead of being silently ignored
+
+---
+
 ## [1.8.1] — 2026-03-08
 
 ### Fixed

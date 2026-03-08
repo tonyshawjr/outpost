@@ -32,8 +32,8 @@
     try {
       iframeRef.contentWindow.postMessage({
         type: 'outpost-customizer-update',
-        values: values,
-        schema: schema,
+        values: JSON.parse(JSON.stringify(values)),
+        schema: JSON.parse(JSON.stringify(schema)),
       }, window.location.origin);
     } catch (e) {
       // Cross-origin errors are expected during initial load
