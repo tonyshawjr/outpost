@@ -152,6 +152,7 @@ $cap_map = [
     'updates'  => 'settings.*',
     'backup'   => 'settings.*',
     'customizer' => 'settings.*',
+    'setup'      => 'settings.*',
 ];
 if (isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
@@ -6969,6 +6970,20 @@ function handle_setup_apply(): void {
     $themeSlug = trim($data['theme'] ?? '');
     $packId = trim($data['pack'] ?? 'blank');
 
+    // Validate inputs — prevent path traversal
+    if ($themeSlug && !preg_match('/^[a-zA-Z0-9_-]+$/', $themeSlug)) {
+        json_error('Invalid theme name', 400);
+    }
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $packId)) {
+        json_error('Invalid content pack', 400);
+    }
+
+    // Prevent re-running setup on an already-configured site
+    $setupRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'setup_completed'");
+    if ($setupRow && $setupRow['value']) {
+        json_error('Setup has already been completed', 403);
+    }
+
     $db = OutpostDB::connect();
     $db->exec('BEGIN');
 
@@ -7031,7 +7046,8 @@ function handle_setup_apply(): void {
         json_response(['success' => true, 'summary' => $summary]);
     } catch (\Exception $e) {
         $db->exec('ROLLBACK');
-        json_error('Setup failed: ' . $e->getMessage());
+        error_log('Outpost setup failed: ' . $e->getMessage());
+        json_error('Setup failed. Please try again.');
     }
 }
 

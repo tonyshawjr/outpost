@@ -13,14 +13,16 @@
   <h2 class="wizard-heading">Add starter content?</h2>
   <p class="wizard-desc">Choose a content pack or start fresh. You can delete anything later.</p>
 
-  <div class="pack-cards">
+  <div class="pack-cards" role="radiogroup" aria-label="Content pack selection">
     {#each packs as pack}
       <button
         class="pack-card"
         class:selected={selectedPack === pack.id}
         onclick={() => selectedPack = pack.id}
+        role="radio"
+        aria-checked={selectedPack === pack.id}
       >
-        <div class="pack-icon">{@html iconMap[pack.icon] || iconMap.plus}</div>
+        <div class="pack-icon" aria-hidden="true">{@html iconMap[pack.icon] || iconMap.plus}</div>
         <div class="pack-name">{pack.name}</div>
         <div class="pack-desc">{pack.description}</div>
       </button>

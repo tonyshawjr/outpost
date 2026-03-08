@@ -16,6 +16,8 @@
     bind:value={siteName}
     onkeydown={handleKeydown}
     autofocus
+    aria-label="Site name"
+    maxlength="200"
   />
   <div class="wizard-actions">
     <button class="btn btn-primary" onclick={onNext} disabled={!siteName.trim()}>Continue</button>

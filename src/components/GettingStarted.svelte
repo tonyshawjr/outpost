@@ -52,7 +52,7 @@
 
 {#if visible}
   <div class="gs-card">
-    <div class="gs-progress-bar">
+    <div class="gs-progress-bar" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin="0" aria-valuemax="100" aria-label="Setup progress">
       <div class="gs-progress-fill" style="width: {progress}%"></div>
     </div>
     <div class="gs-header">

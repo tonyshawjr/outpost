@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] — 2026-03-08
+
+### Security
+- **Setup endpoint authorization** — setup routes now require `settings.*` capability (admin/super_admin only); previously any authenticated user could run the wizard
+- **Path traversal prevention** — theme slug and content pack ID are validated against `[a-zA-Z0-9_-]` pattern before filesystem operations
+- **Setup idempotency guard** — `setup/apply` now rejects requests if setup has already been completed, preventing re-configuration
+- **Error message sanitization** — setup failure responses no longer expose internal exception details
+
+### Fixed
+- **Double-click race condition** — wizard "Continue" button on step 3 now guards against duplicate `setup/apply` calls
+- **Accessibility improvements** — added ARIA roles, labels, and attributes to wizard step inputs, theme/pack radio groups, and progress bar
+- **Old admin assets** — removed stale hashed JS/CSS files from test-site
+
+---
+
 ## [2.0.0] — 2026-03-08
 
 ### Added

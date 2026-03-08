@@ -28,12 +28,14 @@
   <h2 class="wizard-heading">Choose a theme</h2>
   <p class="wizard-desc">Pick a starting point. You can customize everything later.</p>
 
-  <div class="theme-cards">
+  <div class="theme-cards" role="radiogroup" aria-label="Theme selection">
     {#each themes as theme}
       <button
         class="theme-card"
         class:selected={selectedTheme === theme.slug}
         onclick={() => select(theme.slug)}
+        role="radio"
+        aria-checked={selectedTheme === theme.slug}
       >
         <div class="theme-card-name">{theme.name}</div>
         <div class="theme-card-desc">{theme.desc}</div>

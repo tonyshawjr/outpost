@@ -33,9 +33,9 @@
   });
 
   function nextStep() {
-    if (step === 3) {
+    if (step === 3 && !applying) {
       applySetup();
-    } else {
+    } else if (step < 3) {
       step++;
     }
   }
