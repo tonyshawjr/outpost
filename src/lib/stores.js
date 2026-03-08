@@ -9,6 +9,7 @@ export const isAuthenticated = derived(user, ($user) => $user !== null);
 export const appVersion = writable('');
 export const updateAvailable = writable(false);
 export const latestVersion = writable(null);
+export const setupCompleted = writable(true); // default true to prevent flash
 
 // Role-based derived stores
 export const isSuperAdmin = derived(user, ($user) => $user?.role === 'super_admin');

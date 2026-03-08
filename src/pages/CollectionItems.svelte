@@ -3,6 +3,7 @@
   import { items as itemsApi, collections as collectionsApi } from '$lib/api.js';
   import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin } from '$lib/stores.js';
   import { formatDateOnly } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
 
   let activeSlug = $derived($currentCollectionSlug);
   let colls = $derived($collectionsList);
@@ -333,21 +334,13 @@
   {#if loading}
     <div class="loading-overlay"><div class="spinner"></div></div>
   {:else if items.length === 0}
-    <div class="list-empty-state">
-      <div class="list-empty-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-      </div>
-      <div class="list-empty-title">
-        No {activeColl?.name?.toLowerCase() || 'items'} yet
-      </div>
-      <p class="list-empty-desc">
-        Create your first {activeColl?.singular_name?.toLowerCase() || 'item'} to get started.
-      </p>
-      <button class="btn btn-primary" style="margin-top: var(--space-lg);" onclick={createNewItem}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Create {activeColl?.singular_name || 'Item'}
-      </button>
-    </div>
+    <EmptyState
+      icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>'
+      title="No {activeColl?.name?.toLowerCase() || 'items'} yet"
+      description="Create your first {activeColl?.singular_name?.toLowerCase() || 'item'} to get started."
+      ctaLabel="Create {activeColl?.singular_name || 'Item'}"
+      ctaAction={createNewItem}
+    />
   {:else}
     <!-- Column Headers -->
     <div class="list-col-headers">
@@ -426,10 +419,7 @@
     </div>
 
     {#if search && filtered.length === 0}
-      <div class="list-empty-state" style="padding: var(--space-xl);">
-        <div class="list-empty-title" style="font-size: 15px;">No results for "{search}"</div>
-        <p class="list-empty-desc">Try a different search term</p>
-      </div>
+      <EmptyState searchActive={true} />
     {/if}
   {/if}
 </div>
@@ -685,32 +675,6 @@
   .status-draft {
     background: rgba(196, 154, 61, 0.15);
     color: var(--warning);
-  }
-
-  /* ── Empty State ──────────────────────────────────── */
-  .list-empty-state {
-    text-align: center;
-    padding: var(--space-3xl) var(--space-xl);
-  }
-
-  .list-empty-icon {
-    color: var(--text-tertiary);
-    opacity: 0.4;
-    margin-bottom: var(--space-lg);
-  }
-
-  .list-empty-title {
-    font-family: var(--font-serif);
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--space-xs);
-  }
-
-  .list-empty-desc {
-    font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
-    margin: 0;
   }
 
   /* ── Search in header ─────────────────────────────── */

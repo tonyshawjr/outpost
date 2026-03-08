@@ -2,6 +2,9 @@
   import { onMount } from 'svelte';
   import { navigation as navApi, pages as pagesApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
+  import EmptyState from '$components/EmptyState.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   // ── State ───────────────────────────────────────────────
   let menus = $state([]);
@@ -271,6 +274,8 @@
     {/if}
   </div>
 
+  <ContextualTip tipKey="navigation" message={tips.navigation} />
+
   {#if loading}
     <div class="loading-overlay"><div class="spinner"></div></div>
   {:else}
@@ -322,9 +327,10 @@
       <!-- Main: item editor -->
       <div class="nav-editor">
         {#if !editingMenu}
-          <div class="nav-empty">
-            <p>Select or create a menu to get started.</p>
-          </div>
+          <EmptyState
+            title="No menu selected"
+            description="Select or create a menu to get started."
+          />
         {:else}
           <!-- Menu name row -->
           <div class="nav-menu-meta">
@@ -668,12 +674,6 @@
   .nav-editor {
     flex: 1;
     min-width: 0;
-  }
-
-  .nav-empty {
-    color: var(--text-muted);
-    font-size: var(--text-sm);
-    padding: var(--space-xl) 0;
   }
 
   .nav-menu-meta {

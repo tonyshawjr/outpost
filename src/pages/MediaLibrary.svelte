@@ -4,6 +4,9 @@
   import { mediaList, addToast, mediaFolderGrants } from '$lib/stores.js';
   import { humanFileSize, formatDate } from '$lib/utils.js';
   import UploadQueue from '../components/UploadQueue.svelte';
+  import EmptyState from '$components/EmptyState.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   let loading = $state(true);
   let dragover = $state(false);
@@ -766,6 +769,8 @@
       </span>
     </div>
 
+    <ContextualTip tipKey="media" message={tips.media} />
+
     <!-- Bulk action bar -->
     {#if bulkMode && selectedIds.size > 0}
       <div class="bulk-action-bar">
@@ -809,20 +814,13 @@
     {/if}
 
     {#if totalCount === 0 && !loading}
-      <div class="card">
-        <div class="empty-state">
-          <div class="empty-state-icon">&#128247;</div>
-          <div class="empty-state-title">No media uploaded</div>
-          <p style="font-size: var(--font-size-sm);">
-            Drag and drop files or use the Upload button
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+        title="No media uploaded"
+        description="Drag and drop files or use the Upload button to get started."
+      />
     {:else if items.length === 0 && isFiltered}
-      <div class="media-empty-filter">
-        <p>No files match your search</p>
-        <button class="media-clear-link" onclick={clearFilters}>Clear filters</button>
-      </div>
+      <EmptyState searchActive={true} />
     {:else}
     <div class="media-layout-3col">
       <!-- Folder sidebar -->

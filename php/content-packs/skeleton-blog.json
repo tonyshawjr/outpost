@@ -1,0 +1,39 @@
+{
+  "settings": {},
+  "globals": {},
+  "collections": [
+    {
+      "name": "Posts",
+      "slug": "post",
+      "singular_name": "Post",
+      "url_pattern": "/post/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "body", "type": "richtext", "label": "Body" }
+      ],
+      "items": [
+        {
+          "title": "First Post",
+          "slug": "first-post",
+          "status": "published",
+          "data": {
+            "title": "First Post",
+            "body": "<p>Your first post. Edit or replace this with your own content.</p>"
+          }
+        }
+      ],
+      "folders": []
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "Blog", "url": "/blog", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" }
+      ]
+    }
+  ]
+}

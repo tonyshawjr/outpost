@@ -2,6 +2,9 @@
   import { onMount } from 'svelte';
   import { themes as themesApi } from '$lib/api.js';
   import { addToast, navigate } from '$lib/stores.js';
+  import EmptyState from '$components/EmptyState.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   let themesList = $state([]);
   let activeSlug = $state('');
@@ -105,6 +108,8 @@
     </div>
   </div>
 
+  <ContextualTip tipKey="themes" message={tips.themes} />
+
   <!-- Active Theme -->
   {#if activeTheme}
     <div class="themes-section">
@@ -175,9 +180,10 @@
   {/if}
 
   {#if themesList.length === 0}
-    <div class="empty-state">
-      <p>No themes found. Create a theme directory with a <code>theme.json</code> manifest.</p>
-    </div>
+    <EmptyState
+      title="No themes found"
+      description="Create a theme directory with a theme.json manifest to get started."
+    />
   {/if}
 {/if}
 </div>
@@ -387,19 +393,6 @@
   .theme-delete-btn svg {
     width: 16px;
     height: 16px;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var(--space-3xl);
-    color: var(--text-tertiary);
-  }
-
-  .empty-state code {
-    font-size: var(--font-size-sm);
-    background: var(--bg-hover);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
   }
 
   @media (max-width: 768px) {

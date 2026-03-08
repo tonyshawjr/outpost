@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Wizard — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Setup Wizard</h1>
+    <p class="lead">The setup wizard runs automatically on fresh installs, guiding new users through site name, theme selection, and content pack seeding in under two minutes.</p>
+  </div>
+  <div class="content">
+
+    <h2>How It Works</h2>
+    <p>When a user logs in for the first time after installation, Outpost checks the <code>setup_completed</code> setting. If it's <code>0</code> (or missing), the admin redirects to the setup wizard instead of the dashboard.</p>
+
+    <p>The wizard is a full-screen, 4-step flow:</p>
+
+    <ol>
+      <li><strong>Site Name</strong> — enter your site's name (saved to the <code>site_name</code> setting)</li>
+      <li><strong>Choose a Theme</strong> — pick from the bundled themes (Personal, Starter, Skeleton)</li>
+      <li><strong>Content Pack</strong> — choose a starter content pack (Blog, Portfolio, Business) or start from scratch</li>
+      <li><strong>Done</strong> — summary of what was created, with a link to the dashboard</li>
+    </ol>
+
+    <h2>Existing Site Detection</h2>
+    <p>When upgrading from a pre-2.0 version, Outpost automatically detects existing content. If any pages or collections exist in the database, the <code>setup_completed</code> setting is set to <code>1</code> during the migration, and the wizard never appears.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> — The setup wizard only appears once. After completing or skipping it, the <code>setup_completed</code> setting is permanently set and the wizard will not appear again.</div>
+
+    <h2>Skipping the Wizard</h2>
+    <p>A "Skip" link is visible on every step. Clicking it sets <code>setup_completed = 1</code> and redirects to the dashboard with no content seeded.</p>
+
+    <h2>Content Packs</h2>
+    <p>Content packs are JSON files in the <code>content-packs/</code> directory that define starter content for each theme. See <a href="themes/content-packs.html">Content Packs</a> for the full specification.</p>
+
+    <h2>Getting Started Checklist</h2>
+    <p>After completing the wizard, the dashboard shows a "Getting Started" checklist card with 5 items:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Completed When</th>
+          <th>Links To</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Upload your logo</td>
+          <td>Customizer has a logo value or <code>@site_logo</code> global is non-empty</td>
+          <td>Theme Customizer</td>
+        </tr>
+        <tr>
+          <td>Edit your homepage</td>
+          <td>Any fields for path <code>/</code> have been updated</td>
+          <td>Page Editor (homepage)</td>
+        </tr>
+        <tr>
+          <td>Create your first post</td>
+          <td>Any published collection items exist</td>
+          <td>Collections</td>
+        </tr>
+        <tr>
+          <td>Set up your navigation</td>
+          <td>Any menus have items</td>
+          <td>Navigation</td>
+        </tr>
+        <tr>
+          <td>Customize your theme</td>
+          <td><code>customizer.json</code> exists</td>
+          <td>Theme Customizer</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The checklist can be dismissed. Once dismissed or all items are completed, the normal dashboard appears.</p>
+
+    <h2>Contextual Tips</h2>
+    <p>Seven admin sections show a one-line contextual tip below the page header on first visit:</p>
+    <ul>
+      <li><strong>Pages</strong> — "Pages are auto-discovered from your theme templates."</li>
+      <li><strong>Collections</strong> — "Collections are reusable content types like blog posts, projects, or team members."</li>
+      <li><strong>Media</strong> — "Drag and drop files anywhere on this page to upload."</li>
+      <li><strong>Globals</strong> — "Globals are site-wide values like your site name, logo, and social links."</li>
+      <li><strong>Navigation</strong> — "Create menus and add links to pages, collections, or custom URLs."</li>
+      <li><strong>Forms</strong> — "Build forms visually and embed them with {% form 'slug' %} in any template."</li>
+      <li><strong>Themes</strong> — "Themes control your site's look and feel."</li>
+    </ul>
+    <p>Tips are dismissed per-browser via localStorage and never reappear once closed.</p>
+
+    <h2>API Endpoints</h2>
+
+    <h3><code>GET setup/packs</code></h3>
+    <p>Returns available content pack metadata, filtered by theme compatibility.</p>
+    <pre><code>// Response
+{
+  "packs": [
+    { "id": "blog", "name": "Blog", "description": "...", "icon": "pencil", "themes": ["personal", "starter", "skeleton"] },
+    ...
+  ]
+}</code></pre>
+
+    <h3><code>POST setup/apply</code></h3>
+    <p>Applies wizard choices in a single transaction: updates site name, activates theme, seeds content pack, sets <code>setup_completed</code>.</p>
+    <pre><code>// Request body
+{
+  "site_name": "My Awesome Site",
+  "theme": "personal",
+  "pack": "blog"    // or "blank" for no content
+}
+
+// Response
+{
+  "success": true,
+  "summary": { "collections": 1, "items": 2, "menus": 1 }
+}</code></pre>
+
+    <h3><code>GET setup/checklist</code></h3>
+    <p>Returns dynamic checklist completion status.</p>
+
+    <h3><code>POST setup/checklist/dismiss</code></h3>
+    <p>Dismisses the Getting Started checklist permanently.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

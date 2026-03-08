@@ -516,6 +516,14 @@ export const search = {
   content: (q) => request('search/content', { params: { q } }),
 };
 
+// Setup Wizard
+export const setup = {
+  packs: () => request('setup/packs'),
+  apply: (data) => request('setup/apply', { method: 'POST', body: data }),
+  checklist: () => request('setup/checklist'),
+  dismissChecklist: () => request('setup/checklist/dismiss', { method: 'POST', body: {} }),
+};
+
 // Channels
 export const channels = {
   list: () => request('channels'),

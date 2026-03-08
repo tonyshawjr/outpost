@@ -1,0 +1,51 @@
+{
+  "settings": {},
+  "globals": {
+    "site_tagline": "Designer & Developer",
+    "bio_short": "I build beautiful things for the web. Take a look around.",
+    "footer_text": "All rights reserved."
+  },
+  "collections": [
+    {
+      "name": "Work",
+      "slug": "work",
+      "singular_name": "Project",
+      "url_pattern": "/work/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "company", "type": "text", "label": "Company" },
+        { "name": "role", "type": "text", "label": "Role" },
+        { "name": "start_date", "type": "text", "label": "Start Date" },
+        { "name": "end_date", "type": "text", "label": "End Date" },
+        { "name": "body", "type": "richtext", "label": "Description" }
+      ],
+      "items": [
+        {
+          "title": "Sample Project",
+          "slug": "sample-project",
+          "status": "published",
+          "data": {
+            "title": "Sample Project",
+            "company": "Acme Inc.",
+            "role": "Lead Designer",
+            "start_date": "2024",
+            "end_date": "Present",
+            "body": "<p>A sample project to show how portfolio items work. Edit or replace this with your own work.</p>"
+          }
+        }
+      ],
+      "folders": []
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" },
+        { "label": "Contact", "url": "/contact", "type": "custom" }
+      ]
+    }
+  ]
+}

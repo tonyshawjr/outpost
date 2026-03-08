@@ -1,0 +1,38 @@
+{
+  "settings": {},
+  "globals": {},
+  "collections": [
+    {
+      "name": "Projects",
+      "slug": "project",
+      "singular_name": "Project",
+      "url_pattern": "/project/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "body", "type": "richtext", "label": "Description" }
+      ],
+      "items": [
+        {
+          "title": "Sample Project",
+          "slug": "sample-project",
+          "status": "published",
+          "data": {
+            "title": "Sample Project",
+            "body": "<p>Describe your project here.</p>"
+          }
+        }
+      ],
+      "folders": []
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" }
+      ]
+    }
+  ]
+}

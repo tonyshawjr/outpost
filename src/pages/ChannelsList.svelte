@@ -3,6 +3,7 @@
   import { channels } from '$lib/api.js';
   import { navigate, addToast } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
 
   let channelList = $state([]);
   let loading = $state(true);
@@ -163,12 +164,13 @@
   {#if loading}
     <div class="loading-overlay"><div class="spinner"></div></div>
   {:else if channelList.length === 0 && !creating}
-    <div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width: 48px; height: 48px; opacity: 0.3; margin-bottom: 16px;"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.4"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.4"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>
-      <h3>No channels yet</h3>
-      <p>Pull external data into your templates from APIs, RSS feeds, and CSV files.</p>
-      <button class="btn btn-primary" onclick={startCreate}>Create Channel</button>
-    </div>
+    <EmptyState
+      icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.4"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.4"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>'
+      title="No channels yet"
+      description="Pull external data into your templates from APIs, RSS feeds, and CSV files."
+      ctaLabel="Create Channel"
+      ctaAction={startCreate}
+    />
   {:else}
     <div class="channels-grid">
       {#each channelList as ch}

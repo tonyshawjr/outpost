@@ -3,6 +3,9 @@
   import { collections as collectionsApi } from '$lib/api.js';
   import { collectionsList, navigate, addToast } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   let colls = $derived($collectionsList);
   let loading = $state(true);
@@ -205,16 +208,18 @@
     </div>
   </div>
 
+  <ContextualTip tipKey="collections" message={tips.collections} />
+
   {#if loading}
     <div class="loading-overlay"><div class="spinner"></div></div>
   {:else if colls.length === 0}
-    <div class="card">
-      <div class="empty-state">
-        <div class="empty-state-title">No collections yet</div>
-        <p style="font-size: var(--font-size-sm);">Collections let you create structured content like blog posts, projects, or team members.</p>
-        <button class="btn btn-primary" onclick={openCreate} style="margin-top: var(--space-lg);">Create Your First Collection</button>
-      </div>
-    </div>
+    <EmptyState
+      icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>'
+      title="No collections yet"
+      description="Collections let you create structured content like blog posts, projects, or team members."
+      ctaLabel="Create Your First Collection"
+      ctaAction={openCreate}
+    />
   {:else}
     <div class="coll-grid">
       {#each colls as coll (coll.id)}

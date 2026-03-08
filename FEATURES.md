@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Onboarding & Setup Wizard (v2.0.0)
+
+- **Setup wizard** — full-screen 4-step wizard (site name → theme → content pack → done) auto-appears on fresh installs. Runs after auth, uses dark `#0a0a0a` background with centered card, 4-dot progress indicator, skip/back links. Content is seeded in a single SQLite transaction.
+- **Content packs** — 8 JSON content packs in `php/content-packs/` covering Blog, Portfolio, and Business for Personal, Starter, and Skeleton themes. Each pack seeds collections (with schema + items), menus, folders, labels, and globals. A "Start from scratch" option activates the theme with no content.
+- **Getting Started checklist** — `GettingStarted.svelte` dashboard card with 5 items: upload logo, edit homepage, create first post, set up navigation, customize theme. Progress bar, green check circles, direct links to relevant pages. Dismiss persists in settings DB.
+- **Contextual tips** — `ContextualTip.svelte` one-line dismissible tips below `.page-header` on 7 admin sections (Pages, Collections, Media, Globals, Navigation, Forms, Themes). State in localStorage under `outpost-dismissed-tips`.
+- **Reusable EmptyState component** — `EmptyState.svelte` with props: icon (SVG string), title, description, ctaLabel/ctaAction, secondaryLabel/secondaryAction, searchActive. Serif 26px title, 15px muted description, centered layout. Replaces 11 inconsistent inline empty states.
+- **Setup API endpoints** — `GET setup/packs` (returns available packs filtered by theme), `POST setup/apply` (applies wizard choices in transaction), `GET setup/checklist` (dynamic completion), `POST setup/checklist/dismiss`.
+- **Existing site migration** — `ensure_setup_completed_setting()` auto-sets `setup_completed = '1'` if pages or collections exist, so upgraded sites skip the wizard entirely.
+- **Files**: `src/components/EmptyState.svelte` (new), `src/components/ContextualTip.svelte` (new), `src/components/GettingStarted.svelte` (new), `src/pages/SetupWizard.svelte` (new), `src/pages/setup/WizardStep*.svelte` (4 new), `src/lib/tips.js` (new), `php/content-packs/*.json` (9 new), `php/api.php`, `src/App.svelte`, `src/lib/api.js`, `src/lib/stores.js`, `scripts/package.js`, + 11 migrated page files
+
+---
+
 ## OPE & Skeleton Fixes (v1.9.5)
 
 - **Fixed OPE image picker broken thumbnails** — `src/editor/image-picker.js` was prepending `/outpost/uploads/` to media paths that already contain that prefix from the database. Removed the duplicate prefix so thumbnails load correctly.

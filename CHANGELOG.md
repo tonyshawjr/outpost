@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] — 2026-03-08
+
+### Added
+- **Setup wizard** — guided first-run experience: site name, theme selection, and content pack seeding in a full-screen 4-step wizard that auto-appears on fresh installs
+- **Content packs** — 8 pre-built JSON content packs (Blog, Portfolio, Business) for all 3 bundled themes, seeding collections, items, menus, globals, and folders in a single transaction
+- **Getting Started checklist** — dashboard card with 5 interactive items (upload logo, edit homepage, create post, set up navigation, customize theme) with progress bar and dismiss
+- **Contextual tips** — dismissible one-line tips below page headers on 7 admin sections (Pages, Collections, Media, Globals, Navigation, Forms, Themes), persisted via localStorage
+- **Reusable EmptyState component** — consistent empty states across all list pages with icon, title, description, CTA button, and search-aware variant
+- **Setup API endpoints** — `setup/packs`, `setup/apply`, `setup/checklist`, `setup/checklist/dismiss` for wizard and onboarding flows
+- **Existing site detection** — migration auto-sets `setup_completed` if content exists, so upgraded sites never see the wizard
+
+### Changed
+- **Dashboard** — Getting Started checklist appears above hero zone for new sites until dismissed or completed
+- **11 admin pages** migrated to shared EmptyState component (Pages, CollectionList, CollectionItems, MediaLibrary, Themes, FormsList, ChannelsList, Navigation, FolderManager, Dashboard, Calendar)
+
+---
+
 ## [1.9.5] — 2026-03-08
 
 ### Fixed

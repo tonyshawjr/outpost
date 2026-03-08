@@ -1,0 +1,50 @@
+{
+  "settings": {},
+  "globals": {},
+  "collections": [
+    {
+      "name": "Posts",
+      "slug": "post",
+      "singular_name": "Post",
+      "url_pattern": "/blog/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "excerpt", "type": "textarea", "label": "Excerpt" },
+        { "name": "featured_image", "type": "image", "label": "Featured Image" },
+        { "name": "body", "type": "richtext", "label": "Body" }
+      ],
+      "items": [
+        {
+          "title": "Welcome to Our Blog",
+          "slug": "welcome",
+          "status": "published",
+          "data": {
+            "title": "Welcome to Our Blog",
+            "excerpt": "Your first blog post. Edit or delete it to get started.",
+            "body": "<p>This is a sample blog post. You can edit it from the Collections section of your admin panel.</p><p>Try adding images, formatting text, or creating categories to organize your posts.</p>"
+          }
+        }
+      ],
+      "folders": [
+        {
+          "name": "Categories",
+          "slug": "categories",
+          "type": "category",
+          "labels": ["News", "Updates"]
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "Blog", "url": "/blog", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" },
+        { "label": "Contact", "url": "/contact", "type": "custom" }
+      ]
+    }
+  ]
+}

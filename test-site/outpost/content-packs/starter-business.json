@@ -1,0 +1,77 @@
+{
+  "settings": {},
+  "globals": {},
+  "collections": [
+    {
+      "name": "Services",
+      "slug": "service",
+      "singular_name": "Service",
+      "url_pattern": "/service/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "excerpt", "type": "textarea", "label": "Short Description" },
+        { "name": "body", "type": "richtext", "label": "Full Description" },
+        { "name": "icon", "type": "text", "label": "Icon Name" }
+      ],
+      "items": [
+        {
+          "title": "Web Design",
+          "slug": "web-design",
+          "status": "published",
+          "data": {
+            "title": "Web Design",
+            "excerpt": "Beautiful, responsive websites tailored to your brand.",
+            "body": "<p>We create modern, mobile-friendly websites that look great and convert visitors into customers.</p>"
+          }
+        },
+        {
+          "title": "Development",
+          "slug": "development",
+          "status": "published",
+          "data": {
+            "title": "Development",
+            "excerpt": "Custom web applications built with modern technology.",
+            "body": "<p>From simple landing pages to complex web applications, we build solutions that scale with your business.</p>"
+          }
+        }
+      ],
+      "folders": []
+    },
+    {
+      "name": "Team",
+      "slug": "team",
+      "singular_name": "Member",
+      "url_pattern": "/team/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Name", "required": true },
+        { "name": "role", "type": "text", "label": "Role" },
+        { "name": "photo", "type": "image", "label": "Photo" },
+        { "name": "bio", "type": "richtext", "label": "Bio" }
+      ],
+      "items": [
+        {
+          "title": "Jane Smith",
+          "slug": "jane-smith",
+          "status": "published",
+          "data": {
+            "title": "Jane Smith",
+            "role": "Founder & CEO",
+            "bio": "<p>Jane leads the team with 10+ years of experience in digital strategy and design.</p>"
+          }
+        }
+      ],
+      "folders": []
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" },
+        { "label": "Contact", "url": "/contact", "type": "custom" }
+      ]
+    }
+  ]
+}

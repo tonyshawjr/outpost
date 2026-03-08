@@ -2,6 +2,7 @@
   import { folders as foldersApi, labels as labelsApi, collections as collectionsApi } from '$lib/api.js';
   import { currentFolderCollectionId, currentFolderId, collectionsList, addToast, navigate } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
 
   let filterCollId = $state(null);
   let initialFolderCollId = $derived($currentFolderCollectionId);
@@ -325,11 +326,12 @@
 
     <!-- Folder List — flat rows -->
     {#if displayedFolders.length === 0 && !showNewFolder}
-      <div class="tax-empty">
-        <p class="tax-empty-title">No folders yet</p>
-        <p class="tax-empty-hint">Folders let you organize collection items with categories, tags, and more.</p>
-        <button class="btn btn-primary" onclick={openNewFolder} style="margin-top: 16px;">Create Your First Folder</button>
-      </div>
+      <EmptyState
+        title="No folders yet"
+        description="Folders let you organize collection items with categories, tags, and more."
+        ctaLabel="Create Your First Folder"
+        ctaAction={openNewFolder}
+      />
     {:else}
       <div class="tax-list">
         <!-- Column headers -->
@@ -532,24 +534,6 @@
     gap: var(--space-sm);
     justify-content: flex-end;
     margin-top: var(--space-lg);
-  }
-
-  /* Empty */
-  .tax-empty {
-    text-align: center;
-    padding: var(--space-3xl) var(--space-xl);
-  }
-
-  .tax-empty-title {
-    font-size: var(--font-size-lg);
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-xs);
-  }
-
-  .tax-empty-hint {
-    font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
   }
 
   /* List */

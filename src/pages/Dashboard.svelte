@@ -3,6 +3,8 @@
   import { dashboard as dashboardApi, cache as cacheApi } from '$lib/api.js';
   import { user, navigate, addToast } from '$lib/stores.js';
   import { timeAgo, formatDateOnly } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
+  import GettingStarted from '$components/GettingStarted.svelte';
 
   let currentUser = $derived($user);
 
@@ -370,21 +372,19 @@
 
   <!-- ── Empty State ──────────────────────────────────────── -->
   {:else if isEmptyState}
-    <div class="empty-state-full">
-      <h2 class="empty-heading">Welcome to Outpost</h2>
-      <p class="empty-body">Activate a theme to get started. Pages are created automatically from your theme templates.</p>
-      <div class="empty-actions">
-        <button class="btn-primary-sm" onclick={() => navigate('themes')}>
-          Choose a theme
-        </button>
-        <button class="btn-ghost-sm" onclick={() => navigate('collections')}>
-          Explore collections
-        </button>
-      </div>
-    </div>
+    <EmptyState
+      title="Welcome to Outpost"
+      description="Activate a theme to get started. Pages are created automatically from your theme templates."
+      ctaLabel="Choose a theme"
+      ctaAction={() => navigate('themes')}
+      secondaryLabel="Explore collections"
+      secondaryAction={() => navigate('collections')}
+    />
 
   <!-- ── Full Dashboard ───────────────────────────────────── -->
   {:else}
+
+    <GettingStarted />
 
     <!-- Hero zone: dominant stat + chart as one visual unit -->
     <div class="hero-zone">
@@ -959,37 +959,6 @@
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.4; }
-  }
-
-  /* ── Empty State ─────────────────────────────────────────── */
-  .empty-state-full {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 80px 24px;
-  }
-
-  .empty-heading {
-    font-family: var(--font-serif);
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 10px;
-  }
-
-  .empty-body {
-    font-size: 15px;
-    color: var(--text-muted);
-    margin: 0 0 32px;
-  }
-
-  .empty-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
   }
 
   /* ── Responsive ──────────────────────────────────────────── */

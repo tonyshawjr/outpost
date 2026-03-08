@@ -22,6 +22,25 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.0.0">2.0.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Setup wizard</strong> &mdash; guided first-run experience: site name, theme selection, and content pack seeding in a full-screen 4-step wizard that auto-appears on fresh installs</li>
+      <li><strong>Content packs</strong> &mdash; 8 pre-built JSON content packs (Blog, Portfolio, Business) for all 3 bundled themes, seeding collections, items, menus, globals, and folders in a single transaction</li>
+      <li><strong>Getting Started checklist</strong> &mdash; dashboard card with 5 interactive items (upload logo, edit homepage, create post, set up navigation, customize theme) with progress bar and dismiss</li>
+      <li><strong>Contextual tips</strong> &mdash; dismissible one-line tips below page headers on 7 admin sections, persisted via localStorage</li>
+      <li><strong>Reusable EmptyState component</strong> &mdash; consistent empty states across all list pages with icon, title, description, CTA button, and search-aware variant</li>
+      <li><strong>Setup API endpoints</strong> &mdash; <code>setup/packs</code>, <code>setup/apply</code>, <code>setup/checklist</code>, <code>setup/checklist/dismiss</code></li>
+      <li><strong>Existing site detection</strong> &mdash; migration auto-sets <code>setup_completed</code> if content exists, so upgraded sites skip the wizard</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Dashboard</strong> &mdash; Getting Started checklist appears above hero zone for new sites until dismissed or completed</li>
+      <li><strong>11 admin pages</strong> migrated to shared EmptyState component</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="1.9.5">1.9.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
     <h3>Fixed</h3>
     <ul>

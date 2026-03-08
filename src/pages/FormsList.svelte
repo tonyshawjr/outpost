@@ -3,6 +3,9 @@
   import { formBuilder } from '$lib/api.js';
   import { navigate, addToast } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   let forms = $state([]);
   let loading = $state(true);
@@ -105,6 +108,8 @@
     </div>
   </div>
 
+  <ContextualTip tipKey="forms" message={tips.forms} />
+
   <!-- Inline create -->
   {#if creating}
     <div class="create-row">
@@ -147,12 +152,13 @@
   {#if loading}
     <div class="loading-overlay"><div class="spinner"></div></div>
   {:else if forms.length === 0 && !creating}
-    <div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width: 48px; height: 48px; opacity: 0.3; margin-bottom: 16px;"><path d="M9 11H3v10h6V11z"/><path d="M21 3H3v6h18V3z"/><path d="M21 11h-6v10h6V11z"/></svg>
-      <h3>No forms yet</h3>
-      <p>Create your first form to start collecting submissions.</p>
-      <button class="btn btn-primary" onclick={startCreate}>Create Form</button>
-    </div>
+    <EmptyState
+      icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 11H3v10h6V11z"/><path d="M21 3H3v6h18V3z"/><path d="M21 11h-6v10h6V11z"/></svg>'
+      title="No forms yet"
+      description="Create your first form to start collecting submissions."
+      ctaLabel="Create Form"
+      ctaAction={startCreate}
+    />
   {:else}
     <div class="forms-grid">
       {#each forms as form}

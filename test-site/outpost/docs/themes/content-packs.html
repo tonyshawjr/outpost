@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Packs — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Content Packs</h1>
+    <p class="lead">Content packs are JSON files that seed a fresh Outpost install with collections, items, menus, globals, and folders. They power the setup wizard's "starter content" step.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Content packs live in the <code>content-packs/</code> directory alongside the core PHP files. A manifest file (<code>packs.json</code>) lists available packs with metadata and theme compatibility. Individual pack files are named <code>{theme}-{pack}.json</code>.</p>
+
+    <pre><code>outpost/
+  content-packs/
+    packs.json                  # Manifest
+    personal-blog.json          # Blog pack for Personal theme
+    personal-portfolio.json     # Portfolio pack for Personal theme
+    starter-blog.json           # Blog pack for Starter theme
+    starter-business.json       # Business pack for Starter theme
+    starter-portfolio.json      # Portfolio pack for Starter theme
+    skeleton-blog.json          # Blog pack for Skeleton theme
+    skeleton-business.json      # Business pack for Skeleton theme
+    skeleton-portfolio.json     # Portfolio pack for Skeleton theme</code></pre>
+
+    <h2>Manifest: <code>packs.json</code></h2>
+    <p>The manifest is a JSON array of pack definitions:</p>
+
+    <pre><code>[
+  {
+    "id": "blog",
+    "name": "Blog",
+    "description": "Personal blog with sample posts and categories.",
+    "icon": "pencil",
+    "themes": ["personal", "starter", "skeleton"]
+  },
+  {
+    "id": "portfolio",
+    "name": "Portfolio",
+    "description": "Portfolio with projects, about page, and contact.",
+    "icon": "grid",
+    "themes": ["personal", "starter", "skeleton"]
+  },
+  {
+    "id": "business",
+    "name": "Business",
+    "description": "Business site with services, team, and contact form.",
+    "icon": "briefcase",
+    "themes": ["starter", "skeleton"]
+  },
+  {
+    "id": "blank",
+    "name": "Start from scratch",
+    "description": "Just the theme — no sample content.",
+    "icon": "plus",
+    "themes": ["personal", "starter", "skeleton"]
+  }
+]</code></pre>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>id</code></td>
+          <td>string</td>
+          <td>Unique pack identifier, used as the second part of the pack filename</td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>string</td>
+          <td>Display name shown in the wizard</td>
+        </tr>
+        <tr>
+          <td><code>description</code></td>
+          <td>string</td>
+          <td>Short description shown below the name</td>
+        </tr>
+        <tr>
+          <td><code>icon</code></td>
+          <td>string</td>
+          <td>Icon key (pencil, grid, briefcase, plus) for the wizard UI</td>
+        </tr>
+        <tr>
+          <td><code>themes</code></td>
+          <td>string[]</td>
+          <td>Theme slugs this pack is compatible with</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> — The <code>blank</code> pack has no corresponding JSON file. When selected, the wizard activates the theme without seeding any content.</div>
+
+    <h2>Pack File Format</h2>
+    <p>Each pack file is a JSON object with optional top-level keys:</p>
+
+    <pre><code>{
+  "settings": {
+    "site_name": "My Blog"
+  },
+  "globals": [
+    { "field_name": "site_tagline", "type": "text", "content": "Welcome to my blog" }
+  ],
+  "collections": [
+    {
+      "name": "Posts",
+      "slug": "post",
+      "schema": [ ... ],
+      "url_pattern": "/post/{slug}",
+      "items": [
+        {
+          "title": "Hello World",
+          "slug": "hello-world",
+          "status": "published",
+          "data": { "excerpt": "My first post", "body": "&lt;p&gt;Hello!&lt;/p&gt;" }
+        }
+      ],
+      "folders": [
+        {
+          "name": "Categories",
+          "slug": "categories",
+          "labels": ["News", "Tutorials", "Personal"]
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "slug": "main",
+      "name": "Main Menu",
+      "items": [
+        { "label": "Home", "url": "/" },
+        { "label": "Blog", "url": "/blog" }
+      ]
+    }
+  ]
+}</code></pre>
+
+    <h3>Settings</h3>
+    <p>Key-value pairs inserted into the <code>settings</code> table via <code>INSERT OR REPLACE</code>.</p>
+
+    <h3>Globals</h3>
+    <p>Array of global field definitions. The pack ensures the <code>__global__</code> page exists before inserting fields.</p>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>field_name</code></td><td>string</td><td>The global field name (e.g. <code>site_tagline</code>)</td></tr>
+        <tr><td><code>type</code></td><td>string</td><td>Field type: text, richtext, image, textarea, etc.</td></tr>
+        <tr><td><code>content</code></td><td>string</td><td>Initial value</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Collections</h3>
+    <p>Array of collection definitions, each with optional nested items and folders.</p>
+
+    <h3>Menus</h3>
+    <p>Array of menu definitions with nested items. Each item has <code>label</code> and <code>url</code> fields.</p>
+
+    <h2>How Packs Are Applied</h2>
+    <p>The <code>POST setup/apply</code> endpoint processes everything in a single SQLite transaction:</p>
+    <ol>
+      <li>Update <code>site_name</code> in settings</li>
+      <li>Activate the selected theme (reuses the existing theme activation logic)</li>
+      <li>Load the pack JSON file (<code>{theme}-{pack}.json</code>)</li>
+      <li>Insert globals (ensuring <code>__global__</code> page exists)</li>
+      <li>Insert collections with schema, items, folders, and labels</li>
+      <li>Insert menus with items</li>
+      <li>Set <code>setup_completed = '1'</code></li>
+      <li>Clear the template cache</li>
+    </ol>
+
+    <p>If any step fails, the entire transaction is rolled back and no partial content is left behind.</p>
+
+    <h2>Creating Custom Packs</h2>
+    <p>To add a custom content pack:</p>
+    <ol>
+      <li>Create a JSON file following the pack format (e.g. <code>starter-agency.json</code>)</li>
+      <li>Add an entry to <code>packs.json</code> with the matching <code>id</code> and theme compatibility</li>
+      <li>The pack will appear in the setup wizard for compatible themes</li>
+    </ol>
+
+    <div class="callout callout-note"><strong>Tip</strong> — Content packs are only used during initial setup. They don't affect existing content, and changing a pack file after setup has no effect on the site.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

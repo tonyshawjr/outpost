@@ -1,0 +1,39 @@
+{
+  "settings": {},
+  "globals": {},
+  "collections": [
+    {
+      "name": "Services",
+      "slug": "service",
+      "singular_name": "Service",
+      "url_pattern": "/service/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "body", "type": "richtext", "label": "Description" }
+      ],
+      "items": [
+        {
+          "title": "Sample Service",
+          "slug": "sample-service",
+          "status": "published",
+          "data": {
+            "title": "Sample Service",
+            "body": "<p>Describe your service here.</p>"
+          }
+        }
+      ],
+      "folders": []
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" },
+        { "label": "Contact", "url": "/contact", "type": "custom" }
+      ]
+    }
+  ]
+}

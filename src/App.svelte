@@ -17,6 +17,7 @@
     appVersion,
     updateAvailable,
     latestVersion,
+    setupCompleted,
     navigate,
   } from '$lib/stores.js';
   import './styles/admin.css';
@@ -50,6 +51,7 @@
   import Backups from '$pages/Backups.svelte';
   import ThemeCustomizer from '$pages/ThemeCustomizer.svelte';
   import Calendar from '$pages/Calendar.svelte';
+  import SetupWizard from '$pages/SetupWizard.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopBar from '$components/TopBar.svelte';
@@ -81,6 +83,10 @@
         }
         collectionGrants.set(data.collection_grants ?? null);
         mediaFolderGrants.set(data.media_folder_grants ?? null);
+        // Setup wizard redirect for fresh installs
+        const completed = data.setup_completed !== false;
+        setupCompleted.set(completed);
+        if (!completed) navigate('setup');
       }
     } catch (e) {
       // Not authenticated
@@ -139,6 +145,8 @@
   </div>
 {:else if !authenticated}
   <Login />
+{:else if route === 'setup'}
+  <SetupWizard />
 {:else}
   <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'}>
     <Sidebar />

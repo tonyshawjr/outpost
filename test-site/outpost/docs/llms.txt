@@ -19,6 +19,8 @@
 - [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system with theme updates
 - [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
+- [Setup Wizard](/outpost/docs/features/setup-wizard.html): First-run setup wizard, content packs, getting started checklist, contextual tips
+- [Content Packs](/outpost/docs/themes/content-packs.html): JSON content packs for seeding starter content
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -1934,3 +1936,27 @@ const html  = post.fields.body;  // rendered HTML
 // Filter by category
 const res = await fetch('/outpost/api.php?action=content/items&collection=post&category=tutorials');
 ```
+
+## Setup Wizard & Onboarding (v2.0.0)
+
+### Setup Wizard
+Runs automatically on fresh installs. 4-step full-screen wizard: site name → theme → content pack → done. Checks `setup_completed` setting via `auth/me`. Existing sites auto-skip via migration detection (if pages or collections exist, `setup_completed` is set to `1`).
+
+### Content Packs
+JSON files in `content-packs/` directory. Manifest: `packs.json` (array of pack defs with id, name, description, icon, themes array). Per-theme pack files: `{theme}-{pack}.json` (e.g. `personal-blog.json`). Each contains: settings, globals, collections (with schema + items + folders), menus. The `blank` pack has no file — just activates the theme. Applied in a single SQLite transaction via `POST setup/apply`.
+
+### Getting Started Checklist
+Dashboard card after wizard completion. 5 items: add_logo, edit_homepage, create_post, setup_navigation, customize_theme. Dynamically computed via `GET setup/checklist`. Dismiss via `POST setup/checklist/dismiss` (persists in settings table).
+
+### Contextual Tips
+One-line dismissible tips below `.page-header` on 7 admin sections (Pages, Collections, Media, Globals, Navigation, Forms, Themes). State in localStorage under `outpost-dismissed-tips`. Component: `ContextualTip.svelte`. Tip definitions in `src/lib/tips.js`.
+
+### EmptyState Component
+Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, ctaLabel/ctaAction, secondaryLabel/secondaryAction, searchActive. Used by 11 admin pages for consistent empty states.
+
+### Setup API Endpoints
+
+- `GET setup/packs` — returns available content pack metadata filtered by theme
+- `POST setup/apply` — applies wizard choices (site_name, theme, pack) in transaction
+- `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
+- `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings

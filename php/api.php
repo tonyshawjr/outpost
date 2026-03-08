@@ -132,6 +132,7 @@ ensure_media_folders_table();
 ensure_media_folder_items_table();
 ensure_user_media_folder_grants_table();
 cleanup_ghost_collection_pages();
+ensure_setup_completed_setting();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -399,6 +400,12 @@ match (true) {
     // Updates (admin only)
     $action === 'updates/check' && $method === 'GET' => handle_updates_check(),
     $action === 'updates/apply' && $method === 'POST' => handle_updates_apply(),
+
+    // Setup Wizard
+    $action === 'setup/packs' && $method === 'GET' => handle_setup_packs(),
+    $action === 'setup/apply' && $method === 'POST' => handle_setup_apply(),
+    $action === 'setup/checklist' && $method === 'GET' => handle_setup_checklist(),
+    $action === 'setup/checklist/dismiss' && $method === 'POST' => handle_setup_checklist_dismiss(),
 
     // Theme Customizer
     $action === 'customizer'        && $method === 'GET'  => handle_customizer_get(),
@@ -676,6 +683,10 @@ function handle_me(): void {
         $response['update_available'] = $updateStatus['update_available'];
         $response['latest_version'] = $updateStatus['latest_version'];
     }
+
+    // Setup wizard state
+    $setupRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'setup_completed'");
+    $response['setup_completed'] = $setupRow ? (bool) $setupRow['value'] : false;
 
     json_response($response);
 }
@@ -6907,4 +6918,301 @@ function outpost_list_files_recursive(string $dir, string $prefix = ''): array {
         }
     }
     return $files;
+}
+
+// ── Setup Wizard ─────────────────────────────────────────
+
+/**
+ * Migration: auto-set setup_completed for existing sites.
+ */
+function ensure_setup_completed_setting(): void {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'setup_completed'");
+    if ($row) return; // Already set
+
+    // Check if site has content (pages or collections) — if so, it's an upgrade, not a fresh install
+    $pageCount = OutpostDB::fetchOne("SELECT COUNT(*) as c FROM pages WHERE path != '__global__'");
+    $collCount = OutpostDB::fetchOne("SELECT COUNT(*) as c FROM collections");
+    $hasContent = ($pageCount['c'] ?? 0) > 0 || ($collCount['c'] ?? 0) > 0;
+
+    if ($hasContent) {
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('setup_completed', '1') ON CONFLICT(key) DO UPDATE SET value = '1'",
+            []
+        );
+    }
+}
+
+function handle_setup_packs(): void {
+    $packsFile = __DIR__ . '/content-packs/packs.json';
+    if (!file_exists($packsFile)) {
+        json_response(['packs' => []]);
+        return;
+    }
+    $packs = json_decode(file_get_contents($packsFile), true);
+    json_response(['packs' => $packs ?: []]);
+}
+
+function handle_setup_apply(): void {
+    $data = get_json_body();
+
+    // "Skip" mode — just mark setup as completed
+    if (!empty($data['skip'])) {
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('setup_completed', '1') ON CONFLICT(key) DO UPDATE SET value = '1'",
+            []
+        );
+        json_response(['success' => true]);
+        return;
+    }
+
+    $siteName = trim($data['site_name'] ?? '');
+    $themeSlug = trim($data['theme'] ?? '');
+    $packId = trim($data['pack'] ?? 'blank');
+
+    $db = OutpostDB::connect();
+    $db->exec('BEGIN');
+
+    try {
+        $summary = ['pages' => 0, 'items' => 0, 'menus' => 0];
+
+        // 1. Update site name
+        if ($siteName) {
+            OutpostDB::query(
+                "INSERT INTO settings (key, value) VALUES ('site_name', ?) ON CONFLICT(key) DO UPDATE SET value = ?",
+                [$siteName, $siteName]
+            );
+        }
+
+        // 2. Activate theme
+        if ($themeSlug) {
+            $themePath = OUTPOST_THEMES_DIR . $themeSlug;
+            if (is_dir($themePath)) {
+                OutpostDB::query(
+                    "INSERT OR REPLACE INTO settings (key, value) VALUES ('active_theme', ?)",
+                    [$themeSlug]
+                );
+                // Scan theme templates
+                require_once __DIR__ . '/engine.php';
+                ensure_fields_theme_column();
+                outpost_scan_theme_templates($themeSlug);
+                // Count discovered pages
+                $pageCount = OutpostDB::fetchOne("SELECT COUNT(*) as c FROM pages WHERE path != '__global__'");
+                $summary['pages'] = (int) ($pageCount['c'] ?? 0);
+            }
+        }
+
+        // 3. Load content pack
+        if ($packId !== 'blank') {
+            $packFile = __DIR__ . '/content-packs/' . $themeSlug . '-' . $packId . '.json';
+            if (file_exists($packFile)) {
+                $pack = json_decode(file_get_contents($packFile), true);
+                if ($pack) {
+                    $summary = array_merge($summary, outpost_apply_content_pack($pack, $themeSlug));
+                }
+            }
+        }
+
+        // 4. Mark setup as completed
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('setup_completed', '1') ON CONFLICT(key) DO UPDATE SET value = '1'",
+            []
+        );
+
+        // 5. Clear template cache
+        $templateCache = OUTPOST_CACHE_DIR . 'templates/';
+        if (is_dir($templateCache)) {
+            $files = glob($templateCache . '*.php');
+            if ($files) {
+                foreach ($files as $f) @unlink($f);
+            }
+        }
+
+        $db->exec('COMMIT');
+        json_response(['success' => true, 'summary' => $summary]);
+    } catch (\Exception $e) {
+        $db->exec('ROLLBACK');
+        json_error('Setup failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Apply a content pack (collections, items, menus, globals).
+ */
+function outpost_apply_content_pack(array $pack, string $themeSlug): array {
+    $summary = ['pages' => 0, 'items' => 0, 'menus' => 0];
+
+    // Globals
+    if (!empty($pack['globals'])) {
+        // Ensure __global__ page exists
+        $globalPage = OutpostDB::fetchOne("SELECT id FROM pages WHERE path = '__global__'");
+        if (!$globalPage) {
+            OutpostDB::insert('pages', [
+                'path' => '__global__',
+                'title' => 'Globals',
+                'status' => 'published',
+            ]);
+            $globalPage = ['id' => OutpostDB::connect()->lastInsertId()];
+        }
+        foreach ($pack['globals'] as $fieldName => $value) {
+            // Check if field already exists
+            $existing = OutpostDB::fetchOne(
+                "SELECT id FROM fields WHERE page_id = ? AND name = ? AND theme = ''",
+                [(int) $globalPage['id'], $fieldName]
+            );
+            if (!$existing) {
+                OutpostDB::insert('fields', [
+                    'page_id' => (int) $globalPage['id'],
+                    'name' => $fieldName,
+                    'content' => $value,
+                    'theme' => '',
+                ]);
+            }
+        }
+    }
+
+    // Collections
+    if (!empty($pack['collections'])) {
+        foreach ($pack['collections'] as $collDef) {
+            // Check if collection already exists
+            $existing = OutpostDB::fetchOne(
+                "SELECT id FROM collections WHERE slug = ?",
+                [$collDef['slug']]
+            );
+            if ($existing) continue;
+
+            OutpostDB::insert('collections', [
+                'name' => $collDef['name'],
+                'slug' => $collDef['slug'],
+                'singular_name' => $collDef['singular_name'] ?? $collDef['name'],
+                'url_pattern' => $collDef['url_pattern'] ?? '/' . $collDef['slug'] . '/{slug}',
+                'schema' => json_encode($collDef['schema'] ?? []),
+            ]);
+            $collId = (int) OutpostDB::connect()->lastInsertId();
+
+            // Items
+            if (!empty($collDef['items'])) {
+                foreach ($collDef['items'] as $itemDef) {
+                    OutpostDB::insert('collection_items', [
+                        'collection_id' => $collId,
+                        'title' => $itemDef['title'],
+                        'slug' => $itemDef['slug'],
+                        'status' => $itemDef['status'] ?? 'published',
+                        'data' => json_encode($itemDef['data'] ?? []),
+                    ]);
+                    $summary['items']++;
+                }
+            }
+
+            // Folders
+            if (!empty($collDef['folders'])) {
+                ensure_menus_table(); // Folders table uses same migration pattern
+                foreach ($collDef['folders'] as $folderDef) {
+                    $existingFolder = OutpostDB::fetchOne(
+                        "SELECT id FROM folders WHERE slug = ? AND collection_id = ?",
+                        [$folderDef['slug'], $collId]
+                    );
+                    if ($existingFolder) continue;
+
+                    OutpostDB::insert('folders', [
+                        'collection_id' => $collId,
+                        'name' => $folderDef['name'],
+                        'slug' => $folderDef['slug'],
+                        'type' => $folderDef['type'] ?? 'category',
+                    ]);
+                    $folderId = (int) OutpostDB::connect()->lastInsertId();
+
+                    // Labels
+                    if (!empty($folderDef['labels'])) {
+                        foreach ($folderDef['labels'] as $i => $labelName) {
+                            $labelSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $labelName));
+                            OutpostDB::insert('labels', [
+                                'folder_id' => $folderId,
+                                'name' => $labelName,
+                                'slug' => $labelSlug,
+                                'sort_order' => $i,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Menus
+    if (!empty($pack['menus'])) {
+        ensure_menus_table();
+        foreach ($pack['menus'] as $menuDef) {
+            $existing = OutpostDB::fetchOne(
+                "SELECT id FROM menus WHERE slug = ?",
+                [$menuDef['slug']]
+            );
+            if ($existing) continue;
+
+            OutpostDB::insert('menus', [
+                'name' => $menuDef['name'],
+                'slug' => $menuDef['slug'],
+                'items' => json_encode($menuDef['items'] ?? []),
+            ]);
+            $summary['menus']++;
+        }
+    }
+
+    return $summary;
+}
+
+// ── Setup Checklist ──────────────────────────────────────
+
+function handle_setup_checklist(): void {
+    require_once __DIR__ . '/engine.php';
+
+    $checklist = [];
+
+    // add_logo: check if @site_logo global is non-empty
+    $globalPage = OutpostDB::fetchOne("SELECT id FROM pages WHERE path = '__global__'");
+    $logoField = $globalPage
+        ? OutpostDB::fetchOne("SELECT content FROM fields WHERE page_id = ? AND name = 'site_logo' AND theme = ''", [(int) $globalPage['id']])
+        : null;
+    $checklist['add_logo'] = !empty($logoField['content']);
+
+    // edit_homepage: any fields for path '/' have been updated
+    $homePage = OutpostDB::fetchOne("SELECT id FROM pages WHERE path = '/'");
+    $homeFields = $homePage
+        ? OutpostDB::fetchOne("SELECT id FROM fields WHERE page_id = ? AND content != '' LIMIT 1", [(int) $homePage['id']])
+        : null;
+    $checklist['edit_homepage'] = !empty($homeFields);
+
+    // create_post: any published collection items exist
+    $publishedItems = OutpostDB::fetchOne("SELECT COUNT(*) as c FROM collection_items WHERE status = 'published'");
+    $checklist['create_post'] = ($publishedItems['c'] ?? 0) > 0;
+
+    // setup_navigation: any menus have items
+    $menuWithItems = OutpostDB::fetchOne("SELECT id FROM menus WHERE items != '[]' AND items != '' AND items IS NOT NULL LIMIT 1");
+    $checklist['setup_navigation'] = !empty($menuWithItems);
+
+    // customize_theme: customizer.json exists in active theme
+    $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
+    $themeSlug = $activeTheme['value'] ?? '';
+    $customizerPath = OUTPOST_THEMES_DIR . $themeSlug . '/customizer.json';
+    $checklist['customize_theme'] = file_exists($customizerPath);
+
+    // Dismissed?
+    $dismissedRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'setup_checklist_dismissed'");
+    $dismissed = $dismissedRow ? (bool) $dismissedRow['value'] : false;
+
+    // Homepage page ID for linking
+    $homePageId = $homePage ? (int) $homePage['id'] : null;
+
+    json_response([
+        'checklist' => $checklist,
+        'dismissed' => $dismissed,
+        'home_page_id' => $homePageId,
+    ]);
+}
+
+function handle_setup_checklist_dismiss(): void {
+    OutpostDB::query(
+        "INSERT INTO settings (key, value) VALUES ('setup_checklist_dismissed', '1') ON CONFLICT(key) DO UPDATE SET value = '1'",
+        []
+    );
+    json_response(['success' => true]);
 }

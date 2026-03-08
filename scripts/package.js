@@ -39,10 +39,11 @@ for (const file of phpFiles) {
 
 // ─── Core directories to copy recursively ───
 const dirs = [
-  { name: 'admin',        label: 'admin/ (compiled Svelte SPA)' },
-  { name: 'docs',         label: 'docs/ (developer documentation)' },
-  { name: 'member-pages', label: 'member-pages/ (auth pages)' },
-  { name: 'tools',        label: 'tools/ (utilities)' },
+  { name: 'admin',         label: 'admin/ (compiled Svelte SPA)' },
+  { name: 'docs',          label: 'docs/ (developer documentation)' },
+  { name: 'member-pages',  label: 'member-pages/ (auth pages)' },
+  { name: 'tools',         label: 'tools/ (utilities)' },
+  { name: 'content-packs', label: 'content-packs/ (setup wizard data)' },
 ];
 
 for (const { name, label } of dirs) {

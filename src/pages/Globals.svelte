@@ -3,6 +3,8 @@
   import { globals as globalsApi, fields as fieldsApi, ConflictError } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import FieldRenderer from '$components/FieldRenderer.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   let fields = $state([]);
   let loading = $state(true);
@@ -100,6 +102,8 @@
       </button>
     </div>
   </div>
+
+  <ContextualTip tipKey="globals" message={tips.globals} />
 
   {#if conflict}
     <div class="gl-conflict-banner">

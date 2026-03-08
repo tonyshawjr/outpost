@@ -1,0 +1,67 @@
+{
+  "settings": {},
+  "globals": {
+    "site_tagline": "Thoughts, stories, and ideas",
+    "bio_short": "Writer, thinker, maker of things. Welcome to my corner of the internet.",
+    "footer_text": "All rights reserved."
+  },
+  "collections": [
+    {
+      "name": "Posts",
+      "slug": "post",
+      "singular_name": "Post",
+      "url_pattern": "/post/{slug}",
+      "schema": [
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "excerpt", "type": "textarea", "label": "Excerpt" },
+        { "name": "featured_image", "type": "image", "label": "Featured Image" },
+        { "name": "body", "type": "richtext", "label": "Body" },
+        { "name": "author", "type": "text", "label": "Author" }
+      ],
+      "items": [
+        {
+          "title": "Welcome to My Blog",
+          "slug": "welcome-to-my-blog",
+          "status": "published",
+          "data": {
+            "title": "Welcome to My Blog",
+            "excerpt": "This is your first post. Edit it, delete it, or write something new.",
+            "body": "<p>Welcome! This is a sample post to help you get started. You can edit this content in the admin panel, or delete it and write your own.</p><p>Outpost makes it easy to publish and manage your content. Try adding images, formatting text, or creating new posts from the Collections page.</p>",
+            "author": "Admin"
+          }
+        },
+        {
+          "title": "Getting Started with Outpost",
+          "slug": "getting-started-with-outpost",
+          "status": "published",
+          "data": {
+            "title": "Getting Started with Outpost",
+            "excerpt": "A quick guide to managing your content with Outpost CMS.",
+            "body": "<p>Outpost is a lightweight CMS that gets out of your way. Here are a few things you can do:</p><ul><li><strong>Edit pages</strong> — click any page in the admin to update its content</li><li><strong>Create posts</strong> — add new items to your collections</li><li><strong>Upload media</strong> — drag and drop images into the media library</li><li><strong>Customize your theme</strong> — use the theme customizer or edit templates directly</li></ul>",
+            "author": "Admin"
+          }
+        }
+      ],
+      "folders": [
+        {
+          "name": "Categories",
+          "slug": "categories",
+          "type": "category",
+          "labels": ["General", "Tutorials", "Updates"]
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "name": "Main Menu",
+      "slug": "main",
+      "items": [
+        { "label": "Home", "url": "/", "type": "custom" },
+        { "label": "Blog", "url": "/blog", "type": "custom" },
+        { "label": "About", "url": "/about", "type": "custom" },
+        { "label": "Contact", "url": "/contact", "type": "custom" }
+      ]
+    }
+  ]
+}

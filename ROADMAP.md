@@ -238,17 +238,15 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v2.0 — Onboarding & Setup Wizard
+## v2.0 — Onboarding & Setup Wizard — SHIPPED (v2.0.0)
 
-**First impressions matter.** Right now a fresh install drops you into a blank admin. v2.0 fixes that with a guided setup that gets any user — technical or not — to a working site in under 5 minutes.
+**First impressions matter.** A fresh install now launches a guided setup that gets any user — technical or not — to a working site in under 5 minutes.
 
-- **Setup wizard** — runs on first visit: site name, choose a theme, set admin credentials, pick starter content
-- **Starter content packs** — pre-built content for common use cases (blog, portfolio, business, documentation) that populate pages, collections, globals, and sample media
-- **Getting started dashboard** — replaces the default dashboard for new sites with a checklist: "Add your logo", "Edit your homepage", "Create your first blog post", "Connect a domain"
-- **Contextual tips** — subtle inline hints on first use of each admin section (dismissible, never repeated)
-- **Empty states** — every list page (pages, collections, media, forms) has a helpful empty state with a clear call-to-action instead of a blank table
-
-**Docs:** "Your first 10 minutes with Outpost" quickstart guide, aimed at someone who has never used a CMS.
+- **Setup wizard** — full-screen 4-step flow: site name, choose a theme, pick a content pack, done. Auto-appears on fresh installs, skipped for existing sites via migration detection
+- **Content packs** — 8 pre-built JSON packs (Blog, Portfolio, Business) for all 3 bundled themes, seeding collections, items, menus, globals, and folders in a single transaction
+- **Getting Started checklist** — dashboard card with 5 interactive items (upload logo, edit homepage, create post, set up navigation, customize theme) with progress bar and dismiss
+- **Contextual tips** — dismissible one-line hints on 7 admin sections (Pages, Collections, Media, Globals, Navigation, Forms, Themes), persisted in localStorage
+- **Reusable EmptyState component** — consistent empty states across 11 admin pages with icon, title, description, CTA button, and search-aware variant
 
 ---
 
@@ -475,7 +473,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.7~~ | ~~Q1 2027~~ | ~~Media advanced~~ **Shipped** | — |
 | ~~1.8~~ | ~~Q1 2027~~ | ~~Theme Customizer — visual colors, fonts, logo~~ **Shipped** | Everyone |
 | ~~1.9~~ | ~~Q2 2027~~ | ~~Developer Experience & Theme Updates~~ **Shipped** | Developers / Everyone |
-| 2.0 | Q3 2027 | Onboarding & Setup Wizard | Everyone |
+| ~~2.0~~ | ~~Q3 2027~~ | ~~Onboarding & Setup Wizard~~ **Shipped** | Everyone |
 | 2.1 | Q3 2027 | Collection Folders — Happy Files for posts | Everyone |
 | 2.2 | Q4 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
 | 2.3 | Q4 2027 | Visual Tag Builder — HTML-to-theme conversion | Developers / Everyone |

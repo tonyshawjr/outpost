@@ -3,6 +3,9 @@
   import { pages as pagesApi } from '$lib/api.js';
   import { pagesList, navigate, addToast } from '$lib/stores.js';
   import { timeAgo } from '$lib/utils.js';
+  import EmptyState from '$components/EmptyState.svelte';
+  import ContextualTip from '$components/ContextualTip.svelte';
+  import { tips } from '$lib/tips.js';
 
   let search = $state('');
   let loading = $state(true);
@@ -73,22 +76,19 @@
     </div>
   </div>
 
+  <ContextualTip tipKey="pages" message={tips.pages} />
+
   {#if loading}
     <div class="loading-overlay">
       <div class="spinner"></div>
     </div>
   {:else if filtered.length === 0}
-    <div class="list-empty-state">
-      <div class="list-empty-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      </div>
-      <div class="list-empty-title">
-        {search ? 'No pages match your search' : 'No pages discovered yet'}
-      </div>
-      <p class="list-empty-desc">
-        {search ? 'Try a different search term' : 'Add CMS tags to your pages and visit them to auto-discover'}
-      </p>
-    </div>
+    <EmptyState
+      searchActive={!!search}
+      icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      title="No pages discovered yet"
+      description="Pages are auto-discovered from your theme templates."
+    />
   {:else}
     <!-- Column Headers -->
     <div class="list-col-headers">
@@ -218,32 +218,6 @@
     font-size: var(--font-size-xs);
     color: var(--text-tertiary);
     white-space: nowrap;
-  }
-
-  /* ── Empty State ──────────────────────────────────── */
-  .list-empty-state {
-    text-align: center;
-    padding: var(--space-3xl) var(--space-xl);
-  }
-
-  .list-empty-icon {
-    color: var(--text-tertiary);
-    opacity: 0.4;
-    margin-bottom: var(--space-lg);
-  }
-
-  .list-empty-title {
-    font-family: var(--font-serif);
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--space-xs);
-  }
-
-  .list-empty-desc {
-    font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
-    margin: 0;
   }
 
   /* ── Search in header ─────────────────────────────── */
