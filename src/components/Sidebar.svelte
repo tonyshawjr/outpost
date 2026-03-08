@@ -273,7 +273,7 @@
         class:active={route === 'theme-customizer'}
         onclick={() => nav('theme-customizer')}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="16" cy="20" r="2.5"/><circle cx="7" cy="20" r="2.5"/><circle cx="5" cy="13" r="2.5"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.37 2.63a2.12 2.12 0 0 1 3 3L14 13l-4 1 1-4 7.37-7.37z"/><path d="M9 14c-1.5 1.5-3 3.5-3 5a2 2 0 0 0 4 0c0-1.5-1.5-3.5-1-5"/></svg>
         Customize
       </button>
     {/if}

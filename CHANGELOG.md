@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.1] — 2026-03-08
+
+### Fixed
+- Customizer sidebar icon replaced with paintbrush (was misaligned palette icon)
+- Calendar page header icon now uses standard `.page-header-icon` wrapper (was oversized)
+- `structuredClone` crash on customizer page — Svelte 5 proxies replaced with `JSON.parse(JSON.stringify())`
+
+### Security
+- CSS injection hardening — type-specific validation for color (hex regex) and font (alphanumeric) values in engine CSS output
+- Added `postMessage` origin check in customizer preview iframe
+- Sanitized theme slug in customizer export filename to prevent header injection
+- Preview script validates CSS variable names and values before applying
+- Font field `<link>` element cleanup on component destroy (memory leak fix)
+- Added ARIA labels to color picker, font selector, and reset buttons
+
+---
+
 ## [1.8.0] — 2026-03-08
 
 ### Added

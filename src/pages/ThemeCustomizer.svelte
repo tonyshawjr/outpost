@@ -22,7 +22,7 @@
       const data = await customizerApi.get();
       schema = data.schema;
       values = data.values || {};
-      savedValues = structuredClone(data.values || {});
+      savedValues = JSON.parse(JSON.stringify(data.values || {}));
       themeName = data.theme || '';
       if (schema?.sections?.length) {
         activeSection = schema.sections[0].id;
@@ -48,7 +48,7 @@
     saving = true;
     try {
       await customizerApi.save(values);
-      savedValues = structuredClone(values);
+      savedValues = JSON.parse(JSON.stringify(values));
       addToast('Customizations saved', 'success');
     } catch (err) {
       addToast(err.message, 'error');
@@ -64,7 +64,7 @@
       const data = await customizerApi.get();
       schema = data.schema;
       values = data.values || {};
-      savedValues = structuredClone(data.values || {});
+      savedValues = JSON.parse(JSON.stringify(data.values || {}));
       addToast('Reset to defaults', 'success');
     } catch (err) {
       addToast(err.message, 'error');
@@ -102,7 +102,7 @@
         // Reload
         const fresh = await customizerApi.get();
         values = fresh.values || {};
-        savedValues = structuredClone(fresh.values || {});
+        savedValues = JSON.parse(JSON.stringify(fresh.values || {}));
         addToast('Preset imported', 'success');
       } catch (err) {
         addToast(err.message || 'Invalid preset file', 'error');
@@ -126,7 +126,7 @@
   <div class="customizer-unsupported">
     <div class="page-header">
       <div class="page-header-icon sage">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="16" cy="20" r="2.5"/><circle cx="7" cy="20" r="2.5"/><circle cx="5" cy="13" r="2.5"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.37 2.63a2.12 2.12 0 0 1 3 3L14 13l-4 1 1-4 7.37-7.37z"/><path d="M9 14c-1.5 1.5-3 3.5-3 5a2 2 0 0 0 4 0c0-1.5-1.5-3.5-1-5"/></svg>
       </div>
       <div class="page-header-content">
         <h1 class="page-title">Customize</h1>

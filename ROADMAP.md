@@ -220,9 +220,21 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.9 — Developer Experience
+## v1.9 — Developer Experience & Theme Updates
 
-Polish the theme development loop so developers can build and ship themes faster:
+Polish the theme development loop and ship the infrastructure for keeping themes up to date.
+
+### Theme Update System
+
+Right now the auto-updater skips `themes/` to protect user modifications. But Outpost ships default themes (Personal, and more in v2.1), and those themes need updates — bug fixes, new `customizer` schema support, new partials, CSS improvements. Without a theme update path, users are stuck on the version they installed with.
+
+- **Outpost-managed vs. user themes** — distinguish between bundled themes (shipped by Outpost, eligible for updates) and user-created themes (never touched by the updater)
+- **Theme version comparison** — compare `theme.json` version of installed theme against the version in the update package
+- **Safe theme updates** — update only files that the user hasn't modified; flag conflicts for manual resolution
+- **Theme update UI** — show available theme updates in Settings → Updates alongside core CMS updates
+- **Update includes new themes** — when Outpost ships a new default theme (e.g. a Business theme), the updater installs it automatically so existing users get new starting points
+
+### Developer Tools
 
 - **Outpost CLI** — `outpost pull | push | sync | backup` for local theme development without the Builder app
 - **Better Liquid error messages** — line/column in compile errors with suggested fixes for common mistakes
@@ -230,7 +242,7 @@ Polish the theme development loop so developers can build and ship themes faster
 - **VS Code extension** — Liquid syntax highlighting and Outpost-specific autocomplete (separate repo)
 - **Theme starter kit** — `outpost new-theme` scaffolds a minimal theme with standard partials, example loops, and `customizer` config
 
-**Docs:** CLI reference, theme development tutorial (start-to-finish walkthrough), VS Code extension setup guide.
+**Docs:** CLI reference, theme development tutorial (start-to-finish walkthrough), VS Code extension setup guide, theme update system reference.
 
 ---
 
@@ -248,7 +260,24 @@ Polish the theme development loop so developers can build and ship themes faster
 
 ---
 
-## v2.1 — Theme Gallery
+## v2.1 — Collection Folders
+
+**Bring the media folder system to collections.** Users already organize media files with folders (v1.6). Now apply the same concept to collection items — posts, products, case studies — so content creators can group and filter items the way they think about them.
+
+- **Folder sidebar for collections** — same Happy Files-style folder panel that media already has, scoped per collection
+- **Drag-to-folder** — drag collection items into folders from the item list
+- **Filter by folder** — click a folder in the sidebar to filter the item list instantly
+- **Multi-folder assignment** — items can belong to multiple folders (same as media)
+- **Folder template loops** — `{% for item in collection_folder.slug %}` to render items by folder in templates
+- **Bulk folder operations** — bulk move/assign items to folders from the item list
+
+**Why:** Folders (categories) already exist for collection items via the Folders system, but the UX is separate from the item list. This brings folder management inline — the same workflow media uses — so organizing posts feels as natural as organizing photos.
+
+**Docs:** Collection folders user guide, template loop reference for folder-filtered content.
+
+---
+
+## v2.2 — Theme Gallery
 
 **More starting points, less blank-page anxiety.** Ship 4-5 polished themes so users can pick one that fits and customize it with the v1.8 customizer.
 
@@ -264,7 +293,7 @@ All themes ship with full `customizer` config (v1.8), responsive design, dark mo
 
 ---
 
-## v2.2 — Headless-First
+## v2.3 — Headless-First
 
 Position Outpost as the zero-config headless CMS alongside the traditional themed approach:
 
@@ -279,7 +308,7 @@ Position Outpost as the zero-config headless CMS alongside the traditional theme
 
 ---
 
-## v2.3 — Deeper Analytics
+## v2.4 — Deeper Analytics
 
 Extend beyond pageviews into audience behavior — actionable insights without external tools:
 
@@ -292,7 +321,7 @@ Extend beyond pageviews into audience behavior — actionable insights without e
 
 ---
 
-## v2.4 — Commerce
+## v2.5 — Commerce
 
 Lightweight digital product sales via Stripe:
 
@@ -307,7 +336,7 @@ Lightweight digital product sales via Stripe:
 
 ---
 
-## v2.5 — Collaborative Editing
+## v2.6 — Collaborative Editing
 
 Real-time multi-user editing on the same page or collection item:
 
@@ -333,6 +362,16 @@ Multi-language content support — deferred until core CMS is mature and user de
 - One-click "duplicate as locale" from the editor
 - `{{ @locale }}` global for language selectors
 - URL prefix routing (`/es/about`)
+
+### Theme Marketplace
+
+A centralized place for users to browse, preview, and install themes directly from the admin panel:
+
+- Browse curated and community-submitted themes from within Admin → Themes
+- One-click install — download theme zip from marketplace, extract to `content/themes/`
+- Theme ratings, screenshots, and compatibility info
+- Revenue model for premium themes (if applicable)
+- Dependency: Theme Update System (v1.9) for keeping marketplace themes current
 
 ### Channels — Advanced Phases
 
@@ -382,11 +421,12 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.6~~ | ~~Q1 2027~~ | ~~Media library pro~~ **Shipped** | — |
 | ~~1.7~~ | ~~Q1 2027~~ | ~~Media advanced~~ **Shipped** | — |
 | ~~1.8~~ | ~~Q1 2027~~ | ~~Theme Customizer — visual colors, fonts, logo~~ **Shipped** | Everyone |
-| 1.9 | Q2 2027 | Developer Experience — CLI, errors, VS Code | Developers |
+| 1.9 | Q2 2027 | Developer Experience & Theme Updates | Developers / Everyone |
 | 2.0 | Q3 2027 | Onboarding & Setup Wizard | Everyone |
-| 2.1 | Q3 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
-| 2.2 | Q4 2027 | Headless-First — GraphQL, webhooks v2 | Developers |
-| 2.3 | Q4 2027 | Deeper Analytics — funnels, search, cohorts | Everyone |
-| 2.4 | Q1 2028 | Commerce — Stripe, digital products | Everyone |
-| 2.5 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
-| 3.x | TBD | Internationalization | Everyone |
+| 2.1 | Q3 2027 | Collection Folders — Happy Files for posts | Everyone |
+| 2.2 | Q4 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
+| 2.3 | Q4 2027 | Headless-First — GraphQL, webhooks v2 | Developers |
+| 2.4 | Q1 2028 | Deeper Analytics — funnels, search, cohorts | Everyone |
+| 2.5 | Q1 2028 | Commerce — Stripe, digital products | Everyone |
+| 2.6 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
+| 3.x | TBD | Internationalization, Theme Marketplace | Everyone |
