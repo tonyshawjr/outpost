@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Loop Compilation Fix (v1.9.4)
+
+- **Fixed cross-loop regex matching** — when a loop without `{% else %}` (e.g. folder) was followed by a different loop with `{% else %}` (e.g. collection), the two-pass regex would incorrectly match across both loops, leaving orphan tags and breaking template compilation. Merged all two-pass "with-else" / "without-else" regex pairs into single-pass regexes with optional else groups.
+- **Files**: `php/template-engine.php`
+
+---
+
 ## Universal Loop Empty States (v1.9.3)
 
 - **`{% else %}` on all loop types** — every `{% for %}` loop now supports `{% else %}` for empty-state fallbacks. Previously only collection and channel loops supported this. Now folder, menu, gallery, media folder, repeater, flexible content, and relationship loops all support `{% else %}` consistently.

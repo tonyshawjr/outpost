@@ -259,192 +259,134 @@ class OutpostTemplate {
         // {% for item in menu.slug %} ... {% endfor %}
         // {% for item in menu.slug %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+menu\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+menu\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $slug = $m[2];
                 $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_mn_{$var} = cms_menu_items('{$slug}'); if (!empty(\$_outpost_mn_{$var})): foreach (\$_outpost_mn_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
-        // {% for item in menu.slug %} ... {% endfor %} (without else)
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+menu\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $slug = $m[2];
-                $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_mn_{$var} = cms_menu_items('{$slug}'); if (!empty(\$_outpost_mn_{$var})): foreach (\$_outpost_mn_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_menu_items('{$slug}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
+        // {% for item in gallery.field_name %} ... {% endfor %}
         // {% for item in gallery.field_name %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+gallery\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+gallery\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $name = $m[2];
                 $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_gl_{$var} = cms_gallery_items('{$name}'); if (!empty(\$_outpost_gl_{$var})): foreach (\$_outpost_gl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
-        // {% for item in gallery.field_name %} ... {% endfor %} (without else)
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+gallery\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $name = $m[2];
-                $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_gl_{$var} = cms_gallery_items('{$name}'); if (!empty(\$_outpost_gl_{$var})): foreach (\$_outpost_gl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_gallery_items('{$name}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
-        // {% for item in repeater.field_name %} ... {% else %} ... {% endfor %}
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+repeater\.(\w+)(?:\s+[\w:,\s]*)?\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $name = $m[2];
-                $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_rp_{$var} = cms_repeater_items('{$name}'); if (!empty(\$_outpost_rp_{$var})): foreach (\$_outpost_rp_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
         // {% for item in repeater.field_name [key:type,...] %} ... {% endfor %}
-        // Process before collection loops so the endfor is consumed correctly.
+        // {% for item in repeater.field_name %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+repeater\.(\w+)(?:\s+[\w:,\s]*)?\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+repeater\.(\w+)(?:\s+[\w:,\s]*)?\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $name = $m[2];
                 $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_rp_{$var} = cms_repeater_items('{$name}'); if (!empty(\$_outpost_rp_{$var})): foreach (\$_outpost_rp_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_repeater_items('{$name}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
-        // {% for block in flexible.field_name %} ... {% else %} ... {% endfor %}
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+flexible\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $name = $m[2];
-                $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_fx_{$var} = cms_flexible_items('{$name}'); if (!empty(\$_outpost_fx_{$var})): foreach (\$_outpost_fx_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
         // {% for block in flexible.field_name %} ... {% endfor %}
+        // {% for block in flexible.field_name %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+flexible\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+flexible\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $name = $m[2];
                 $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_fx_{$var} = cms_flexible_items('{$name}'); if (!empty(\$_outpost_fx_{$var})): foreach (\$_outpost_fx_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_flexible_items('{$name}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
-        // {% for item in relationship.field_name %} ... {% else %} ... {% endfor %}
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+relationship\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $name = $m[2];
-                $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_rl_{$var} = cms_relationship_items('{$name}'); if (!empty(\$_outpost_rl_{$var})): foreach (\$_outpost_rl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
         // {% for item in relationship.field_name %} ... {% endfor %}
+        // {% for item in relationship.field_name %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+relationship\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+relationship\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $name = $m[2];
                 $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_rl_{$var} = cms_relationship_items('{$name}'); if (!empty(\$_outpost_rl_{$var})): foreach (\$_outpost_rl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_relationship_items('{$name}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
+        // {% for label in folder.slug %} ... {% endfor %}
         // {% for label in folder.slug %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+folder\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+folder\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $slug = $m[2];
                 $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_fl_{$var} = cms_folder_labels('{$slug}'); if (!empty(\$_outpost_fl_{$var})): foreach (\$_outpost_fl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
-        // {% for label in folder.slug %} ... {% endfor %} (without else)
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+folder\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $slug = $m[2];
-                $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_fl_{$var} = cms_folder_labels('{$slug}'); if (!empty(\$_outpost_fl_{$var})): foreach (\$_outpost_fl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_folder_labels('{$slug}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
+        // {% for term in taxonomy.slug %} ... {% endfor %} (backward compat)
         // {% for term in taxonomy.slug %} ... {% else %} ... {% endfor %} (backward compat with else)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+taxonomy\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+taxonomy\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $slug = $m[2];
                 $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_fl_{$var} = cms_folder_labels('{$slug}'); if (!empty(\$_outpost_fl_{$var})): foreach (\$_outpost_fl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
-        // {% for term in taxonomy.slug %} ... {% endfor %} (backward compat without else)
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+taxonomy\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $slug = $m[2];
-                $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_fl_{$var} = cms_folder_labels('{$slug}'); if (!empty(\$_outpost_fl_{$var})): foreach (\$_outpost_fl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_folder_labels('{$slug}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );
 
+        // {% for img in media_folder.slug %} ... {% endfor %}
         // {% for img in media_folder.slug %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+media_folder\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+media_folder\.(\w+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $var  = $m[1];
                 $slug = $m[2];
                 $body = $m[3];
-                $empty = $m[4];
-                return "<?php \$_outpost_mf_{$var} = cms_media_folder_items('{$slug}'); if (!empty(\$_outpost_mf_{$var})): foreach (\$_outpost_mf_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
-            },
-            $php
-        );
-        // {% for img in media_folder.slug %} ... {% endfor %} (without else)
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+media_folder\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) {
-                $var  = $m[1];
-                $slug = $m[2];
-                $body = $m[3];
+                if (isset($m[4])) {
+                    $empty = $m[4];
+                    return "<?php \$_outpost_mf_{$var} = cms_media_folder_items('{$slug}'); if (!empty(\$_outpost_mf_{$var})): foreach (\$_outpost_mf_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+                }
                 return "<?php foreach (cms_media_folder_items('{$slug}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
@@ -458,31 +400,24 @@ class OutpostTemplate {
             return '[' . implode(', ', $parts) . ']';
         };
 
-        // {% for item in channel.slug [limit:N] %} ... {% else %} ... {% endfor %}
+        // {% for item in channel.slug [limit:N] %} ... {% endfor %}
+        // {% for item in channel.slug ... %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+channel\.(\w+)([^%]*)%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) use ($parseChannelOpts) {
-                $var       = $m[1];
-                $slug      = $m[2];
-                $itemBody  = $m[4];
-                $emptyBody = $m[5];
-                $opts      = $parseChannelOpts($m[3]);
-                return "<?php \$_outpost_found_{$var} = false; cms_channel_list('{$slug}', function(\${$var}) use (&\$_outpost_found_{$var}) { \$_outpost_found_{$var} = true; ?>"
-                     . $itemBody
-                     . "<?php }, {$opts}); if (!\$_outpost_found_{$var}): ?>"
-                     . $emptyBody
-                     . "<?php endif; ?>";
-            },
-            $php
-        );
-        // Channel loop without else
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+channel\.(\w+)([^%]*)%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+channel\.(\w+)([^%]*)%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) use ($parseChannelOpts) {
                 $var  = $m[1];
                 $slug = $m[2];
-                $body = $m[4];
                 $opts = $parseChannelOpts($m[3]);
+                if (isset($m[5])) {
+                    $itemBody  = $m[4];
+                    $emptyBody = $m[5];
+                    return "<?php \$_outpost_found_{$var} = false; cms_channel_list('{$slug}', function(\${$var}) use (&\$_outpost_found_{$var}) { \$_outpost_found_{$var} = true; ?>"
+                         . $itemBody
+                         . "<?php }, {$opts}); if (!\$_outpost_found_{$var}): ?>"
+                         . $emptyBody
+                         . "<?php endif; ?>";
+                }
+                $body = $m[4];
                 return "<?php cms_channel_list('{$slug}', function(\${$var}) { ?>"
                      . $body
                      . "<?php }, {$opts}); ?>";
@@ -502,32 +437,24 @@ class OutpostTemplate {
             return '[' . implode(', ', $parts) . ']';
         };
 
-        // {% for item in collection.slug [limit:N] [orderby:field] [related:var] %} ... {% else %} ... {% endfor %}
-        // Pass 1: for-else-endfor (with empty-state fallback)
+        // {% for item in collection.slug [limit:N] [orderby:field] [related:var] %} ... {% endfor %}
+        // {% for item in collection.slug ... %} ... {% else %} ... {% endfor %} (with empty fallback)
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+collection\.(\w+)([^%]*)%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
-            function ($m) use ($parseCollOpts) {
-                $var       = $m[1];
-                $slug      = $m[2];
-                $itemBody  = $m[4];
-                $emptyBody = $m[5];
-                $opts      = $parseCollOpts($m[3]);
-                return "<?php \$_outpost_found_{$var} = false; cms_collection_list('{$slug}', function(\${$var}) use (&\$_outpost_found_{$var}) { \$_outpost_found_{$var} = true; ?>"
-                     . $itemBody
-                     . "<?php }, {$opts}); if (!\$_outpost_found_{$var}): ?>"
-                     . $emptyBody
-                     . "<?php endif; ?>";
-            },
-            $php
-        );
-        // Pass 2: for-endfor (no else) — options parsed in any order
-        $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+collection\.(\w+)([^%]*)%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+collection\.(\w+)([^%]*)%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endfor\s*%\}/s',
             function ($m) use ($parseCollOpts) {
                 $var  = $m[1];
                 $slug = $m[2];
-                $body = $m[4];
                 $opts = $parseCollOpts($m[3]);
+                if (isset($m[5])) {
+                    $itemBody  = $m[4];
+                    $emptyBody = $m[5];
+                    return "<?php \$_outpost_found_{$var} = false; cms_collection_list('{$slug}', function(\${$var}) use (&\$_outpost_found_{$var}) { \$_outpost_found_{$var} = true; ?>"
+                         . $itemBody
+                         . "<?php }, {$opts}); if (!\$_outpost_found_{$var}): ?>"
+                         . $emptyBody
+                         . "<?php endif; ?>";
+                }
+                $body = $m[4];
                 return "<?php cms_collection_list('{$slug}', function(\${$var}) { ?>"
                      . $body
                      . "<?php }, {$opts}); ?>";

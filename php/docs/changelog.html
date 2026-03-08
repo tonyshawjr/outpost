@@ -22,6 +22,14 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="1.9.4">1.9.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Loop compilation bug</strong> &mdash; fixed regex cross-matching where a loop without <code>{% else %}</code> followed by a different loop with <code>{% else %}</code> would cause both to be incorrectly compiled. Merged two-pass regex into single-pass with optional else group for all loop types.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="1.9.3">1.9.3 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
     <h3>Added</h3>
     <ul>

@@ -143,15 +143,11 @@ Features demonstrated:
   <hr style="margin: 40px 0;">
 
   {# ── Conditional Comparisons ──
-     {% if field == "value" %} — strict string comparison
-     {% if field != "value" %} — not equal comparison #}
-  {% if layout_style == "wide" %}
-  <p>Wide layout is active.</p>
-  {% endif %}
-
-  {% if layout_style != "narrow" %}
-  <p>Layout is not narrow.</p>
-  {% endif %}
+     Value comparisons use dot notation (item.field) inside loops:
+       {% if item.field == "value" %} — strict string comparison
+       {% if item.field != "value" %} — not equal comparison
+     These only work inside collection/channel loops, not on bare page fields.
+     For page fields, use truthy checks: {% if field_name %} #}
 
 </main>
 

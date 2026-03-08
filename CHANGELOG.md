@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.4] — 2026-03-08
+
+### Fixed
+- **Loop compilation bug** — fixed regex cross-matching where a loop without `{% else %}` followed by a different loop with `{% else %}` would cause both to be incorrectly compiled, leaving orphan tags. Merged two-pass regex (with-else + without-else) into single-pass with optional else group for all 10 loop types.
+
+---
+
 ## [1.9.3] — 2026-03-08
 
 ### Added
