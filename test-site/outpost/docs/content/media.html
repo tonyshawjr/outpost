@@ -266,19 +266,22 @@
     </div>
 
     <h2>Media folders</h2>
-    <p>Organize media files into folders using the folder sidebar in the media library. Folders support up to 3 levels of nesting (e.g., <code>Photos → Events → 2026</code>).</p>
+    <p>Organize media files into folders using the folder sidebar in the media library. Folders support up to 3 levels of nesting (e.g., <code>Photos → Events → 2026</code>). Each folder has an auto-generated slug for use in template tags.</p>
+
+    <h3>Multi-folder assignment</h3>
+    <p>Files can belong to multiple folders simultaneously. When viewing a file's detail panel, the <strong>Folders</strong> section shows all assigned folders as chips. You can:</p>
+    <ul>
+      <li><strong>Remove from folder:</strong> Click the &times; button on any folder chip.</li>
+      <li><strong>Add to folder:</strong> Use the "Add to folder" dropdown to assign the file to additional folders.</li>
+      <li><strong>Drag to add:</strong> Drag a file from the grid onto a folder in the sidebar to add it (not move it).</li>
+    </ul>
 
     <h3>Creating folders</h3>
     <ul>
       <li>Click <strong>New Folder</strong> at the bottom of the folder sidebar.</li>
       <li>Type a name and press Enter.</li>
+      <li><strong>Bulk create:</strong> Type comma-separated names (e.g., <code>Spring, Summer, Fall</code>) to create multiple folders at once (max 50).</li>
       <li>Right-click a folder and choose <strong>New subfolder</strong> to nest folders (max 3 levels).</li>
-    </ul>
-
-    <h3>Moving files to folders</h3>
-    <ul>
-      <li><strong>Drag and drop:</strong> Drag a file from the media grid onto a folder in the sidebar.</li>
-      <li><strong>Upload to folder:</strong> When a folder is selected, new uploads are automatically placed in that folder.</li>
     </ul>
 
     <h3>Filtering by folder</h3>
@@ -288,14 +291,40 @@
       <li>Click any folder name to show only files in that folder.</li>
     </ul>
 
+    <h3>Right-click context menu</h3>
+    <p>Right-click any file in the media grid to open a context menu with:</p>
+    <ul>
+      <li><strong>Folder badges</strong> — see which folders the file belongs to at a glance.</li>
+      <li><strong>Add to folder</strong> — quickly assign the file to another folder without opening the detail panel.</li>
+      <li><strong>Copy Path</strong> — copy the file's URL to the clipboard.</li>
+      <li><strong>Delete</strong> — delete the file.</li>
+    </ul>
+
+    <h3>Resizable detail sidebar</h3>
+    <p>The detail sidebar on the right side of the media library can be resized by dragging the handle on its left edge. The width range is 220–500px and persists across sessions via localStorage.</p>
+
     <h3>Managing folders</h3>
     <ul>
       <li><strong>Rename:</strong> Right-click a folder → <strong>Rename</strong>, or double-click the folder name.</li>
       <li><strong>Delete:</strong> Right-click → <strong>Delete</strong>. Files in a deleted folder become unfiled. Subfolders are re-parented to the deleted folder's parent.</li>
+      <li><strong>Copy template tag:</strong> Right-click a folder → <strong>Copy template tag</strong> to copy the <code>{% for img in media_folder.slug %}</code> tag for use in templates.</li>
     </ul>
 
+    <h3>Folder slugs</h3>
+    <p>Each folder has an auto-generated slug derived from its name (lowercase, hyphens, no special characters). Slugs are unique across all folders. The slug is used in the <code>media_folder</code> template tag — see <a href="loops/gallery-loops.html">Gallery Loops</a> for details.</p>
+
+    <h3>Role-based folder restrictions</h3>
+    <p>Admins can restrict editors to specific media folders. When a user with the <strong>Editor</strong> role has folder grants configured (via Admin → Users → Edit User → Media Folder Access), they can only:</p>
+    <ul>
+      <li>See and browse their granted folders</li>
+      <li>Upload files to their granted folders</li>
+      <li>Move/assign files to their granted folders</li>
+      <li>Delete files only from their granted folders</li>
+    </ul>
+    <p>Editors with no folder grants configured have unrestricted access to all folders (same as previous behavior). Only admins and super admins can create, rename, or delete folders.</p>
+
     <div class="callout callout-note">
-      <strong>Note</strong> — Folders are a logical organization layer. Files remain in <code>outpost/uploads/</code> on disk. Moving a file between folders does not change its URL.
+      <strong>Note</strong> — Folders are a logical organization layer. Files remain in <code>outpost/uploads/</code> on disk. Assigning a file to a folder does not change its URL.
     </div>
 
     <h2>Bulk upload</h2>

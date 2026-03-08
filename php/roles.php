@@ -131,3 +131,25 @@ function outpost_can_access_collection(int $collection_id): bool {
     if ($granted === null) return true;
     return in_array($collection_id, $granted, true);
 }
+
+/**
+ * Get granted media folder IDs for the current user.
+ * Returns null if user is unrestricted (non-editor or editor with no grants).
+ * Returns array of folder IDs if editor has specific grants.
+ */
+function outpost_get_granted_media_folder_ids(): ?array {
+    $role = $_SESSION['outpost_role'] ?? '';
+    if ($role !== 'editor') return null;
+
+    $userId = $_SESSION['outpost_user_id'] ?? 0;
+    if (!$userId) return null;
+
+    $grants = OutpostDB::fetchAll(
+        'SELECT folder_id FROM user_media_folder_grants WHERE user_id = ?',
+        [$userId]
+    );
+
+    if (empty($grants)) return null; // No grants = unrestricted
+
+    return array_map(fn($g) => (int) $g['folder_id'], $grants);
+}

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] — 2026-03-07
+
+### Added
+- **Multi-folder assignment** — files can belong to multiple folders via junction table (`media_folder_items`), replacing single `folder_id` FK
+- **Gallery from folders** — new `{% for img in media_folder.slug %}` template tag renders all media in a folder with `url`, `alt_text`, `width`, `height`, `focal_x`, `focal_y`, `mime_type`, `filename` fields
+- **Resizable detail sidebar** — drag handle on left edge, width persisted to localStorage (220–500px range)
+- **Bulk folder creation** — type comma-separated names in folder creation input to create multiple folders at once (max 50)
+- **Right-click file context menu** — shows folder badges, quick "Add to folder" submenu, Copy Path, Delete
+- **Role-based folder restrictions** — editors can be scoped to specific media folders (same pattern as collection grants)
+- **Folder slugs** — `media_folders` table now includes auto-generated `slug` column for template tag resolution
+- `media/folders` API endpoint (GET, returns folder IDs for a media item)
+- `media/assign-folders` API endpoint (PUT, set all folder assignments for one item)
+- `media-folders/bulk` API endpoint (POST, create up to 50 folders at once)
+- `users/media-folder-grants` GET/PUT endpoints for managing editor folder access
+- `cms_media_folder_items()` engine function for front-end template rendering
+- "Copy template tag" option in folder context menu
+- Media Folder Access checklist in user profile for editors
+
+### Changed
+- Drag-to-folder now adds to folder instead of moving (multi-folder support)
+- Bulk "Move to" dropdown relabeled to "Add to folder"
+- `media.moveToFolder()` API accepts optional `action` param: `set`, `add`, `remove`
+- Folder file counts use junction table instead of `folder_id` column
+- Unfiled media query uses `NOT IN (SELECT media_id FROM media_folder_items)`
+
+---
+
 ## [1.6.2] — 2026-03-07
 
 ### Added

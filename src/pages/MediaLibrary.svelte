@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { media as mediaApi, mediaFolders as foldersApi } from '$lib/api.js';
-  import { mediaList, addToast } from '$lib/stores.js';
+  import { mediaList, addToast, mediaFolderGrants } from '$lib/stores.js';
   import { humanFileSize, formatDate } from '$lib/utils.js';
   import UploadQueue from '../components/UploadQueue.svelte';
 
@@ -113,7 +113,6 @@
   });
 
   onMount(() => {
-    loadMedia();
     loadFolders();
     document.addEventListener('click', closeFolderContextMenu);
     return () => document.removeEventListener('click', closeFolderContextMenu);
@@ -358,12 +357,79 @@
 
   let isRasterImage = $derived(selected && selected.mime_type?.startsWith('image/') && selected.mime_type !== 'image/svg+xml' && selected.width > 0);
 
+  // ── Multi-folder assignment ──
+  let selectedFolderIds = $state([]);
+  let loadingFolderIds = $state(false);
+  let showAddFolderDropdown = $state(false);
+
+  $effect(() => {
+    if (selected) {
+      loadSelectedFolders(selected.id);
+    } else {
+      selectedFolderIds = [];
+    }
+  });
+
+  async function loadSelectedFolders(mediaId) {
+    loadingFolderIds = true;
+    try {
+      const data = await mediaApi.getFolders(mediaId);
+      if (selected?.id === mediaId) {
+        selectedFolderIds = data.folder_ids || [];
+      }
+    } catch {
+      if (selected?.id === mediaId) selectedFolderIds = [];
+    } finally {
+      if (selected?.id === mediaId) loadingFolderIds = false;
+    }
+  }
+
+  async function removeFromFolder(folderId) {
+    if (!selected) return;
+    const newIds = selectedFolderIds.filter(id => id !== folderId);
+    try {
+      await mediaApi.assignFolders(selected.id, newIds);
+      selectedFolderIds = newIds;
+      loadFolders();
+      if (activeFolderId === folderId) loadMedia();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  async function addToFolder(folderId) {
+    if (!selected) return;
+    const newIds = [...selectedFolderIds, folderId];
+    try {
+      await mediaApi.assignFolders(selected.id, newIds);
+      selectedFolderIds = newIds;
+      showAddFolderDropdown = false;
+      loadFolders();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  let availableFoldersForAdd = $derived(
+    foldersList.filter(f => !selectedFolderIds.includes(f.id))
+  );
+
   // ── Folder management ──
   async function createFolder() {
     if (!newFolderName.trim()) return;
     try {
-      const data = await foldersApi.create({ name: newFolderName.trim(), parent_id: null });
-      if (data.folder) foldersList = [...foldersList, data.folder];
+      // Check for comma-separated names → bulk create
+      if (newFolderName.includes(',')) {
+        const names = newFolderName.split(',').map(n => n.trim()).filter(Boolean);
+        if (names.length > 0) {
+          const data = await foldersApi.bulkCreate(names, null);
+          if (data.folders) foldersList = [...foldersList, ...data.folders];
+          addToast(`${data.folders?.length || 0} folders created`, 'success');
+        }
+      } else {
+        const data = await foldersApi.create({ name: newFolderName.trim(), parent_id: null });
+        if (data.folder) foldersList = [...foldersList, data.folder];
+      }
       newFolderName = '';
       creatingFolder = false;
     } catch (err) {
@@ -391,13 +457,15 @@
 
   async function finishRenameFolder() {
     if (!renameFolderName.trim() || !renamingFolderId) return;
+    const id = renamingFolderId;
+    renamingFolderId = null; // Clear immediately to prevent Enter+blur double-fire
     try {
-      await foldersApi.update(renamingFolderId, { name: renameFolderName.trim() });
-      foldersList = foldersList.map(f => f.id === renamingFolderId ? { ...f, name: renameFolderName.trim() } : f);
+      const res = await foldersApi.update(id, { name: renameFolderName.trim() });
+      const updated = res.folder || { name: renameFolderName.trim() };
+      foldersList = foldersList.map(f => f.id === id ? { ...f, name: updated.name, slug: updated.slug || f.slug } : f);
     } catch (err) {
       addToast(err.message, 'error');
     }
-    renamingFolderId = null;
   }
 
   async function deleteFolder(folder) {
@@ -421,6 +489,7 @@
 
   function closeFolderContextMenu() {
     folderContextMenu = null;
+    fileContextMenu = null;
     showBulkMoveMenu = false;
   }
 
@@ -445,16 +514,16 @@
   async function onFolderDrop(e, folderId) {
     e.preventDefault();
     folderDragOver = null;
+    if (folderId === null) return; // No-op for "All Files"
     const id = parseInt(e.dataTransfer.getData('text/plain'));
     if (!id) return;
     try {
-      await mediaApi.moveToFolder([id], folderId);
-      // Update local state
-      mediaList.update(m => m.map(i => i.id === id ? { ...i, folder_id: folderId } : i));
+      await mediaApi.moveToFolder([id], folderId, 'add');
       loadFolders();
-      // If we're viewing a specific folder, reload
       if (activeFolderId !== null) loadMedia();
-      addToast('File moved', 'success');
+      // Refresh folder assignments if this item is selected
+      if (selected?.id === id) loadSelectedFolders(id);
+      addToast('Added to folder', 'success');
     } catch (err) {
       addToast(err.message, 'error');
     }
@@ -539,8 +608,8 @@
     const count = selectedIds.size;
     bulkMoving = true;
     try {
-      await mediaApi.moveToFolder([...selectedIds], folderId);
-      addToast(`${count} file${count !== 1 ? 's' : ''} moved`, 'success');
+      await mediaApi.moveToFolder([...selectedIds], folderId, folderId === null ? 'set' : 'add');
+      addToast(`${count} file${count !== 1 ? 's' : ''} ${folderId === null ? 'unfiled' : 'added to folder'}`, 'success');
       exitBulkMode();
       loadFolders();
       if (activeFolderId !== null) loadMedia();
@@ -552,6 +621,67 @@
   }
 
   let showBulkMoveMenu = $state(false);
+
+  // Restricted editors (with folder grants) cannot create/edit/delete folders
+  let canManageFolders = $derived($mediaFolderGrants === null);
+
+  // ── File context menu ──
+  let fileContextMenu = $state(null); // { item, x, y, folderIds, loading }
+
+  async function showFileContext(e, item) {
+    e.preventDefault();
+    fileContextMenu = { item, x: e.clientX, y: e.clientY, folderIds: [], loading: true };
+    try {
+      const data = await mediaApi.getFolders(item.id);
+      fileContextMenu = { ...fileContextMenu, folderIds: data.folder_ids || [], loading: false };
+    } catch {
+      fileContextMenu = { ...fileContextMenu, loading: false };
+    }
+  }
+
+  function closeFileContextMenu() {
+    fileContextMenu = null;
+  }
+
+  async function fileContextAddToFolder(folderId) {
+    if (!fileContextMenu) return;
+    const item = fileContextMenu.item;
+    try {
+      await mediaApi.moveToFolder([item.id], folderId, 'add');
+      loadFolders();
+      if (selected?.id === item.id) loadSelectedFolders(item.id);
+      addToast('Added to folder', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+    fileContextMenu = null;
+  }
+
+  // ── Resizable detail sidebar ──
+  let sidebarWidth = $state(parseInt(localStorage.getItem('outpost_media_sidebar_width')) || 280);
+  let resizingSidebar = $state(false);
+
+  function onSidebarResizeStart(e) {
+    e.preventDefault();
+    resizingSidebar = true;
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+
+    function onMove(ev) {
+      const delta = startX - ev.clientX;
+      sidebarWidth = Math.max(220, Math.min(500, startWidth + delta));
+    }
+
+    function onUp() {
+      resizingSidebar = false;
+      localStorage.setItem('outpost_media_sidebar_width', String(sidebarWidth));
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
 </script>
 
 <div class="media-page">
@@ -650,7 +780,7 @@
         <div class="bulk-actions">
           <div class="bulk-move-wrapper">
             <button class="btn btn-secondary btn-sm" onclick={() => showBulkMoveMenu = !showBulkMoveMenu} disabled={bulkMoving}>
-              {bulkMoving ? 'Moving...' : 'Move to\u2026'}
+              {bulkMoving ? 'Adding...' : 'Add to folder\u2026'}
             </button>
             {#if showBulkMoveMenu}
               <div class="bulk-move-dropdown">
@@ -724,25 +854,30 @@
           {@render folderNode(folder, 0)}
         {/each}
 
-        {#if creatingFolder}
-          <div class="folder-item folder-create-input">
-            <input
-              type="text"
-              bind:value={newFolderName}
-              placeholder="Folder name..."
-              class="folder-inline-input"
-              onkeydown={(e) => {
-                if (e.key === 'Enter') createFolder();
-                if (e.key === 'Escape') creatingFolder = false;
-              }}
-              autofocus
-            />
-          </div>
-        {/if}
+        {#if canManageFolders}
+          {#if creatingFolder}
+            <div class="folder-create-wrapper">
+              <div class="folder-item folder-create-input">
+                <input
+                  type="text"
+                  bind:value={newFolderName}
+                  placeholder="Folder name..."
+                  class="folder-inline-input"
+                  onkeydown={(e) => {
+                    if (e.key === 'Enter') createFolder();
+                    if (e.key === 'Escape') creatingFolder = false;
+                  }}
+                  autofocus
+                />
+              </div>
+              <span class="folder-create-hint">Separate with commas to create multiple</span>
+            </div>
+          {/if}
 
-        <button class="folder-add-btn" onclick={() => { creatingFolder = true; newFolderName = ''; }}>
-          + New Folder
-        </button>
+          <button class="folder-add-btn" onclick={() => { creatingFolder = true; newFolderName = ''; }}>
+            + New Folder
+          </button>
+        {/if}
       </div>
 
       <!-- Media grid -->
@@ -775,6 +910,7 @@
                   else selected = item;
                 }
               }}
+              oncontextmenu={(e) => !bulkMode && showFileContext(e, item)}
               draggable={!bulkMode}
               ondragstart={(e) => !bulkMode && onMediaDragStart(e, item)}
               ondragend={() => dragMediaId = null}
@@ -809,7 +945,8 @@
 
       <!-- Detail sidebar -->
       {#if selected && !bulkMode}
-        <div class="media-sidebar">
+        <div class="media-sidebar" style="width: {sidebarWidth}px;">
+          <div class="sidebar-resize-handle" onmousedown={onSidebarResizeStart}></div>
           <h3 class="media-sidebar-title">Details</h3>
           {#if selected.mime_type.startsWith('image/')}
             <!-- Focal point picker -->
@@ -845,6 +982,44 @@
             {/if}
             <div><strong>Type:</strong> {selected.mime_type}</div>
             <div><strong>Uploaded:</strong> {formatDate(selected.uploaded_at)}</div>
+          </div>
+
+          <!-- Folders -->
+          <div class="media-sidebar-section">
+            <label class="media-sidebar-label">Folders</label>
+            {#if loadingFolderIds}
+              <span class="folder-loading-text">Loading...</span>
+            {:else if selectedFolderIds.length === 0}
+              <span class="folder-none-text">No folders assigned</span>
+            {:else}
+              <div class="folder-chips">
+                {#each selectedFolderIds as fid}
+                  {@const folder = foldersList.find(f => f.id === fid)}
+                  {#if folder}
+                    <span class="folder-chip">
+                      {folder.name}
+                      <button class="folder-chip-remove" onclick={() => removeFromFolder(fid)} title="Remove from folder">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </span>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
+            {#if availableFoldersForAdd.length > 0}
+              <div class="folder-add-wrapper" style="margin-top: var(--space-xs);">
+                <button class="folder-add-link" onclick={() => showAddFolderDropdown = !showAddFolderDropdown}>
+                  + Add to folder
+                </button>
+                {#if showAddFolderDropdown}
+                  <div class="folder-add-dropdown">
+                    {#each availableFoldersForAdd as f (f.id)}
+                      <button class="folder-add-option" onclick={() => addToFolder(f.id)}>{f.name}</button>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/if}
           </div>
 
           <!-- Alt text -->
@@ -948,7 +1123,38 @@
   <div class="context-menu" style="left: {folderContextMenu.x}px; top: {folderContextMenu.y}px;">
     <button class="context-menu-item" onclick={() => startRenameFolder(folderContextMenu.folder)}>Rename</button>
     <button class="context-menu-item" onclick={() => createSubfolder(folderContextMenu.folder.id)}>New subfolder</button>
+    <button class="context-menu-item" onclick={() => { navigator.clipboard.writeText(`{%- for img in media_folder.${folderContextMenu.folder.slug || folderContextMenu.folder.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')} -%}{{ img.url }}{%- endfor -%}`); addToast('Template tag copied', 'success'); folderContextMenu = null; }}>Copy template tag</button>
     <button class="context-menu-item danger" onclick={() => deleteFolder(folderContextMenu.folder)}>Delete</button>
+  </div>
+{/if}
+
+<!-- File context menu -->
+{#if fileContextMenu}
+  <div class="context-menu" style="left: {fileContextMenu.x}px; top: {fileContextMenu.y}px;">
+    {#if fileContextMenu.loading}
+      <div class="context-menu-item" style="color: var(--text-tertiary); cursor: default;">Loading...</div>
+    {:else}
+      {#if fileContextMenu.folderIds.length > 0}
+        <div class="context-menu-section-label">In folders:</div>
+        {#each fileContextMenu.folderIds as fid}
+          {@const folder = foldersList.find(f => f.id === fid)}
+          {#if folder}
+            <div class="context-menu-badge">{folder.name}</div>
+          {/if}
+        {/each}
+        <div class="context-menu-divider"></div>
+      {/if}
+      {@const unassignedFolders = foldersList.filter(f => !fileContextMenu.folderIds.includes(f.id))}
+      {#if unassignedFolders.length > 0}
+        <div class="context-menu-section-label">Add to folder:</div>
+        {#each unassignedFolders as f (f.id)}
+          <button class="context-menu-item" onclick={() => fileContextAddToFolder(f.id)}>{f.name}</button>
+        {/each}
+        <div class="context-menu-divider"></div>
+      {/if}
+    {/if}
+    <button class="context-menu-item" onclick={() => { copyPath(fileContextMenu.item); fileContextMenu = null; }}>Copy Path</button>
+    <button class="context-menu-item danger" onclick={() => { deleteItem(fileContextMenu.item); fileContextMenu = null; }}>Delete</button>
   </div>
 {/if}
 
@@ -967,7 +1173,7 @@
     class:drag-over={folderDragOver === folder.id}
     style="padding-left: {12 + depth * 16}px;"
     onclick={() => activeFolderId = folder.id}
-    oncontextmenu={(e) => showFolderContext(e, folder)}
+    oncontextmenu={(e) => canManageFolders && showFolderContext(e, folder)}
     ondragover={(e) => onFolderDragOver(e, folder.id)}
     ondragleave={onFolderDragLeave}
     ondrop={(e) => onFolderDrop(e, folder.id)}
@@ -1214,6 +1420,17 @@
     min-width: 0;
   }
 
+  .folder-create-wrapper {
+    padding: 0 12px;
+  }
+  .folder-create-hint {
+    display: block;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+    padding-left: 2px;
+  }
+
   .folder-add-btn {
     display: block;
     width: 100%;
@@ -1232,12 +1449,27 @@
 
   /* Detail sidebar */
   .media-sidebar {
-    width: 280px;
     flex-shrink: 0;
     align-self: flex-start;
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
+    position: relative;
+  }
+  .sidebar-resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    transition: background 0.15s;
+    z-index: 2;
+  }
+  .sidebar-resize-handle:hover {
+    background: var(--border-color);
   }
   .media-sidebar-title {
     font-size: var(--font-size-sm);
@@ -1312,6 +1544,86 @@
   }
   .focal-reset:hover {
     color: var(--text-primary);
+  }
+
+  /* Folder chips in sidebar */
+  .folder-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .folder-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .folder-chip-remove {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+  .folder-chip-remove:hover {
+    color: var(--color-danger, #ef4444);
+  }
+  .folder-loading-text,
+  .folder-none-text {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  .folder-add-wrapper {
+    position: relative;
+  }
+  .folder-add-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+  }
+  .folder-add-link:hover {
+    color: var(--text-primary);
+  }
+  .folder-add-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 100;
+    min-width: 160px;
+    padding: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .folder-add-option {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+    border-radius: var(--radius-sm);
+  }
+  .folder-add-option:hover {
+    background: var(--bg-secondary);
   }
 
   /* Alt text */
@@ -1440,6 +1752,23 @@
   }
   :global(.context-menu-item.danger) {
     color: var(--color-danger, #ef4444);
+  }
+  :global(.context-menu-section-label) {
+    padding: 4px 12px 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+  }
+  :global(.context-menu-badge) {
+    padding: 2px 12px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+  }
+  :global(.context-menu-divider) {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 8px;
   }
 
   /* Bulk action bar */

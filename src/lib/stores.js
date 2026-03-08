@@ -22,6 +22,7 @@ export const canManageMembers = derived(user, ($user) => ['super_admin', 'admin'
 export const canManageChannels = derived(user, ($user) => ['super_admin', 'admin'].includes($user?.role));
 export const canBuildForms = derived(user, ($user) => ['super_admin', 'admin'].includes($user?.role));
 export const collectionGrants = writable(null); // null = all, array = restricted IDs
+export const mediaFolderGrants = writable(null); // null = all, array = restricted folder IDs
 
 // Navigation — parse initial state from URL hash
 function parseHash() {

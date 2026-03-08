@@ -172,7 +172,7 @@ class OutpostTemplate {
         // matches them — avoiding the "skip via return $m[0]" trap that caused the
         // outer match to consume inner {% endfor %} tags prematurely.
         $php = preg_replace_callback(
-            '/\{%\s*for\s+(\w+)\s+in\s+(?!collection\b|gallery\b|repeater\b|menu\b|taxonomy\b|folder\b|channel\b)(\w+)\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            '/\{%\s*for\s+(\w+)\s+in\s+(?!collection\b|gallery\b|repeater\b|menu\b|taxonomy\b|folder\b|channel\b|media_folder\b)(\w+)\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
             function ($m) {
                 $loopVar   = $m[1];
                 $parentVar = $m[2];
@@ -265,6 +265,18 @@ class OutpostTemplate {
                 $slug = $m[2];
                 $body = $m[3];
                 return "<?php foreach (cms_folder_labels('{$slug}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
+            },
+            $php
+        );
+
+        // {% for img in media_folder.slug %} ... {% endfor %}
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+media_folder\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $slug = $m[2];
+                $body = $m[3];
+                return "<?php foreach (cms_media_folder_items('{$slug}') as \${$var}): ?>" . $body . "<?php endforeach; ?>";
             },
             $php
         );

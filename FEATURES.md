@@ -4,6 +4,21 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Media Advanced (v1.7.0)
+
+- **Multi-folder assignment** — files can belong to multiple folders. Junction table `media_folder_items` replaces single `folder_id` FK. Detail sidebar shows folder chips with remove buttons and "Add to folder" dropdown.
+- **Gallery from folders** — new `{% for img in media_folder.slug %}` template tag renders all media items in a folder. Returns `url`, `alt_text`/`alt`, `width`, `height`, `focal_x`, `focal_y`, `mime_type`, `filename`.
+- **Resizable detail sidebar** — drag handle on left edge of the media detail sidebar. Width clamped 220–500px, persisted in localStorage.
+- **Bulk folder creation** — type comma-separated names in the folder creation input to create multiple folders at once (max 50). Hint text guides the user.
+- **Right-click file context menu** — right-click any file in the media grid to see folder badges, quick "Add to folder" options, Copy Path, and Delete.
+- **Role-based folder restrictions** — editors can be scoped to specific media folders in user profile. Restricted editors only see their assigned folders and cannot create/rename/delete folders.
+- **Folder slugs** — media folders auto-generate slugs for template tag resolution. "Copy template tag" option in folder context menu.
+- **New API endpoints** — `media/folders`, `media/assign-folders`, `media-folders/bulk`, `users/media-folder-grants` GET/PUT.
+- **Database migrations** — `media_folder_items` junction table, `slug` column on `media_folders`, `user_media_folder_grants` table.
+- **Files**: `php/api.php`, `php/db.php`, `php/engine.php`, `php/template-engine.php`, `php/roles.php`, `php/config.php`, `src/lib/api.js`, `src/lib/stores.js`, `src/pages/MediaLibrary.svelte`, `src/pages/UserProfile.svelte`, `src/App.svelte`
+
+---
+
 ## Bulk Media Operations (v1.6.2)
 
 - **Multi-select mode** — "Select" button in page header enters bulk mode with checkbox overlays on grid items. Click to toggle, shift-click for range select, Select All / Deselect All.

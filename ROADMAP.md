@@ -181,15 +181,17 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.7 — Media Advanced (HappyFiles-inspired)
+## v1.7 — Media Advanced — SHIPPED (v1.7.0)
 
-- Multi-folder assignment (files in multiple folders)
-- Gallery creation from folders (template tag: `{% gallery folder.slug %}`)
-- Resizable media sidebar
-- Role-based folder management restrictions
-- Bulk folder creation (comma-separated names)
-- Right-click file context menu (see assigned folders, quick-move)
-- CDN integration — optional S3, Cloudflare R2, or Bunny CDN as storage backend
+- **Multi-folder assignment** — files in multiple folders via junction table
+- **Gallery from folders** — `{% for img in media_folder.slug %}` template tag
+- **Resizable detail sidebar** — drag handle, 220–500px range, localStorage persistence
+- **Role-based folder restrictions** — editors scoped to specific media folders
+- **Bulk folder creation** — comma-separated names, max 50 at once
+- **Right-click file context menu** — folder badges, quick add-to-folder, copy path, delete
+- **Folder slugs** — auto-generated for template tag resolution
+
+**Excluded:** CDN integration (deferred to future version)
 
 ---
 

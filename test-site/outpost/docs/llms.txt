@@ -665,15 +665,37 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 
 **Media folders:**
 - Organize files into folders (up to 3 levels of nesting)
+- **Multi-folder assignment:** Files can belong to multiple folders simultaneously (junction table)
+- Each folder has an auto-generated unique slug for use in template tags
 - Folder sidebar in media library: All Files, Unfiled, folder tree
 - Create, rename, delete folders via right-click context menu
-- Drag files from grid onto folders to move
+- **Bulk folder creation:** Type comma-separated names to create up to 50 folders at once
+- Drag files from grid onto folders to **add** (not move — files keep existing assignments)
 - Uploads auto-assigned to the currently active folder
 - Deleting a folder: files become unfiled, children re-parented
+- **Resizable detail sidebar:** Drag left edge to resize (220–500px), width persisted in localStorage
+- **Right-click context menu on files:** Shows folder badges, quick "Add to folder", Copy Path, Delete
 - Folders are logical — files stay in `uploads/` on disk, URLs unchanged
+- **Role-based folder restrictions:** Editors can be scoped to specific folders via per-user grants (Admin → Users → Edit → Media Folder Access). No grants = full access. Admins/super_admins always have full access. Restricted editors cannot create/rename/delete folders.
 - API: `GET/POST/PUT/DELETE api.php?action=media-folders`
-- Move files: `PUT api.php?action=media/move` with `{ids: [...], folder_id: N}`
+- Bulk create: `POST api.php?action=media-folders/bulk` with `{names: [...], parent_id: null}`
+- Move/add/remove: `PUT api.php?action=media/move` with `{ids: [...], folder_id: N, action: "set"|"add"|"remove"}`
+- Get folders for item: `GET api.php?action=media/folders&media_id=N`
+- Assign folders: `PUT api.php?action=media/assign-folders` with `{media_id: N, folder_ids: [...]}`
+- Folder grants: `GET/PUT api.php?action=users/media-folder-grants` with `{user_id: N, folder_ids: [...]}`
 - Filter media list: `GET api.php?action=media&folder_id=N` (or `unfiled`)
+
+**Gallery from media folders (template tag):**
+```html
+{% for img in media_folder.photos %}
+  <img src="{{ img.url }}" alt="{{ img.alt }}"
+       style="object-position: {{ img.focal_x }}% {{ img.focal_y }}%;">
+{% endfor %}
+```
+- `photos` is the folder slug (auto-generated, unique, visible via right-click → Copy template tag)
+- Available fields: `img.url`, `img.alt` (or `img.alt_text`), `img.width`, `img.height`, `img.focal_x`, `img.focal_y`, `img.mime_type`, `img.filename`
+- Images returned in reverse-chronological order (newest first)
+- All string fields are HTML-escaped
 
 **Bulk upload:**
 - Drop multiple files or select multiple in file picker
@@ -1295,10 +1317,14 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `media` | GET, PUT, DELETE | Media library (GET: ?folder_id= filter; PUT updates alt_text, focal_x, focal_y, folder_id) |
 | `media/upload` | POST | Upload file (optional folder_id form field) |
 | `media/transform` | POST | Resize or crop a raster image (GD required) |
-| `media/move` | PUT | Move media files to a folder (ids[], folder_id) |
-| `media-folders` | GET, POST, PUT, DELETE | Media folder CRUD (max 3 levels deep) |
+| `media/move` | PUT | Move/add/remove media files to/from folders (ids[], folder_id, action: set/add/remove) |
+| `media/folders` | GET | Get folder IDs for a media item (media_id param) |
+| `media/assign-folders` | PUT | Set all folder assignments for a media item (media_id, folder_ids[]) |
+| `media-folders` | GET, POST, PUT, DELETE | Media folder CRUD (max 3 levels deep, auto-generated slugs) |
+| `media-folders/bulk` | POST | Create multiple folders at once (names[], parent_id, max 50) |
 | `users` | GET, POST, PUT, DELETE | Admin users CRUD |
 | `users/grants` | GET, PUT | Collection grants for editor users (GET returns granted IDs, PUT replaces all grants) |
+| `users/media-folder-grants` | GET, PUT | Media folder grants for editor users (folder_ids[]) |
 | `members` | GET, PUT, DELETE | Member management |
 | `menus` | GET, POST, PUT, DELETE | Navigation menus CRUD |
 | `loops` | GET, POST, DELETE | Saved query loops |

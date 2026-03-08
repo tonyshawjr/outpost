@@ -343,6 +343,71 @@
 
     <div class="callout callout-note"><strong>Note</strong> — All modern browsers support <code>loading="lazy"</code>. It defers offscreen image loads until the user scrolls near them, significantly improving initial page load time for image-heavy pages.</div>
 
+    <h2>Gallery from Media Folders</h2>
+    <p>Render all images in a media folder directly in your template using the <code>media_folder</code> loop. This lets you use the admin media library to organize images into folders and display them as galleries — no collection or schema fields needed.</p>
+
+    <pre><code>{% for img in media_folder.photos %}
+  &lt;img
+    src="{{ img.url }}"
+    alt="{{ img.alt }}"
+    style="object-fit: cover; object-position: {{ img.focal_x }}% {{ img.focal_y }}%;"
+    loading="lazy"
+  &gt;
+{% endfor %}</code></pre>
+
+    <p>Where <code>photos</code> is the <strong>slug</strong> of a media folder (visible in the folder's right-click context menu → "Copy template tag").</p>
+
+    <h3>Available Data Per Image</h3>
+    <table>
+      <thead>
+        <tr><th>Expression</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>{{ img.url }}</code></td><td>Full public URL to the image file.</td></tr>
+        <tr><td><code>{{ img.alt }}</code></td><td>Alt text from the media library (HTML-escaped).</td></tr>
+        <tr><td><code>{{ img.alt_text }}</code></td><td>Same as <code>alt</code> (alias).</td></tr>
+        <tr><td><code>{{ img.width }}</code></td><td>Image width in pixels.</td></tr>
+        <tr><td><code>{{ img.height }}</code></td><td>Image height in pixels.</td></tr>
+        <tr><td><code>{{ img.focal_x }}</code></td><td>Focal point X percentage (0–100, default 50).</td></tr>
+        <tr><td><code>{{ img.focal_y }}</code></td><td>Focal point Y percentage (0–100, default 50).</td></tr>
+        <tr><td><code>{{ img.mime_type }}</code></td><td>MIME type (e.g., <code>image/webp</code>).</td></tr>
+        <tr><td><code>{{ img.filename }}</code></td><td>Original uploaded filename.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Example: Photo Gallery Page</h3>
+    <pre><code>{% include 'head' %}
+{% include 'nav' %}
+
+&lt;main&gt;
+  &lt;h1&gt;Photo Gallery&lt;/h1&gt;
+
+  &lt;div class="gallery-grid"&gt;
+    {% for img in media_folder.photos %}
+      &lt;figure&gt;
+        &lt;img
+          src="{{ img.url }}"
+          alt="{{ img.alt }}"
+          width="{{ img.width }}"
+          height="{{ img.height }}"
+          style="object-position: {{ img.focal_x }}% {{ img.focal_y }}%;"
+          loading="lazy"
+        &gt;
+      &lt;/figure&gt;
+    {% endfor %}
+  &lt;/div&gt;
+&lt;/main&gt;
+
+{% include 'footer' %}</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Note</strong> — Images are returned in reverse-chronological order (newest first). The <code>media_folder</code> loop includes all file types in the folder, not just images. Filter by <code>img.mime_type</code> if you need to exclude non-image files.
+    </div>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong> — To get the folder slug for use in templates, right-click the folder in the media library sidebar and choose <strong>Copy template tag</strong>. The slug is auto-generated from the folder name (lowercase, hyphens, no special characters) and is guaranteed to be unique.
+    </div>
+
   </div>
 </main>
 

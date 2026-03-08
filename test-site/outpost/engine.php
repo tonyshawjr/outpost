@@ -296,6 +296,31 @@ function cms_gallery_items(string $name): array {
     }, $items);
 }
 
+// Returns all media items in a media folder by slug.
+// Each item: { url, alt_text, width, height, focal_x, focal_y, mime_type, filename }
+function cms_media_folder_items(string $slug): array {
+    require_once __DIR__ . '/db.php';
+    $folder = OutpostDB::fetchOne('SELECT id FROM media_folders WHERE slug = ?', [$slug]);
+    if (!$folder) return [];
+    $rows = OutpostDB::fetchAll(
+        'SELECT m.* FROM media m JOIN media_folder_items mfi ON m.id = mfi.media_id WHERE mfi.folder_id = ? ORDER BY m.uploaded_at DESC',
+        [(int) $folder['id']]
+    );
+    return array_map(function ($m) {
+        return [
+            'url'       => htmlspecialchars((string) ($m['path'] ?? ''), ENT_QUOTES, 'UTF-8'),
+            'alt_text'  => htmlspecialchars((string) ($m['alt_text'] ?? ''), ENT_QUOTES, 'UTF-8'),
+            'alt'       => htmlspecialchars((string) ($m['alt_text'] ?? ''), ENT_QUOTES, 'UTF-8'),
+            'width'     => (int) ($m['width'] ?? 0),
+            'height'    => (int) ($m['height'] ?? 0),
+            'focal_x'   => (int) ($m['focal_x'] ?? 50),
+            'focal_y'   => (int) ($m['focal_y'] ?? 50),
+            'mime_type'  => htmlspecialchars((string) ($m['mime_type'] ?? ''), ENT_QUOTES, 'UTF-8'),
+            'filename'   => htmlspecialchars((string) ($m['original_name'] ?? $m['filename'] ?? ''), ENT_QUOTES, 'UTF-8'),
+        ];
+    }, $rows);
+}
+
 // Returns all rows of a repeater field as an array of escaped key=>value maps.
 function cms_repeater_items(string $name): array {
     $json = outpost_resolve_field($name, 'repeater', '[]', '[]');

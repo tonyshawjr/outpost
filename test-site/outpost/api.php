@@ -128,6 +128,8 @@ ensure_user_collection_grants_table();
 ensure_pages_locked_column();
 ensure_media_focal_columns();
 ensure_media_folders_table();
+ensure_media_folder_items_table();
+ensure_user_media_folder_grants_table();
 cleanup_ghost_collection_pages();
 require_once __DIR__ . '/mailer.php';
 
@@ -208,8 +210,11 @@ match (true) {
     // Media Folders
     $action === 'media-folders' && $method === 'GET' => handle_media_folders_list(),
     $action === 'media-folders' && $method === 'POST' => handle_media_folder_create(),
+    $action === 'media-folders/bulk' && $method === 'POST' => handle_media_folders_bulk_create(),
     $action === 'media-folders' && $method === 'PUT' && isset($_GET['id']) => handle_media_folder_update(),
     $action === 'media-folders' && $method === 'DELETE' && isset($_GET['id']) => handle_media_folder_delete(),
+    $action === 'media/folders' && $method === 'GET' && isset($_GET['media_id']) => handle_media_get_folders(),
+    $action === 'media/assign-folders' && $method === 'PUT' => handle_media_assign_folders(),
 
     // Settings
     $action === 'settings' && $method === 'GET' => handle_settings_get(),
@@ -226,6 +231,8 @@ match (true) {
     $action === 'users' && $method === 'DELETE' && isset($_GET['id']) => handle_user_delete(),
     $action === 'users/grants' && $method === 'GET' => handle_user_grants_get(),
     $action === 'users/grants' && $method === 'PUT' => handle_user_grants_set(),
+    $action === 'users/media-folder-grants' && $method === 'GET' => handle_user_media_folder_grants_get(),
+    $action === 'users/media-folder-grants' && $method === 'PUT' => handle_user_media_folder_grants_set(),
 
     // Code Editor
     $action === 'code/files'   && $method === 'GET'    => handle_code_files(),
@@ -629,14 +636,21 @@ function handle_me(): void {
         $user['totp_enabled'] = (bool)($user['totp_enabled'] ?? 0);
     }
 
-    // Include collection grants for editors
+    // Include collection + media folder grants for editors
     $collection_grants = null;
+    $media_folder_grants = null;
     if ($user && $user['role'] === 'editor') {
         $grants = OutpostDB::fetchAll(
             'SELECT collection_id FROM user_collection_grants WHERE user_id = ?',
             [(int) $user['id']]
         );
         $collection_grants = empty($grants) ? null : array_map(fn($g) => (int) $g['collection_id'], $grants);
+
+        $mfGrants = OutpostDB::fetchAll(
+            'SELECT folder_id FROM user_media_folder_grants WHERE user_id = ?',
+            [(int) $user['id']]
+        );
+        $media_folder_grants = empty($mfGrants) ? null : array_map(fn($g) => (int) $g['folder_id'], $mfGrants);
     }
 
     $response = [
@@ -644,6 +658,7 @@ function handle_me(): void {
         'csrf_token' => OutpostAuth::csrfToken(),
         'version' => OUTPOST_VERSION,
         'collection_grants' => $collection_grants,
+        'media_folder_grants' => $media_folder_grants,
     ];
 
     // Include update status for admin/super_admin users
@@ -666,6 +681,17 @@ function ensure_user_collection_grants_table(): void {
         UNIQUE(user_id, collection_id),
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
+    )");
+}
+
+function ensure_user_media_folder_grants_table(): void {
+    OutpostDB::connect()->exec("CREATE TABLE IF NOT EXISTS user_media_folder_grants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        folder_id INTEGER NOT NULL,
+        UNIQUE(user_id, folder_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (folder_id) REFERENCES media_folders(id) ON DELETE CASCADE
     )");
 }
 
@@ -693,6 +719,68 @@ function ensure_media_folders_table(): void {
             created_at TEXT DEFAULT (datetime('now'))
         )
     ");
+}
+
+function ensure_media_folder_items_table(): void {
+    $db = OutpostDB::connect();
+
+    // Create junction table for multi-folder assignment
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS media_folder_items (
+            media_id INTEGER NOT NULL,
+            folder_id INTEGER NOT NULL,
+            PRIMARY KEY (media_id, folder_id),
+            FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+            FOREIGN KEY (folder_id) REFERENCES media_folders(id) ON DELETE CASCADE
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_media_folder_items_folder ON media_folder_items(folder_id)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_media_folder_items_media ON media_folder_items(media_id)");
+
+    // Add slug column to media_folders if missing
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(media_folders)");
+    $existing = array_column($cols, 'name');
+    if (!in_array('slug', $existing)) {
+        $db->exec("ALTER TABLE media_folders ADD COLUMN slug TEXT DEFAULT ''");
+        // Backfill slugs from existing folder names
+        $folders = OutpostDB::fetchAll('SELECT id, name FROM media_folders');
+        foreach ($folders as $f) {
+            $slug = outpost_slugify($f['name']);
+            OutpostDB::update('media_folders', ['slug' => $slug], 'id = ?', [$f['id']]);
+        }
+    }
+
+    // Migrate existing folder_id data to junction table (one-time)
+    $mediaCols = OutpostDB::fetchAll("PRAGMA table_info(media)");
+    $mediaExisting = array_column($mediaCols, 'name');
+    if (in_array('folder_id', $mediaExisting)) {
+        // Check if we need to migrate (any media with folder_id set but no junction row)
+        $needsMigration = OutpostDB::fetchOne(
+            'SELECT COUNT(*) as c FROM media WHERE folder_id IS NOT NULL AND id NOT IN (SELECT media_id FROM media_folder_items)'
+        );
+        if ($needsMigration && (int) $needsMigration['c'] > 0) {
+            $db->exec('INSERT OR IGNORE INTO media_folder_items (media_id, folder_id) SELECT id, folder_id FROM media WHERE folder_id IS NOT NULL');
+        }
+    }
+}
+
+function outpost_slugify(string $text, ?int $excludeId = null): string {
+    $slug = strtolower(trim($text));
+    $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
+    $slug = preg_replace('/-+/', '-', $slug);
+    $slug = trim($slug, '-');
+    if ($slug === '') $slug = 'folder';
+    // Ensure unique slug among media_folders
+    $base = $slug;
+    $i = 2;
+    while (true) {
+        $existing = $excludeId !== null
+            ? OutpostDB::fetchOne('SELECT id FROM media_folders WHERE slug = ? AND id != ?', [$slug, $excludeId])
+            : OutpostDB::fetchOne('SELECT id FROM media_folders WHERE slug = ?', [$slug]);
+        if (!$existing) break;
+        $slug = $base . '-' . $i++;
+    }
+    return $slug;
 }
 
 function ensure_pages_locked_column(): void {
@@ -758,6 +846,47 @@ function handle_user_grants_set(): void {
             'user_id' => $userId,
             'collection_id' => (int) $cid,
         ]);
+    }
+
+    json_response(['success' => true]);
+}
+
+// ── User Media Folder Grants ─────────────────────────────
+
+function handle_user_media_folder_grants_get(): void {
+    $userId = (int) ($_GET['user_id'] ?? 0);
+    if (!$userId) json_error('user_id required');
+
+    $grants = OutpostDB::fetchAll(
+        'SELECT folder_id FROM user_media_folder_grants WHERE user_id = ?',
+        [$userId]
+    );
+
+    json_response(['grants' => array_map(fn($g) => (int) $g['folder_id'], $grants)]);
+}
+
+function handle_user_media_folder_grants_set(): void {
+    $userId = (int) ($_GET['user_id'] ?? 0);
+    if (!$userId) json_error('user_id required');
+
+    $targetUser = OutpostDB::fetchOne('SELECT role FROM users WHERE id = ?', [$userId]);
+    if (!$targetUser) json_error('User not found', 404);
+    if ($targetUser['role'] !== 'editor') json_error('Grants only apply to editors');
+
+    $data = get_json_body();
+    $folderIds = $data['folder_ids'] ?? [];
+    if (!is_array($folderIds)) json_error('folder_ids must be an array');
+
+    // Replace all grants
+    OutpostDB::query('DELETE FROM user_media_folder_grants WHERE user_id = ?', [$userId]);
+    foreach ($folderIds as $fid) {
+        $fid = (int) $fid;
+        if ($fid > 0) {
+            OutpostDB::insert('user_media_folder_grants', [
+                'user_id' => $userId,
+                'folder_id' => $fid,
+            ]);
+        }
     }
 
     json_response(['success' => true]);
@@ -2183,12 +2312,38 @@ function handle_item_preview_token(): void {
 // ── Media Handlers ───────────────────────────────────────
 function handle_media_list(): void {
     $folderId = $_GET['folder_id'] ?? null;
+    $grantedFolders = outpost_get_granted_media_folder_ids();
+
+    // If editor has folder restrictions and requests a folder they don't have access to, deny
+    if ($grantedFolders !== null && $folderId !== null && $folderId !== 'unfiled') {
+        if (!in_array((int) $folderId, $grantedFolders, true)) {
+            json_error('Access denied to this folder', 403);
+        }
+    }
+
     if ($folderId === 'unfiled') {
-        $media = OutpostDB::fetchAll('SELECT * FROM media WHERE folder_id IS NULL ORDER BY uploaded_at DESC');
+        if ($grantedFolders !== null) {
+            // Restricted editor: hide unfiled view entirely (they can only see granted folders)
+            $media = [];
+        } else {
+            $media = OutpostDB::fetchAll('SELECT * FROM media WHERE id NOT IN (SELECT media_id FROM media_folder_items) ORDER BY uploaded_at DESC');
+        }
     } elseif ($folderId !== null && $folderId !== '') {
-        $media = OutpostDB::fetchAll('SELECT * FROM media WHERE folder_id = ? ORDER BY uploaded_at DESC', [(int) $folderId]);
+        $media = OutpostDB::fetchAll(
+            'SELECT m.* FROM media m JOIN media_folder_items mfi ON m.id = mfi.media_id WHERE mfi.folder_id = ? ORDER BY m.uploaded_at DESC',
+            [(int) $folderId]
+        );
     } else {
-        $media = OutpostDB::fetchAll('SELECT * FROM media ORDER BY uploaded_at DESC');
+        if ($grantedFolders !== null) {
+            // Restricted editor: only show media in their granted folders (no unfiled)
+            $placeholders = implode(',', array_fill(0, count($grantedFolders), '?'));
+            $media = OutpostDB::fetchAll(
+                "SELECT DISTINCT m.* FROM media m JOIN media_folder_items mfi ON m.id = mfi.media_id WHERE mfi.folder_id IN ($placeholders) ORDER BY m.uploaded_at DESC",
+                $grantedFolders
+            );
+        } else {
+            $media = OutpostDB::fetchAll('SELECT * FROM media ORDER BY uploaded_at DESC');
+        }
     }
     json_response(['media' => $media]);
 }
@@ -2211,6 +2366,11 @@ function handle_media_upload(): void {
     if ($folderId !== null) {
         $folderCheck = OutpostDB::fetchOne('SELECT id FROM media_folders WHERE id = ?', [$folderId]);
         if (!$folderCheck) json_error('Folder not found', 404);
+        // Enforce folder grant restrictions
+        $grantedFolders = outpost_get_granted_media_folder_ids();
+        if ($grantedFolders !== null && !in_array($folderId, $grantedFolders, true)) {
+            json_error('Access denied to this folder', 403);
+        }
     }
     $result = OutpostMedia::upload($file);
 
@@ -2218,9 +2378,12 @@ function handle_media_upload(): void {
         json_error($result['error']);
     }
 
-    // Assign to folder if specified
+    // Assign to folder if specified (junction table)
     if ($folderId !== null && isset($result['id'])) {
-        OutpostDB::update('media', ['folder_id' => $folderId], 'id = ?', [$result['id']]);
+        OutpostDB::query(
+            'INSERT OR IGNORE INTO media_folder_items (media_id, folder_id) VALUES (?, ?)',
+            [(int) $result['id'], $folderId]
+        );
         $result['folder_id'] = $folderId;
     }
 
@@ -2235,6 +2398,16 @@ function handle_media_delete(): void {
 
     $media = OutpostDB::fetchOne('SELECT * FROM media WHERE id = ?', [$id]);
     if (!$media) json_error('Media not found', 404);
+
+    // Restricted editors can only delete media in their granted folders
+    $grantedFolders = outpost_get_granted_media_folder_ids();
+    if ($grantedFolders !== null) {
+        $mediaFolders = OutpostDB::fetchAll('SELECT folder_id FROM media_folder_items WHERE media_id = ?', [$id]);
+        $mediaFolderIds = array_map(fn($r) => (int) $r['folder_id'], $mediaFolders);
+        if (empty($mediaFolderIds) || empty(array_intersect($mediaFolderIds, $grantedFolders))) {
+            json_error('Access denied', 403);
+        }
+    }
 
     require_once __DIR__ . '/media.php';
     OutpostMedia::delete($media);
@@ -2255,10 +2428,19 @@ function handle_media_bulk_delete(): void {
     $ids = array_map('intval', $ids);
 
     require_once __DIR__ . '/media.php';
+    $grantedFolders = outpost_get_granted_media_folder_ids();
     $deleted = 0;
     foreach ($ids as $id) {
         $media = OutpostDB::fetchOne('SELECT * FROM media WHERE id = ?', [$id]);
         if (!$media) continue;
+        // Restricted editors can only delete media in their granted folders
+        if ($grantedFolders !== null) {
+            $mediaFolders = OutpostDB::fetchAll('SELECT folder_id FROM media_folder_items WHERE media_id = ?', [$id]);
+            $mediaFolderIds = array_map(fn($r) => (int) $r['folder_id'], $mediaFolders);
+            if (empty($mediaFolderIds) || empty(array_intersect($mediaFolderIds, $grantedFolders))) {
+                continue; // Skip files the editor can't access
+            }
+        }
         OutpostMedia::delete($media);
         dispatch_webhook('media.deleted', ['id' => $id, 'filename' => $media['filename'] ?? '', 'path' => $media['path'] ?? '']);
         $deleted++;
@@ -2284,14 +2466,7 @@ function handle_media_update(): void {
     if (array_key_exists('focal_y', $data)) {
         $update['focal_y'] = max(0, min(100, (int) $data['focal_y']));
     }
-    if (array_key_exists('folder_id', $data)) {
-        $fid = $data['folder_id'] === null ? null : (int) $data['folder_id'];
-        if ($fid !== null) {
-            $folderCheck = OutpostDB::fetchOne('SELECT id FROM media_folders WHERE id = ?', [$fid]);
-            if (!$folderCheck) json_error('Folder not found', 404);
-        }
-        $update['folder_id'] = $fid;
-    }
+    // folder_id is deprecated — use assign-folders endpoint instead. Ignore silently.
 
     if (empty($update)) json_error('Nothing to update');
 
@@ -2408,16 +2583,27 @@ function handle_media_transform(): void {
 // ── Media Folder Handlers ────────────────────────────────
 function handle_media_folders_list(): void {
     $folders = OutpostDB::fetchAll('SELECT * FROM media_folders ORDER BY sort_order, name');
-    // Add file counts per folder + unfiled count
-    foreach ($folders as &$f) {
-        $f['file_count'] = (int) OutpostDB::fetchOne('SELECT COUNT(*) as c FROM media WHERE folder_id = ?', [$f['id']])['c'];
+    $grantedFolders = outpost_get_granted_media_folder_ids();
+
+    // Filter folders by grants if restricted
+    if ($grantedFolders !== null) {
+        $folders = array_values(array_filter($folders, fn($f) => in_array((int) $f['id'], $grantedFolders, true)));
     }
-    $unfiled = (int) OutpostDB::fetchOne('SELECT COUNT(*) as c FROM media WHERE folder_id IS NULL')['c'];
+
+    // Add file counts per folder from junction table + unfiled count
+    foreach ($folders as &$f) {
+        $f['file_count'] = (int) OutpostDB::fetchOne('SELECT COUNT(*) as c FROM media_folder_items WHERE folder_id = ?', [$f['id']])['c'];
+    }
+    $unfiled = (int) OutpostDB::fetchOne('SELECT COUNT(*) as c FROM media WHERE id NOT IN (SELECT media_id FROM media_folder_items)')['c'];
     $total = (int) OutpostDB::fetchOne('SELECT COUNT(*) as c FROM media')['c'];
     json_response(['folders' => $folders, 'unfiled_count' => $unfiled, 'total_count' => $total]);
 }
 
 function handle_media_folder_create(): void {
+    // Restricted editors cannot create folders
+    if (outpost_get_granted_media_folder_ids() !== null) {
+        json_error('Permission denied', 403);
+    }
     $data = get_json_body();
     $name = trim($data['name'] ?? '');
     if (!$name) json_error('Folder name is required');
@@ -2436,8 +2622,11 @@ function handle_media_folder_create(): void {
         if ($depth >= 3) json_error('Maximum folder depth is 3 levels');
     }
 
+    $slug = outpost_slugify($name);
+
     $id = OutpostDB::insert('media_folders', [
         'name' => $name,
+        'slug' => $slug,
         'parent_id' => $parentId,
     ]);
     $folder = OutpostDB::fetchOne('SELECT * FROM media_folders WHERE id = ?', [$id]);
@@ -2445,25 +2634,76 @@ function handle_media_folder_create(): void {
     json_response(['success' => true, 'folder' => $folder], 201);
 }
 
+function handle_media_folders_bulk_create(): void {
+    if (outpost_get_granted_media_folder_ids() !== null) {
+        json_error('Permission denied', 403);
+    }
+    $data = get_json_body();
+    $names = $data['names'] ?? [];
+    if (!is_array($names) || empty($names)) json_error('names array is required');
+    if (count($names) > 50) json_error('Maximum 50 folders per batch');
+    $parentId = isset($data['parent_id']) && $data['parent_id'] !== null ? (int) $data['parent_id'] : null;
+
+    // Max depth: 3 levels (same logic as single create)
+    if ($parentId !== null) {
+        $depth = 1;
+        $pid = $parentId;
+        while ($pid !== null && $depth < 3) {
+            $parent = OutpostDB::fetchOne('SELECT parent_id FROM media_folders WHERE id = ?', [$pid]);
+            if (!$parent) break;
+            $pid = $parent['parent_id'];
+            $depth++;
+        }
+        if ($depth >= 3) json_error('Maximum folder depth is 3 levels');
+    }
+
+    $created = [];
+    foreach ($names as $rawName) {
+        $name = trim((string) $rawName);
+        if (!$name || mb_strlen($name) > 100) continue;
+        $slug = outpost_slugify($name);
+        $id = OutpostDB::insert('media_folders', [
+            'name' => $name,
+            'slug' => $slug,
+            'parent_id' => $parentId,
+        ]);
+        $folder = OutpostDB::fetchOne('SELECT * FROM media_folders WHERE id = ?', [$id]);
+        $folder['file_count'] = 0;
+        $created[] = $folder;
+    }
+    json_response(['success' => true, 'folders' => $created], 201);
+}
+
 function handle_media_folder_update(): void {
+    if (outpost_get_granted_media_folder_ids() !== null) {
+        json_error('Permission denied', 403);
+    }
     $id = (int) $_GET['id'];
     $data = get_json_body();
     $folder = OutpostDB::fetchOne('SELECT * FROM media_folders WHERE id = ?', [$id]);
     if (!$folder) json_error('Folder not found', 404);
 
     $update = [];
-    if (array_key_exists('name', $data)) $update['name'] = trim($data['name']);
+    if (array_key_exists('name', $data)) {
+        $name = trim($data['name']);
+        if (!$name) json_error('Folder name is required');
+        $update['name'] = $name;
+        $update['slug'] = outpost_slugify($name, $id);
+    }
     if (array_key_exists('parent_id', $data)) {
         $update['parent_id'] = $data['parent_id'] === null ? null : (int) $data['parent_id'];
         // Prevent circular reference — walk the ancestor chain
         if ($update['parent_id'] !== null) {
             $check = $update['parent_id'];
             $seen = [$id];
+            $depth = 1;
             while ($check !== null) {
                 if (in_array($check, $seen)) {
                     json_error('Moving this folder would create a circular reference');
                 }
                 $seen[] = $check;
+                $depth++;
+                if ($depth > 3) json_error('Maximum folder depth is 3 levels');
                 $ancestor = OutpostDB::fetchOne('SELECT parent_id FROM media_folders WHERE id = ?', [$check]);
                 if (!$ancestor) break;
                 $check = $ancestor['parent_id'];
@@ -2475,18 +2715,22 @@ function handle_media_folder_update(): void {
 
     OutpostDB::update('media_folders', $update, 'id = ?', [$id]);
     $updated = OutpostDB::fetchOne('SELECT * FROM media_folders WHERE id = ?', [$id]);
+    $count = OutpostDB::fetchOne('SELECT COUNT(*) as cnt FROM media_folder_items WHERE folder_id = ?', [$id]);
+    $updated['file_count'] = (int) ($count['cnt'] ?? 0);
     json_response(['success' => true, 'folder' => $updated]);
 }
 
 function handle_media_folder_delete(): void {
+    if (outpost_get_granted_media_folder_ids() !== null) {
+        json_error('Permission denied', 403);
+    }
     $id = (int) $_GET['id'];
     $folder = OutpostDB::fetchOne('SELECT * FROM media_folders WHERE id = ?', [$id]);
     if (!$folder) json_error('Folder not found', 404);
 
     // Re-parent children to this folder's parent
     OutpostDB::query('UPDATE media_folders SET parent_id = ? WHERE parent_id = ?', [$folder['parent_id'], $id]);
-    // Unfile media in this folder
-    OutpostDB::query('UPDATE media SET folder_id = NULL WHERE folder_id = ?', [$id]);
+    // Junction rows cascade-delete automatically via FK
     // Delete folder
     OutpostDB::delete('media_folders', 'id = ?', [$id]);
     json_response(['success' => true]);
@@ -2495,18 +2739,98 @@ function handle_media_folder_delete(): void {
 function handle_media_move_to_folder(): void {
     $data = get_json_body();
     $ids = $data['ids'] ?? [];
-    if (empty($ids)) json_error('No media IDs provided');
+    if (!is_array($ids) || empty($ids)) json_error('ids (array) required');
     if (count($ids) > 500) json_error('Maximum 500 items per batch move');
     $folderId = array_key_exists('folder_id', $data) ? ($data['folder_id'] === null ? null : (int) $data['folder_id']) : null;
+    $action = $data['action'] ?? 'set';
+    if (!in_array($action, ['set', 'add', 'remove'], true)) json_error('Invalid action');
+
     if ($folderId !== null) {
         $folderCheck = OutpostDB::fetchOne('SELECT id FROM media_folders WHERE id = ?', [$folderId]);
         if (!$folderCheck) json_error('Folder not found', 404);
     }
 
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $params = array_merge([$folderId], array_map('intval', $ids));
-    OutpostDB::query("UPDATE media SET folder_id = ? WHERE id IN ($placeholders)", $params);
+    // Enforce folder grant restrictions
+    $grantedFolders = outpost_get_granted_media_folder_ids();
+    if ($grantedFolders !== null && $folderId !== null && !in_array($folderId, $grantedFolders, true)) {
+        json_error('Access denied to this folder', 403);
+    }
+
+    $intIds = array_map('intval', $ids);
+    $placeholders = implode(',', array_fill(0, count($intIds), '?'));
+
+    if ($action === 'remove' && $folderId !== null) {
+        // Remove from specific folder
+        OutpostDB::query("DELETE FROM media_folder_items WHERE folder_id = ? AND media_id IN ($placeholders)", array_merge([$folderId], $intIds));
+    } elseif ($action === 'add' && $folderId !== null) {
+        // Add to folder (keep existing assignments)
+        foreach ($intIds as $mid) {
+            OutpostDB::query('INSERT OR IGNORE INTO media_folder_items (media_id, folder_id) VALUES (?, ?)', [$mid, $folderId]);
+        }
+    } else {
+        // 'set' — replace: remove all folder assignments, then assign to new folder
+        OutpostDB::query("DELETE FROM media_folder_items WHERE media_id IN ($placeholders)", $intIds);
+        if ($folderId !== null) {
+            foreach ($intIds as $mid) {
+                OutpostDB::query('INSERT OR IGNORE INTO media_folder_items (media_id, folder_id) VALUES (?, ?)', [$mid, $folderId]);
+            }
+        }
+    }
     json_response(['success' => true, 'moved' => count($ids)]);
+}
+
+function handle_media_get_folders(): void {
+    $mediaId = (int) ($_GET['media_id'] ?? 0);
+    if (!$mediaId) json_error('media_id is required');
+    $rows = OutpostDB::fetchAll('SELECT folder_id FROM media_folder_items WHERE media_id = ?', [$mediaId]);
+    $folderIds = array_map(fn($r) => (int) $r['folder_id'], $rows);
+
+    // Filter to only granted folders for restricted editors
+    $grantedFolders = outpost_get_granted_media_folder_ids();
+    if ($grantedFolders !== null) {
+        $folderIds = array_values(array_intersect($folderIds, $grantedFolders));
+    }
+
+    json_response(['folder_ids' => $folderIds]);
+}
+
+function handle_media_assign_folders(): void {
+    $data = get_json_body();
+    $mediaId = (int) ($data['media_id'] ?? 0);
+    if (!$mediaId) json_error('media_id is required');
+    $folderIds = $data['folder_ids'] ?? [];
+    if (!is_array($folderIds)) json_error('folder_ids must be an array');
+    if (count($folderIds) > 100) json_error('Maximum 100 folders per assignment');
+
+    // Verify media exists
+    $item = OutpostDB::fetchOne('SELECT id FROM media WHERE id = ?', [$mediaId]);
+    if (!$item) json_error('Media not found', 404);
+
+    // Enforce folder grant restrictions
+    $grantedFolders = outpost_get_granted_media_folder_ids();
+    $intFolderIds = array_map('intval', array_filter($folderIds, fn($f) => (int)$f > 0));
+    if ($grantedFolders !== null) {
+        foreach ($intFolderIds as $fid) {
+            if (!in_array($fid, $grantedFolders, true)) {
+                json_error('Access denied to folder ' . $fid, 403);
+            }
+        }
+    }
+
+    // For restricted editors, only replace assignments for granted folders (preserve non-granted)
+    if ($grantedFolders !== null) {
+        $grantedPlaceholders = implode(',', array_fill(0, count($grantedFolders), '?'));
+        OutpostDB::query(
+            "DELETE FROM media_folder_items WHERE media_id = ? AND folder_id IN ($grantedPlaceholders)",
+            array_merge([$mediaId], $grantedFolders)
+        );
+    } else {
+        OutpostDB::query('DELETE FROM media_folder_items WHERE media_id = ?', [$mediaId]);
+    }
+    foreach ($intFolderIds as $fid) {
+        OutpostDB::query('INSERT OR IGNORE INTO media_folder_items (media_id, folder_id) VALUES (?, ?)', [$mediaId, $fid]);
+    }
+    json_response(['success' => true]);
 }
 
 // ── Settings Handlers ────────────────────────────────────

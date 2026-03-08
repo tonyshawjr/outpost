@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { users as usersApi, media as mediaApi, auth, collections as collectionsApi } from '$lib/api.js';
+  import { users as usersApi, media as mediaApi, auth, collections as collectionsApi, mediaFolders as foldersApi } from '$lib/api.js';
   import { currentProfileUserId, user as currentUserStore, navigate, addToast, canManageUsers } from '$lib/stores.js';
   import { required, email as emailRule, minLength, match, validate, hasErrors } from '$lib/validation.js';
   import QRCode from 'qrcode';
@@ -29,6 +29,11 @@
   let grantedIds = $state([]);
   let grantsSaving = $state(false);
   let isAdminViewer = $derived($canManageUsers);
+
+  // Media folder grants state
+  let allMediaFolders = $state([]);
+  let grantedFolderIds = $state([]);
+  let folderGrantsSaving = $state(false);
 
   // 2FA state
   let twoFaEnabled = $state(false);
@@ -99,15 +104,19 @@
       formAvatar = profileUser.avatar || '';
       formRole = profileUser.role || 'admin';
 
-      // Load collection grants for editors (when viewed by admin)
+      // Load collection + media folder grants for editors (when viewed by admin)
       if (profileUser.role === 'editor' && isAdminViewer) {
         try {
-          const [collsData, grantsData] = await Promise.all([
+          const [collsData, grantsData, foldersData, folderGrantsData] = await Promise.all([
             collectionsApi.list(),
             usersApi.getGrants(profileUser.id),
+            foldersApi.list(),
+            usersApi.getMediaFolderGrants(profileUser.id),
           ]);
           allCollections = collsData.collections || [];
           grantedIds = grantsData.grants || [];
+          allMediaFolders = foldersData.folders || [];
+          grantedFolderIds = folderGrantsData.grants || [];
         } catch (_) {}
       }
 
@@ -187,6 +196,26 @@
       addToast(err.message, 'error');
     } finally {
       grantsSaving = false;
+    }
+  }
+
+  function toggleFolderGrant(folderId) {
+    if (grantedFolderIds.includes(folderId)) {
+      grantedFolderIds = grantedFolderIds.filter(id => id !== folderId);
+    } else {
+      grantedFolderIds = [...grantedFolderIds, folderId];
+    }
+  }
+
+  async function handleFolderGrantsSave() {
+    folderGrantsSaving = true;
+    try {
+      await usersApi.setMediaFolderGrants(profileUser.id, grantedFolderIds);
+      addToast('Media folder access updated', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      folderGrantsSaving = false;
     }
   }
 
@@ -492,6 +521,34 @@
             style="margin-top: 12px;"
           >
             {grantsSaving ? 'Saving...' : 'Save access'}
+          </button>
+        </div>
+      {/if}
+
+      <!-- Media Folder Access (admin viewing editor) -->
+      {#if formRole === 'editor' && isAdminViewer && allMediaFolders.length > 0}
+        <div class="profile-section">
+          <h3 class="profile-section-title">Media Folder Access</h3>
+          <p class="profile-hint">Leave all unchecked for full access to all media folders. Check specific folders to restrict this editor.</p>
+          <div class="grants-list">
+            {#each allMediaFolders as folder}
+              <label class="grants-item">
+                <input
+                  type="checkbox"
+                  checked={grantedFolderIds.includes(folder.id)}
+                  onchange={() => toggleFolderGrant(folder.id)}
+                />
+                <span>{folder.name}</span>
+              </label>
+            {/each}
+          </div>
+          <button
+            class="btn btn-secondary"
+            onclick={handleFolderGrantsSave}
+            disabled={folderGrantsSaving}
+            style="margin-top: 12px;"
+          >
+            {folderGrantsSaving ? 'Saving...' : 'Save access'}
           </button>
         </div>
       {/if}

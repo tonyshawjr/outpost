@@ -13,6 +13,7 @@
     canManageChannels,
     canBuildForms,
     collectionGrants,
+    mediaFolderGrants,
     appVersion,
     updateAvailable,
     latestVersion,
@@ -78,6 +79,7 @@
           latestVersion.set(data.latest_version);
         }
         collectionGrants.set(data.collection_grants ?? null);
+        mediaFolderGrants.set(data.media_folder_grants ?? null);
       }
     } catch (e) {
       // Not authenticated

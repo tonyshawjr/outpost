@@ -143,9 +143,18 @@ class OutpostDB {
             CREATE TABLE IF NOT EXISTS media_folders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
+                slug TEXT DEFAULT '',
                 parent_id INTEGER DEFAULT NULL REFERENCES media_folders(id) ON DELETE CASCADE,
                 sort_order INTEGER DEFAULT 0,
                 created_at TEXT DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS media_folder_items (
+                media_id INTEGER NOT NULL,
+                folder_id INTEGER NOT NULL,
+                PRIMARY KEY (media_id, folder_id),
+                FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+                FOREIGN KEY (folder_id) REFERENCES media_folders(id) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS users (
@@ -221,6 +230,8 @@ class OutpostDB {
             CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme);
             CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status);
             CREATE INDEX IF NOT EXISTS idx_revisions_entity ON revisions(entity_type, entity_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_media_folder_items_folder ON media_folder_items(folder_id);
+            CREATE INDEX IF NOT EXISTS idx_media_folder_items_media ON media_folder_items(media_id);
         ");
     }
 }

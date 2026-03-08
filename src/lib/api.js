@@ -172,6 +172,8 @@ export const users = {
   delete: (id) => request('users', { method: 'DELETE', params: { id } }),
   getGrants: (userId) => request('users/grants', { params: { user_id: userId } }),
   setGrants: (userId, collectionIds) => request('users/grants', { method: 'PUT', params: { user_id: userId }, body: { collection_ids: collectionIds } }),
+  getMediaFolderGrants: (userId) => request('users/media-folder-grants', { params: { user_id: userId } }),
+  setMediaFolderGrants: (userId, folderIds) => request('users/media-folder-grants', { method: 'PUT', params: { user_id: userId }, body: { folder_ids: folderIds } }),
 };
 
 // Media
@@ -193,8 +195,12 @@ export const media = {
     request('media', { method: 'DELETE', params: { id } }),
   bulkDelete: (ids) =>
     request('media/bulk-delete', { method: 'DELETE', body: { ids } }),
-  moveToFolder: (ids, folderId) =>
-    request('media/move', { method: 'PUT', body: { ids, folder_id: folderId } }),
+  moveToFolder: (ids, folderId, action = 'set') =>
+    request('media/move', { method: 'PUT', body: { ids, folder_id: folderId, action } }),
+  getFolders: (mediaId) =>
+    request('media/folders', { params: { media_id: mediaId } }),
+  assignFolders: (mediaId, folderIds) =>
+    request('media/assign-folders', { method: 'PUT', body: { media_id: mediaId, folder_ids: folderIds } }),
 };
 
 // Media Folders
@@ -203,6 +209,8 @@ export const mediaFolders = {
     request('media-folders'),
   create: (data) =>
     request('media-folders', { method: 'POST', body: data }),
+  bulkCreate: (names, parentId = null) =>
+    request('media-folders/bulk', { method: 'POST', body: { names, parent_id: parentId } }),
   update: (id, data) =>
     request('media-folders', { method: 'PUT', params: { id }, body: data }),
   delete: (id) =>
