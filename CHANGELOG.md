@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] — 2026-03-08
+
+### Added
+- **Inline label sidebar** — collection items page now shows a folder/label sidebar when the collection has folders, matching the Media Library pattern
+- **Filter by label** — click any label in the sidebar to filter items; "Unfiled" shows items with no label assignments
+- **Drag-to-label** — drag an item row onto a label in the sidebar to assign it instantly
+- **Bulk label assignment** — select multiple items and use the "Label" dropdown in the bulk action bar to assign labels in batch
+- **Label counts** — sidebar shows item count per label, total count, and unfiled count
+- **Inline label creation** — create new labels directly from the sidebar without leaving the page
+
+### Changed
+- **Folder sidebar CSS shared** — extracted `.folder-sidebar`, `.folder-item`, and related styles from MediaLibrary into global `admin.css` for reuse
+- **Items API** — `GET items` now accepts optional `label_id` parameter for server-side filtering
+
+---
+
 ## [2.0.1] — 2026-03-08
 
 ### Security

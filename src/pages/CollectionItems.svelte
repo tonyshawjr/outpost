@@ -1,9 +1,10 @@
 <script>
   import { onMount } from 'svelte';
-  import { items as itemsApi, collections as collectionsApi } from '$lib/api.js';
+  import { items as itemsApi, collections as collectionsApi, folders as foldersApi } from '$lib/api.js';
   import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin } from '$lib/stores.js';
   import { formatDateOnly } from '$lib/utils.js';
   import EmptyState from '$components/EmptyState.svelte';
+  import LabelSidebar from '$components/LabelSidebar.svelte';
 
   let activeSlug = $derived($currentCollectionSlug);
   let colls = $derived($collectionsList);
@@ -15,6 +16,14 @@
 
   let creatingItem = $state(false);
   let sortDir = $state('desc'); // 'desc' = newest first
+
+  // ── Label sidebar state ─────────────────────────────────
+  let activeLabelId = $state(null);
+  let hasFolders = $state(false);
+  let dragItemId = $state(null);
+  let labelSidebar = $state(null);
+  let showLabelMenu = $state(false);
+  let labelMenuOptions = $state([]);
 
   // ── Selection state ────────────────────────────────────
   let selected = $state(new Set());
@@ -156,18 +165,33 @@
         collectionsList.set(data.collections || []);
       } catch (e) {}
     }
-    if (activeSlug) await loadItems(activeSlug, statusFilter);
+    if (activeSlug) {
+      await loadItems(activeSlug, statusFilter, activeLabelId);
+      await checkFolders();
+    }
   });
 
   $effect(() => {
-    if (activeSlug) loadItems(activeSlug, statusFilter);
+    if (activeSlug) loadItems(activeSlug, statusFilter, activeLabelId);
   });
 
-  async function loadItems(slug, status = 'all') {
+  async function checkFolders() {
+    if (!activeColl) return;
+    try {
+      const data = await foldersApi.list(activeColl.id);
+      const folders = data.folders || [];
+      hasFolders = folders.length > 0;
+    } catch (e) {
+      hasFolders = false;
+    }
+  }
+
+  async function loadItems(slug, status = 'all', labelId = null) {
     loading = true;
     selected = new Set();
     try {
-      const data = await itemsApi.list(slug, status !== 'all' ? status : '');
+      const labelParam = labelId != null ? String(labelId) : '';
+      const data = await itemsApi.list(slug, status !== 'all' ? status : '', labelParam);
       items = data.items || [];
     } catch (err) {
       addToast(err.message, 'error');
@@ -257,9 +281,69 @@
   function setStatusFilter(status) {
     navigate('collection-items', { collectionSlug: activeSlug, statusFilter: status });
   }
+
+  // ── Drag-to-label ──────────────────────────────────────
+  function onItemDragStart(e, item) {
+    dragItemId = item.id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(item.id));
+  }
+
+  async function handleLabelDrop(labelId, itemIds) {
+    try {
+      await itemsApi.bulkAssignLabels(itemIds, labelId, 'add');
+      addToast('Label assigned', 'success');
+      if (labelSidebar) labelSidebar.loadLabels();
+      if (activeLabelId != null) await loadItems(activeSlug, statusFilter, activeLabelId);
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  // ── Bulk label assign ──────────────────────────────────
+  // Close label dropdown on outside click
+  $effect(() => {
+    if (!showLabelMenu) return;
+    function handleClick() { showLabelMenu = false; }
+    setTimeout(() => document.addEventListener('click', handleClick), 0);
+    return () => document.removeEventListener('click', handleClick);
+  });
+
+  async function loadLabelMenuOptions() {
+    try {
+      const data = await itemsApi.labelsWithCounts(activeSlug);
+      const allLabels = [];
+      for (const folder of (data.folders || [])) {
+        for (const label of (folder.labels || [])) {
+          allLabels.push({ id: label.id, name: label.name, folderName: folder.name });
+        }
+      }
+      labelMenuOptions = allLabels;
+      showLabelMenu = true;
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  async function bulkAssignLabel(labelId) {
+    if (selected.size === 0 || bulkBusy) return;
+    bulkBusy = true;
+    showLabelMenu = false;
+    try {
+      await itemsApi.bulkAssignLabels([...selected], labelId, 'add');
+      addToast(`Label assigned to ${selected.size} item${selected.size !== 1 ? 's' : ''}`, 'success');
+      selected = new Set();
+      if (labelSidebar) labelSidebar.loadLabels();
+      if (activeLabelId != null) await loadItems(activeSlug, statusFilter, activeLabelId);
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      bulkBusy = false;
+    }
+  }
 </script>
 
-<div class="ghost-list-view">
+<div class="ghost-list-view" class:has-label-sidebar={hasFolders}>
   <!-- Page Header -->
   <div class="page-header">
     <div class="page-header-icon clay">
@@ -307,6 +391,25 @@
         <button class="btn btn-secondary btn-sm" onclick={() => { scheduleDate = ''; showScheduleModal = true; }} disabled={bulkBusy}>
           Schedule
         </button>
+        {#if hasFolders}
+          <div class="bulk-label-wrapper">
+            <button class="btn btn-secondary btn-sm" onclick={loadLabelMenuOptions} disabled={bulkBusy}>
+              Label
+            </button>
+            {#if showLabelMenu}
+              <div class="label-dropdown">
+                {#each labelMenuOptions as opt (opt.id)}
+                  <button class="label-dropdown-item" onclick={() => bulkAssignLabel(opt.id)}>
+                    {opt.name}
+                  </button>
+                {/each}
+                {#if labelMenuOptions.length === 0}
+                  <div class="label-dropdown-empty">No labels yet</div>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/if}
         <button class="btn btn-secondary btn-sm btn-danger-text" onclick={bulkDelete} disabled={bulkBusy}>
           Delete
         </button>
@@ -331,97 +434,119 @@
     </div>
   {/if}
 
-  {#if loading}
-    <div class="loading-overlay"><div class="spinner"></div></div>
-  {:else if items.length === 0}
-    <EmptyState
-      icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>'
-      title="No {activeColl?.name?.toLowerCase() || 'items'} yet"
-      description="Create your first {activeColl?.singular_name?.toLowerCase() || 'item'} to get started."
-      ctaLabel="Create {activeColl?.singular_name || 'Item'}"
-      ctaAction={createNewItem}
-    />
-  {:else}
-    <!-- Column Headers -->
-    <div class="list-col-headers">
-      <label class="col-h-check" onclick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
-          checked={allVisibleSelected}
-          onchange={toggleSelectAll}
-          class="bulk-checkbox"
-        />
-      </label>
-      <span class="col-h-left">TITLE</span>
-      <div class="col-h-right">
-        <span class="col-h-status">STATUS</span>
-        <button class="sort-btn" onclick={() => sortDir = sortDir === 'desc' ? 'asc' : 'desc'}>
-          DATE
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            {#if sortDir === 'desc'}
-              <polyline points="6 9 12 15 18 9"/>
-            {:else}
-              <polyline points="18 15 12 9 6 15"/>
-            {/if}
-          </svg>
-        </button>
-        <span class="col-h-spacer"></span>
-      </div>
-    </div>
+  <div class="collection-content-area" class:collection-layout-2col={hasFolders}>
+    {#if hasFolders}
+      <LabelSidebar
+        bind:this={labelSidebar}
+        collectionId={activeColl?.id}
+        collectionSlug={activeSlug}
+        bind:activeLabelId
+        onLabelDrop={handleLabelDrop}
+      />
+    {/if}
 
-    <!-- Rows -->
-    <div class="list-rows">
-      {#each sortedFiltered as item (item.id)}
-        <div
-          class="list-row"
-          class:selected={selected.has(item.id)}
-          onclick={() => editItem(item)}
-          role="button"
-          tabindex="0"
-          onkeydown={(e) => e.key === 'Enter' && editItem(item)}
-        >
-          <label class="row-check" onclick={(e) => e.stopPropagation()}>
+    <div class="collection-main">
+      {#if loading}
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      {:else if items.length === 0 && activeLabelId === null}
+        <EmptyState
+          icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>'
+          title="No {activeColl?.name?.toLowerCase() || 'items'} yet"
+          description="Create your first {activeColl?.singular_name?.toLowerCase() || 'item'} to get started."
+          ctaLabel="Create {activeColl?.singular_name || 'Item'}"
+          ctaAction={createNewItem}
+        />
+      {:else if items.length === 0 && activeLabelId !== null}
+        <EmptyState
+          title="No items in this label"
+          description="Drag items here or use bulk actions to assign labels."
+        />
+      {:else}
+        <!-- Column Headers -->
+        <div class="list-col-headers">
+          <label class="col-h-check" onclick={(e) => e.stopPropagation()}>
             <input
               type="checkbox"
-              checked={selected.has(item.id)}
-              onchange={(e) => toggleSelect(item.id, e)}
+              checked={allVisibleSelected}
+              onchange={toggleSelectAll}
               class="bulk-checkbox"
             />
           </label>
-          <div class="list-row-left">
-            <div class="list-row-title">{getItemTitle(item)}</div>
-            <div class="list-row-subtitle">{getItemSubtitle(item)}</div>
-          </div>
-          <div class="list-row-right">
-            <button
-              class="status-badge"
-              class:status-published={item.status === 'published'}
-              class:status-draft={item.status === 'draft'}
-              class:status-scheduled={item.status === 'scheduled'}
-              class:status-pending={item.status === 'pending_review'}
-              onclick={(e) => toggleStatus(e, item)}
-              aria-label="Toggle status"
-            >
-              {item.status === 'pending_review' ? 'in review' : item.status}
+          <span class="col-h-left">TITLE</span>
+          <div class="col-h-right">
+            <span class="col-h-status">STATUS</span>
+            <button class="sort-btn" onclick={() => sortDir = sortDir === 'desc' ? 'asc' : 'desc'}>
+              DATE
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                {#if sortDir === 'desc'}
+                  <polyline points="6 9 12 15 18 9"/>
+                {:else}
+                  <polyline points="18 15 12 9 6 15"/>
+                {/if}
+              </svg>
             </button>
-            <span class="list-row-time">{formatDateOnly(getItemDate(item))}</span>
-            <button
-              class="list-row-delete"
-              onclick={(e) => deleteItem(e, item)}
-              title="Delete"
-              aria-label="Delete item"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
+            <span class="col-h-spacer"></span>
           </div>
         </div>
-      {/each}
-    </div>
 
-    {#if search && filtered.length === 0}
-      <EmptyState searchActive={true} />
-    {/if}
-  {/if}
+        <!-- Rows -->
+        <div class="list-rows">
+          {#each sortedFiltered as item (item.id)}
+            <div
+              class="list-row"
+              class:selected={selected.has(item.id)}
+              onclick={() => editItem(item)}
+              role="button"
+              tabindex="0"
+              onkeydown={(e) => e.key === 'Enter' && editItem(item)}
+              draggable={hasFolders ? 'true' : undefined}
+              ondragstart={(e) => hasFolders && onItemDragStart(e, item)}
+              ondragend={() => dragItemId = null}
+            >
+              <label class="row-check" onclick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={selected.has(item.id)}
+                  onchange={(e) => toggleSelect(item.id, e)}
+                  class="bulk-checkbox"
+                />
+              </label>
+              <div class="list-row-left">
+                <div class="list-row-title">{getItemTitle(item)}</div>
+                <div class="list-row-subtitle">{getItemSubtitle(item)}</div>
+              </div>
+              <div class="list-row-right">
+                <button
+                  class="status-badge"
+                  class:status-published={item.status === 'published'}
+                  class:status-draft={item.status === 'draft'}
+                  class:status-scheduled={item.status === 'scheduled'}
+                  class:status-pending={item.status === 'pending_review'}
+                  onclick={(e) => toggleStatus(e, item)}
+                  aria-label="Toggle status"
+                >
+                  {item.status === 'pending_review' ? 'in review' : item.status}
+                </button>
+                <span class="list-row-time">{formatDateOnly(getItemDate(item))}</span>
+                <button
+                  class="list-row-delete"
+                  onclick={(e) => deleteItem(e, item)}
+                  title="Delete"
+                  aria-label="Delete item"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+        {#if search && filtered.length === 0}
+          <EmptyState searchActive={true} />
+        {/if}
+      {/if}
+    </div>
+  </div>
 </div>
 
 <!-- Schedule Modal -->
@@ -828,6 +953,67 @@
     margin-top: 4px;
   }
 
+  /* ── 2-Column Layout ────────────────────────────────── */
+  .collection-content-area {
+    /* Single column by default */
+  }
+
+  .collection-layout-2col {
+    display: flex;
+    gap: var(--space-xl);
+  }
+
+  .collection-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .has-label-sidebar {
+    max-width: var(--content-width-wide);
+  }
+
+  /* ── Bulk Label Dropdown ───────────────────────────── */
+  .bulk-label-wrapper {
+    position: relative;
+  }
+
+  .label-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    min-width: 160px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .label-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    border: none;
+    background: none;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .label-dropdown-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .label-dropdown-empty {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
   @media (max-width: 768px) {
     .list-row-subtitle {
       max-width: 100%;
@@ -858,6 +1044,17 @@
 
     .filter-pill-bar {
       flex-wrap: wrap;
+    }
+
+    .collection-layout-2col {
+      flex-direction: column;
+    }
+
+    :global(.collection-layout-2col .folder-sidebar) {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
     }
   }
 </style>

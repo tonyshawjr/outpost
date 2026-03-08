@@ -673,6 +673,9 @@ Collections can require review before publishing via the `require_review` toggle
 - `PUT items/approve` — approve items (admin+ only), body: `{ ids: [1,2,3] }`
 - `PUT items/reject` — reject items (admin+ only), body: `{ ids: [1,2,3] }`
 - `PUT items/bulk-schedule` — schedule items, body: `{ ids: [1,2,3], scheduled_at: "2026-03-15T09:00:00" }`
+- `GET items/labels-with-counts?collection=slug` — returns all folders for a collection with labels and per-label item counts, plus `total_items` and `unfiled_count`
+- `POST items/bulk-labels` — bulk add/remove label assignments, body: `{ item_ids: [1,2,3], label_id: 5, action: "add"|"remove" }`
+- `GET items?collection=slug&label_id=N` — filter items by label ID; use `label_id=unfiled` for items with no label assignments
 - `GET calendar?start=YYYY-MM-DD&end=YYYY-MM-DD&collection=slug` — items within date range for editorial calendar
 
 **Webhook events:** `entry.submitted_for_review`, `entry.approved`, `entry.rejected`
@@ -1387,6 +1390,8 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `items/approve` | PUT | Approve pending_review items (admin+ only) |
 | `items/reject` | PUT | Reject pending_review items back to draft (admin+ only) |
 | `items/preview-token` | POST | Generate preview token for draft/scheduled items |
+| `items/labels-with-counts` | GET | Folders + labels with per-label item counts for a collection |
+| `items/bulk-labels` | POST | Bulk add/remove label assignments for items |
 | `calendar` | GET | Items by date range for editorial calendar (params: start, end, collection) |
 | `folders` | GET, POST, PUT, DELETE | Folders CRUD |
 | `labels` | GET, POST, PUT, DELETE | Folder labels CRUD |

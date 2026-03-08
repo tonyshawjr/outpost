@@ -201,6 +201,8 @@ match (true) {
     $action === 'items/approve' && $method === 'PUT' => handle_items_approve(),
     $action === 'items/reject' && $method === 'PUT' => handle_items_reject(),
     $action === 'items/preview-token' && $method === 'POST' => handle_item_preview_token(),
+    $action === 'items/labels-with-counts' && $method === 'GET' => handle_items_labels_with_counts(),
+    $action === 'items/bulk-labels' && $method === 'POST' => handle_items_bulk_labels(),
 
     // Media
     $action === 'media' && $method === 'GET' => handle_media_list(),
@@ -1680,11 +1682,13 @@ function handle_items_list(): void {
     }
 
     $status = $_GET['status'] ?? '';
-    $where = 'collection_id = ?';
+    $labelId = $_GET['label_id'] ?? '';
+
+    $where = 'ci.collection_id = ?';
     $params = [$collection['id']];
 
     if ($status) {
-        $where .= ' AND status = ?';
+        $where .= ' AND ci.status = ?';
         $params[] = $status;
     }
 
@@ -1693,10 +1697,36 @@ function handle_items_list(): void {
         $order = 'created_at DESC';
     }
 
-    $items = OutpostDB::fetchAll(
-        "SELECT * FROM collection_items WHERE {$where} ORDER BY {$order}",
-        $params
-    );
+    if ($labelId === 'unfiled') {
+        // Items not assigned to any label in this collection's folders
+        $items = OutpostDB::fetchAll(
+            "SELECT ci.* FROM collection_items ci
+             WHERE {$where}
+             AND ci.id NOT IN (
+                 SELECT il.item_id FROM item_labels il
+                 INNER JOIN labels l ON il.label_id = l.id
+                 INNER JOIN folders f ON l.folder_id = f.id
+                 WHERE f.collection_id = ?
+             )
+             ORDER BY ci.{$order}",
+            [...$params, $collection['id']]
+        );
+    } elseif ($labelId && ctype_digit($labelId)) {
+        // Items with a specific label
+        $items = OutpostDB::fetchAll(
+            "SELECT ci.* FROM collection_items ci
+             INNER JOIN item_labels il ON ci.id = il.item_id
+             WHERE {$where} AND il.label_id = ?
+             ORDER BY ci.{$order}",
+            [...$params, (int) $labelId]
+        );
+    } else {
+        // All items (no label filter)
+        $items = OutpostDB::fetchAll(
+            "SELECT ci.* FROM collection_items ci WHERE {$where} ORDER BY ci.{$order}",
+            $params
+        );
+    }
 
     // Decode JSON data
     foreach ($items as &$item) {
@@ -1704,6 +1734,119 @@ function handle_items_list(): void {
     }
 
     json_response(['items' => $items, 'collection' => $collection]);
+}
+
+function handle_items_labels_with_counts(): void {
+    $slug = $_GET['collection'] ?? '';
+    $collection = OutpostDB::fetchOne('SELECT * FROM collections WHERE slug = ?', [$slug]);
+    if (!$collection) json_error('Collection not found', 404);
+
+    if (!outpost_can_access_collection((int) $collection['id'])) {
+        json_error('Permission denied', 403);
+    }
+
+    $collId = (int) $collection['id'];
+
+    // Get all folders for this collection
+    $folders = OutpostDB::fetchAll(
+        'SELECT * FROM folders WHERE collection_id = ? ORDER BY name',
+        [$collId]
+    );
+
+    // Get labels with item counts for each folder
+    foreach ($folders as &$folder) {
+        $folder['labels'] = OutpostDB::fetchAll(
+            "SELECT l.*, COUNT(il.item_id) as item_count
+             FROM labels l
+             LEFT JOIN item_labels il ON l.id = il.label_id
+             WHERE l.folder_id = ?
+             GROUP BY l.id
+             ORDER BY l.sort_order, l.name",
+            [(int) $folder['id']]
+        );
+    }
+
+    // Total items in collection
+    $totalRow = OutpostDB::fetchOne(
+        'SELECT COUNT(*) as cnt FROM collection_items WHERE collection_id = ?',
+        [$collId]
+    );
+    $totalItems = (int) ($totalRow['cnt'] ?? 0);
+
+    // Unfiled count: items not assigned to any label in this collection's folders
+    $unfiledRow = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as cnt FROM collection_items ci
+         WHERE ci.collection_id = ?
+         AND ci.id NOT IN (
+             SELECT il.item_id FROM item_labels il
+             INNER JOIN labels l ON il.label_id = l.id
+             INNER JOIN folders f ON l.folder_id = f.id
+             WHERE f.collection_id = ?
+         )",
+        [$collId, $collId]
+    );
+    $unfiledCount = (int) ($unfiledRow['cnt'] ?? 0);
+
+    json_response([
+        'folders' => $folders,
+        'total_items' => $totalItems,
+        'unfiled_count' => $unfiledCount,
+    ]);
+}
+
+function handle_items_bulk_labels(): void {
+    $data = get_json_body();
+    $itemIds = $data['item_ids'] ?? [];
+    $labelId = (int) ($data['label_id'] ?? 0);
+    $action = $data['action'] ?? '';
+
+    if (empty($itemIds) || !$labelId || !in_array($action, ['add', 'remove'])) {
+        json_error('item_ids, label_id, and action (add|remove) are required');
+    }
+
+    // Verify the label exists and get its collection
+    $label = OutpostDB::fetchOne(
+        "SELECT l.*, f.collection_id FROM labels l
+         INNER JOIN folders f ON l.folder_id = f.id
+         WHERE l.id = ?",
+        [$labelId]
+    );
+    if (!$label) json_error('Label not found', 404);
+
+    if (!outpost_can_access_collection((int) $label['collection_id'])) {
+        json_error('Permission denied', 403);
+    }
+
+    $affected = 0;
+    $placeholders = implode(',', array_fill(0, count($itemIds), '?'));
+
+    if ($action === 'add') {
+        // Verify items belong to this collection
+        $validItems = OutpostDB::fetchAll(
+            "SELECT id FROM collection_items WHERE id IN ({$placeholders}) AND collection_id = ?",
+            [...$itemIds, (int) $label['collection_id']]
+        );
+        foreach ($validItems as $item) {
+            try {
+                OutpostDB::execute(
+                    'INSERT OR IGNORE INTO item_labels (item_id, label_id) VALUES (?, ?)',
+                    [(int) $item['id'], $labelId]
+                );
+                $affected++;
+            } catch (\Exception $e) {
+                // Already exists, skip
+            }
+        }
+    } else {
+        // Remove
+        OutpostDB::execute(
+            "DELETE FROM item_labels WHERE label_id = ? AND item_id IN ({$placeholders})",
+            [$labelId, ...$itemIds]
+        );
+        $affected = count($itemIds);
+    }
+
+    json_response(['success' => true, 'affected' => $affected]);
 }
 
 function handle_item_create(): void {

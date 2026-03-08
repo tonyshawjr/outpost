@@ -250,20 +250,17 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v2.1 — Collection Folders
+## v2.1 — Collection Folders — SHIPPED (v2.1.0)
 
-**Bring the media folder system to collections.** Users already organize media files with folders (v1.6). Now apply the same concept to collection items — posts, products, case studies — so content creators can group and filter items the way they think about them.
+**Brought the media folder system to collections.** The label sidebar from Media Library now appears inline on collection items pages when folders exist.
 
-- **Folder sidebar for collections** — same Happy Files-style folder panel that media already has, scoped per collection
-- **Drag-to-folder** — drag collection items into folders from the item list
-- **Filter by folder** — click a folder in the sidebar to filter the item list instantly
-- **Multi-folder assignment** — items can belong to multiple folders (same as media)
-- **Folder template loops** — `{% for item in collection_folder.slug %}` to render items by folder in templates
-- **Bulk folder operations** — bulk move/assign items to folders from the item list
-
-**Why:** Folders (categories) already exist for collection items via the Folders system, but the UX is separate from the item list. This brings folder management inline — the same workflow media uses — so organizing posts feels as natural as organizing photos.
-
-**Docs:** Collection folders user guide, template loop reference for folder-filtered content.
+- **Label sidebar for collections** — same folder panel that media has, showing labels with per-label item counts
+- **Drag-to-label** — drag collection items onto labels in the sidebar to assign instantly
+- **Filter by label** — click a label in the sidebar to filter the item list server-side; "Unfiled" shows unassigned items
+- **Bulk label assignment** — select items and use "Label" dropdown in bulk action bar
+- **Inline label creation** — create new labels directly from the sidebar with comma-separated support
+- **API endpoints** — `GET items/labels-with-counts`, `POST items/bulk-labels`, updated `GET items` with `label_id` filter
+- **Shared CSS** — folder sidebar styles extracted from MediaLibrary to global `admin.css` for reuse
 
 ---
 
@@ -474,7 +471,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.8~~ | ~~Q1 2027~~ | ~~Theme Customizer — visual colors, fonts, logo~~ **Shipped** | Everyone |
 | ~~1.9~~ | ~~Q2 2027~~ | ~~Developer Experience & Theme Updates~~ **Shipped** | Developers / Everyone |
 | ~~2.0~~ | ~~Q3 2027~~ | ~~Onboarding & Setup Wizard~~ **Shipped** | Everyone |
-| 2.1 | Q3 2027 | Collection Folders — Happy Files for posts | Everyone |
+| ~~2.1~~ | ~~Q3 2027~~ | ~~Collection Folders — Inline label sidebar~~ **Shipped** | Everyone |
 | 2.2 | Q4 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
 | 2.3 | Q4 2027 | Visual Tag Builder — HTML-to-theme conversion | Developers / Everyone |
 | 2.4 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |

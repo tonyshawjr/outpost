@@ -1753,3 +1753,112 @@ input[type="color"].input {
 .schema-field select.input {
   flex: 0 0 140px;
 }
+
+/* ── Shared folder/label sidebar ──────────────────────── */
+.folder-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+.folder-item:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+.folder-item.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.folder-item.drag-over {
+  background: var(--color-accent-light, rgba(59, 130, 246, 0.1));
+  outline: 1px dashed var(--color-accent, #3b82f6);
+}
+
+.folder-icon {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.folder-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-count {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.folder-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 6px 12px;
+}
+
+.folder-inline-input {
+  flex: 1;
+  padding: 2px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+.folder-create-wrapper {
+  padding: 0 12px;
+}
+.folder-create-hint {
+  display: block;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  padding-left: 2px;
+}
+
+.folder-add-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  text-align: left;
+  margin-top: 4px;
+}
+.folder-add-btn:hover {
+  color: var(--text-primary);
+}
+
+.folder-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  padding: 8px 12px 4px;
+}

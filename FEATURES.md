@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Inline Collection Folders (v2.1.0)
+
+- **Label sidebar** — `LabelSidebar.svelte` component shown inline on collection items page when the collection has folders. Displays "All Items" (total count), "Unfiled" (unfiled count), and all labels with per-label item counts. Modeled after MediaLibrary folder sidebar pattern.
+- **Filter by label** — clicking a label filters items server-side via new `label_id` parameter on `GET items`. "Unfiled" uses a NOT IN subquery to show items with no label assignments.
+- **Drag-to-label** — drag a row onto a sidebar label to assign it. Uses `items/bulk-labels` endpoint with `action: 'add'`.
+- **Bulk label assignment** — when items are selected and folders exist, a "Label" dropdown appears in the bulk action bar. Clicking a label assigns all selected items.
+- **Inline label creation** — "+ New Label" button in sidebar opens an inline input. Supports comma-separated names.
+- **Shared folder sidebar CSS** — extracted folder sidebar styles from MediaLibrary scoped CSS to global `admin.css` for reuse across components.
+- **API endpoints** — `GET items/labels-with-counts` (folder/label/count data), `POST items/bulk-labels` (bulk add/remove assignments), updated `GET items` with `label_id` filter.
+- **Files**: `src/components/LabelSidebar.svelte` (new), `src/pages/CollectionItems.svelte`, `src/pages/MediaLibrary.svelte`, `src/styles/admin.css`, `src/lib/api.js`, `php/api.php`
+
+---
+
 ## Onboarding & Setup Wizard (v2.0.0)
 
 - **Setup wizard** — full-screen 4-step wizard (site name → theme → content pack → done) auto-appears on fresh installs. Runs after auth, uses dark `#0a0a0a` background with centered card, 4-dot progress indicator, skip/back links. Content is seeded in a single SQLite transaction.

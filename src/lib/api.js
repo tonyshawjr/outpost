@@ -141,8 +141,12 @@ export const collections = {
 
 // Collection Items
 export const items = {
-  list: (collectionSlug, status = '') =>
-    request('items', { params: { collection: collectionSlug, ...(status ? { status } : {}) } }),
+  list: (collectionSlug, status = '', labelId = '') =>
+    request('items', { params: { collection: collectionSlug, ...(status ? { status } : {}), ...(labelId ? { label_id: labelId } : {}) } }),
+  labelsWithCounts: (collectionSlug) =>
+    request('items/labels-with-counts', { params: { collection: collectionSlug } }),
+  bulkAssignLabels: (itemIds, labelId, action) =>
+    request('items/bulk-labels', { method: 'POST', body: { item_ids: itemIds, label_id: labelId, action } }),
   create: (data) =>
     request('items', { method: 'POST', body: data }),
   update: (id, data) =>
