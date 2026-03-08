@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Universal Loop Empty States (v1.9.3)
+
+- **`{% else %}` on all loop types** — every `{% for %}` loop now supports `{% else %}` for empty-state fallbacks. Previously only collection and channel loops supported this. Now folder, menu, gallery, media folder, repeater, flexible content, and relationship loops all support `{% else %}` consistently.
+- **Files**: `php/template-engine.php`
+
+---
+
 ## Schema Validation & Theme Starter Kit (v1.9.2)
 
 - **JSON Schema for theme.json** — `php/docs/schemas/theme.schema.json` validates theme metadata and customizer configuration. IDEs auto-detect the `$schema` reference and provide autocomplete + inline validation for all theme.json fields including customizer sections, field types, and CSS variable mappings.

@@ -489,8 +489,14 @@ Relationship fields link content to items from another collection. Search and se
   {{ label.slug }}
   {{ label.description }}
   {{ label.count }}           <!-- number of published items with this label -->
+{% else %}
+  <p>No categories yet.</p>
 {% endfor %}
 ```
+
+### `{% else %}` on All Loops
+
+All loop types support `{% else %}` for empty-state fallbacks (v1.9.3). This includes: collection, channel, folder, menu, gallery, media folder, repeater, flexible content, and relationship loops. The `{% else %}` block renders when the loop has zero items.
 
 ### Conditionals
 

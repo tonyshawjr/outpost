@@ -132,11 +132,12 @@ Features demonstrated:
      {% for label in folder.categories %} iterates labels in the "categories" folder.
      Each label has: label.name, label.slug, label.count #}
   <h2>Categories</h2>
-  {# Note: folder loops do NOT support {% else %}. Use a conditional check if needed. #}
   {% for label in folder.categories %}
     <span style="display: inline-block; padding: 4px 12px; margin: 4px; background: #f3f4f6; border-radius: 4px; font-size: 14px;">
       {{ label.name }} ({{ label.count }})
     </span>
+  {% else %}
+    <p style="color: var(--color-muted);">No categories yet. Create folders in Admin > Folders.</p>
   {% endfor %}
 
   <hr style="margin: 40px 0;">

@@ -257,7 +257,19 @@ class OutpostTemplate {
         );
 
         // {% for item in menu.slug %} ... {% endfor %}
-        // Loads a named navigation menu. After inner loops compiled, this captures the full outer block.
+        // {% for item in menu.slug %} ... {% else %} ... {% endfor %} (with empty fallback)
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+menu\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $slug = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_mn_{$var} = cms_menu_items('{$slug}'); if (!empty(\$_outpost_mn_{$var})): foreach (\$_outpost_mn_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
+        // {% for item in menu.slug %} ... {% endfor %} (without else)
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+menu\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
             function ($m) {
@@ -269,7 +281,19 @@ class OutpostTemplate {
             $php
         );
 
-        // {% for item in gallery.field_name %} ... {% endfor %}
+        // {% for item in gallery.field_name %} ... {% else %} ... {% endfor %} (with empty fallback)
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+gallery\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $name = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_gl_{$var} = cms_gallery_items('{$name}'); if (!empty(\$_outpost_gl_{$var})): foreach (\$_outpost_gl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
+        // {% for item in gallery.field_name %} ... {% endfor %} (without else)
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+gallery\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
             function ($m) {
@@ -281,6 +305,18 @@ class OutpostTemplate {
             $php
         );
 
+        // {% for item in repeater.field_name %} ... {% else %} ... {% endfor %}
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+repeater\.(\w+)(?:\s+[\w:,\s]*)?\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $name = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_rp_{$var} = cms_repeater_items('{$name}'); if (!empty(\$_outpost_rp_{$var})): foreach (\$_outpost_rp_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
         // {% for item in repeater.field_name [key:type,...] %} ... {% endfor %}
         // Process before collection loops so the endfor is consumed correctly.
         $php = preg_replace_callback(
@@ -294,6 +330,18 @@ class OutpostTemplate {
             $php
         );
 
+        // {% for block in flexible.field_name %} ... {% else %} ... {% endfor %}
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+flexible\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $name = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_fx_{$var} = cms_flexible_items('{$name}'); if (!empty(\$_outpost_fx_{$var})): foreach (\$_outpost_fx_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
         // {% for block in flexible.field_name %} ... {% endfor %}
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+flexible\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
@@ -306,6 +354,18 @@ class OutpostTemplate {
             $php
         );
 
+        // {% for item in relationship.field_name %} ... {% else %} ... {% endfor %}
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+relationship\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $name = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_rl_{$var} = cms_relationship_items('{$name}'); if (!empty(\$_outpost_rl_{$var})): foreach (\$_outpost_rl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
         // {% for item in relationship.field_name %} ... {% endfor %}
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+relationship\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
@@ -318,7 +378,19 @@ class OutpostTemplate {
             $php
         );
 
-        // {% for label in folder.slug %} ... {% endfor %} (new syntax)
+        // {% for label in folder.slug %} ... {% else %} ... {% endfor %} (with empty fallback)
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+folder\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $slug = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_fl_{$var} = cms_folder_labels('{$slug}'); if (!empty(\$_outpost_fl_{$var})): foreach (\$_outpost_fl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
+        // {% for label in folder.slug %} ... {% endfor %} (without else)
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+folder\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
             function ($m) {
@@ -330,7 +402,19 @@ class OutpostTemplate {
             $php
         );
 
-        // {% for term in taxonomy.slug %} ... {% endfor %} (backward compat)
+        // {% for term in taxonomy.slug %} ... {% else %} ... {% endfor %} (backward compat with else)
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+taxonomy\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $slug = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_fl_{$var} = cms_folder_labels('{$slug}'); if (!empty(\$_outpost_fl_{$var})): foreach (\$_outpost_fl_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
+        // {% for term in taxonomy.slug %} ... {% endfor %} (backward compat without else)
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+taxonomy\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
             function ($m) {
@@ -342,7 +426,19 @@ class OutpostTemplate {
             $php
         );
 
-        // {% for img in media_folder.slug %} ... {% endfor %}
+        // {% for img in media_folder.slug %} ... {% else %} ... {% endfor %} (with empty fallback)
+        $php = preg_replace_callback(
+            '/\{%\s*for\s+(\w+)\s+in\s+media_folder\.(\w+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
+            function ($m) {
+                $var  = $m[1];
+                $slug = $m[2];
+                $body = $m[3];
+                $empty = $m[4];
+                return "<?php \$_outpost_mf_{$var} = cms_media_folder_items('{$slug}'); if (!empty(\$_outpost_mf_{$var})): foreach (\$_outpost_mf_{$var} as \${$var}): ?>" . $body . "<?php endforeach; else: ?>" . $empty . "<?php endif; ?>";
+            },
+            $php
+        );
+        // {% for img in media_folder.slug %} ... {% endfor %} (without else)
         $php = preg_replace_callback(
             '/\{%\s*for\s+(\w+)\s+in\s+media_folder\.(\w+)\s*%\}(.*?)\{%\s*endfor\s*%\}/s',
             function ($m) {

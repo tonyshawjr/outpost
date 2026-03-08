@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.3] — 2026-03-08
+
+### Added
+- **`{% else %}` support on all loop types** — folder, menu, gallery, media folder, repeater, flexible content, and relationship loops now support `{% else %}` for empty-state fallbacks (previously only collection and channel loops supported it)
+
+---
+
 ## [1.9.2] — 2026-03-08
 
 ### Added
