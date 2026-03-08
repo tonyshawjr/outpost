@@ -220,29 +220,21 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.9 — Developer Experience & Theme Updates
+## v1.9 — Developer Experience & Theme Updates — SHIPPED (v1.9.0)
 
-Polish the theme development loop and ship the infrastructure for keeping themes up to date.
-
-### Theme Update System
-
-Right now the auto-updater skips `themes/` to protect user modifications. But Outpost ships default themes (Personal, and more in v2.1), and those themes need updates — bug fixes, new `customizer` schema support, new partials, CSS improvements. Without a theme update path, users are stuck on the version they installed with.
-
-- **Outpost-managed vs. user themes** — distinguish between bundled themes (shipped by Outpost, eligible for updates) and user-created themes (never touched by the updater)
+### Theme Update System — SHIPPED
+- **Outpost-managed vs. user themes** — `"managed": true` flag in `theme.json` distinguishes bundled themes from user-created themes
 - **Theme version comparison** — compare `theme.json` version of installed theme against the version in the update package
-- **Safe theme updates** — update only files that the user hasn't modified; flag conflicts for manual resolution
-- **Theme update UI** — show available theme updates in Settings → Updates alongside core CMS updates
-- **Update includes new themes** — when Outpost ships a new default theme (e.g. a Business theme), the updater installs it automatically so existing users get new starting points
+- **Safe theme updates** — hash-based conflict detection via `.outpost-manifest.json`; user-modified files preserved, flagged as conflicts
+- **Theme update UI** — Settings → Updates shows per-theme results after applying an update
+- **Update includes new themes** — new managed themes in future releases install automatically
 
-### Developer Tools
-
-- **Outpost CLI** — `outpost pull | push | sync | backup` for local theme development without the Builder app
-- **Better Liquid error messages** — line/column in compile errors with suggested fixes for common mistakes
-- **Schema validation files** — JSON Schema per collection for static site generators (Astro, Next.js) to type-check content at build time
-- **VS Code extension** — Liquid syntax highlighting and Outpost-specific autocomplete (separate repo)
-- **Theme starter kit** — `outpost new-theme` scaffolds a minimal theme with standard partials, example loops, and `customizer` config
-
-**Docs:** CLI reference, theme development tutorial (start-to-finish walkthrough), VS Code extension setup guide, theme update system reference.
+### Developer Tools — Partially Shipped
+- ~~**Better Liquid error messages**~~ — **SHIPPED**: pre-compilation tag validation, source line tracking, enhanced error display with friendly messages
+- **Outpost CLI** — deferred to separate repo
+- **Schema validation files** — deferred
+- **VS Code extension** — deferred to separate repo
+- **Theme starter kit** — deferred
 
 ---
 

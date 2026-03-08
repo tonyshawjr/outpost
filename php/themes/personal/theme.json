@@ -4,6 +4,7 @@
     "author": "Port City Pixel",
     "description": "Reference personal blog theme. Demonstrates every Outpost template tag: collection loops, single items, folder loops, menu loops with dropdowns, pagination, global fields, meta tags, conditionals, and the admin check.",
     "screenshot": "",
+    "managed": true,
     "customizer": {
         "sections": [
             {

@@ -7,10 +7,11 @@
  * Or:    npm run package
  */
 
-import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync, symlinkSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync, symlinkSync, statSync } from 'fs';
+import { resolve, dirname, relative, join } from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import { createHash } from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -78,6 +79,39 @@ const themesSrc = resolve(PHP_DIR, 'themes');
 if (existsSync(themesSrc)) {
   cpSync(themesSrc, resolve(CONTENT_DIR, 'themes'), { recursive: true });
   console.log('  Copied content/themes/ (starter + personal)');
+
+  // Generate .outpost-manifest.json for managed themes
+  const themesDestDir = resolve(CONTENT_DIR, 'themes');
+  for (const themeSlug of readdirSync(themesDestDir)) {
+    const themeDir = resolve(themesDestDir, themeSlug);
+    if (!statSync(themeDir).isDirectory()) continue;
+
+    const themeJsonPath = resolve(themeDir, 'theme.json');
+    if (!existsSync(themeJsonPath)) continue;
+
+    const themeJson = JSON.parse(readFileSync(themeJsonPath, 'utf8'));
+    if (!themeJson.managed) continue;
+
+    // Hash all files in the theme directory
+    const manifest = {};
+    function hashDir(dir, base) {
+      for (const entry of readdirSync(dir)) {
+        if (entry === '.outpost-manifest.json') continue;
+        const fullPath = resolve(dir, entry);
+        const relPath = relative(base, fullPath);
+        if (statSync(fullPath).isDirectory()) {
+          hashDir(fullPath, base);
+        } else {
+          const hash = createHash('md5').update(readFileSync(fullPath)).digest('hex');
+          manifest[relPath] = hash;
+        }
+      }
+    }
+    hashDir(themeDir, themeDir);
+
+    writeFileSync(resolve(themeDir, '.outpost-manifest.json'), JSON.stringify(manifest, null, 2));
+    console.log(`  Generated .outpost-manifest.json for ${themeSlug} (${Object.keys(manifest).length} files)`);
+  }
 } else {
   mkdirSync(resolve(CONTENT_DIR, 'themes'), { recursive: true });
   console.warn('  Warning: themes/ not found, created empty content/themes/');

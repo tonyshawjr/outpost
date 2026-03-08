@@ -4,6 +4,23 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Developer Experience & Theme Updates (v1.9.0)
+
+- **Theme Update System** — auto-updater now safely updates bundled "managed" themes while preserving user modifications. Hash-based conflict detection compares installed files against `.outpost-manifest.json` to decide which files to replace, skip, or flag as conflicts.
+- **Managed theme flag** — bundled themes (Personal, Starter) declare `"managed": true` in `theme.json`. The updater only touches managed themes; user-created or duplicated themes are never modified.
+- **Duplicate strips managed** — duplicating a managed theme removes the `managed` flag so the copy is fully user-owned.
+- **Managed badge in admin** — Themes page shows "Managed by Outpost" label on managed themes and hides the delete button for them.
+- **Theme update results** — Settings → Updates shows per-theme results after applying an update (installed, updated with version diff, conflicts with expandable file list).
+- **Package manifest generation** — `npm run package` generates `.outpost-manifest.json` with MD5 hashes of all files in each managed theme for conflict detection.
+- **New theme auto-install** — when a new managed theme is added to a future release, the updater installs it automatically on existing sites.
+- **Pre-compilation tag validation** — template engine validates balanced `{% if %}` / `{% for %}` / `{% single %}` tags before compilation. Throws descriptive errors with line numbers for unclosed or mismatched tags.
+- **Source line tracking** — compiled PHP templates include `/* @line:N */` markers for mapping runtime errors back to template source lines.
+- **Enhanced error display** — admin-only error pages show the template filename, source line number, 5-line context window with error highlighting, and translated friendly messages for common PHP errors. Visitors see a generic error page.
+- **Error message translation** — common PHP errors (undefined variable, undefined array key, syntax error, undefined function) are translated into actionable messages that reference template concepts.
+- **Files**: `php/themes/personal/theme.json`, `php/themes/starter/theme.json`, `php/themes.php`, `php/api.php`, `php/template-engine.php`, `scripts/package.js`, `src/pages/Themes.svelte`, `src/pages/settings/UpdateSettings.svelte`
+
+---
+
 ## Theme Customizer (v1.8.0)
 
 - **Visual color editor** — change accent, text, background, surface, and muted colors with native color pickers and hex input. Changes apply to the theme's CSS custom properties.

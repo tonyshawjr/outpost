@@ -93,7 +93,74 @@
       </tbody>
     </table>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Because the entire <code>content/</code> directory is protected, you can safely customize any theme file. Your changes will persist through every update.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Because the entire <code>content/</code> directory is protected, you can safely customize any theme file in a non-managed theme. Your changes will persist through every update. For managed themes, the updater uses conflict detection to preserve your edits &mdash; see below.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Theme Update System</h2>
+    <p>Starting in v1.9.0, Outpost can update bundled themes alongside the CMS core. This keeps official themes in sync with engine changes, new features, and bug fixes &mdash; without overwriting your customizations.</p>
+
+    <h3>Managed themes</h3>
+    <p>A <strong>managed theme</strong> is any theme with <code>"managed": true</code> in its <code>theme.json</code>. This flag tells the updater that the theme is maintained by Outpost and should be kept up to date. The bundled <em>Personal</em> and <em>Starter</em> themes ship with this flag set.</p>
+    <p>Managed themes display a &ldquo;Managed&rdquo; badge on their card in Admin &rarr; Themes. User-created themes and duplicated themes never have this flag and are never touched by the updater.</p>
+
+    <h3>How theme updates work</h3>
+    <p>When you apply a CMS update, the update package may include updated versions of managed themes in its <code>content/themes/</code> directory. The updater processes each one:</p>
+    <ol>
+      <li><strong>New theme:</strong> If a managed theme in the package does not exist on the site, it is installed automatically as a fresh copy.</li>
+      <li><strong>Version check:</strong> If the theme already exists and is managed, the updater compares the package version against the installed version. If the installed version is the same or newer, the theme is skipped.</li>
+      <li><strong>Conflict detection:</strong> If an update is needed, the updater compares each file against the <code>.outpost-manifest.json</code> to determine which files the user has modified. See below for details.</li>
+    </ol>
+
+    <h3>The .outpost-manifest.json file</h3>
+    <p>Every managed theme includes a hidden <code>.outpost-manifest.json</code> file at its root. This file contains an MD5 hash of every file as it was shipped:</p>
+    <pre><code>{
+  "index.html": "a1b2c3d4e5f6...",
+  "post.html": "f6e5d4c3b2a1...",
+  "assets/style.css": "1234abcd5678...",
+  "partials/head.html": "abcd1234efgh..."
+}</code></pre>
+    <p>During an update, the updater uses these hashes to determine:</p>
+    <ul>
+      <li><strong>Unmodified files</strong> (installed hash matches manifest hash) &rarr; safely replaced with the new version</li>
+      <li><strong>User-modified files where the update did not change the file</strong> &rarr; kept as-is (no conflict)</li>
+      <li><strong>User-modified files where the update also changed the file</strong> &rarr; preserved as a <strong>conflict</strong>. The user&rsquo;s version is kept, and the file is reported in the update results.</li>
+      <li><strong>New files</strong> (exist in the update but not on the site) &rarr; copied in</li>
+    </ul>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; After a theme update, the new manifest replaces the old one. This means future updates will compare against the latest shipped version, not the original install.</div>
+
+    <h3>What users see after an update</h3>
+    <p>The update results screen in the admin panel shows a <strong>Theme Updates</strong> section when themes were processed. Each theme shows one of:</p>
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Installed</strong></td>
+          <td>A new managed theme was added to the site for the first time.</td>
+        </tr>
+        <tr>
+          <td><strong>Updated</strong></td>
+          <td>The theme was updated from one version to another. Shows the version range (e.g. 1.0.0 &rarr; 2.0.0).</td>
+        </tr>
+        <tr>
+          <td><strong>Updated with conflicts</strong></td>
+          <td>The theme was updated, but some files you edited were preserved instead of replaced. The conflicting file paths are listed so you can manually merge changes if needed.</td>
+        </tr>
+        <tr>
+          <td><strong>Skipped</strong></td>
+          <td>The installed version is already up to date.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Duplicating a managed theme</h3>
+    <p>If you want to customize a managed theme, <strong>duplicate it first</strong>. The duplicate has the <code>managed</code> flag stripped and becomes a fully independent theme. It will never be touched by future updates, giving you complete control over every file.</p>
+    <p>The original managed theme stays on your site and continues receiving updates. You can switch between the original (auto-updated) and your custom duplicate at any time.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; For small CSS tweaks to a managed theme, consider using the <a href="features/theme-customizer.html">Theme Customizer</a> instead of editing files directly. Customizer values are stored separately and survive all updates without conflicts.</div>
 
     <hr style="margin: 40px 0;">
 

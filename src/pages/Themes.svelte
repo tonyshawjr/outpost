@@ -115,6 +115,7 @@
           <div class="active-theme-meta">
             {#if activeTheme.version}<span>v{activeTheme.version}</span>{/if}
             {#if activeTheme.author}<span class="meta-dot"></span><span>{activeTheme.author}</span>{/if}
+            {#if activeTheme.managed}<span class="meta-dot"></span><span class="managed-label">Managed by Outpost</span>{/if}
           </div>
           {#if activeTheme.description}
             <div class="active-theme-desc">{activeTheme.description}</div>
@@ -144,6 +145,7 @@
               <div class="theme-card-meta">
                 {#if theme.version}<span>v{theme.version}</span>{/if}
                 {#if theme.author}<span class="meta-dot"></span><span>{theme.author}</span>{/if}
+                {#if theme.managed}<span class="meta-dot"></span><span class="managed-label">Managed by Outpost</span>{/if}
               </div>
               {#if theme.description}
                 <div class="theme-card-desc">{theme.description}</div>
@@ -160,9 +162,11 @@
               <button class="btn btn-secondary btn-sm" onclick={() => openDuplicate(theme.slug)}>
                 Duplicate
               </button>
-              <button class="theme-delete-btn" onclick={() => { deleteTarget = theme.slug; }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-              </button>
+              {#if !theme.managed}
+                <button class="theme-delete-btn" onclick={() => { deleteTarget = theme.slug; }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              {/if}
             </div>
           </div>
         {/each}
@@ -285,6 +289,11 @@
   .meta-dot::before {
     content: '\00B7';
     font-weight: 700;
+  }
+
+  .managed-label {
+    color: var(--accent);
+    font-weight: 500;
   }
 
   .active-theme-desc {

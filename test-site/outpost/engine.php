@@ -1230,20 +1230,26 @@ function outpost_customizer_css(string $themeSlug): string {
     $cssVars = [];
     $fonts = [];
     $favicon = '';
+    $fontVarsSet = [];     // which font CSS vars are being customized
+    $fontVarDefaults = []; // all font CSS vars → their schema defaults
 
     foreach ($schema['sections'] as $section) {
         $sectionId = $section['id'] ?? '';
         $sectionSaved = $themeValues[$sectionId] ?? [];
-        if (empty($sectionSaved)) continue;
 
         foreach ($section['fields'] ?? [] as $field) {
             $key = $field['key'] ?? '';
-            $val = $sectionSaved[$key] ?? '';
-            if ($val === '') continue;
-
-            $default = $field['default'] ?? '';
             $type = $field['type'] ?? 'text';
             $cssVar = $field['var'] ?? '';
+            $default = $field['default'] ?? '';
+
+            // Track all font field defaults for cascade prevention
+            if ($type === 'font' && $cssVar && preg_match('/^--[a-zA-Z0-9-]+$/', $cssVar)) {
+                $fontVarDefaults[$cssVar] = $default;
+            }
+
+            $val = $sectionSaved[$key] ?? '';
+            if ($val === '') continue;
 
             // Validate CSS variable name
             if ($cssVar && !preg_match('/^--[a-zA-Z0-9-]+$/', $cssVar)) continue;
@@ -1253,11 +1259,16 @@ function outpost_customizer_css(string $themeSlug): string {
                 if ($type === 'color' && !preg_match('/^#[0-9A-Fa-f]{3,8}$/', $val)) continue;
                 if ($type === 'font' && !preg_match('/^[a-zA-Z0-9 \'\-]+$/', $val)) continue;
 
-                if ($type === 'font' && $val !== 'System Default') {
-                    $safeVal = preg_replace('/[^a-zA-Z0-9 \'\-]/', '', $val);
-                    $cssVars[] = $cssVar . ": '" . $safeVal . "', system-ui, -apple-system, sans-serif";
-                    $fonts[] = $safeVal;
-                } else if ($type !== 'font') {
+                if ($type === 'font') {
+                    if ($val === 'System Default') {
+                        $cssVars[] = $cssVar . ": system-ui, -apple-system, sans-serif";
+                    } else {
+                        $safeVal = preg_replace('/[^a-zA-Z0-9 \'\-]/', '', $val);
+                        $cssVars[] = $cssVar . ": '" . $safeVal . "', system-ui, -apple-system, sans-serif";
+                        $fonts[] = $safeVal;
+                    }
+                    $fontVarsSet[$cssVar] = true;
+                } else {
                     $cssVars[] = $cssVar . ': ' . $val;
                 }
             }
@@ -1265,6 +1276,17 @@ function outpost_customizer_css(string $themeSlug): string {
             // Favicon
             if ($key === 'favicon' && $type === 'image') {
                 $favicon = $val;
+            }
+        }
+    }
+
+    // Prevent font cascade: if any font var is customized, explicitly pin non-customized
+    // font vars to their defaults (breaks CSS interdependencies like --font-display: var(--font-sans))
+    if (!empty($fontVarsSet)) {
+        foreach ($fontVarDefaults as $cssVar => $defaultFont) {
+            if (!isset($fontVarsSet[$cssVar]) && $defaultFont && $defaultFont !== 'System Default') {
+                $safeVal = preg_replace('/[^a-zA-Z0-9 \'\-]/', '', $defaultFont);
+                $cssVars[] = $cssVar . ": '" . $safeVal . "', system-ui, -apple-system, sans-serif";
             }
         }
     }
@@ -1330,10 +1352,17 @@ function outpost_customizer_preview_script(): string {
     if (!schema || !schema.sections) return;
 
     var root = document.documentElement;
+    var fontVarsSet = {};
+    var fontVarDefaults = {};
 
     schema.sections.forEach(function(section) {
       var sectionValues = values[section.id] || {};
       (section.fields || []).forEach(function(field) {
+        // Track all font field defaults for cascade prevention
+        if (field.type === 'font' && field.var && /^--[a-zA-Z0-9-]+$/.test(field.var)) {
+          fontVarDefaults[field.var] = field.default || '';
+        }
+
         var val = sectionValues[field.key];
         if (val === undefined || val === null || val === '') return;
 
@@ -1341,9 +1370,16 @@ function outpost_customizer_preview_script(): string {
         if (field.var && /^--[a-zA-Z0-9-]+$/.test(field.var)) {
           if (field.type === 'color' && !/^#[0-9A-Fa-f]{3,8}$/.test(val)) return;
           if (field.type === 'font' && !/^[A-Za-z0-9 '\-]+$/.test(val)) return;
-          if (field.type === 'font' && val !== 'System Default') {
-            root.style.setProperty(field.var, "'" + val + "', system-ui, -apple-system, sans-serif");
-          } else if (field.type !== 'font') {
+          if (field.type === 'font') {
+            if (val !== (field.default || '')) {
+              if (val === 'System Default') {
+                root.style.setProperty(field.var, "system-ui, -apple-system, sans-serif");
+              } else {
+                root.style.setProperty(field.var, "'" + val + "', system-ui, -apple-system, sans-serif");
+              }
+              fontVarsSet[field.var] = true;
+            }
+          } else {
             root.style.setProperty(field.var, val);
           }
         }
@@ -1379,6 +1415,16 @@ function outpost_customizer_preview_script(): string {
         }
       });
     });
+
+    // Prevent font cascade: pin non-customized font vars to their defaults
+    var hasFontOverride = Object.keys(fontVarsSet).length > 0;
+    if (hasFontOverride) {
+      for (var fv in fontVarDefaults) {
+        if (!fontVarsSet[fv] && fontVarDefaults[fv] && fontVarDefaults[fv] !== 'System Default') {
+          root.style.setProperty(fv, "'" + fontVarDefaults[fv] + "', system-ui, -apple-system, sans-serif");
+        }
+      }
+    }
   });
 
   // Signal to parent that preview is ready

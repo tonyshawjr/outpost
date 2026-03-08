@@ -16,7 +16,8 @@
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
 - [Theme Customizer](/outpost/docs/features/theme-customizer.html): Visual color, font, logo, and favicon editor with live preview
-- [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system
+- [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system with theme updates
+- [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
 
 ---
@@ -99,7 +100,7 @@ Draft blocking: items with `status='draft'` return 404. Preview: append `?previe
 
 ## theme.json
 
-Every theme requires a `theme.json` at the root of the theme directory. It is purely informational — no functional effect on routing or compilation.
+Every theme requires a `theme.json` at the root of the theme directory. It provides metadata for the admin browser and optionally controls auto-update behavior.
 
 ```json
 {
@@ -107,7 +108,8 @@ Every theme requires a `theme.json` at the root of the theme directory. It is pu
   "version": "1.0.0",
   "author": "Your Name",
   "description": "A clean theme for personal blogs.",
-  "screenshot": "screenshot.png"
+  "screenshot": "screenshot.png",
+  "managed": true
 }
 ```
 
@@ -118,8 +120,15 @@ Every theme requires a `theme.json` at the root of the theme directory. It is pu
 | `author` | Yes | Creator name shown in details panel |
 | `description` | Yes | Short summary shown in browser |
 | `screenshot` | No | Relative path to PNG/JPG preview image |
+| `managed` | No | When `true`, theme receives auto-updates during CMS updates. Reserved for bundled themes. |
 
 The directory name is the slug (immutable); it is used as the `active_theme` setting value.
+
+### Managed themes
+
+Themes with `"managed": true` are official themes maintained by Outpost. They participate in the theme update system — when the CMS is updated, managed themes in the package are automatically updated with conflict detection. The bundled Personal and Starter themes ship with this flag.
+
+Managed themes show a "Managed" badge in Admin → Themes. Duplicating a managed theme strips the `managed` flag — the copy becomes an independent user-owned theme that is never touched by updates. Do not add `"managed": true` to custom themes.
 
 ### Customizer schema (optional)
 
@@ -1595,12 +1604,62 @@ Check for and apply core updates from Settings → Updates. Requires `super_admi
 
 **How it works:**
 1. `GET api.php?action=updates/check` — fetches latest GitHub Release, compares against `OUTPOST_VERSION`, cached 5 minutes
-2. `POST api.php?action=updates/apply` — downloads release zip, validates URL (must be github.com/tonyshawjr/outpost), validates zip paths (zip slip prevention), extracts core files only
+2. `POST api.php?action=updates/apply` — downloads release zip, validates URL (must be github.com/tonyshawjr/outpost), validates zip paths (zip slip prevention), extracts core files + updates managed themes
 
 **Files replaced:** root `.php` files, `admin/`, `docs/`, `member-pages/`, `tools/`
-**Files never touched:** `themes/`, `data/`, `uploads/`, `cache/` (cache is cleared post-update)
+**Files never touched:** user themes, `data/`, `uploads/`, `cache/` (cache is cleared post-update)
 
 **Security:** URL validated via `parse_url()` with strict hostname + path check. HTTPS enforced. All zip entry paths validated before extraction. Only `super_admin` can trigger updates.
+
+### Theme Update System
+
+Managed themes (those with `"managed": true` in theme.json) are updated alongside the CMS core. The update package includes managed themes in `content/themes/`.
+
+**Update flow per theme:**
+1. If the theme doesn't exist on the site → installed as fresh copy
+2. If the installed theme doesn't have `managed: true` → skipped
+3. If installed version >= package version → skipped (up to date)
+4. Otherwise → file-by-file update with conflict detection
+
+**Conflict detection via .outpost-manifest.json:**
+Each managed theme ships with `.outpost-manifest.json` containing MD5 hashes of all files as shipped. During an update:
+- File hash matches manifest (unmodified by user) → replaced with new version
+- File modified by user but update didn't change it → kept as-is (no conflict)
+- File modified by user AND update changed it → **conflict**: user version preserved, file path reported
+- New file in update package → copied in
+
+After update, the new manifest replaces the old one for future comparisons.
+
+**Update results:** The `updates/apply` response includes `theme_updates` array with per-theme results:
+```json
+{ "theme": "personal", "action": "updated", "from_version": "1.0.0", "to_version": "2.0.0", "conflicts": ["assets/style.css"] }
+{ "theme": "starter", "action": "installed", "version": "1.0.0" }
+{ "theme": "personal", "action": "skipped", "reason": "up_to_date", "version": "2.0.0" }
+```
+
+**Key functions:** `outpost_update_managed_themes()` (orchestrates), `outpost_theme_update_with_conflicts()` (per-theme hash comparison), `outpost_list_files_recursive()` (file enumeration).
+
+### Enhanced Template Error Messages
+
+The template engine (v1.9.0+) provides developer-friendly error diagnostics:
+
+**Pre-compilation validation:** `OutpostTemplate::validate()` checks for balanced block tags (`{% if %}`, `{% for %}`, `{% single %}`) before compilation. Reports unclosed tags, mismatched end tags, and unexpected `{% else %}` with exact line numbers and file names.
+
+**Source line tracking:** The compiler injects `/* @line:N */` markers into compiled PHP. When a runtime error occurs, `mapCompiledLineToSource()` traces the PHP error line back to the original template source line.
+
+**Friendly error display:** Admin users see a styled error page with:
+- The error type and file name
+- The exact template line number (when available)
+- A source context view showing surrounding lines with the error line highlighted
+- Human-readable error messages translated from PHP internals (e.g. "Unknown variable $item" instead of "Undefined variable $item")
+
+Non-admin visitors see a generic "Something went wrong" page with no source details.
+
+**Error translations:** `translateError()` converts common PHP errors:
+- `Undefined variable $x` → "Unknown variable $x. Check that it's defined in a {% for %} or {% single %} block."
+- `syntax error` → "Template syntax error. Check for unclosed tags or invalid template expressions."
+- `Undefined array key "x"` → "Field "x" is not defined. Check the field name in your template."
+- `Call to undefined function x()` → "Unknown function x(). This may indicate a missing Outpost feature or a typo."
 
 ## Security
 

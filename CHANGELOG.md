@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.0] — 2026-03-08
+
+### Added
+- **Theme Update System** — auto-updater safely updates bundled managed themes while preserving user modifications via hash-based conflict detection
+- Managed theme flag (`"managed": true` in `theme.json`) for Personal and Starter themes
+- `.outpost-manifest.json` generation in packaging script for file-level conflict detection
+- Theme update results display in Settings → Updates (installed, updated, conflicts)
+- "Managed by Outpost" label on managed themes in the Themes page
+- Delete protection for managed themes (button hidden in admin UI)
+- New theme auto-install during updates (new managed themes in future releases install automatically)
+- **Pre-compilation tag validation** — balanced tag checking with line numbers for `{% if %}`, `{% for %}`, `{% single %}`
+- **Source line tracking** — `/* @line:N */` markers in compiled templates for source mapping
+- **Enhanced error display** — admin-only diagnostics with source context, line highlighting, and friendly error messages
+- Error message translation for common PHP errors (undefined variable, array key, syntax error, undefined function)
+
+### Changed
+- Duplicated themes have `managed` flag stripped — copies are fully user-owned
+- Themes API now includes `managed` boolean in list response
+- `OutpostTemplate::compile()` accepts optional filename parameter for source tracking
+- `OutpostTemplate::renderError()` shows source context and translated messages for admins
+
+---
+
 ## [1.8.2] — 2026-03-08
 
 ### Fixed

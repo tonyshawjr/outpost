@@ -7,6 +7,7 @@
   let applying = $state(false);
   let updateInfo = $state(null);
   let error = $state('');
+  let themeResults = $state(null);
 
   onMount(() => {
     checkForUpdates();
@@ -34,8 +35,11 @@
       const res = await updatesApi.apply(updateInfo.download_url);
       updateAvailable.set(false);
       addToast(res.message || 'Update applied successfully!', 'success');
-      // Reload after a short delay so the new admin SPA loads
-      setTimeout(() => window.location.reload(), 1500);
+      themeResults = res.theme_updates || null;
+      // Reload after a short delay so the new admin SPA loads (skip if showing results)
+      if (!themeResults || themeResults.length === 0) {
+        setTimeout(() => window.location.reload(), 1500);
+      }
     } catch (err) {
       addToast('Update failed: ' + err.message, 'error');
     } finally {
@@ -111,6 +115,39 @@
     <button class="btn btn-secondary update-recheck" onclick={checkForUpdates} disabled={checking}>
       Check again
     </button>
+  {/if}
+
+  {#if themeResults && themeResults.length > 0}
+    <div class="theme-results">
+      <h3 class="theme-results-title">Theme Updates</h3>
+      {#each themeResults as result}
+        <div class="theme-result-item">
+          <div class="theme-result-header">
+            <strong>{result.theme}</strong>
+            {#if result.action === 'installed'}
+              <span class="theme-result-badge installed">Installed v{result.version}</span>
+            {:else if result.action === 'updated'}
+              <span class="theme-result-badge updated">Updated {result.from_version} → {result.to_version}</span>
+            {:else if result.action === 'skipped'}
+              <span class="theme-result-badge skipped">Up to date</span>
+            {/if}
+          </div>
+          {#if result.conflicts && result.conflicts.length > 0}
+            <details class="theme-conflicts">
+              <summary>{result.conflicts.length} file{result.conflicts.length === 1 ? '' : 's'} skipped (user-modified)</summary>
+              <ul class="conflict-list">
+                {#each result.conflicts as file}
+                  <li>{file}</li>
+                {/each}
+              </ul>
+            </details>
+          {/if}
+        </div>
+      {/each}
+      <button class="btn btn-primary" style="margin-top: var(--space-md);" onclick={() => window.location.reload()}>
+        Reload admin
+      </button>
+    </div>
   {/if}
 </div>
 
@@ -247,5 +284,74 @@
 
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  .theme-results {
+    margin-top: var(--space-xl);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+
+  .theme-results-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 var(--space-md);
+    color: var(--text-primary);
+  }
+
+  .theme-result-item {
+    padding: var(--space-sm) 0;
+  }
+
+  .theme-result-item + .theme-result-item {
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  .theme-result-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 13px;
+  }
+
+  .theme-result-badge {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .theme-result-badge.installed {
+    color: var(--accent);
+  }
+
+  .theme-result-badge.updated {
+    color: var(--accent);
+  }
+
+  .theme-result-badge.skipped {
+    color: var(--text-tertiary);
+  }
+
+  .theme-conflicts {
+    margin-top: var(--space-xs);
+  }
+
+  .theme-conflicts summary {
+    font-size: 12px;
+    color: var(--warning, #d97706);
+    cursor: pointer;
+  }
+
+  .conflict-list {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-xs) 0 0;
+  }
+
+  .conflict-list li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono, monospace);
+    padding: 2px 0;
   }
 </style>

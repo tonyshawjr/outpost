@@ -65,9 +65,10 @@ class OutpostTemplate {
         if (!file_exists($compiled) || filemtime($templateFile) > filemtime($compiled)) {
             $source = file_get_contents($templateFile);
             try {
-                $php = self::compile($source);
+                self::validate($source, basename($templateFile));
+                $php = self::compile($source, basename($templateFile));
             } catch (\Throwable $e) {
-                self::renderError('Template compile error', $e, $templateFile);
+                self::renderError('Template compile error', $e, $templateFile, $source);
                 return;
             }
 
@@ -83,10 +84,13 @@ class OutpostTemplate {
         try {
             include $compiled;
         } catch (\Throwable $e) {
+            // Read compiled source BEFORE deleting cache (needed for line mapping)
+            $compiledSource = file_exists($compiled) ? @file_get_contents($compiled) : '';
             ob_end_clean();
             // Remove bad cache so next request recompiles
             @unlink($compiled);
-            self::renderError('Template runtime error', $e, $templateFile);
+            $runtimeSource = file_exists($templateFile) ? file_get_contents($templateFile) : '';
+            self::renderError('Template runtime error', $e, $templateFile, $runtimeSource, '', $compiledSource ?: '');
             return;
         }
         $output = ob_get_clean();
@@ -148,10 +152,79 @@ class OutpostTemplate {
     }
 
     /**
+     * Validate template source for balanced block tags.
+     * Throws descriptive errors with line numbers for unclosed/mismatched tags.
+     */
+    public static function validate(string $source, string $filename = 'template'): void {
+        // Strip comments first so they don't confuse the scanner
+        $clean = preg_replace('/\{#.*?#\}/s', '', $source);
+
+        // Find all block-level opening and closing tags
+        $pattern = '/\{%\s*(if|for|single|else|endif|endfor|endsingle)\b[^%]*%\}/';
+        preg_match_all($pattern, $clean, $matches, PREG_OFFSET_CAPTURE);
+
+        $stack = []; // [{tag, line}]
+
+        foreach ($matches[0] as $i => $match) {
+            $fullMatch = $match[0];
+            $offset = $match[1];
+            $tag = $matches[1][$i][0]; // the captured keyword
+            $line = substr_count($clean, "\n", 0, $offset) + 1;
+
+            if ($tag === 'if' || $tag === 'for' || $tag === 'single') {
+                $stack[] = ['tag' => $tag, 'line' => $line, 'has_else' => false];
+            } elseif ($tag === 'else') {
+                // else must be inside an if, for, or single
+                if (empty($stack)) {
+                    throw new \RuntimeException(
+                        "Unexpected {% else %} on line {$line} of {$filename} — no matching opening tag"
+                    );
+                }
+                $top =& $stack[count($stack) - 1];
+                if ($top['has_else']) {
+                    throw new \RuntimeException(
+                        "Duplicate {% else %} on line {$line} of {$filename} — {% {$top['tag']} %} on line {$top['line']} already has an else clause"
+                    );
+                }
+                $top['has_else'] = true;
+                unset($top);
+            } elseif ($tag === 'endif' || $tag === 'endfor' || $tag === 'endsingle') {
+                $expected = str_replace('end', '', $tag); // 'if', 'for', 'single'
+                if (empty($stack)) {
+                    throw new \RuntimeException(
+                        "Unexpected {% {$tag} %} on line {$line} of {$filename} — no matching opening tag"
+                    );
+                }
+                $top = array_pop($stack);
+                if ($top['tag'] !== $expected) {
+                    throw new \RuntimeException(
+                        "Mismatched tags in {$filename}: expected {% end{$top['tag']} %} (opened on line {$top['line']}) but found {% {$tag} %} on line {$line}"
+                    );
+                }
+            }
+        }
+
+        // Check for unclosed tags
+        if (!empty($stack)) {
+            $top = array_pop($stack);
+            throw new \RuntimeException(
+                "Unclosed {% {$top['tag']} %} tag opened on line {$top['line']} of {$filename} — add {% end{$top['tag']} %} to close it"
+            );
+        }
+    }
+
+    /**
      * Compile template source to PHP.
      */
-    public static function compile(string $source): string {
-        $php = $source;
+    public static function compile(string $source, string $filename = ''): string {
+        // Inject line markers before compilation so they survive regex transforms
+        $lines = explode("\n", $source);
+        $marked = [];
+        foreach ($lines as $i => $line) {
+            $lineNum = $i + 1;
+            $marked[] = "<?php /* @line:{$lineNum} */ ?>" . $line;
+        }
+        $php = implode("\n", $marked);
 
         // Strip comments: {# ... #}
         $php = preg_replace('/\{#.*?#\}/s', '', $php);
@@ -647,7 +720,8 @@ class OutpostTemplate {
             $source = file_get_contents($file);
 
             try {
-                $partialPhp = self::compilePartial($source);
+                self::validate($source, 'partials/' . $name . '.html');
+                $partialPhp = self::compilePartial($source, $name);
             } catch (\Throwable $e) {
                 echo '<!-- Partial compile error: ' . htmlspecialchars($name) . ' -->';
                 error_log('Outpost partial compile error (' . $name . '): ' . $e->getMessage());
@@ -673,8 +747,8 @@ class OutpostTemplate {
     /**
      * Compile a partial (same as compile but without engine require).
      */
-    private static function compilePartial(string $source): string {
-        $full = self::compile($source);
+    private static function compilePartial(string $source, string $name = ''): string {
+        $full = self::compile($source, $name);
         // Remove the engine require line we prepend (partials inherit from parent)
         $full = preg_replace('/^<\?php require_once .*?engine\.php\';\s*\?>\n/', '', $full);
         return $full;
@@ -682,9 +756,9 @@ class OutpostTemplate {
 
     /**
      * Render a friendly error page (503) for template failures.
-     * Shows details only to logged-in admins; visitors see a generic message.
+     * Admins get source context + friendly messages; visitors see a generic page.
      */
-    private static function renderError(string $title, \Throwable $e, string $templateFile): void {
+    private static function renderError(string $title, \Throwable $e, string $templateFile, string $source = '', string $compiledFile = '', string $compiledSource = ''): void {
         http_response_code(503);
         error_log("Outpost {$title} in " . basename($templateFile) . ': ' . $e->getMessage());
 
@@ -692,18 +766,111 @@ class OutpostTemplate {
         $tpl = htmlspecialchars(basename($templateFile));
 
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>503 — Site Error</title>'
-           . '<style>body{font-family:-apple-system,system-ui,sans-serif;max-width:560px;margin:80px auto;color:#333;line-height:1.5}'
-           . 'h1{font-size:22px;margin-bottom:4px}p{color:#666}pre{background:#f5f5f5;padding:16px;border-radius:6px;overflow-x:auto;font-size:13px;color:#c00}</style></head>'
+           . '<style>body{font-family:-apple-system,system-ui,sans-serif;max-width:680px;margin:60px auto;color:#333;line-height:1.6;padding:0 20px}'
+           . 'h1{font-size:22px;margin-bottom:4px}p{color:#666}'
+           . '.error-msg{background:#fef2f2;border:1px solid #fecaca;padding:14px 18px;border-radius:8px;font-size:14px;color:#991b1b;margin:16px 0}'
+           . '.source-context{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0;margin:16px 0;overflow:hidden}'
+           . '.source-context pre{margin:0;padding:14px 18px;font-size:13px;line-height:1.7;overflow-x:auto;color:#475569}'
+           . '.source-line{display:block}.source-line.error-line{background:#fef2f2;color:#991b1b;font-weight:600}'
+           . '.line-num{display:inline-block;width:32px;text-align:right;margin-right:12px;color:#94a3b8;user-select:none}'
+           . '.error-line .line-num{color:#991b1b}'
+           . '.source-header{background:#f1f5f9;padding:8px 18px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600}'
+           . '</style></head>'
            . '<body><h1>Something went wrong</h1>'
            . '<p>This page couldn&#39;t be rendered. The site owner has been notified.</p>';
 
         if ($isAdmin) {
-            echo '<hr style="margin:24px 0;border:0;border-top:1px solid #eee">'
-               . '<p style="color:#999;font-size:13px"><strong>' . htmlspecialchars($title) . '</strong> in <code>' . $tpl . '</code></p>'
-               . '<pre>' . htmlspecialchars($e->getMessage()) . "\n\n" . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+            // Translate PHP errors into friendly messages
+            $friendlyMsg = self::translateError($e->getMessage());
+            $templateLine = null;
+
+            // Try to extract template line from the error or from compiled source
+            if (preg_match('/line (\d+) of /', $e->getMessage(), $lm)) {
+                // Already a template-engine error with line info
+                $templateLine = (int) $lm[1];
+            } else {
+                // Runtime error — map PHP line to template source line
+                // Try in-memory compiled source first, fall back to file
+                if (!$compiledSource && $compiledFile && file_exists($compiledFile)) {
+                    $compiledSource = @file_get_contents($compiledFile) ?: '';
+                }
+                if ($compiledSource) {
+                    $phpLine = $e->getLine();
+                    $templateLine = self::mapCompiledLineToSource($compiledSource, $phpLine);
+                }
+            }
+
+            echo '<div class="error-msg"><strong>' . htmlspecialchars($title) . '</strong> in <code>' . $tpl . '</code>';
+            if ($templateLine) {
+                echo ' on <strong>line ' . $templateLine . '</strong>';
+            }
+            echo '<br>' . htmlspecialchars($friendlyMsg) . '</div>';
+
+            // Show source context if we have source and a line number
+            if ($source && $templateLine) {
+                $lines = explode("\n", $source);
+                $start = max(0, $templateLine - 3);
+                $end = min(count($lines) - 1, $templateLine + 2);
+
+                echo '<div class="source-context">';
+                echo '<div class="source-header">' . $tpl . '</div>';
+                echo '<pre>';
+                for ($i = $start; $i <= $end; $i++) {
+                    $num = $i + 1;
+                    $isError = ($num === $templateLine);
+                    $class = $isError ? 'source-line error-line' : 'source-line';
+                    $marker = $isError ? '>>' : '  ';
+                    echo '<span class="' . $class . '">'
+                       . '<span class="line-num">' . $num . '</span>'
+                       . $marker . ' ' . htmlspecialchars($lines[$i]) . '</span>' . "\n";
+                }
+                echo '</pre></div>';
+            } elseif (!$templateLine) {
+                // No line mapping available — show raw error
+                echo '<pre style="background:#f5f5f5;padding:16px;border-radius:6px;overflow-x:auto;font-size:13px;color:#c00">'
+                   . htmlspecialchars($e->getMessage()) . '</pre>';
+            }
         }
 
         echo '</body></html>';
+    }
+
+    /**
+     * Map a compiled PHP line number to the original template source line.
+     * Scans backwards from the PHP error line looking for the nearest @line:N marker.
+     */
+    private static function mapCompiledLineToSource(string $compiledSource, int $phpLine): ?int {
+        $lines = explode("\n", $compiledSource);
+        // Scan from the error line backwards to find the nearest @line marker
+        for ($i = min($phpLine - 1, count($lines) - 1); $i >= 0; $i--) {
+            if (preg_match('/\/\* @line:(\d+) \*\//', $lines[$i], $m)) {
+                return (int) $m[1];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Translate common PHP error messages into friendly, actionable descriptions.
+     */
+    private static function translateError(string $message): string {
+        // Undefined variable
+        if (preg_match('/Undefined variable \$?(\w+)/', $message, $m)) {
+            return "Unknown variable \${$m[1]}. Check that it's defined in a {% for %} or {% single %} block.";
+        }
+        // Syntax error
+        if (str_contains($message, 'syntax error')) {
+            return 'Template syntax error. Check for unclosed tags or invalid template expressions.';
+        }
+        // Undefined array key
+        if (preg_match('/Undefined array key "([^"]+)"/', $message, $m)) {
+            return "Field \"{$m[1]}\" is not defined. Check the field name in your template.";
+        }
+        // Call to undefined function
+        if (preg_match('/Call to undefined function (\w+)/', $message, $m)) {
+            return "Unknown function {$m[1]}(). This may indicate a missing Outpost feature or a typo.";
+        }
+        return $message;
     }
 
     /**

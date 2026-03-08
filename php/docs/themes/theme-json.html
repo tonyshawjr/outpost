@@ -28,7 +28,8 @@
   "version": "1.0.0",
   "author": "Your Name",
   "description": "A clean theme for personal blogs and portfolios.",
-  "screenshot": "screenshot.png"
+  "screenshot": "screenshot.png",
+  "managed": true
 }</code></pre>
 
     <h2>Field reference</h2>
@@ -72,8 +73,39 @@
           <td>No</td>
           <td>Filename (or relative path) of a preview image within the theme directory. PNG or JPG. Displayed as the theme card thumbnail.</td>
         </tr>
+        <tr>
+          <td><code>managed</code></td>
+          <td>boolean</td>
+          <td>No</td>
+          <td>When <code>true</code>, marks this theme as managed by Outpost. Managed themes receive automatic updates when the CMS is updated. See <a href="themes/theme-updates.html">Theme Updates</a> for details.</td>
+        </tr>
       </tbody>
     </table>
+
+    <h2>The managed field</h2>
+    <p>The <code>managed</code> field identifies themes that are bundled with Outpost and maintained by the Outpost team. When <code>"managed": true</code> is set, the theme participates in the <a href="themes/theme-updates.html">theme update system</a> &mdash; it will be automatically updated alongside the CMS when a new version is released.</p>
+    <pre><code>{
+  "name": "Personal",
+  "version": "2.0.0",
+  "author": "Port City Pixel",
+  "description": "Reference personal blog theme.",
+  "managed": true
+}</code></pre>
+    <p>Managed themes display a small &ldquo;Managed&rdquo; badge on their theme card in the admin browser, indicating they are official and auto-updated.</p>
+
+    <h3>What managed means in practice</h3>
+    <ul>
+      <li><strong>Auto-updated:</strong> When the CMS is updated via Settings &rarr; Updates, managed themes in the update package are compared against installed versions. If a newer version exists, the theme files are updated automatically with conflict detection.</li>
+      <li><strong>Conflict detection:</strong> If you have edited files in a managed theme, the updater detects your changes and preserves them. Conflicting files are reported in the update results so you can review them.</li>
+      <li><strong>Manifest tracking:</strong> Each managed theme includes a <code>.outpost-manifest.json</code> file that stores MD5 hashes of all shipped files. This is how the updater knows which files you have modified versus which are untouched.</li>
+    </ul>
+
+    <h3>Duplicating strips the managed flag</h3>
+    <p>When you duplicate a managed theme (via Admin &rarr; Themes &rarr; Duplicate), the copy has its <code>managed</code> flag removed automatically. This means your custom copy will never be overwritten by future updates &mdash; it becomes an independent, user-owned theme. The original managed theme continues to receive updates normally.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you want to customize a managed theme without losing auto-updates, duplicate it first. Your duplicate is yours to edit freely, while the original stays in sync with Outpost releases.</div>
+
+    <div class="callout callout-warn"><strong>Warning</strong> &mdash; Do not add <code>"managed": true</code> to your own themes. This flag is reserved for themes distributed with Outpost. Setting it on a custom theme could cause the updater to overwrite your files if a bundled theme with the same directory slug is released in the future.</div>
 
     <h2>The screenshot field</h2>
     <p>If <code>screenshot</code> is present and the file exists, it is served from the theme's directory and displayed as the theme card's preview image in the admin browser. The path is relative to the theme root:</p>

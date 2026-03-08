@@ -54,6 +54,7 @@ function handle_themes_list(): void {
             'author' => $manifest['author'] ?? '',
             'description' => $manifest['description'] ?? '',
             'screenshot' => $manifest['screenshot'] ?? '',
+            'managed' => !empty($manifest['managed']),
             'active' => ($entry === $active),
         ];
     }
@@ -154,6 +155,7 @@ function handle_theme_duplicate(): void {
         $manifest = json_decode(file_get_contents($manifestFile), true) ?: [];
         $manifest['name'] = $name;
         $manifest['version'] = '0.0.1';
+        unset($manifest['managed']);
         file_put_contents($manifestFile, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
     }
 

@@ -6593,8 +6593,6 @@ function handle_updates_apply(): void {
             throw new \RuntimeException('Could not find outpost/ directory in update package');
         }
 
-        // Define what to copy and what to skip
-        $skipDirs = ['content', 'cache'];
         $updatedFiles = [];
 
         // Copy PHP files from root of source
@@ -6620,6 +6618,13 @@ function handle_updates_apply(): void {
             }
         }
 
+        // Update managed themes (after core files, before cache clear)
+        $themeResults = [];
+        $sourceThemesDir = $sourceDir . '/content/themes';
+        if (is_dir($sourceThemesDir)) {
+            $themeResults = outpost_update_managed_themes($sourceThemesDir);
+        }
+
         // Clear template cache
         $cacheDir = OUTPOST_CACHE_DIR . 'templates/';
         if (is_dir($cacheDir)) {
@@ -6636,6 +6641,7 @@ function handle_updates_apply(): void {
         json_response([
             'success' => true,
             'updated_files' => $updatedFiles,
+            'theme_updates' => $themeResults,
             'message' => 'Update applied successfully. Refresh the page to load the new version.',
         ]);
     } catch (\Throwable $e) {
@@ -6711,4 +6717,194 @@ function outpost_rmdir_recursive(string $dir): void {
         }
     }
     rmdir($dir);
+}
+
+/**
+ * Update managed themes from a package's content/themes/ directory.
+ * Returns an array of results per theme: installed, updated, skipped, conflicts.
+ */
+function outpost_update_managed_themes(string $sourceThemesDir): array {
+    $results = [];
+    $installedThemesDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/';
+
+    $entries = scandir($sourceThemesDir);
+    foreach ($entries as $slug) {
+        if ($slug === '.' || $slug === '..') continue;
+        // Validate slug is a safe directory name
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) continue;
+
+        $srcThemeDir = $sourceThemesDir . '/' . $slug;
+        if (is_link($srcThemeDir) || !is_dir($srcThemeDir)) continue;
+
+        try {
+            // Read theme.json from the package
+            $srcManifestFile = $srcThemeDir . '/theme.json';
+            if (!file_exists($srcManifestFile)) continue;
+            $srcManifest = json_decode(file_get_contents($srcManifestFile), true);
+            if (!is_array($srcManifest) || empty($srcManifest['managed'])) continue;
+
+            $destThemeDir = $installedThemesDir . $slug;
+
+            // Fresh install — theme doesn't exist on site
+            if (!is_dir($destThemeDir)) {
+                outpost_copy_recursive($srcThemeDir, $destThemeDir);
+                $results[] = [
+                    'theme' => $slug,
+                    'action' => 'installed',
+                    'version' => $srcManifest['version'] ?? '0.0.0',
+                ];
+                continue;
+            }
+
+            // Check if installed theme is managed
+            $destManifestFile = $destThemeDir . '/theme.json';
+            if (!file_exists($destManifestFile)) continue;
+            $destManifest = json_decode(file_get_contents($destManifestFile), true);
+            if (!is_array($destManifest) || empty($destManifest['managed'])) continue;
+
+            // Compare versions — skip if installed is same or newer
+            $srcVersion = $srcManifest['version'] ?? '0.0.0';
+            $destVersion = $destManifest['version'] ?? '0.0.0';
+            if (version_compare($srcVersion, $destVersion, '<=')) {
+                $results[] = [
+                    'theme' => $slug,
+                    'action' => 'skipped',
+                    'reason' => 'up_to_date',
+                    'version' => $destVersion,
+                ];
+                continue;
+            }
+
+            // Perform update with conflict detection
+            $conflicts = outpost_theme_update_with_conflicts($srcThemeDir, $destThemeDir);
+
+            $result = [
+                'theme' => $slug,
+                'action' => 'updated',
+                'from_version' => $destVersion,
+                'to_version' => $srcVersion,
+            ];
+            if (!empty($conflicts)) {
+                $result['conflicts'] = $conflicts;
+            }
+            $results[] = $result;
+        } catch (\Throwable $e) {
+            $results[] = [
+                'theme' => $slug,
+                'action' => 'error',
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    return $results;
+}
+
+/**
+ * Update a managed theme with hash-based conflict detection.
+ * Uses .outpost-manifest.json to determine which files the user has modified.
+ * Returns array of conflict file paths (files preserved because user modified them).
+ */
+function outpost_theme_update_with_conflicts(string $srcDir, string $destDir): array {
+    $conflicts = [];
+
+    // Load the existing manifest (hashes of files as they were last shipped)
+    $existingManifestFile = $destDir . '/.outpost-manifest.json';
+    $existingManifest = [];
+    if (file_exists($existingManifestFile)) {
+        $existingManifest = json_decode(file_get_contents($existingManifestFile), true) ?: [];
+    }
+
+    // Load the new manifest from the package
+    $newManifestFile = $srcDir . '/.outpost-manifest.json';
+    $newManifest = [];
+    if (file_exists($newManifestFile)) {
+        $newManifest = json_decode(file_get_contents($newManifestFile), true) ?: [];
+    }
+
+    // Get all files in source package
+    $srcFiles = outpost_list_files_recursive($srcDir);
+
+    foreach ($srcFiles as $relPath) {
+        // Always copy the manifest itself
+        if ($relPath === '.outpost-manifest.json') continue;
+
+        $srcFile = $srcDir . '/' . $relPath;
+        $destFile = $destDir . '/' . $relPath;
+
+        // New file — doesn't exist in installed theme → copy
+        if (!file_exists($destFile)) {
+            $destFileDir = dirname($destFile);
+            if (!is_dir($destFileDir)) mkdir($destFileDir, 0755, true);
+            copy($srcFile, $destFile);
+            continue;
+        }
+
+        // File exists — check if user has modified it
+        $installedHash = md5_file($destFile);
+        $shippedHash = $existingManifest[$relPath] ?? null;
+        $newHash = $newManifest[$relPath] ?? md5_file($srcFile);
+
+        if ($shippedHash !== null) {
+            // We have a manifest from the previous install
+            if ($installedHash === $shippedHash) {
+                // User hasn't modified this file → safe to replace
+                copy($srcFile, $destFile);
+            } elseif ($newHash === ($existingManifest[$relPath] ?? null)) {
+                // Update didn't change this file → keep user's version (no conflict)
+            } else {
+                // User modified AND update changed → conflict
+                $conflicts[] = $relPath;
+            }
+        } else {
+            // No previous manifest (first update for this theme)
+            if ($installedHash === $newHash) {
+                // Files are identical — skip
+            } else {
+                // Files differ with no manifest to compare → conflict
+                $conflicts[] = $relPath;
+            }
+        }
+    }
+
+    // Clean up files that were removed upstream (only if user hasn't modified them)
+    if (!empty($existingManifest)) {
+        $removedFiles = array_diff(array_keys($existingManifest), array_keys($newManifest));
+        foreach ($removedFiles as $relPath) {
+            $destFile = $destDir . '/' . $relPath;
+            if (file_exists($destFile) && !is_link($destFile)) {
+                $installedHash = md5_file($destFile);
+                if ($installedHash === $existingManifest[$relPath]) {
+                    unlink($destFile);
+                }
+            }
+        }
+    }
+
+    // Always install the new manifest for future updates
+    if (file_exists($newManifestFile)) {
+        copy($newManifestFile, $destDir . '/.outpost-manifest.json');
+    }
+
+    return $conflicts;
+}
+
+/**
+ * Recursively list all files in a directory, returning paths relative to that directory.
+ */
+function outpost_list_files_recursive(string $dir, string $prefix = ''): array {
+    $files = [];
+    $entries = scandir($dir);
+    foreach ($entries as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $path = $dir . '/' . $entry;
+        if (is_link($path)) continue; // Never follow symlinks
+        $relPath = $prefix ? $prefix . '/' . $entry : $entry;
+        if (is_dir($path)) {
+            $files = array_merge($files, outpost_list_files_recursive($path, $relPath));
+        } else {
+            $files[] = $relPath;
+        }
+    }
+    return $files;
 }
