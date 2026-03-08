@@ -268,6 +268,14 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         Themes
       </button>
+      <button
+        class="sidebar-item"
+        class:active={route === 'theme-customizer'}
+        onclick={() => nav('theme-customizer')}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="16" cy="20" r="2.5"/><circle cx="7" cy="20" r="2.5"/><circle cx="5" cy="13" r="2.5"/><circle cx="12" cy="12" r="3"/></svg>
+        Customize
+      </button>
     {/if}
     {#if showCode}
       <button

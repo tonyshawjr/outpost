@@ -22,6 +22,7 @@ require_once __DIR__ . '/import.php';
 require_once __DIR__ . '/webhooks.php';
 require_once __DIR__ . '/totp.php';
 require_once __DIR__ . '/channels.php';
+require_once __DIR__ . '/customizer.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -149,6 +150,7 @@ $cap_map = [
     'channels' => 'settings.*',
     'updates'  => 'settings.*',
     'backup'   => 'settings.*',
+    'customizer' => 'settings.*',
 ];
 if (isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
@@ -397,6 +399,13 @@ match (true) {
     // Updates (admin only)
     $action === 'updates/check' && $method === 'GET' => handle_updates_check(),
     $action === 'updates/apply' && $method === 'POST' => handle_updates_apply(),
+
+    // Theme Customizer
+    $action === 'customizer'        && $method === 'GET'  => handle_customizer_get(),
+    $action === 'customizer'        && $method === 'PUT'  => handle_customizer_save(),
+    $action === 'customizer/reset'  && $method === 'POST' => handle_customizer_reset(),
+    $action === 'customizer/export' && $method === 'GET'  => handle_customizer_export(),
+    $action === 'customizer/import' && $method === 'POST' => handle_customizer_import(),
 
     default => json_error('Not found', 404),
 };

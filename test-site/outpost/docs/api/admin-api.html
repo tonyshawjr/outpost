@@ -2281,6 +2281,107 @@
       <p>Returns goal completion data for the dashboard, including conversion counts per goal over the selected time range.</p>
     </div>
 
+    <h2>Theme Customizer</h2>
+
+    <p>Customize the active theme's colors, fonts, logo, and favicon. All endpoints require the <code>settings.*</code> capability. Values are stored in <code>content/data/customizer.json</code>, keyed by theme slug.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=customizer</span>
+      </div>
+      <p>Returns the customizer schema from the active theme's <code>theme.json</code> along with any saved values. If the theme does not support customization, returns an error.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "theme": "personal",
+  "schema": {
+    "sections": [
+      {
+        "id": "colors",
+        "label": "Colors",
+        "fields": [
+          {
+            "key": "color-accent",
+            "label": "Accent Color",
+            "type": "color",
+            "default": "#14B8A6",
+            "var": "--color-accent"
+          }
+        ]
+      }
+    ]
+  },
+  "values": {
+    "colors": {
+      "color-accent": "#E11D48"
+    }
+  }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=customizer</span>
+      </div>
+      <p>Saves customizer values for the active theme. Only fields declared in the theme's schema are accepted — unknown keys are ignored. Clears the page cache automatically. If the <code>logo</code> field is set, it is synced to the <code>@site_logo</code> global.</p>
+    </div>
+
+    <p>Request body (section IDs as keys, field key-value pairs as values):</p>
+    <pre><code>{
+  "colors": {
+    "color-accent": "#E11D48",
+    "color-ink": "#1A1A2E"
+  },
+  "typography": {
+    "font-heading": "Playfair Display"
+  },
+  "identity": {
+    "logo": "/outpost/uploads/logo.png"
+  }
+}</code></pre>
+
+    <p>Response: <code>{"success": true}</code></p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=customizer/reset</span>
+      </div>
+      <p>Deletes all saved customizer values for the active theme, reverting to the defaults declared in <code>theme.json</code>. Clears the page cache.</p>
+    </div>
+
+    <p>Response: <code>{"success": true}</code></p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=customizer/export</span>
+      </div>
+      <p>Returns the active theme's saved customizer values as a downloadable JSON file. The <code>Content-Disposition</code> header triggers a browser download. Returns an error if no values are saved.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=customizer/import</span>
+      </div>
+      <p>Imports a customizer preset JSON file. Send the JSON as the request body. Values are validated against the theme's schema — only known section/field keys are accepted. Clears the page cache.</p>
+    </div>
+
+    <p>Request body (same structure as the save endpoint):</p>
+    <pre><code>{
+  "colors": {
+    "color-accent": "#3B82F6"
+  },
+  "typography": {
+    "font-heading": "Merriweather"
+  }
+}</code></pre>
+
+    <p>Response: <code>{"success": true}</code></p>
+
     <h2>Revisions diff</h2>
 
     <div class="endpoint">

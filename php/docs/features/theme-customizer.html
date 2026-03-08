@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Customizer — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Theme Customizer</h1>
+    <p class="lead">Change your site's colors, fonts, logo, and favicon from a visual editor with a live preview — no code required. The customizer reads its configuration from the active theme's <code>theme.json</code> and stores overrides separately so your theme files are never modified.</p>
+  </div>
+  <div class="content">
+
+    <h2>How it works</h2>
+    <p>The Theme Customizer is available at <strong>Admin &rarr; Customize</strong> (in the Build section of the sidebar) or via the <strong>Customize</strong> button on the active theme card in Themes. It requires the <code>settings.*</code> capability (admin or developer role).</p>
+    <p>Themes declare which properties are customizable by adding a <code>customizer</code> key to their <code>theme.json</code>. The admin panel reads this schema and builds the editor UI dynamically. Themes without a <code>customizer</code> key display a message saying customization is not yet supported.</p>
+
+    <h2>What you can customize</h2>
+    <p>The available options depend on what the theme declares. The built-in Personal theme supports:</p>
+    <ul>
+      <li><strong>Colors</strong> — accent, accent hover, text, background, surface, and muted text</li>
+      <li><strong>Typography</strong> — heading font and body font (from a curated list of Google Fonts)</li>
+      <li><strong>Site Identity</strong> — logo image and favicon</li>
+    </ul>
+    <p>Theme developers can add any combination of color, font, and image fields to their themes.</p>
+
+    <h2>Live preview</h2>
+    <p>The right side of the customizer shows a live preview of your site in an iframe. As you change colors, fonts, or images, the preview updates instantly — no page reload required. This uses CSS custom property updates via <code>postMessage</code> between the admin panel and the preview iframe.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> — The live preview only reflects CSS variable changes. Some visual changes (like a new logo replacing a text element) may require saving and refreshing the preview to see the full effect.</div>
+
+    <h2>Saving and resetting</h2>
+    <p>Click <strong>Save</strong> to persist your changes. Customizer values are saved to <code>content/data/customizer.json</code> and the page cache is cleared automatically so visitors see the new styles immediately.</p>
+    <p>Click <strong>Reset</strong> to discard all customizations and revert to the theme's default values. This deletes the saved values for the current theme only — other themes' customizations are unaffected.</p>
+
+    <h2>Export and import presets</h2>
+    <p>You can export your current customizer values as a JSON file and import them on another site running the same theme. This is useful for:</p>
+    <ul>
+      <li>Backing up a color scheme before experimenting</li>
+      <li>Sharing a branded look across multiple sites</li>
+      <li>Distributing presets alongside a theme</li>
+    </ul>
+    <p>Use the <strong>Export</strong> button to download a preset file, and <strong>Import</strong> to upload and apply one.</p>
+
+    <h2>How customizer CSS is injected</h2>
+    <p>When a visitor loads your site, Outpost's template engine checks for saved customizer values. If any exist, it injects a <code>&lt;style&gt;</code> tag before <code>&lt;/head&gt;</code> that overrides the theme's CSS custom properties:</p>
+    <pre><code>&lt;style id="_outpost_customizer"&gt;
+:root:not([data-theme="dark"]) {
+  --color-accent: #E11D48;
+  --color-ink: #1A1A2E;
+  --font-display: 'Playfair Display', serif;
+  --font-sans: 'Source Sans 3', sans-serif;
+}
+&lt;/style&gt;</code></pre>
+    <p>The <code>:root:not([data-theme="dark"])</code> selector ensures customizations only apply to light mode. Dark mode continues to use the theme's built-in defaults.</p>
+
+    <h3>Google Fonts</h3>
+    <p>If custom fonts are selected, Outpost injects the appropriate Google Fonts <code>&lt;link&gt;</code> tags and removes any hardcoded Google Fonts links from the theme's output to avoid loading unnecessary fonts.</p>
+
+    <h3>Favicon</h3>
+    <p>If a custom favicon is set, Outpost injects a <code>&lt;link rel="icon"&gt;</code> tag before <code>&lt;/head&gt;</code>.</p>
+
+    <h3>Logo</h3>
+    <p>When a logo is set via the customizer, it is automatically synced to the <code>@site_logo</code> global field. This means your theme's existing <code>{{ @site_logo | image }}</code> tags work without any changes.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — Customizer values are stored per-theme. If you switch themes, each theme retains its own customizer values independently. Switching back restores the previously saved values.</div>
+
+    <h2>Storage</h2>
+    <p>Customizer values are stored in <code>content/data/customizer.json</code>, keyed by theme slug:</p>
+    <pre><code>{
+  "personal": {
+    "colors": {
+      "color-accent": "#E11D48",
+      "color-ink": "#1A1A2E"
+    },
+    "typography": {
+      "font-heading": "Playfair Display",
+      "font-body": "Source Sans 3"
+    },
+    "identity": {
+      "logo": "/outpost/uploads/logo.png"
+    }
+  }
+}</code></pre>
+    <p>This file lives inside <code>content/</code>, so it is included in backups and safe from the auto-updater.</p>
+
+    <hr>
+
+    <h2>For theme developers</h2>
+    <p>To add customizer support to your theme, add a <code>customizer</code> key to your <code>theme.json</code>. The customizer key contains a <code>sections</code> array — each section becomes a tab in the editor UI.</p>
+
+    <h3>Schema structure</h3>
+    <pre><code>{
+  "name": "My Theme",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "A customizable theme.",
+  "customizer": {
+    "sections": [
+      {
+        "id": "colors",
+        "label": "Colors",
+        "fields": [
+          {
+            "key": "color-accent",
+            "label": "Accent Color",
+            "type": "color",
+            "default": "#14B8A6",
+            "var": "--color-accent"
+          }
+        ]
+      },
+      {
+        "id": "typography",
+        "label": "Typography",
+        "fields": [
+          {
+            "key": "font-heading",
+            "label": "Heading Font",
+            "type": "font",
+            "default": "Inter",
+            "var": "--font-display"
+          }
+        ]
+      },
+      {
+        "id": "identity",
+        "label": "Site Identity",
+        "fields": [
+          {
+            "key": "logo",
+            "label": "Site Logo",
+            "type": "image"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+    <h3>Section fields</h3>
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Type</th><th>Required</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>string</td><td>Yes</td><td>Unique section identifier. Used as the key in the saved JSON.</td></tr>
+        <tr><td><code>label</code></td><td>string</td><td>Yes</td><td>Display name shown as a tab in the customizer UI.</td></tr>
+        <tr><td><code>fields</code></td><td>array</td><td>Yes</td><td>Array of field definitions (see below).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Field properties</h3>
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Type</th><th>Required</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>key</code></td><td>string</td><td>Yes</td><td>Unique field identifier within the section.</td></tr>
+        <tr><td><code>label</code></td><td>string</td><td>Yes</td><td>Display label shown next to the input.</td></tr>
+        <tr><td><code>type</code></td><td>string</td><td>Yes</td><td>Field type: <code>color</code>, <code>font</code>, or <code>image</code>.</td></tr>
+        <tr><td><code>default</code></td><td>string</td><td>No</td><td>Default value. For colors, a hex string. For fonts, the font family name. Not used for images.</td></tr>
+        <tr><td><code>var</code></td><td>string</td><td>No</td><td>CSS custom property name to override (e.g. <code>--color-accent</code>). Required for <code>color</code> and <code>font</code> types. Not used for <code>image</code> type.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Field types</h3>
+
+    <h4>color</h4>
+    <p>Renders a color picker with a hex text input. The value is injected as a CSS custom property override using the <code>var</code> name. Always provide a <code>default</code> hex value so the reset button works.</p>
+    <pre><code>{
+  "key": "color-accent",
+  "label": "Accent Color",
+  "type": "color",
+  "default": "#14B8A6",
+  "var": "--color-accent"
+}</code></pre>
+
+    <h4>font</h4>
+    <p>Renders a dropdown with a curated list of Google Fonts plus a "System Default" option. The selected font is loaded via a Google Fonts <code>&lt;link&gt;</code> tag and injected as a CSS custom property. Provide a <code>default</code> font name and the <code>var</code> to override.</p>
+    <pre><code>{
+  "key": "font-heading",
+  "label": "Heading Font",
+  "type": "font",
+  "default": "Inter",
+  "var": "--font-display"
+}</code></pre>
+
+    <h4>image</h4>
+    <p>Renders a thumbnail preview with a media picker button. Used for logos and favicons. Image fields do not use <code>var</code> or <code>default</code> — they store the image URL path directly. The <code>logo</code> key has special behavior: its value is synced to the <code>@site_logo</code> global field on save.</p>
+    <pre><code>{
+  "key": "logo",
+  "label": "Site Logo",
+  "type": "image"
+}</code></pre>
+
+    <h3>CSS custom property requirements</h3>
+    <p>For the customizer to work, your theme's CSS must use CSS custom properties (variables) for the values you want to be customizable. Define them on <code>:root</code> in your stylesheet:</p>
+    <pre><code>:root {
+  --color-accent: #14B8A6;
+  --color-accent-hover: #0D9488;
+  --color-ink: #27272A;
+  --color-body: #FAFAFA;
+  --color-paper: #FFFFFF;
+  --color-muted: #52525B;
+  --font-display: 'Inter', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+}</code></pre>
+    <p>Then use <code>var(--color-accent)</code> etc. throughout your CSS. When the customizer overrides a variable, all elements using it update automatically.</p>
+
+    <div class="callout callout-warn"><strong>Important</strong> — If your CSS uses hardcoded color values instead of custom properties, the customizer cannot override them. Always use <code>var(--variable-name)</code> for any value you want to be customizable.</div>
+
+    <h3>Dark mode considerations</h3>
+    <p>Customizer overrides use the selector <code>:root:not([data-theme="dark"])</code>, which means they only apply to light mode. If your theme supports dark mode via a <code>[data-theme="dark"]</code> attribute, the dark mode colors remain unchanged by the customizer. This is intentional — it ensures a user's light mode customizations do not break the dark mode palette.</p>
+
+    <h2>API endpoints</h2>
+    <p>The customizer exposes 5 endpoints. All require the <code>settings.*</code> capability. See the <a href="api/admin-api.html">Admin API reference</a> for full details.</p>
+    <table>
+      <thead>
+        <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>customizer</code></td><td>GET</td><td>Get schema and saved values for the active theme</td></tr>
+        <tr><td><code>customizer</code></td><td>PUT</td><td>Save customizer values</td></tr>
+        <tr><td><code>customizer/reset</code></td><td>POST</td><td>Reset to theme defaults</td></tr>
+        <tr><td><code>customizer/export</code></td><td>GET</td><td>Export values as JSON</td></tr>
+        <tr><td><code>customizer/import</code></td><td>POST</td><td>Import a preset JSON file</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

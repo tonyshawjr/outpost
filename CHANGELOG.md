@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0] — 2026-03-08
+
+### Added
+- **Theme Customizer** — visual editor for theme colors, fonts, logo, and favicon without touching code
+- Color palette editor with native color pickers and hex input (6 fields: accent, accent hover, text, background, surface, muted)
+- Font selector with curated Google Fonts library (~30 fonts across 4 categories) and live preview
+- Logo and favicon upload via dedicated Site Identity section
+- Live preview iframe with real-time CSS variable updates via `postMessage` — no page reload
+- Theme schema system — themes declare customizable fields in `theme.json` under a `customizer` key
+- Export/import customization presets as JSON files
+- One-click reset to theme defaults
+- Engine CSS injection via `outpost_cache_output()` — injects `<style>` tag with CSS custom properties and Google Fonts links
+- Favicon injection with automatic MIME type detection
+- Dark mode safe — customizer CSS scoped to `:root:not([data-theme="dark"])`
+- "Customize" button in sidebar Build section and on active theme card in Themes page
+- `customizer` GET/PUT, `customizer/reset` POST, `customizer/export` GET, `customizer/import` POST API endpoints
+- `php/customizer.php` — new backend module for customizer data management
+- `src/lib/google-fonts.js` — curated font list utility
+- Personal theme `theme.json` extended with customizer schema (colors, typography, identity sections)
+
+---
+
 ## [1.7.0] — 2026-03-07
 
 ### Added

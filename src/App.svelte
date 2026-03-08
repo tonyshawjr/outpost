@@ -48,6 +48,7 @@
   import ChannelsList from '$pages/ChannelsList.svelte';
   import ChannelBuilder from '$pages/ChannelBuilder.svelte';
   import Backups from '$pages/Backups.svelte';
+  import ThemeCustomizer from '$pages/ThemeCustomizer.svelte';
   import Calendar from '$pages/Calendar.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
@@ -143,7 +144,7 @@
     <Sidebar />
     <div class="app-main">
       <TopBar />
-      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'page-editor'}>
+      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'page-editor' || route === 'theme-customizer'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals'}
           {#if hasCodeAccess}
             <Analytics />
@@ -228,6 +229,12 @@
           {:else}
             <AccessDenied />
           {/if}
+        {:else if route === 'theme-customizer'}
+          {#if hasSettingsAccess}
+            <ThemeCustomizer />
+          {:else}
+            <AccessDenied />
+          {/if}
         {:else if route === 'backups'}
           {#if hasSettingsAccess}
             <Backups />
@@ -238,7 +245,7 @@
           <Dashboard />
         {/if}
 
-        {#if route !== 'collection-editor' && route !== 'template-reference' && route !== 'code-editor' && route !== 'page-editor'}
+        {#if route !== 'collection-editor' && route !== 'template-reference' && route !== 'code-editor' && route !== 'page-editor' && route !== 'theme-customizer'}
           <!-- Watermark Footer -->
           <div class="watermark-footer">
             <div class="watermark-text">Handcrafted with 🫀 in Wilmington, NC</div>

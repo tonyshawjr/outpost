@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { themes as themesApi } from '$lib/api.js';
-  import { addToast } from '$lib/stores.js';
+  import { addToast, navigate } from '$lib/stores.js';
 
   let themesList = $state([]);
   let activeSlug = $state('');
@@ -121,6 +121,9 @@
           {/if}
         </div>
         <div class="active-theme-actions">
+          <button class="btn btn-primary btn-sm" onclick={() => navigate('theme-customizer')}>
+            Customize
+          </button>
           <button class="btn btn-secondary btn-sm" onclick={() => openDuplicate(activeTheme.slug)}>
             Duplicate
           </button>

@@ -15,6 +15,7 @@
 - [Members System](/outpost/docs/members/): Member registration, login, password reset
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
+- [Theme Customizer](/outpost/docs/features/theme-customizer.html): Visual color, font, logo, and favicon editor with live preview
 - [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
 
@@ -119,6 +120,48 @@ Every theme requires a `theme.json` at the root of the theme directory. It is pu
 | `screenshot` | No | Relative path to PNG/JPG preview image |
 
 The directory name is the slug (immutable); it is used as the `active_theme` setting value.
+
+### Customizer schema (optional)
+
+Themes can declare customizable properties by adding a `customizer` key to `theme.json`. When present, the admin shows a visual Theme Customizer (Admin → Customize) that lets site owners change colors, fonts, logo, and favicon without editing code.
+
+```json
+{
+  "name": "My Theme",
+  "version": "1.0.0",
+  "customizer": {
+    "sections": [
+      {
+        "id": "colors",
+        "label": "Colors",
+        "fields": [
+          { "key": "color-accent", "label": "Accent Color", "type": "color", "default": "#14B8A6", "var": "--color-accent" }
+        ]
+      },
+      {
+        "id": "typography",
+        "label": "Typography",
+        "fields": [
+          { "key": "font-heading", "label": "Heading Font", "type": "font", "default": "Inter", "var": "--font-display" }
+        ]
+      },
+      {
+        "id": "identity",
+        "label": "Site Identity",
+        "fields": [
+          { "key": "logo", "label": "Site Logo", "type": "image" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Field types: `color` (hex picker, requires `var`), `font` (Google Fonts dropdown, requires `var`), `image` (media picker for logo/favicon). The `logo` key syncs to `@site_logo` global on save.
+
+Storage: `content/data/customizer.json` — per-theme key, included in backups, safe from auto-updater. CSS overrides injected before `</head>` with `:root:not([data-theme="dark"])` selector (light mode only). Google Fonts loaded dynamically; hardcoded theme font links stripped.
+
+Themes without a `customizer` key work normally — the admin shows "This theme doesn't support customization yet."
 
 ## Template Scanning & Auto-Rescan
 
@@ -1378,6 +1421,11 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `channels/sync-log` | GET | Channel sync history |
 | `channels/discover` | POST | Schema discovery (fetch URL, return JSON schema) |
 | `channels/items` | GET | Preview cached channel items |
+| `customizer` | GET | Get customizer schema + saved values for active theme |
+| `customizer` | PUT | Save customizer values (validates against theme schema, clears cache) |
+| `customizer/reset` | POST | Reset customizer to theme defaults |
+| `customizer/export` | GET | Export customizer values as downloadable JSON |
+| `customizer/import` | POST | Import customizer preset JSON |
 | `revisions` | GET | List revisions for entity (entity_type, entity_id params) |
 | `revisions/restore` | POST | Restore a revision (snapshots current state first) |
 

@@ -1,6 +1,14 @@
 # Outpost CMS — Product Roadmap
 
-> Outpost is a zero-config, drop-in CMS. No Composer, no build step, no managed infrastructure. It runs wherever PHP 8.x runs, backs up to a single file, and ships with a complete admin, Liquid templating, built-in analytics, and a member system out of the box.
+> Outpost is a powerful, zero-config CMS for everyone — from freelancers building client sites to developers who want full control. No Composer, no build step, no managed infrastructure. It runs wherever PHP 8.x runs, backs up to a single file, and ships with a complete admin, visual customization, Liquid templating, built-in analytics, and a member system out of the box.
+
+### Documentation Standard
+
+Every shipped feature includes thorough, beginner-friendly documentation:
+- **Developer docs** (`php/docs/`) — HTML reference pages with examples, organized by topic
+- **`llms.txt`** — plain-text mirror of all docs for LLM-assisted development
+- **In-admin help** — contextual guidance where users need it, not buried in external docs
+- Documentation is written for the person who has never used a CMS before, with enough depth for the person who has used ten.
 
 ---
 
@@ -195,37 +203,70 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v1.8 — Internationalization
+## v1.8 — Theme Customizer — SHIPPED (v1.8.0)
 
-Not full multi-language — just the groundwork to store and serve localized content:
+**Make every site feel custom without touching code.** The single biggest unlock for non-developers. A freelancer picks a theme, changes the colors to match their brand, swaps the font, uploads a logo — all from a visual UI, zero code required.
 
-- **Locale tag** on pages and collection items (`en`, `es`, `fr`, etc.)
-- **Content API locale filter**: `?locale=es` returns only matching items
-- **One-click "duplicate as locale"** from the editor
-- **`{{ @locale }}` global** for rendering a language selector in themes
-- **URL prefix routing**: `/es/about` serves the Spanish version of the about page
+- **Color palette editor** — primary, secondary, accent, background, text colors mapped to CSS custom properties in `theme.json`
+- **Font selector** — curated Google Fonts library with preview; set heading and body fonts independently
+- **Logo & favicon upload** — dedicated UI in the customizer (not buried in globals)
+- **Layout options** — theme-defined toggles (e.g. sidebar position, header style, footer columns) declared in `theme.json`
+- **Live preview** — iframe preview updates in real-time as you adjust settings
+- **Export/import** — save a customization preset as JSON, share it, apply it to another site running the same theme
 
-**What this is not:** Auto-translation, regional CDNs, or multi-domain routing. Just the CMS layer to organize locale-tagged content.
+**How it works:** Themes declare customizable variables in `theme.json` under a `customizer` key. The admin reads that schema and builds the UI dynamically. Saved values write to `content/data/customizer.json` and inject as CSS custom properties at render time. Zero database changes — it's just a JSON file.
+
+**Docs:** Full customizer guide for site owners ("How to change your site's look") + theme developer reference ("How to make your theme customizable").
 
 ---
 
 ## v1.9 — Developer Experience
 
-Polish the theme development loop:
+Polish the theme development loop so developers can build and ship themes faster:
 
 - **Outpost CLI** — `outpost pull | push | sync | backup` for local theme development without the Builder app
 - **Better Liquid error messages** — line/column in compile errors with suggested fixes for common mistakes
 - **Schema validation files** — JSON Schema per collection for static site generators (Astro, Next.js) to type-check content at build time
 - **VS Code extension** — Liquid syntax highlighting and Outpost-specific autocomplete (separate repo)
-- **Theme starter kit** — `outpost new-theme` scaffolds a minimal theme with standard partials and example loops
+- **Theme starter kit** — `outpost new-theme` scaffolds a minimal theme with standard partials, example loops, and `customizer` config
+
+**Docs:** CLI reference, theme development tutorial (start-to-finish walkthrough), VS Code extension setup guide.
 
 ---
 
-## Long-Term / Vision (v2.0+)
+## v2.0 — Onboarding & Setup Wizard
 
-### v2.0 — Headless-First
+**First impressions matter.** Right now a fresh install drops you into a blank admin. v2.0 fixes that with a guided setup that gets any user — technical or not — to a working site in under 5 minutes.
 
-Position Outpost explicitly as the zero-config headless CMS alongside the traditional themed approach:
+- **Setup wizard** — runs on first visit: site name, choose a theme, set admin credentials, pick starter content
+- **Starter content packs** — pre-built content for common use cases (blog, portfolio, business, documentation) that populate pages, collections, globals, and sample media
+- **Getting started dashboard** — replaces the default dashboard for new sites with a checklist: "Add your logo", "Edit your homepage", "Create your first blog post", "Connect a domain"
+- **Contextual tips** — subtle inline hints on first use of each admin section (dismissible, never repeated)
+- **Empty states** — every list page (pages, collections, media, forms) has a helpful empty state with a clear call-to-action instead of a blank table
+
+**Docs:** "Your first 10 minutes with Outpost" quickstart guide, aimed at someone who has never used a CMS.
+
+---
+
+## v2.1 — Theme Gallery
+
+**More starting points, less blank-page anxiety.** Ship 4-5 polished themes so users can pick one that fits and customize it with the v1.8 customizer.
+
+- **Business** — homepage with services, team, testimonials, contact form
+- **Portfolio** — grid gallery, project case studies, about page
+- **Blog** — clean reading experience, categories, author pages, newsletter signup
+- **Documentation** — sidebar navigation, search, code blocks, versioned sections
+- **Landing page** — single-page marketing site with sections, CTA blocks, pricing table
+
+All themes ship with full `customizer` config (v1.8), responsive design, dark mode support, and accessibility basics (ARIA, semantic HTML, skip links).
+
+**Docs:** Theme gallery showcase page, "Choosing the right theme" guide, per-theme customization reference.
+
+---
+
+## v2.2 — Headless-First
+
+Position Outpost as the zero-config headless CMS alongside the traditional themed approach:
 
 - **GraphQL API** alongside REST — read-only to start; mutations later based on adoption
 - **Content webhooks v2** — structured payloads with full content diffs, not just event names
@@ -234,20 +275,24 @@ Position Outpost explicitly as the zero-config headless CMS alongside the tradit
 
 **Why:** Strapi and Payload own headless but require Node.js and a database server. Outpost's gap is "headless + zero config, runs on a $5/month host."
 
+**Docs:** Headless quickstart, GraphQL schema reference, webhook payload reference, framework integration guides (Astro, Next.js, Hugo).
+
 ---
 
-### v2.1 — Deeper Analytics
+## v2.3 — Deeper Analytics
 
-Extend beyond pageviews into audience behavior:
+Extend beyond pageviews into audience behavior — actionable insights without external tools:
 
 - Content performance cohorts (heavy readers vs. casual visitors)
 - Goal funnels (visitor → member → paid → churned)
 - Search analytics — what are visitors searching for on the site
 - Optional geo enrichment via MaxMind GeoLite2 (off by default, privacy-first)
 
+**Docs:** Analytics dashboard guide, goal funnel setup, privacy configuration reference.
+
 ---
 
-### v2.2 — Commerce
+## v2.4 — Commerce
 
 Lightweight digital product sales via Stripe:
 
@@ -258,9 +303,11 @@ Lightweight digital product sales via Stripe:
 
 **What this is not:** Physical inventory, shipping, or marketplace features. Just Stripe checkout + access gates.
 
+**Docs:** Stripe integration setup, product creation guide, member tier configuration, commerce template tags reference.
+
 ---
 
-### v2.3 — Collaborative Editing
+## v2.5 — Collaborative Editing
 
 Real-time multi-user editing on the same page or collection item:
 
@@ -269,7 +316,28 @@ Real-time multi-user editing on the same page or collection item:
 - Operational transform or CRDT for conflict-free concurrent edits
 - Activity feed ("Tony updated the hero title 2 minutes ago")
 
-This depends on v1.2 (on-page editing) being mature and v2.0 (real-time events) being in place.
+This depends on on-page editing being mature and v2.2 (real-time events) being in place.
+
+**Docs:** Collaboration setup guide, real-time editing user guide.
+
+---
+
+## Long-Term / v3.x+
+
+### Internationalization
+
+Multi-language content support — deferred until core CMS is mature and user demand is validated:
+
+- Locale tag on pages and collection items
+- Content API locale filter
+- One-click "duplicate as locale" from the editor
+- `{{ @locale }}` global for language selectors
+- URL prefix routing (`/es/about`)
+
+### Channels — Advanced Phases
+
+- **Phase 3:** Inbound webhooks
+- **Phase 4:** Outbound + advanced (filtering, pagination, channel-to-channel piping)
 
 ---
 
@@ -282,7 +350,7 @@ These are explicitly out of scope. Acknowledging them keeps the codebase focused
 | Plugin ecosystem | Requires a package manager (Composer/npm) — violates the zero-config promise |
 | Managed SaaS hosting | A business model, not a product feature — can be built on top of Outpost separately |
 | Native mobile apps | Web admin + responsive design is sufficient; unnecessary release cycle overhead |
-| Visual drag-and-drop page builder | On-page editing (v1.2) handles content; layout changes belong in theme templates |
+| Visual drag-and-drop page builder | Theme Customizer (v1.8) handles colors/fonts/logo; on-page editing handles content; structural layout belongs in theme templates |
 | Built-in AI content generation | External API dependencies, ongoing costs, and key management complexity |
 | MySQL/Postgres support | SQLite is the constraint that enables "backup = one file" and shared-host compatibility |
 | LDAP/SAML enterprise SSO | Out of scope for indie/small-team target market; can be bolted on via custom `auth.php` |
@@ -303,16 +371,22 @@ These define what Outpost is. Breaking them makes it something else.
 
 ## Release Cadence
 
-| Version | Target | Theme |
-|---|---|---|
-| 1.0.0 | Q1 2026 | Stable release — beta hardening complete |
-| ~~1.1~~ | ~~Q1 2026~~ | ~~Channels Phase 2: RSS + CSV~~ **Shipped** |
-| ~~1.2~~ | ~~Q3 2026~~ | ~~On-page editing~~ **Shipped in beta.9** |
-| ~~1.3~~ | ~~Q4 2026~~ | ~~Backup & restore~~ **Shipped** |
-| ~~1.4~~ | ~~Q2 2026~~ | ~~User content directory (`content/`)~~ **Shipped** |
-| ~~1.5~~ | ~~Q4 2026~~ | ~~Editorial workflow~~ **Shipped** |
-| ~~1.6~~ | ~~Q1 2027~~ | ~~Media library pro~~ **Shipped** |
-| 1.7 | Q1 2027 | Media advanced (HappyFiles-inspired) |
-| 1.8 | Q2 2027 | Internationalization |
-| 1.9 | Q2 2027 | Developer experience |
-| 2.0 | Q3 2027 | Headless-first |
+| Version | Target | Theme | Audience |
+|---|---|---|---|
+| 1.0.0 | Q1 2026 | Stable release — beta hardening complete | — |
+| ~~1.1~~ | ~~Q1 2026~~ | ~~Channels Phase 2: RSS + CSV~~ **Shipped** | — |
+| ~~1.2~~ | ~~Q3 2026~~ | ~~On-page editing~~ **Shipped in beta.9** | — |
+| ~~1.3~~ | ~~Q4 2026~~ | ~~Backup & restore~~ **Shipped** | — |
+| ~~1.4~~ | ~~Q2 2026~~ | ~~User content directory (`content/`)~~ **Shipped** | — |
+| ~~1.5~~ | ~~Q4 2026~~ | ~~Editorial workflow~~ **Shipped** | — |
+| ~~1.6~~ | ~~Q1 2027~~ | ~~Media library pro~~ **Shipped** | — |
+| ~~1.7~~ | ~~Q1 2027~~ | ~~Media advanced~~ **Shipped** | — |
+| ~~1.8~~ | ~~Q1 2027~~ | ~~Theme Customizer — visual colors, fonts, logo~~ **Shipped** | Everyone |
+| 1.9 | Q2 2027 | Developer Experience — CLI, errors, VS Code | Developers |
+| 2.0 | Q3 2027 | Onboarding & Setup Wizard | Everyone |
+| 2.1 | Q3 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
+| 2.2 | Q4 2027 | Headless-First — GraphQL, webhooks v2 | Developers |
+| 2.3 | Q4 2027 | Deeper Analytics — funnels, search, cohorts | Everyone |
+| 2.4 | Q1 2028 | Commerce — Stripe, digital products | Everyone |
+| 2.5 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
+| 3.x | TBD | Internationalization | Everyone |

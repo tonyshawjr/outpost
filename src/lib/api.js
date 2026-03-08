@@ -330,6 +330,20 @@ export const themes = {
     request('themes', { method: 'DELETE', params: { slug } }),
 };
 
+// Theme Customizer
+export const customizer = {
+  get: () =>
+    request('customizer'),
+  save: (values) =>
+    request('customizer', { method: 'PUT', body: values }),
+  reset: () =>
+    request('customizer/reset', { method: 'POST', body: {} }),
+  exportPreset: () =>
+    request('customizer/export'),
+  importPreset: (values) =>
+    request('customizer/import', { method: 'POST', body: { values } }),
+};
+
 // Public Content API (read-only, used by Template Reference)
 export const content = {
   schema: () =>

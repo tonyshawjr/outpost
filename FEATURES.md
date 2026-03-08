@@ -4,6 +4,26 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Theme Customizer (v1.8.0)
+
+- **Visual color editor** — change accent, text, background, surface, and muted colors with native color pickers and hex input. Changes apply to the theme's CSS custom properties.
+- **Font selector** — curated list of ~30 Google Fonts organized by category (sans-serif, serif, display, monospace). Live preview of each font in the dropdown and a sample text preview below.
+- **Site identity** — upload logo and favicon from a dedicated UI using the existing MediaPicker. Logo syncs to `@site_logo` global for template compatibility.
+- **Live preview** — iframe loads the actual frontend site with real-time CSS variable updates via `postMessage`. No page reload needed for color and font changes.
+- **Theme schema** — themes declare customizable fields in `theme.json` under a `customizer` key. The admin builds the UI dynamically from this schema. Themes without a customizer key show a "not supported" message.
+- **Export/import presets** — download customizations as a JSON file, import presets from another site running the same theme.
+- **Reset to defaults** — one-click revert to the theme's original values.
+- **Dark mode safe** — customizer CSS uses `:root:not([data-theme="dark"])` selector so dark mode theme defaults are preserved.
+- **Google Fonts injection** — engine strips hardcoded Google Fonts links from theme templates and injects the correct ones based on customizer font selections.
+- **Favicon injection** — engine injects `<link rel="icon">` with correct MIME type based on uploaded favicon.
+- **Storage** — per-theme customizations saved in `content/data/customizer.json`. Safe from auto-updater, included in backups.
+- **New API endpoints** — `customizer` GET/PUT, `customizer/reset` POST, `customizer/export` GET, `customizer/import` POST.
+- **New sidebar item** — "Customize" button in Build section below Themes.
+- **Themes page integration** — "Customize" button on the active theme card.
+- **Files**: `php/customizer.php` (new), `php/api.php`, `php/engine.php`, `php/themes/personal/theme.json`, `src/pages/ThemeCustomizer.svelte` (new), `src/components/customizer/ColorField.svelte` (new), `src/components/customizer/FontField.svelte` (new), `src/components/customizer/ImageField.svelte` (new), `src/components/customizer/CustomizerPreview.svelte` (new), `src/lib/google-fonts.js` (new), `src/lib/api.js`, `src/App.svelte`, `src/components/Sidebar.svelte`, `src/pages/Themes.svelte`
+
+---
+
 ## Media Advanced (v1.7.0)
 
 - **Multi-folder assignment** — files can belong to multiple folders. Junction table `media_folder_items` replaces single `folder_id` FK. Detail sidebar shows folder chips with remove buttons and "Add to folder" dropdown.

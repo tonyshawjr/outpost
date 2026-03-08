@@ -1148,7 +1148,21 @@ function outpost_cache_path(string $page_path): string {
 }
 
 function outpost_cache_output(string $buffer): string {
-    global $_outpost_page_path;
+    global $_outpost_page_path, $_outpost_active_theme;
+
+    $isCustomizerPreview = isset($_GET['_outpost_customizer_preview']) && outpost_is_admin();
+
+    // 0. Inject customizer CSS before </head> (included in cache — same for everyone)
+    if (stripos($buffer, '</head>') !== false) {
+        $customizerBlock = outpost_customizer_css($_outpost_active_theme);
+        if ($customizerBlock) {
+            // Strip existing Google Fonts links if customizer has custom fonts
+            if (strpos($customizerBlock, '_outpost_customizer_fonts') !== false) {
+                $buffer = preg_replace('/<link[^>]*fonts\.googleapis\.com\/css2[^>]*>/i', '', $buffer);
+            }
+            $buffer = preg_replace('/<\/head>/i', $customizerBlock . "\n</head>", $buffer, 1);
+        }
+    }
 
     // 1. Inject GA4 before </head> (included in cache — same for everyone)
     $ga4Id = cms_global_get('ga4_id');
@@ -1159,15 +1173,15 @@ function outpost_cache_output(string $buffer): string {
 
     // 2. Save to cache (only for non-admins, only when caching is enabled, skip preview)
     $isPreview = defined('OUTPOST_PREVIEW_MODE') && OUTPOST_PREVIEW_MODE;
-    if (OUTPOST_CACHE_ENABLED && $_outpost_page_path && !outpost_is_admin() && !$isPreview) {
+    if (OUTPOST_CACHE_ENABLED && $_outpost_page_path && !outpost_is_admin() && !$isPreview && !$isCustomizerPreview) {
         $cache_file = outpost_cache_path($_outpost_page_path);
         $dir = dirname($cache_file);
         if (!is_dir($dir)) mkdir($dir, 0755, true);
         file_put_contents($cache_file, $buffer, LOCK_EX);
     }
 
-    // 3. Inject on-page editor + admin bar before </body> (never cached — admin only)
-    if (outpost_is_admin()) {
+    // 3. Inject on-page editor + admin bar before </body> (never cached — admin only, skip in customizer preview)
+    if (outpost_is_admin() && !$isCustomizerPreview) {
         // Inject editor CSS before </head>
         if (stripos($buffer, '</head>') !== false) {
             $editorCss = '<link rel="stylesheet" href="/outpost/admin/on-page-editor.css">';
@@ -1189,7 +1203,191 @@ function outpost_cache_output(string $buffer): string {
         $buffer = preg_replace('/<\/body>/i', $banner . "\n</body>", $buffer, 1);
     }
 
+    // 5. Inject customizer preview script (admin only, when ?_outpost_customizer_preview=1)
+    if ($isCustomizerPreview && stripos($buffer, '</body>') !== false) {
+        $previewScript = outpost_customizer_preview_script();
+        $buffer = preg_replace('/<\/body>/i', $previewScript . "\n</body>", $buffer, 1);
+    }
+
     return $buffer;
+}
+
+/**
+ * Generate customizer CSS block for injection into the output buffer.
+ */
+function outpost_customizer_css(string $themeSlug): string {
+    if (!$themeSlug) return '';
+
+    require_once __DIR__ . '/customizer.php';
+
+    $schema = customizer_get_schema($themeSlug);
+    if (!$schema || empty($schema['sections'])) return '';
+
+    $saved = customizer_read_file();
+    $themeValues = $saved[$themeSlug] ?? [];
+    if (empty($themeValues)) return '';
+
+    $cssVars = [];
+    $fonts = [];
+    $favicon = '';
+
+    foreach ($schema['sections'] as $section) {
+        $sectionId = $section['id'] ?? '';
+        $sectionSaved = $themeValues[$sectionId] ?? [];
+        if (empty($sectionSaved)) continue;
+
+        foreach ($section['fields'] ?? [] as $field) {
+            $key = $field['key'] ?? '';
+            $val = $sectionSaved[$key] ?? '';
+            if ($val === '') continue;
+
+            $default = $field['default'] ?? '';
+            $type = $field['type'] ?? 'text';
+            $cssVar = $field['var'] ?? '';
+
+            // Validate CSS variable name
+            if ($cssVar && !preg_match('/^--[a-zA-Z0-9-]+$/', $cssVar)) continue;
+
+            // CSS variable fields — only if different from default
+            if ($cssVar && $val !== $default) {
+                if ($type === 'color' && !preg_match('/^#[0-9A-Fa-f]{3,8}$/', $val)) continue;
+                if ($type === 'font' && !preg_match('/^[a-zA-Z0-9 \'\-]+$/', $val)) continue;
+
+                if ($type === 'font' && $val !== 'System Default') {
+                    $safeVal = preg_replace('/[^a-zA-Z0-9 \'\-]/', '', $val);
+                    $cssVars[] = $cssVar . ": '" . $safeVal . "', system-ui, -apple-system, sans-serif";
+                    $fonts[] = $safeVal;
+                } else if ($type !== 'font') {
+                    $cssVars[] = $cssVar . ': ' . $val;
+                }
+            }
+
+            // Favicon
+            if ($key === 'favicon' && $type === 'image') {
+                $favicon = $val;
+            }
+        }
+    }
+
+    if (empty($cssVars) && empty($fonts) && !$favicon) return '';
+
+    $output = '';
+
+    // Google Fonts links
+    if (!empty($fonts)) {
+        $output .= '<!-- _outpost_customizer_fonts -->';
+        $preconnectDone = false;
+        foreach (array_unique($fonts) as $font) {
+            if (!$preconnectDone) {
+                $output .= "\n" . '<link rel="preconnect" href="https://fonts.googleapis.com">';
+                $output .= "\n" . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+                $preconnectDone = true;
+            }
+            $family = str_replace(' ', '+', $font);
+            $output .= "\n" . '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=' . htmlspecialchars($family) . ':wght@400;500;600;700&display=swap">';
+        }
+    }
+
+    // Favicon
+    if ($favicon) {
+        $ext = strtolower(pathinfo($favicon, PATHINFO_EXTENSION));
+        $mime = match($ext) {
+            'ico' => 'image/x-icon',
+            'png' => 'image/png',
+            'svg' => 'image/svg+xml',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'webp' => 'image/webp',
+            default => 'image/x-icon',
+        };
+        $output .= "\n" . '<link rel="icon" type="' . $mime . '" href="' . htmlspecialchars($favicon) . '">';
+    }
+
+    // CSS variables
+    if (!empty($cssVars)) {
+        $output .= "\n" . '<style id="_outpost_customizer">';
+        $output .= ':root:not([data-theme="dark"]) { ';
+        $output .= implode('; ', $cssVars) . '; ';
+        $output .= '}';
+        $output .= '</style>';
+    }
+
+    return $output;
+}
+
+/**
+ * Generate the customizer preview script for iframe postMessage communication.
+ */
+function outpost_customizer_preview_script(): string {
+    return <<<'HTML'
+<script id="_outpost_customizer_preview">
+(function() {
+  window.addEventListener('message', function(e) {
+    if (e.origin !== window.location.origin) return;
+    if (!e.data || e.data.type !== 'outpost-customizer-update') return;
+
+    var values = e.data.values || {};
+    var schema = e.data.schema;
+    if (!schema || !schema.sections) return;
+
+    var root = document.documentElement;
+
+    schema.sections.forEach(function(section) {
+      var sectionValues = values[section.id] || {};
+      (section.fields || []).forEach(function(field) {
+        var val = sectionValues[field.key];
+        if (val === undefined || val === null || val === '') return;
+
+        // CSS variable fields — validate values before applying
+        if (field.var && /^--[a-zA-Z0-9-]+$/.test(field.var)) {
+          if (field.type === 'color' && !/^#[0-9A-Fa-f]{3,8}$/.test(val)) return;
+          if (field.type === 'font' && !/^[A-Za-z0-9 '\-]+$/.test(val)) return;
+          if (field.type === 'font' && val !== 'System Default') {
+            root.style.setProperty(field.var, "'" + val + "', system-ui, -apple-system, sans-serif");
+          } else if (field.type !== 'font') {
+            root.style.setProperty(field.var, val);
+          }
+        }
+
+        // Font fields — load Google Fonts dynamically
+        if (field.type === 'font' && val && val !== 'System Default') {
+          var family = val.replace(/ /g, '+');
+          var linkId = '_outpost_preview_font_' + field.key;
+          var existing = document.getElementById(linkId);
+          var url = 'https://fonts.googleapis.com/css2?family=' + family + ':wght@400;500;600;700&display=swap';
+          if (!existing) {
+            var link = document.createElement('link');
+            link.id = linkId;
+            link.rel = 'stylesheet';
+            link.href = url;
+            document.head.appendChild(link);
+          } else if (existing.href !== url) {
+            existing.href = url;
+          }
+        }
+
+        // Favicon
+        if (field.key === 'favicon' && field.type === 'image') {
+          var iconLink = document.querySelector('link[rel="icon"]');
+          if (iconLink) {
+            iconLink.href = val;
+          } else {
+            var newIcon = document.createElement('link');
+            newIcon.rel = 'icon';
+            newIcon.href = val;
+            document.head.appendChild(newIcon);
+          }
+        }
+      });
+    });
+  });
+
+  // Signal to parent that preview is ready
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'outpost-customizer-preview-ready' }, window.location.origin);
+  }
+})();
+</script>
+HTML;
 }
 
 function outpost_ga4_snippet(string $id): string {

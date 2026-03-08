@@ -19,8 +19,8 @@
   <div class="content">
 
     <h2>Purpose</h2>
-    <p><code>theme.json</code> is purely informational. It does not configure routing, fields, collections, or any runtime behavior. Outpost reads it only to populate the theme browser in the admin panel — the name, screenshot, description, author, and version badge that appear on each theme card.</p>
-    <p>Because it has no functional effect on how templates are compiled or how pages are served, it is safe to update <code>theme.json</code> at any time without clearing caches or restarting anything.</p>
+    <p><code>theme.json</code> provides metadata for the admin theme browser (name, screenshot, description, author, version) and optionally declares <a href="features/theme-customizer.html">Theme Customizer</a> fields via the <code>customizer</code> key. It does not configure routing, fields, collections, or template compilation.</p>
+    <p>It is safe to update <code>theme.json</code> at any time without clearing caches or restarting anything. Changes to the <code>customizer</code> schema take effect the next time the customizer is opened.</p>
 
     <h2>Complete example</h2>
     <pre><code>{
@@ -119,6 +119,86 @@
     <p>Outpost does not perform strict schema validation on <code>theme.json</code>. Any valid JSON file is accepted. However, if the file is missing or contains invalid JSON, the theme will not appear in the admin browser and Outpost will log a warning. Always confirm your JSON is valid before deploying.</p>
 
     <div class="callout callout-warn"><strong>Warning</strong> — If <code>theme.json</code> is missing entirely, the theme directory will not appear in Admin → Themes. The theme still exists on disk but Outpost will not recognize it. Always include <code>theme.json</code> even if it is minimal.</div>
+
+    <h2>The customizer key</h2>
+    <p>Themes can declare customizable properties by adding a <code>customizer</code> key to <code>theme.json</code>. When present, the admin panel shows a visual Theme Customizer (Admin &rarr; Customize) that lets site owners change colors, fonts, logo, and favicon without editing code.</p>
+    <p>The <code>customizer</code> key contains a <code>sections</code> array. Each section becomes a tab in the customizer UI. Each section contains a <code>fields</code> array describing the customizable properties.</p>
+
+    <pre><code>{
+  "name": "My Theme",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "A customizable theme.",
+  "customizer": {
+    "sections": [
+      {
+        "id": "colors",
+        "label": "Colors",
+        "fields": [
+          {
+            "key": "color-accent",
+            "label": "Accent Color",
+            "type": "color",
+            "default": "#14B8A6",
+            "var": "--color-accent"
+          }
+        ]
+      },
+      {
+        "id": "typography",
+        "label": "Typography",
+        "fields": [
+          {
+            "key": "font-heading",
+            "label": "Heading Font",
+            "type": "font",
+            "default": "Inter",
+            "var": "--font-display"
+          }
+        ]
+      },
+      {
+        "id": "identity",
+        "label": "Site Identity",
+        "fields": [
+          {
+            "key": "logo",
+            "label": "Site Logo",
+            "type": "image"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+    <h3>Field types</h3>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Properties</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>color</code></td>
+          <td><code>key</code>, <code>label</code>, <code>default</code>, <code>var</code></td>
+          <td>Color picker with hex input. Overrides the CSS custom property named in <code>var</code>.</td>
+        </tr>
+        <tr>
+          <td><code>font</code></td>
+          <td><code>key</code>, <code>label</code>, <code>default</code>, <code>var</code></td>
+          <td>Font selector from a curated Google Fonts list. Loads the font via <code>&lt;link&gt;</code> and sets the CSS custom property.</td>
+        </tr>
+        <tr>
+          <td><code>image</code></td>
+          <td><code>key</code>, <code>label</code></td>
+          <td>Image picker for logos and favicons. No <code>var</code> or <code>default</code> needed. A field with <code>key: "logo"</code> syncs to the <code>@site_logo</code> global.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>For full customizer documentation — including CSS requirements, dark mode behavior, and the API — see <a href="features/theme-customizer.html">Theme Customizer</a>.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — If you omit the <code>customizer</code> key entirely, your theme works normally — the admin will simply show "This theme doesn't support customization yet" when a user navigates to the customizer.</div>
 
     <h2>Minimal valid theme.json</h2>
     <p>If you are building a quick prototype and do not care about the admin display details yet, this is the minimum that will be recognized:</p>
