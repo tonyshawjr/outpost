@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Roadmap</h1>
+    <p class="lead">Where Outpost is headed &mdash; what&rsquo;s shipped, what&rsquo;s next, and why.</p>
+  </div>
+  <div class="content">
+
+    <p>Outpost is a powerful, zero-config CMS for everyone &mdash; from freelancers building client sites to developers who want full control. No Composer, no build step, no managed infrastructure. It runs wherever PHP 8.x runs.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>What&rsquo;s Shipped</h2>
+
+    <h3>v1.0 &mdash; Stable Release</h3>
+    <p>Feature-complete across all core subsystems. Everything below was built and shipped during beta:</p>
+    <ul>
+      <li>Content management (pages, collections, globals, folders, menus, navigation)</li>
+      <li>Flexible Content, Relationship, and Conditional Logic fields (ACF Pro parity)</li>
+      <li>Block editor (TipTap richtext, image, markdown, HTML, divider)</li>
+      <li>Media library with search, filter, crop, resize, alt text</li>
+      <li>Liquid template engine with partials, conditionals, loops, globals, meta tags</li>
+      <li>Built-in analytics (pageviews, referrers, top pages &mdash; zero external dependencies)</li>
+      <li>Member system (registration, login, email verification, paid tiers, visibility gates)</li>
+      <li>Visual form builder with 14 field types and enhanced submissions inbox</li>
+      <li>Channels &mdash; connect to REST APIs, RSS feeds, and CSV files</li>
+      <li>On-page editing for text, richtext, textarea, and image fields</li>
+      <li>Code editor (VS Code-style IDE with tabs, file tree, autocomplete, find in files)</li>
+      <li>Revision history with field-level diffs and one-click rollback</li>
+      <li>TOTP two-factor authentication with backup codes</li>
+      <li>API key authentication for headless use</li>
+      <li>Webhooks, scheduled publishing, bulk operations</li>
+      <li>WordPress import</li>
+      <li>6 roles with capability-based permissions</li>
+      <li>Dark mode, mobile-responsive admin</li>
+      <li>Security hardening (37 findings addressed)</li>
+      <li>53 pages of developer documentation</li>
+    </ul>
+
+    <h3>v1.1 &mdash; Channels Phase 2: RSS + CSV</h3>
+    <ul>
+      <li>RSS 2.0 and Atom 1.0 feed parsing</li>
+      <li>CSV file parsing with configurable delimiter and header detection</li>
+      <li>Source type selector in channel wizard</li>
+    </ul>
+
+    <h3>v1.2 &mdash; Admin Role Refinement</h3>
+    <ul>
+      <li>Collection-scoped editors with per-user grants</li>
+      <li>Per-page locks to prevent editor edits</li>
+      <li>Sidebar cleanup for editor role</li>
+    </ul>
+
+    <h3>v1.3 &mdash; Backup &amp; Restore</h3>
+    <ul>
+      <li>One-click backup of database + uploads + themes</li>
+      <li>Restore from backup (super_admin only)</li>
+      <li>Automatic backups with configurable retention</li>
+      <li>Auto update notification badge on Settings</li>
+    </ul>
+
+    <h3>v1.4 &mdash; User Content Directory</h3>
+    <ul>
+      <li>All user data consolidated under <code>outpost/content/</code></li>
+      <li>Auto-migration for existing sites with symlinks</li>
+    </ul>
+
+    <h3>v1.5 &mdash; Editorial Workflow</h3>
+    <ul>
+      <li>Review &amp; approval gate with pending status</li>
+      <li>Editorial calendar (month-grid view)</li>
+      <li>Bulk scheduling</li>
+    </ul>
+
+    <h3>v1.6 &mdash; Media Library Pro</h3>
+    <ul>
+      <li>WebP auto-conversion</li>
+      <li>Focal point picker with <code>{{ field | focal }}</code> filter</li>
+      <li>Media folder organization (3 levels)</li>
+      <li>Bulk upload with progress bars</li>
+      <li>Bulk media operations (multi-select, shift-click range)</li>
+    </ul>
+
+    <h3>v1.7 &mdash; Media Advanced</h3>
+    <ul>
+      <li>Multi-folder assignment via junction table</li>
+      <li>Gallery from folders template tag</li>
+      <li>Resizable detail sidebar</li>
+      <li>Role-based folder restrictions</li>
+      <li>Bulk folder creation</li>
+    </ul>
+
+    <h3>v1.8 &mdash; Theme Customizer</h3>
+    <ul>
+      <li>Visual editor for theme colors, fonts, logo, and favicon</li>
+      <li>Live preview iframe with real-time CSS variable updates</li>
+      <li>Export/import customization presets as JSON</li>
+      <li>One-click reset to theme defaults</li>
+    </ul>
+
+    <h3>v1.9 &mdash; Developer Experience &amp; Theme Updates</h3>
+    <ul>
+      <li><strong>Theme Update System</strong> &mdash; safe auto-updates for managed themes with hash-based conflict detection</li>
+      <li>Pre-compilation tag validation with line numbers</li>
+      <li>Source line tracking in compiled templates</li>
+      <li>Enhanced error display with friendly messages (admin-only)</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>What&rsquo;s Next</h2>
+
+    <h3>v2.0 &mdash; Onboarding &amp; Setup Wizard</h3>
+    <p>First impressions matter. A fresh install currently drops you into a blank admin. v2.0 fixes that.</p>
+    <ul>
+      <li><strong>Setup wizard</strong> &mdash; runs on first visit: site name, choose a theme, set admin credentials, pick starter content</li>
+      <li><strong>Starter content packs</strong> &mdash; pre-built content for common use cases (blog, portfolio, business, documentation)</li>
+      <li><strong>Getting started dashboard</strong> &mdash; replaces the default dashboard with a checklist for new sites</li>
+      <li><strong>Contextual tips</strong> &mdash; subtle inline hints on first use of each admin section</li>
+      <li><strong>Empty states</strong> &mdash; every list page has a helpful empty state with a clear call-to-action</li>
+    </ul>
+
+    <h3>v2.1 &mdash; Collection Folders</h3>
+    <p>Bring the media folder system to collections. Organize posts, products, and case studies the same way you organize media.</p>
+    <ul>
+      <li>Folder sidebar for collections (same as media)</li>
+      <li>Drag-to-folder from the item list</li>
+      <li>Multi-folder assignment</li>
+      <li><code>{% for item in collection_folder.slug %}</code> template loops</li>
+    </ul>
+
+    <h3>v2.2 &mdash; Theme Gallery</h3>
+    <p>More starting points, less blank-page anxiety. Ship 4&ndash;5 polished themes with full customizer support.</p>
+    <ul>
+      <li><strong>Business</strong> &mdash; homepage with services, team, testimonials, contact form</li>
+      <li><strong>Portfolio</strong> &mdash; grid gallery, project case studies, about page</li>
+      <li><strong>Blog</strong> &mdash; clean reading experience, categories, author pages</li>
+      <li><strong>Documentation</strong> &mdash; sidebar navigation, search, code blocks</li>
+      <li><strong>Landing page</strong> &mdash; single-page marketing site with CTA blocks</li>
+    </ul>
+
+    <h3>v2.3 &mdash; Visual Tag Builder</h3>
+    <p>Turn any static HTML into an Outpost theme without writing a single template tag. Import HTML, select content, click &ldquo;Make Editable&rdquo; &mdash; Outpost wraps it in the correct tags for you.</p>
+    <ul>
+      <li>Interactive &ldquo;Make Editable&rdquo; workflow in the code editor</li>
+      <li>Field type and scope selector popover</li>
+      <li>Collection loop, conditional, and partial extraction</li>
+      <li>Autocomplete with inline descriptions</li>
+    </ul>
+
+    <h3>v2.4 &mdash; Headless-First</h3>
+    <p>Position Outpost as the zero-config headless CMS alongside the traditional themed approach.</p>
+    <ul>
+      <li>GraphQL API alongside REST</li>
+      <li>Content webhooks v2 with full content diffs</li>
+      <li>Static site preview via webhook triggers</li>
+      <li>Real-time content events (SSE or WebSocket)</li>
+    </ul>
+
+    <h3>v2.5 &mdash; Deeper Analytics</h3>
+    <ul>
+      <li>Content performance cohorts</li>
+      <li>Goal funnels (visitor &rarr; member &rarr; paid)</li>
+      <li>Search analytics</li>
+      <li>Optional geo enrichment via MaxMind GeoLite2</li>
+    </ul>
+
+    <h3>v2.6 &mdash; Commerce</h3>
+    <p>Lightweight digital product sales via Stripe.</p>
+    <ul>
+      <li>Sell downloads, courses, and one-time purchases</li>
+      <li>Member tiers with Stripe Checkout</li>
+      <li>License key generation</li>
+      <li>Purchase and MRR analytics</li>
+    </ul>
+
+    <h3>v2.7 &mdash; Collaborative Editing</h3>
+    <ul>
+      <li>Real-time multi-user editing</li>
+      <li>Presence indicators and live cursors</li>
+      <li>Conflict-free concurrent edits (CRDT)</li>
+      <li>Activity feed</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Long-Term (v3.x+)</h2>
+    <ul>
+      <li><strong>Internationalization</strong> &mdash; multi-language content, locale routing, one-click duplicate-as-locale</li>
+      <li><strong>Theme Marketplace</strong> &mdash; browse, preview, and install themes from within the admin</li>
+      <li><strong>Channels Phase 3 &amp; 4</strong> &mdash; inbound webhooks, outbound channels, filtering, channel-to-channel piping</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Core Constraints</h2>
+    <p>These define what Outpost is. Breaking them makes it something else.</p>
+    <ol>
+      <li><strong>Zero server-side dependencies</strong> &mdash; No Composer, no npm on the server, no build step to deploy</li>
+      <li><strong>SQLite only</strong> &mdash; single-file database enables trivial backups and shared hosting compatibility</li>
+      <li><strong>Liquid templates only</strong> &mdash; no PHP in theme files; content/presentation separation is enforced</li>
+      <li><strong>Drop-in install</strong> &mdash; copy files, visit <code>/outpost/</code>, done</li>
+    </ol>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Not Planned</h2>
+    <p>These are explicitly out of scope. Acknowledging them keeps the codebase focused.</p>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>Why Not</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Plugin ecosystem</td><td>Requires a package manager &mdash; violates the zero-config promise</td></tr>
+        <tr><td>Managed SaaS hosting</td><td>A business model, not a product feature</td></tr>
+        <tr><td>Native mobile apps</td><td>Web admin + responsive design is sufficient</td></tr>
+        <tr><td>Visual drag-and-drop page builder</td><td>Theme Customizer handles appearance; on-page editing handles content; structure belongs in templates</td></tr>
+        <tr><td>Built-in AI content generation</td><td>External API dependencies and ongoing costs</td></tr>
+        <tr><td>MySQL/Postgres</td><td>SQLite is the constraint that enables &ldquo;backup = one file&rdquo;</td></tr>
+        <tr><td>LDAP/SAML SSO</td><td>Out of scope for indie/small-team target market</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

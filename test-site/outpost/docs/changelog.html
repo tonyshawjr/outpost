@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Changelog</h1>
+    <p class="lead">Every release, every change &mdash; documented in one place.</p>
+  </div>
+  <div class="content">
+
+    <p>This log covers all notable changes to Outpost CMS. The format follows <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.9.1">1.9.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li>Changelog and Roadmap pages in developer documentation</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.9.0">1.9.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Theme Update System</strong> &mdash; auto-updater safely updates bundled managed themes while preserving user modifications via hash-based conflict detection</li>
+      <li>Managed theme flag (<code>"managed": true</code> in <code>theme.json</code>) for Personal and Starter themes</li>
+      <li><code>.outpost-manifest.json</code> generation in packaging script for file-level conflict detection</li>
+      <li>Theme update results display in Settings &rarr; Updates (installed, updated, conflicts)</li>
+      <li>&ldquo;Managed by Outpost&rdquo; label on managed themes in the Themes page</li>
+      <li>Delete protection for managed themes (button hidden in admin UI)</li>
+      <li>New theme auto-install during updates</li>
+      <li><strong>Pre-compilation tag validation</strong> &mdash; balanced tag checking with line numbers for <code>{% if %}</code>, <code>{% for %}</code>, <code>{% single %}</code></li>
+      <li><strong>Source line tracking</strong> &mdash; <code>/* @line:N */</code> markers in compiled templates for source mapping</li>
+      <li><strong>Enhanced error display</strong> &mdash; admin-only diagnostics with source context, line highlighting, and friendly error messages</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Duplicated themes have <code>managed</code> flag stripped &mdash; copies are fully user-owned</li>
+      <li>Themes API now includes <code>managed</code> boolean in list response</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.8.2">1.8.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Body font no longer overrides heading font &mdash; engine and preview now pin non-customized font vars to their defaults</li>
+      <li>Live preview now updates in real-time &mdash; fixed <code>postMessage</code> failing silently on Svelte 5 proxy objects</li>
+      <li>&ldquo;System Default&rdquo; font choice now properly outputs <code>system-ui</code> stack</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.8.1">1.8.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Customizer sidebar icon replaced with paintbrush</li>
+      <li>Calendar page header icon now uses standard wrapper</li>
+      <li><code>structuredClone</code> crash on customizer page &mdash; Svelte 5 proxies replaced with <code>JSON.parse(JSON.stringify())</code></li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>CSS injection hardening &mdash; type-specific validation for color (hex) and font (alphanumeric) values</li>
+      <li><code>postMessage</code> origin check in customizer preview iframe</li>
+      <li>Sanitized theme slug in customizer export filename</li>
+      <li>Preview script validates CSS variable names and values before applying</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.8.0">1.8.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Theme Customizer</strong> &mdash; visual editor for theme colors, fonts, logo, and favicon without touching code</li>
+      <li>Color palette editor with native color pickers and hex input</li>
+      <li>Font selector with curated Google Fonts library and live preview</li>
+      <li>Logo and favicon upload via Site Identity section</li>
+      <li>Live preview iframe with real-time CSS variable updates</li>
+      <li>Export/import customization presets as JSON</li>
+      <li>One-click reset to theme defaults</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.7.0">1.7.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-07</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Multi-folder assignment</strong> &mdash; files can belong to multiple folders via junction table</li>
+      <li><strong>Gallery from folders</strong> &mdash; <code>{% for img in media_folder.slug %}</code> template tag</li>
+      <li>Resizable detail sidebar with drag handle</li>
+      <li>Bulk folder creation (comma-separated names, max 50)</li>
+      <li>Right-click file context menu with folder operations</li>
+      <li>Role-based folder restrictions for editors</li>
+      <li>Folder slugs for template tag resolution</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.6.2">1.6.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-07</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Bulk media operations</strong> &mdash; multi-select, shift-click range select, bulk delete, and bulk move-to-folder</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.6.1">1.6.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-07</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Upload queue fired multiple times per file due to Svelte <code>$effect</code> reactive loop</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.6.0">1.6.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-07</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>WebP auto-conversion</strong> &mdash; JPEG and PNG uploads automatically converted to WebP</li>
+      <li><strong>Focal point picker</strong> &mdash; click image preview to set focal point; <code>{{ field | focal }}</code> template filter</li>
+      <li><strong>Media folder organization</strong> &mdash; folder sidebar, create/rename/delete, drag-to-folder, 3 levels max</li>
+      <li><strong>Bulk upload with progress</strong> &mdash; upload queue with per-file progress bars, 2 concurrent, cancel support</li>
+      <li>MediaPicker folder browsing</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.5.2">1.5.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-07</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Update checker now shows combined release notes for all versions between installed and latest</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.5.1">1.5.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-07</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Update notification dot rendering fix &mdash; replaced with positioned green dot</li>
+      <li>Docs sidebar refactored to single shared <code>sidebar.html</code></li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.5.0">1.5.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Review &amp; Approval workflow</strong> &mdash; per-collection <code>require_review</code> toggle; editors submit for review, admins approve or reject</li>
+      <li><strong>Editorial calendar</strong> &mdash; month-grid view of scheduled and published items</li>
+      <li><strong>Bulk scheduling</strong> &mdash; select multiple items, apply publish date to all</li>
+      <li>Webhook events for review and scheduling lifecycle</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.4.0">1.4.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>User content directory</strong> &mdash; all user-owned data consolidated under <code>outpost/content/</code></li>
+      <li>Auto-migration for existing sites with symlinks for URL compatibility</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Backup restore validates zip entry paths (zip slip prevention)</li>
+      <li><code>outpost_rmdir_recursive()</code> no longer follows symlinks</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.3.2">1.3.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Backups now include themes directory alongside database and uploads</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.3.1">1.3.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li>Auto update check on every admin page load via <code>auth/me</code></li>
+      <li>Sidebar update badge (green dot on Settings)</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.3.0">1.3.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Backup &amp; Restore</strong> &mdash; one-click backup of SQLite database + uploaded media</li>
+      <li>Restore from backup (super_admin only)</li>
+      <li>Automatic backups with configurable retention</li>
+      <li>Backup history with download and delete</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.2.0">1.2.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li>Content Editor cleanup &mdash; restricted sidebar for editor role</li>
+      <li><strong>Collection-scoped editors</strong> &mdash; restrict editors to specific collections</li>
+      <li><strong>Per-page locks</strong> &mdash; admins can lock pages from editor edits</li>
+      <li>Developer role option</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.1.0">1.1.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>RSS channel type</strong> &mdash; connect to RSS 2.0 or Atom 1.0 feeds</li>
+      <li><strong>CSV channel type</strong> &mdash; connect to CSV files (including Google Sheets exports)</li>
+      <li>Source type selector in channel creation wizard</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="1.0.0">1.0.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-06</span></h2>
+    <p>First stable release. Feature-complete, security-audited, fully documented. See the <a href="roadmap.html">Roadmap</a> for the full feature list that shipped in beta.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

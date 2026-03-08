@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Developer Documentation — Changelog & Roadmap (v1.9.1)
+
+- **Changelog page** (`docs/changelog.html`) — every release and its changes, formatted for the docs site and updated with each version
+- **Roadmap page** (`docs/roadmap.html`) — shipped features, upcoming plans, core constraints, and not-planned items
+- Both pages added to the docs sidebar under a new "Project" section
+
+---
+
 ## Developer Experience & Theme Updates (v1.9.0)
 
 - **Theme Update System** — auto-updater now safely updates bundled "managed" themes while preserving user modifications. Hash-based conflict detection compares installed files against `.outpost-manifest.json` to decide which files to replace, skip, or flag as conflicts.

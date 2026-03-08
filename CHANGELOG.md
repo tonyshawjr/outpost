@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.1] — 2026-03-08
+
+### Added
+- Changelog page in developer documentation (`docs/changelog.html`)
+- Roadmap page in developer documentation (`docs/roadmap.html`)
+- "Project" nav section in docs sidebar linking to both new pages
+
+---
+
 ## [1.9.0] — 2026-03-08
 
 ### Added

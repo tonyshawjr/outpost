@@ -19,6 +19,8 @@
 - [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system with theme updates
 - [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
+- [Changelog](/outpost/docs/changelog.html): Every release and its changes
+- [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
 ---
 
