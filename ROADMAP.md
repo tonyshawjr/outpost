@@ -285,7 +285,50 @@ All themes ship with full `customizer` config (v1.8), responsive design, dark mo
 
 ---
 
-## v2.3 — Headless-First
+## v2.3 — Visual Tag Builder
+
+**Turn any static HTML into an Outpost theme without writing a single template tag.** Import your HTML, select content, click "Make Editable" — Outpost wraps the selection in the correct `{{ }}` or `{% %}` tags for you.
+
+### The workflow
+
+1. Paste or import flat HTML files into a theme directory via the code editor
+2. Open a file — it's just plain HTML, no template tags yet
+3. Select a piece of content (a heading, a paragraph, an `<img>` src, a `<section>`)
+4. Click **"Make Editable"** in the toolbar or right-click context menu
+5. A compact popover asks:
+   - **Field name** — what this field is called in the admin (e.g. `hero_title`)
+   - **Type** — text, richtext, image, textarea, link, toggle, select, color, date, number
+   - **Scope** — page field (editable per-page) or global (shared across all pages via `@`)
+6. Outpost wraps the selection in the correct tag automatically:
+   - Selected `"Welcome to My Site"` → `{{ hero_title }}Welcome to My Site{{ /hero_title }}`
+   - Selected an `<img>` src → `{{ hero_image | image }}`
+   - Selected a block of HTML → `{{ hero_content | raw }}<p>...</p>{{ /hero_content }}`
+   - Chose "global" scope → `{{ @site_name }}`
+7. Repeat until the page is fully tagged — you've just built a theme
+
+### Advanced tagging
+
+- **Collection loops** — select a repeating HTML pattern (e.g., a blog card), choose "Collection Loop", pick or create the collection, name the item variable → wraps in `{% for post in collection.blog %}...{% endfor %}`
+- **Conditionals** — select a section, choose "Conditional" → wraps in `{% if field_name %}...{% endif %}`
+- **Includes** — select a `<header>` or `<footer>`, choose "Extract Partial" → moves the HTML to `partials/header.html` and replaces it with `{% include 'header' %}`
+- **Meta tags** — select a `<title>` or `<meta>` description, choose "Meta" → converts to `{{ meta.title }}` / `{{ meta.description }}`
+
+### Code editor enhancements (ships with this release)
+
+- **Autocomplete inline descriptions** — `{{ }}` and `{% %}` autocomplete shows short descriptions of each tag/filter, not just the syntax
+- **Tag preview** — hover any template tag to see what it compiles to and what it does
+
+### Why this matters
+
+Freelancers and agencies already have HTML sites — from Webflow exports, Tailwind templates, or hand-coded prototypes. Today, converting that HTML to an Outpost theme means reading the template reference and manually typing every `{{ }}` tag. The visual tag builder makes the conversion interactive and guided. You don't need to know the template syntax — you just point at content and tell Outpost what it is.
+
+**Docs:** "Convert an HTML site to an Outpost theme" walkthrough, visual tag builder reference, autocomplete description reference.
+
+---
+
+## v2.4 — Headless-First
+
+> Renumbered from v2.3 after Visual Tag Builder was inserted.
 
 Position Outpost as the zero-config headless CMS alongside the traditional themed approach:
 
@@ -300,7 +343,7 @@ Position Outpost as the zero-config headless CMS alongside the traditional theme
 
 ---
 
-## v2.4 — Deeper Analytics
+## v2.5 — Deeper Analytics
 
 Extend beyond pageviews into audience behavior — actionable insights without external tools:
 
@@ -313,7 +356,7 @@ Extend beyond pageviews into audience behavior — actionable insights without e
 
 ---
 
-## v2.5 — Commerce
+## v2.6 — Commerce
 
 Lightweight digital product sales via Stripe:
 
@@ -328,7 +371,7 @@ Lightweight digital product sales via Stripe:
 
 ---
 
-## v2.6 — Collaborative Editing
+## v2.7 — Collaborative Editing
 
 Real-time multi-user editing on the same page or collection item:
 
@@ -337,7 +380,7 @@ Real-time multi-user editing on the same page or collection item:
 - Operational transform or CRDT for conflict-free concurrent edits
 - Activity feed ("Tony updated the hero title 2 minutes ago")
 
-This depends on on-page editing being mature and v2.2 (real-time events) being in place.
+This depends on on-page editing being mature and v2.4 (real-time events) being in place.
 
 **Docs:** Collaboration setup guide, real-time editing user guide.
 
@@ -413,12 +456,13 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.6~~ | ~~Q1 2027~~ | ~~Media library pro~~ **Shipped** | — |
 | ~~1.7~~ | ~~Q1 2027~~ | ~~Media advanced~~ **Shipped** | — |
 | ~~1.8~~ | ~~Q1 2027~~ | ~~Theme Customizer — visual colors, fonts, logo~~ **Shipped** | Everyone |
-| 1.9 | Q2 2027 | Developer Experience & Theme Updates | Developers / Everyone |
+| ~~1.9~~ | ~~Q2 2027~~ | ~~Developer Experience & Theme Updates~~ **Shipped** | Developers / Everyone |
 | 2.0 | Q3 2027 | Onboarding & Setup Wizard | Everyone |
 | 2.1 | Q3 2027 | Collection Folders — Happy Files for posts | Everyone |
 | 2.2 | Q4 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
-| 2.3 | Q4 2027 | Headless-First — GraphQL, webhooks v2 | Developers |
-| 2.4 | Q1 2028 | Deeper Analytics — funnels, search, cohorts | Everyone |
-| 2.5 | Q1 2028 | Commerce — Stripe, digital products | Everyone |
-| 2.6 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
+| 2.3 | Q4 2027 | Visual Tag Builder — HTML-to-theme conversion | Developers / Everyone |
+| 2.4 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |
+| 2.5 | Q1 2028 | Deeper Analytics — funnels, search, cohorts | Everyone |
+| 2.6 | Q2 2028 | Commerce — Stripe, digital products | Everyone |
+| 2.7 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
 | 3.x | TBD | Internationalization, Theme Marketplace | Everyone |
