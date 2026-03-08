@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] — 2026-03-08
+
+### Security
+- **Bulk labels fatal error** — `OutpostDB::execute()` does not exist; replaced with `OutpostDB::query()` (would have caused 500 on any bulk label operation)
+- **Item ID validation** — `item_ids` array elements now cast to integers and filtered for positive values before use in SQL
+- **Label-to-collection validation** — `handle_items_list()` now verifies the requested `label_id` belongs to the target collection before filtering
+- **Collection membership check on remove** — bulk label remove now validates items belong to the label's collection (previously only add was validated)
+
+### Fixed
+- **Event listener cleanup** — removed `setTimeout` wrapper in label dropdown `$effect()` to prevent listener pile-up on rapid open/close
+- **parseInt radix** — drag-to-label now uses `parseInt(str, 10)` with `Number.isInteger()` check
+- **Empty slug guard** — label creation rejects names that produce empty slugs (e.g., all special characters)
+- **Affected count accuracy** — bulk label remove now returns actual `rowCount()` instead of assuming all items had the label
+
+---
+
 ## [2.1.0] — 2026-03-08
 
 ### Added

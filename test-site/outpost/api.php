@@ -1712,6 +1712,15 @@ function handle_items_list(): void {
             [...$params, $collection['id']]
         );
     } elseif ($labelId && ctype_digit($labelId)) {
+        // Verify label belongs to this collection
+        $labelCheck = OutpostDB::fetchOne(
+            "SELECT l.id FROM labels l
+             INNER JOIN folders f ON l.folder_id = f.id
+             WHERE l.id = ? AND f.collection_id = ?",
+            [(int) $labelId, (int) $collection['id']]
+        );
+        if (!$labelCheck) json_error('Invalid label for this collection', 400);
+
         // Items with a specific label
         $items = OutpostDB::fetchAll(
             "SELECT ci.* FROM collection_items ci
@@ -1796,7 +1805,8 @@ function handle_items_labels_with_counts(): void {
 
 function handle_items_bulk_labels(): void {
     $data = get_json_body();
-    $itemIds = $data['item_ids'] ?? [];
+    $itemIds = array_map('intval', $data['item_ids'] ?? []);
+    $itemIds = array_filter($itemIds, fn($id) => $id > 0);
     $labelId = (int) ($data['label_id'] ?? 0);
     $action = $data['action'] ?? '';
 
@@ -1820,30 +1830,33 @@ function handle_items_bulk_labels(): void {
     $affected = 0;
     $placeholders = implode(',', array_fill(0, count($itemIds), '?'));
 
+    // Verify items belong to this collection (both add and remove)
+    $validItems = OutpostDB::fetchAll(
+        "SELECT id FROM collection_items WHERE id IN ({$placeholders}) AND collection_id = ?",
+        [...$itemIds, (int) $label['collection_id']]
+    );
+    $validIds = array_column($validItems, 'id');
+
+    if (empty($validIds)) {
+        json_response(['success' => true, 'affected' => 0]);
+        return;
+    }
+
     if ($action === 'add') {
-        // Verify items belong to this collection
-        $validItems = OutpostDB::fetchAll(
-            "SELECT id FROM collection_items WHERE id IN ({$placeholders}) AND collection_id = ?",
-            [...$itemIds, (int) $label['collection_id']]
-        );
-        foreach ($validItems as $item) {
-            try {
-                OutpostDB::execute(
-                    'INSERT OR IGNORE INTO item_labels (item_id, label_id) VALUES (?, ?)',
-                    [(int) $item['id'], $labelId]
-                );
-                $affected++;
-            } catch (\Exception $e) {
-                // Already exists, skip
-            }
+        foreach ($validIds as $itemId) {
+            OutpostDB::query(
+                'INSERT OR IGNORE INTO item_labels (item_id, label_id) VALUES (?, ?)',
+                [(int) $itemId, $labelId]
+            );
+            $affected++;
         }
     } else {
-        // Remove
-        OutpostDB::execute(
-            "DELETE FROM item_labels WHERE label_id = ? AND item_id IN ({$placeholders})",
-            [$labelId, ...$itemIds]
+        $validPlaceholders = implode(',', array_fill(0, count($validIds), '?'));
+        $stmt = OutpostDB::query(
+            "DELETE FROM item_labels WHERE label_id = ? AND item_id IN ({$validPlaceholders})",
+            [$labelId, ...array_map('intval', $validIds)]
         );
-        $affected = count($itemIds);
+        $affected = $stmt->rowCount();
     }
 
     json_response(['success' => true, 'affected' => $affected]);

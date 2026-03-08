@@ -33,7 +33,7 @@
       totalCount = data.total_items || 0;
       unfiledCount = data.unfiled_count || 0;
     } catch (err) {
-      // Silent fail — sidebar just won't show counts
+      console.error('Failed to load labels:', err);
     } finally {
       loading = false;
     }
@@ -46,7 +46,15 @@
     const names = newLabelName.split(',').map(n => n.trim()).filter(Boolean);
 
     for (const name of names) {
+      if (name.length > 100) {
+        addToast(`"${name.slice(0, 20)}..." is too long`, 'error');
+        continue;
+      }
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!slug) {
+        addToast(`"${name}" has no valid characters for a slug`, 'error');
+        continue;
+      }
       try {
         await labelsApi.create({
           folder_id: targetFolderId,
@@ -76,8 +84,8 @@
     e.preventDefault();
     dragOver = null;
     if (labelId === null) return;
-    const itemId = parseInt(e.dataTransfer.getData('text/plain'));
-    if (!itemId) return;
+    const itemId = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (!Number.isInteger(itemId) || itemId <= 0) return;
     onLabelDrop(labelId, [itemId]);
   }
 </script>

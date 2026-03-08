@@ -305,7 +305,7 @@
   $effect(() => {
     if (!showLabelMenu) return;
     function handleClick() { showLabelMenu = false; }
-    setTimeout(() => document.addEventListener('click', handleClick), 0);
+    document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   });
 
