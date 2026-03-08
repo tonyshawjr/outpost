@@ -106,7 +106,7 @@ The admin panel has a built-in updater at **Settings → Updates**. Here's the f
 **Developer side (us):**
 1. Finish feature/fix → follow "After Every Feature" checklist (version bump, changelog, etc.)
 2. `npm run build` → builds admin SPA to `php/admin/`
-3. `npm run package` → creates `dist/outpost/` directory + `dist/outpost-vX.X.X.zip`
+3. `npm run package` → creates `dist/outpost/` directory + `dist/outpost-vX.X.X.zip` (also generates `.outpost-manifest.json` for managed themes)
 4. Commit, push, tag, then create a **GitHub Release** with the zip attached:
    ```bash
    git add -A && git commit -m "v1.0.0-beta.XX — Description"
@@ -130,11 +130,18 @@ The admin panel has a built-in updater at **Settings → Updates**. Here's the f
    - `docs/` directory
    - `member-pages/` directory
    - `tools/` directory
-7. PHP clears `cache/templates/*.php` so recompiled templates pick up engine changes
-8. Admin SPA reloads automatically — now running the new version
+7. PHP updates **managed themes** in `content/themes/` (v1.9.0+):
+   - Themes with `"managed": true` in `theme.json` (Personal, Starter) are eligible
+   - Uses `.outpost-manifest.json` (MD5 hashes of shipped files) for conflict detection
+   - Files the user hasn't modified → replaced with new version
+   - Files the user HAS modified → **skipped**, flagged as conflicts in the response
+   - New managed themes in the zip → installed automatically
+   - Non-managed themes (user-created or duplicated) → **never touched**
+8. PHP clears `cache/templates/*.php` so recompiled templates pick up engine changes
+9. Admin SPA reloads automatically — now running the new version. If theme updates occurred, results are shown first.
 
 **What the updater NEVER touches (user data):**
-- `themes/` — custom user themes and modifications
+- `themes/` — user-created and duplicated themes (only managed themes with `"managed": true` are updated, and even then user-modified files are preserved)
 - `data/` — SQLite database (`cms.db`)
 - `uploads/` — user media files
 - `cache/` — cleared after update, rebuilds automatically
