@@ -106,6 +106,7 @@ Every theme requires a `theme.json` at the root of the theme directory. It provi
 
 ```json
 {
+  "$schema": "/outpost/docs/schemas/theme.schema.json",
   "name": "My Theme",
   "version": "1.0.0",
   "author": "Your Name",
@@ -117,12 +118,17 @@ Every theme requires a `theme.json` at the root of the theme directory. It provi
 
 | Field | Required | Purpose |
 |---|---|---|
+| `$schema` | No | Path to JSON Schema for IDE autocomplete and validation. Use `"/outpost/docs/schemas/theme.schema.json"`. |
 | `name` | Yes | Display name in admin theme browser |
 | `version` | Yes | Semantic version badge on theme card |
 | `author` | Yes | Creator name shown in details panel |
 | `description` | Yes | Short summary shown in browser |
 | `screenshot` | No | Relative path to PNG/JPG preview image |
 | `managed` | No | When `true`, theme receives auto-updates during CMS updates. Reserved for bundled themes. |
+
+### JSON Schema
+
+Outpost ships a JSON Schema at `/outpost/docs/schemas/theme.schema.json` that enables IDE autocomplete and validation for `theme.json` files. Add `"$schema": "/outpost/docs/schemas/theme.schema.json"` to any theme.json for autocomplete of all fields including customizer sections, field types (`color`, `font`, `image`, `text`, `toggle`), and CSS variable names. All bundled themes include this reference.
 
 The directory name is the slug (immutable); it is used as the `active_theme` setting value.
 
@@ -131,6 +137,15 @@ The directory name is the slug (immutable); it is used as the `active_theme` set
 Themes with `"managed": true` are official themes maintained by Outpost. They participate in the theme update system — when the CMS is updated, managed themes in the package are automatically updated with conflict detection. The bundled Personal and Starter themes ship with this flag.
 
 Managed themes show a "Managed" badge in Admin → Themes. Duplicating a managed theme strips the `managed` flag — the copy becomes an independent user-owned theme that is never touched by updates. Do not add `"managed": true` to custom themes.
+
+### Bundled themes
+
+Outpost ships three managed themes:
+- **Personal** — full-featured personal blog theme (reference implementation)
+- **Starter** — clean, minimal starting point for non-developers
+- **Skeleton** — developer reference theme with heavily commented templates demonstrating every template tag
+
+The Skeleton theme is the recommended starting point for theme development. Duplicate it in Admin → Themes to create a new theme, then edit the copy. It demonstrates: output tags (text, richtext, image, link, textarea, color, number, date, select, toggle), globals, meta tags, wrapping and inline defaults, conditionals, collection loops with all options, single item fetch, menu loops with dropdowns, folder loops, pagination, form tag, includes, SEO block, and admin check.
 
 ### Customizer schema (optional)
 

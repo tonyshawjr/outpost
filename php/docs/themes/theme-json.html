@@ -24,6 +24,7 @@
 
     <h2>Complete example</h2>
     <pre><code>{
+  "$schema": "/outpost/docs/schemas/theme.schema.json",
   "name": "My Theme",
   "version": "1.0.0",
   "author": "Your Name",
@@ -43,6 +44,12 @@
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td><code>$schema</code></td>
+          <td>string</td>
+          <td>No</td>
+          <td>Path to the JSON Schema file for IDE validation and autocomplete. Use <code>"/outpost/docs/schemas/theme.schema.json"</code>. All bundled themes include this field.</td>
+        </tr>
         <tr>
           <td><code>name</code></td>
           <td>string</td>
@@ -151,6 +158,34 @@
     <p>Outpost does not perform strict schema validation on <code>theme.json</code>. Any valid JSON file is accepted. However, if the file is missing or contains invalid JSON, the theme will not appear in the admin browser and Outpost will log a warning. Always confirm your JSON is valid before deploying.</p>
 
     <div class="callout callout-warn"><strong>Warning</strong> — If <code>theme.json</code> is missing entirely, the theme directory will not appear in Admin → Themes. The theme still exists on disk but Outpost will not recognize it. Always include <code>theme.json</code> even if it is minimal.</div>
+
+    <h3>JSON Schema for IDE support</h3>
+    <p>Outpost ships a JSON Schema file at <code>/outpost/docs/schemas/theme.schema.json</code> that provides IDE autocomplete and inline validation for <code>theme.json</code> files. Add a <code>$schema</code> field pointing to it:</p>
+    <pre><code>{
+  "$schema": "/outpost/docs/schemas/theme.schema.json",
+  "name": "My Theme",
+  "version": "1.0.0",
+  "author": "Your Name"
+}</code></pre>
+    <p>When present, editors like VS Code, JetBrains IDEs, and others will:</p>
+    <ul>
+      <li>Autocomplete field names (<code>name</code>, <code>version</code>, <code>customizer</code>, etc.)</li>
+      <li>Validate field types (e.g. <code>managed</code> must be boolean)</li>
+      <li>Show documentation for each field on hover</li>
+      <li>Autocomplete customizer field types (<code>color</code>, <code>font</code>, <code>image</code>, <code>text</code>, <code>toggle</code>)</li>
+      <li>Validate CSS variable names start with <code>--</code></li>
+    </ul>
+    <p>All three bundled themes (Personal, Starter, Skeleton) include this field. When you duplicate a theme to start customizing, the <code>$schema</code> reference carries over so your new theme gets the same IDE support.</p>
+
+    <h2>The Skeleton theme</h2>
+    <p>Outpost ships a <strong>Skeleton</strong> theme alongside Personal and Starter. Skeleton is a developer reference &mdash; every template is heavily commented and demonstrates every template tag Outpost supports. It is not meant to look polished; it is meant to teach.</p>
+    <p>To start building a new theme from Skeleton:</p>
+    <ol>
+      <li>Go to Admin &rarr; Themes</li>
+      <li>Find Skeleton and click <strong>Duplicate</strong></li>
+      <li>Rename the duplicate and start editing &mdash; the copy is fully yours</li>
+    </ol>
+    <p>Skeleton ships as a managed theme, so it stays current with new tag examples in future updates. Your duplicate is independent and never touched by the updater.</p>
 
     <h2>The customizer key</h2>
     <p>Themes can declare customizable properties by adding a <code>customizer</code> key to <code>theme.json</code>. When present, the admin panel shows a visual Theme Customizer (Admin &rarr; Customize) that lets site owners change colors, fonts, logo, and favicon without editing code.</p>

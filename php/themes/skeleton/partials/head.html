@@ -1,0 +1,52 @@
+{#---
+Partial:      head.html
+Included by:  all page templates via {% include 'head' %}
+
+This partial outputs everything from <!DOCTYPE> through <body>.
+
+Features demonstrated:
+  {% seo %}          — outputs <title>, meta description, Open Graph, Twitter Card,
+                       canonical URL, JSON-LD, pagination prev/next, robots
+  {% if @global %}   — conditional rendering based on global field
+  {% include %}      — this file is included from every template
+
+Global fields used:
+  @site_name         — appended to <title> via {% seo %}
+  @site_tagline      — fallback meta description
+  @ga4_id            — Google Analytics 4 measurement ID (optional)
+
+CSS variables from customizer:
+  --color-accent, --color-text, --color-bg, --color-muted
+  --font-heading, --font-body
+---#}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  {# The {% seo %} tag outputs: <title>, meta description, Open Graph tags,
+     Twitter Card tags, canonical URL, JSON-LD schema, and pagination prev/next.
+     It reads from meta.title, meta.description, @site_name, @og_image, @twitter_handle. #}
+  {% seo %}
+
+  {# Link to the theme stylesheet — path is relative to the site root #}
+  <link rel="stylesheet" href="/outpost/themes/skeleton/assets/style.css">
+
+  {# Conditional: only inject Google Analytics when the @ga4_id global is set.
+     IMPORTANT: @ga4_id must be a validated GA4 measurement ID (format: G-XXXXXXXXXX).
+     Do not use this pattern for arbitrary user input inside <script> tags — HTML escaping
+     is not sufficient for JavaScript string contexts. GA4 IDs are safe because they
+     contain only alphanumeric characters and hyphens. #}
+  {% if @ga4_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ @ga4_id }}');
+  </script>
+  {% endif %}
+</head>
+<body>

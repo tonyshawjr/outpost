@@ -1,0 +1,36 @@
+{#---
+Partial:      footer.html
+Included by:  all page templates via {% include 'footer' %}
+
+Features demonstrated:
+  {{ @global }}          — plain text global field
+  {% if @global %}       — conditional rendering
+  {% for item in menu.X %} — footer menu loop
+  {% if admin %}         — admin-only content
+---#}
+
+<footer style="padding: 40px 24px; border-top: 1px solid #e5e7eb; margin-top: 60px;">
+  <div style="max-width: 960px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+
+    {# Global text field with wrapping default — if @footer_text is empty, the fallback shows #}
+    <p style="color: var(--color-muted); font-size: 14px; margin: 0;">
+      {{ @footer_text }}Built with Outpost CMS{{ //@footer_text }}
+    </p>
+
+    {# Footer menu loop — uses the "footer" menu from Admin > Navigation #}
+    {% for item in menu.footer %}
+    <a href="{{ item.url }}" target="{{ item.target }}" style="color: var(--color-muted); text-decoration: none; font-size: 14px;">
+      {{ item.label }}
+    </a>
+    {% endfor %}
+
+    {# Admin-only: edit link visible only to logged-in admins #}
+    {% if admin %}
+    <a href="/outpost/" style="font-size: 11px; color: var(--color-muted);">Edit site</a>
+    {% endif %}
+
+  </div>
+</footer>
+
+</body>
+</html>

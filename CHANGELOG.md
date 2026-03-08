@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.2] — 2026-03-08
+
+### Added
+- **JSON Schema for theme.json** — `php/docs/schemas/theme.schema.json` provides IDE autocomplete and validation for theme configuration files
+- **Skeleton theme** — developer reference theme with heavily commented templates demonstrating every Outpost template tag (managed, ships with every install)
+- `$schema` reference added to all three bundled theme.json files (Personal, Starter, Skeleton) for IDE integration
+
+---
+
 ## [1.9.1] — 2026-03-08
 
 ### Added

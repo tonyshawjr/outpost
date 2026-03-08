@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Schema Validation & Theme Starter Kit (v1.9.2)
+
+- **JSON Schema for theme.json** — `php/docs/schemas/theme.schema.json` validates theme metadata and customizer configuration. IDEs auto-detect the `$schema` reference and provide autocomplete + inline validation for all theme.json fields including customizer sections, field types, and CSS variable mappings.
+- **Skeleton theme** — new bundled managed theme (`php/themes/skeleton/`) that serves as the definitive developer reference. Every template is heavily commented, demonstrating: output tags (`{{ field }}`, `| raw`, `| image`, `| link`, `| textarea`, `| color`, `| number`, `| date`, `| select`, `| toggle`), globals (`{{ @name }}`), meta tags, wrapping defaults, inline defaults, conditionals, collection loops with all options (`limit`, `orderby`, `paginate`, `filteredby`), single item fetch, menu loops with dropdown children, folder loops, pagination, form tag, includes, comments, SEO block, and admin check.
+- **`$schema` on all bundled themes** — Personal, Starter, and Skeleton theme.json files include `"$schema": "/outpost/docs/schemas/theme.schema.json"` so developers see the pattern immediately.
+- **Files**: `php/docs/schemas/theme.schema.json` (new), `php/themes/skeleton/` (new — theme.json, index.html, blog.html, post.html, contact.html, partials/head.html, partials/nav.html, partials/footer.html, assets/style.css), `php/themes/personal/theme.json`, `php/themes/starter/theme.json`
+
+---
+
 ## Developer Documentation — Changelog & Roadmap (v1.9.1)
 
 - **Changelog page** (`docs/changelog.html`) — every release and its changes, formatted for the docs site and updated with each version

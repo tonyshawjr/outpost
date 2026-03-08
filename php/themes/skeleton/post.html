@@ -1,0 +1,77 @@
+{#---
+Template:  post.html
+Route:     /post/{slug}
+Title:     Single Post
+
+Demonstrates the {% single %} tag for fetching a single collection item
+by its slug from the URL.
+
+Features demonstrated:
+  {% single var from collection.slug %}  — fetch one item by ?slug= parameter
+  {% else %}                             — not-found fallback
+  {% endsingle %}                        — close the single block
+  {{ var.field }}                        — access fields on the single item
+  {{ var.field | raw }}                  — richtext field on the item
+  {{ var.field | image }}                — image field on the item
+  {{ var.field | date }}                 — date-formatted field
+  {{ meta.title }}{{ var.title }}{{ /meta.title }} — dynamic page title from item
+---#}
+
+{% include 'head' %}
+{% include 'nav' %}
+
+<main style="max-width: 720px; margin: 0 auto; padding: 40px 24px;">
+
+  {# ── Single Item Fetch ──
+     {% single post from collection.post %} looks up the item whose slug
+     matches the URL parameter (e.g. /post/my-first-post → slug = "my-first-post").
+
+     Inside the block, "post" is the variable name — access fields with post.title,
+     post.body, post.featured_image, etc.
+
+     {% else %} handles the case when no item matches the slug (404-like). #}
+  {% single post from collection.post %}
+
+    {# Dynamic meta — set <title> and description from the item's fields #}
+    {{ meta.title }}{{ post.title }}{{ /meta.title }}
+    {{ meta.description }}{{ post.excerpt }}{{ /meta.description }}
+
+    {# Featured image #}
+    {% if post.featured_image %}
+    <img src="{{ post.featured_image | image }}" alt="{{ post.title }}" style="max-width: 100%; height: auto; margin-bottom: 24px;">
+    {% endif %}
+
+    {# Title #}
+    <h1>{{ post.title }}</h1>
+
+    {# Meta info — date and author #}
+    <div style="color: var(--color-muted); font-size: 14px; margin-bottom: 24px;">
+      {% if post.published_at %}
+      <time>{{ post.published_at | date }}</time>
+      {% endif %}
+      {% if post.author %}
+      <span> &middot; {{ post.author }}</span>
+      {% endif %}
+    </div>
+
+    {# Body — richtext field rendered as HTML #}
+    <div style="line-height: 1.7;">
+      {{ post.body | raw }}
+    </div>
+
+    {# Back link #}
+    <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+      <a href="/blog" style="color: var(--color-accent); text-decoration: none;">&larr; Back to all posts</a>
+    </div>
+
+  {% else %}
+    {# Not found — displayed when no item matches the URL slug #}
+    {{ meta.title }}Post Not Found{{ /meta.title }}
+    <h1>Post Not Found</h1>
+    <p style="color: var(--color-muted);">The post you're looking for doesn't exist or has been removed.</p>
+    <a href="/blog" style="color: var(--color-accent); text-decoration: none;">&larr; Back to blog</a>
+  {% endsingle %}
+
+</main>
+
+{% include 'footer' %}

@@ -229,12 +229,12 @@ Edit content directly on the live site while logged in as an admin — no round-
 - **Theme update UI** — Settings → Updates shows per-theme results after applying an update
 - **Update includes new themes** — new managed themes in future releases install automatically
 
-### Developer Tools — Partially Shipped
-- ~~**Better Liquid error messages**~~ — **SHIPPED**: pre-compilation tag validation, source line tracking, enhanced error display with friendly messages
-- **Outpost CLI** — deferred to separate repo
-- **Schema validation files** — deferred
-- **VS Code extension** — deferred to separate repo
-- **Theme starter kit** — deferred
+### Developer Tools — Shipped
+- ~~**Better Liquid error messages**~~ — **SHIPPED** (v1.9.0): pre-compilation tag validation, source line tracking, enhanced error display with friendly messages
+- ~~**Schema validation files**~~ — **SHIPPED** (v1.9.2): JSON Schema for `theme.json` with IDE autocomplete; `$schema` added to all bundled themes
+- ~~**Theme starter kit**~~ — **SHIPPED** (v1.9.2): Skeleton theme — heavily commented, demonstrates every template tag, ships as managed
+- **Outpost CLI** — Future (separate repo)
+- **VS Code extension** — Future (separate repo)
 
 ---
 
@@ -387,6 +387,24 @@ This depends on on-page editing being mature and v2.4 (real-time events) being i
 ---
 
 ## Long-Term / v3.x+
+
+### Outpost CLI
+
+A standalone CLI tool (separate repo, own release cycle) for theme scaffolding, development server, and deployment:
+
+- `outpost new my-theme` — scaffold a theme from Skeleton with prompts for name, author, collections
+- `outpost dev` — local dev server with live reload on template changes
+- `outpost validate` — lint templates and theme.json against the JSON Schema
+- `outpost package` — zip a theme for distribution
+
+### VS Code Extension
+
+A VS Code extension (separate repo, own release cycle) for Outpost Liquid template authoring:
+
+- Syntax highlighting for `{{ }}` and `{% %}` tags inside HTML
+- Autocomplete for template tags, filters, globals, and collection fields
+- Hover documentation for each tag and filter
+- JSON Schema integration for `theme.json` autocomplete (uses the shipped schema)
 
 ### Internationalization
 

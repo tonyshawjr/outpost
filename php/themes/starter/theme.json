@@ -1,4 +1,5 @@
 {
+    "$schema": "/outpost/docs/schemas/theme.schema.json",
     "name": "Starter",
     "version": "1.0.0",
     "author": "Port City Pixel",
