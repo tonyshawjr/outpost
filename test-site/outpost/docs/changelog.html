@@ -22,6 +22,19 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="1.9.5">1.9.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>OPE image picker broken thumbnails</strong> &mdash; media paths already include the full URL prefix; the picker was doubling it, causing all thumbnails to 404</li>
+      <li><strong>OPE text wrapper breaking HTML attributes</strong> &mdash; <code>{{ post.title }}</code> inside an <code>alt="..."</code> attribute was compiled with an OPE <code>&lt;span&gt;</code> wrapper whose quotes broke the attribute. Compiler now detects attribute context and uses plain escaped output.</li>
+    </ul>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Skeleton theme responsive CSS</strong> &mdash; mobile breakpoint with nav stacking, reduced padding, footer column layout, and smaller headings</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="1.9.4">1.9.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
     <h3>Fixed</h3>
     <ul>

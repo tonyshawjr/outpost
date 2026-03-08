@@ -598,29 +598,38 @@ class OutpostTemplate {
         );
 
         // {{ item.field }} and {{ item.field | raw }} — loop variable access
-        // Uses OPE wrapper functions for on-page editing support in {% single %} blocks
+        // Uses OPE wrapper functions for on-page editing support in {% single %} blocks.
+        // When preceded by =" or =' (inside an HTML attribute), skip OPE wrappers that
+        // emit <span>/<div> tags — those break attribute values.
         $php = preg_replace_callback(
-            '/\{\{\s*(\w+)\.(\w+)\s*(?:\|\s*(\w+))?\s*\}\}/',
+            '/(=["\'])?\{\{\s*(\w+)\.(\w+)\s*(?:\|\s*(\w+))?\s*\}\}/',
             function ($m) {
-                $var = $m[1];
-                $field = $m[2];
-                $filter = $m[3] ?? null;
+                $inAttr = !empty($m[1]);
+                $prefix = $m[1] ?? '';
+                $var = $m[2];
+                $field = $m[3];
+                $filter = $m[4] ?? null;
 
                 // Skip meta.* and collection.* (already handled above)
                 if ($var === 'meta' || $var === 'collection') return $m[0];
 
                 if ($filter === 'raw') {
+                    if ($inAttr) return "{$prefix}<?= outpost_esc(\${$var}['{$field}'] ?? '') ?>";
                     return "<?= outpost_ope_item_raw(\${$var}, '{$field}') ?>";
                 }
                 if ($filter === 'image') {
-                    return "<?= outpost_ope_item_image(\${$var}, '{$field}') ?>";
+                    return "{$prefix}<?= outpost_ope_item_image(\${$var}, '{$field}') ?>";
                 }
                 if ($filter === 'focal') {
-                    return "<?php outpost_item_focal(\${$var}, '{$field}'); ?>";
+                    return "{$prefix}<?php outpost_item_focal(\${$var}, '{$field}'); ?>";
                 }
                 // or_body: use excerpt if set, otherwise auto-generate from body
                 if ($filter === 'or_body') {
-                    return "<?= outpost_esc(\${$var}['{$field}'] ?: outpost_auto_excerpt(\${$var}['body'] ?? '')) ?>";
+                    return "{$prefix}<?= outpost_esc(\${$var}['{$field}'] ?: outpost_auto_excerpt(\${$var}['body'] ?? '')) ?>";
+                }
+                // Inside HTML attributes: plain escaped text (no <span> OPE wrapper)
+                if ($inAttr) {
+                    return "{$prefix}<?= outpost_esc(\${$var}['{$field}'] ?? '') ?>";
                 }
                 return "<?= outpost_ope_item_text(\${$var}, '{$field}') ?>";
             },

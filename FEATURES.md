@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## OPE & Skeleton Fixes (v1.9.5)
+
+- **Fixed OPE image picker broken thumbnails** — `src/editor/image-picker.js` was prepending `/outpost/uploads/` to media paths that already contain that prefix from the database. Removed the duplicate prefix so thumbnails load correctly.
+- **Fixed OPE item text breaking HTML attributes** — `outpost_ope_item_text()` wraps output in `<span data-ope-*>` for on-page editing, but this breaks when the field is used inside an HTML attribute (e.g. `alt="{{ post.title }}"`). The template compiler now detects attribute context (preceded by `="` or `='`) and emits plain escaped output instead of the OPE wrapper.
+- **Skeleton theme responsive CSS** — added mobile breakpoint (`max-width: 768px`) with nav stacking, reduced padding, footer column layout, and smaller headings.
+- **Files**: `src/editor/image-picker.js`, `php/template-engine.php`, `php/themes/skeleton/assets/style.css`
+
+---
+
 ## Loop Compilation Fix (v1.9.4)
 
 - **Fixed cross-loop regex matching** — when a loop without `{% else %}` (e.g. folder) was followed by a different loop with `{% else %}` (e.g. collection), the two-pass regex would incorrectly match across both loops, leaving orphan tags and breaking template compilation. Merged all two-pass "with-else" / "without-else" regex pairs into single-pass regexes with optional else groups.

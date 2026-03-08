@@ -39,9 +39,13 @@ Features demonstrated:
 
   {# ── Meta Tags ──
      meta.title sets the <title> tag. Wrapping syntax provides a default.
-     meta.description sets the meta description tag. #}
-  {{ meta.title }}Home{{ /meta.title }}
-  {{ meta.description }}Welcome to this Outpost-powered site.{{ /meta.description }}
+     meta.description sets the meta description tag.
+     These tags output their value as text, so place them inside an element
+     (e.g. <h1>) or hide them when you only need the SEO <meta> tag. #}
+  <div style="display:none;">
+    {{ meta.title }}Home{{ /meta.title }}
+    {{ meta.description }}Welcome to this Outpost-powered site.{{ /meta.description }}
+  </div>
 
   {# ── Text Field ──
      {{ field }} outputs an auto-escaped text value.

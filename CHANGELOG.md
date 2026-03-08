@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.5] — 2026-03-08
+
+### Fixed
+- **OPE image picker broken thumbnails** — media paths already include `/outpost/uploads/` prefix; the picker was prepending it again, creating double paths that 404'd. Thumbnails now load correctly.
+- **OPE item text breaking HTML attributes** — `{{ post.title }}` inside an `alt="..."` attribute was compiled using the OPE `<span>` wrapper, whose double-quotes broke the attribute and spilled visible text. The compiler now detects attribute context (`="` or `='` before the tag) and uses plain escaped output instead of the OPE wrapper.
+
+### Added
+- **Skeleton theme responsive CSS** — added `@media (max-width: 768px)` rules for navigation stacking, reduced padding, footer column layout, and smaller headings on mobile.
+
+---
+
 ## [1.9.4] — 2026-03-08
 
 ### Fixed

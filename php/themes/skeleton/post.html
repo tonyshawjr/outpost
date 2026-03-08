@@ -33,12 +33,19 @@ Features demonstrated:
   {% single post from collection.post %}
 
     {# Dynamic meta — set <title> and description from the item's fields #}
-    {{ meta.title }}{{ post.title }}{{ /meta.title }}
-    {{ meta.description }}{{ post.excerpt }}{{ /meta.description }}
+    <div style="display:none;">
+      {{ meta.title }}{{ post.title }}{{ /meta.title }}
+      {{ meta.description }}{{ post.excerpt }}{{ /meta.description }}
+    </div>
 
-    {# Featured image #}
+    {# Featured image with excerpt as caption #}
     {% if post.featured_image %}
-    <img src="{{ post.featured_image | image }}" alt="{{ post.title }}" style="max-width: 100%; height: auto; margin-bottom: 24px;">
+    <figure style="margin: 0 0 24px;">
+      <img src="{{ post.featured_image | image }}" alt="{{ post.title }}" style="max-width: 100%; height: auto; display: block;">
+      {% if post.excerpt %}
+      <figcaption style="color: var(--color-muted); font-size: 13px; margin-top: 8px;">{{ post.excerpt }}</figcaption>
+      {% endif %}
+    </figure>
     {% endif %}
 
     {# Title #}
@@ -66,7 +73,7 @@ Features demonstrated:
 
   {% else %}
     {# Not found — displayed when no item matches the URL slug #}
-    {{ meta.title }}Not Found{{ /meta.title }}
+    <span style="display:none;">{{ meta.title }}Not Found{{ /meta.title }}</span>
     <h1>Not Found</h1>
     <div style="padding: 32px; background: #f9fafb; border-radius: 8px; color: var(--color-muted);">
       <p style="margin: 0 0 8px;"><strong>Single item:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:3px;">&#123;% single post from collection.post %&#125;</code></p>

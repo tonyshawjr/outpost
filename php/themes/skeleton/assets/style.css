@@ -155,3 +155,33 @@ form button[type="submit"] {
 form button[type="submit"]:hover {
   opacity: 0.9;
 }
+
+/* ── Responsive ──
+   Stack navigation and reduce padding on small screens.
+   These rules override inline styles via !important where needed. */
+@media (max-width: 768px) {
+  nav > div {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  nav > div > div:last-of-type {
+    margin-left: 0 !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  main {
+    padding: 24px 16px !important;
+  }
+
+  footer > div {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+}

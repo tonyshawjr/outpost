@@ -74,7 +74,7 @@ function renderGrid(items) {
     const thumb = document.createElement('div');
     thumb.className = 'ope-media-thumb';
     const imgSrc = item.thumb_path || item.path;
-    thumb.innerHTML = `<img src="/outpost/uploads/${imgSrc}" alt="${item.alt_text || ''}" loading="lazy">`;
+    thumb.innerHTML = `<img src="${imgSrc}" alt="${item.alt_text || ''}" loading="lazy">`;
     thumb.addEventListener('click', () => selectImage(item));
     grid.appendChild(thumb);
   }
@@ -86,7 +86,7 @@ function renderGrid(items) {
 function selectImage(item) {
   if (!activeField) return;
 
-  const newSrc = '/outpost/uploads/' + item.path;
+  const newSrc = item.path;
 
   // Update the <img> element
   if (activeField.el.tagName === 'IMG') {
