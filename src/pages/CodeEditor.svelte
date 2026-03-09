@@ -339,6 +339,7 @@
       const previewIdx = tabs.findIndex(t => t.preview);
       if (!pin && previewIdx >= 0) {
         tabs[previewIdx] = newTab;
+        if (previewIdx === activeTabIndex) activeTabIndex = -1; // force editor refresh
         switchToTab(previewIdx);
       } else {
         tabs = [...tabs, newTab];
