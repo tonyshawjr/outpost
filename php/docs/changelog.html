@@ -22,6 +22,82 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.1.4">2.1.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Docs changelog</strong> &mdash; added missing v2.0.1 through v2.1.3 entries to <code>php/docs/changelog.html</code></li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="2.1.3">2.1.3 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Theme updater no longer requires <code>managed</code> flag</strong> &mdash; any theme included in the update zip is automatically updated; pre-existing themes that predate the flag will now receive updates with full conflict detection</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="2.1.2">2.1.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Update auto-reload</strong> &mdash; clicking &ldquo;Update now&rdquo; always auto-refreshes the admin panel again (3s delay when theme updates are shown, 1.5s otherwise); removed the confusing manual &ldquo;Reload admin&rdquo; button</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="2.1.1">2.1.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Security</h3>
+    <ul>
+      <li><strong>Bulk labels fatal error</strong> &mdash; <code>OutpostDB::execute()</code> does not exist; replaced with <code>OutpostDB::query()</code> (would have caused 500 on any bulk label operation)</li>
+      <li><strong>Item ID validation</strong> &mdash; <code>item_ids</code> array elements now cast to integers and filtered for positive values before use in SQL</li>
+      <li><strong>Label-to-collection validation</strong> &mdash; <code>handle_items_list()</code> now verifies the requested <code>label_id</code> belongs to the target collection before filtering</li>
+      <li><strong>Collection membership check on remove</strong> &mdash; bulk label remove now validates items belong to the label&rsquo;s collection (previously only add was validated)</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Event listener cleanup</strong> &mdash; removed <code>setTimeout</code> wrapper in label dropdown <code>$effect()</code> to prevent listener pile-up on rapid open/close</li>
+      <li><strong>parseInt radix</strong> &mdash; drag-to-label now uses <code>parseInt(str, 10)</code> with <code>Number.isInteger()</code> check</li>
+      <li><strong>Empty slug guard</strong> &mdash; label creation rejects names that produce empty slugs (e.g., all special characters)</li>
+      <li><strong>Affected count accuracy</strong> &mdash; bulk label remove now returns actual <code>rowCount()</code> instead of assuming all items had the label</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="2.1.0">2.1.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Inline label sidebar</strong> &mdash; collection items page now shows a folder/label sidebar when the collection has folders, matching the Media Library pattern</li>
+      <li><strong>Filter by label</strong> &mdash; click any label in the sidebar to filter items; &ldquo;Unfiled&rdquo; shows items with no label assignments</li>
+      <li><strong>Drag-to-label</strong> &mdash; drag an item row onto a label in the sidebar to assign it instantly</li>
+      <li><strong>Bulk label assignment</strong> &mdash; select multiple items and use the &ldquo;Label&rdquo; dropdown in the bulk action bar to assign labels in batch</li>
+      <li><strong>Label counts</strong> &mdash; sidebar shows item count per label, total count, and unfiled count</li>
+      <li><strong>Inline label creation</strong> &mdash; create new labels directly from the sidebar without leaving the page</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Folder sidebar CSS shared</strong> &mdash; extracted <code>.folder-sidebar</code>, <code>.folder-item</code>, and related styles from MediaLibrary into global <code>admin.css</code> for reuse</li>
+      <li><strong>Items API</strong> &mdash; <code>GET items</code> now accepts optional <code>label_id</code> parameter for server-side filtering</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="2.0.1">2.0.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
+    <h3>Security</h3>
+    <ul>
+      <li><strong>Setup endpoint authorization</strong> &mdash; setup routes now require <code>settings.*</code> capability (admin/super_admin only); previously any authenticated user could run the wizard</li>
+      <li><strong>Path traversal prevention</strong> &mdash; theme slug and content pack ID are validated against <code>[a-zA-Z0-9_-]</code> pattern before filesystem operations</li>
+      <li><strong>Setup idempotency guard</strong> &mdash; <code>setup/apply</code> now rejects requests if setup has already been completed, preventing re-configuration</li>
+      <li><strong>Error message sanitization</strong> &mdash; setup failure responses no longer expose internal exception details</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Double-click race condition</strong> &mdash; wizard &ldquo;Continue&rdquo; button on step 3 now guards against duplicate <code>setup/apply</code> calls</li>
+      <li><strong>Accessibility improvements</strong> &mdash; added ARIA roles, labels, and attributes to wizard step inputs, theme/pack radio groups, and progress bar</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="2.0.0">2.0.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-08</span></h2>
     <h3>Added</h3>
     <ul>

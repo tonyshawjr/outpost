@@ -9,10 +9,11 @@ When you complete a new feature, fix, or significant change:
    - `php/config.php` (`OUTPOST_VERSION` constant)
    - The admin footer (`watermark-version-pill` in `App.svelte`) reads from `OUTPOST_VERSION` via the API — updating both `php/config.php` AND `test-site/outpost/config.php` is required for the footer to reflect the new version.
 3. **Update `CHANGELOG.md`** — add the new version block at the top using Keep a Changelog format. Each entry is one concise line under `Added`, `Changed`, `Fixed`, or `Security`.
-4. **Update `ROADMAP.md`** — if the feature was on the roadmap, mark it as shipped. If it changes the direction or scope of a planned item, update accordingly.
-5. **Update developer docs** (`php/docs/`) if the feature affects a documented area — for example, new API endpoints go in `api/admin-api.html`, content management changes go in the relevant `content/*.html` page. Match the existing HTML structure and style. Deploy updated docs to `test-site/outpost/docs/` as well.
-6. **Update `php/docs/llms.txt`** — if any developer docs were added or changed, update `llms.txt` with the same information in plain-text/markdown format. This is the LLM-readable reference for the entire CMS. Deploy to `test-site/outpost/docs/llms.txt` and `dist/outpost/docs/llms.txt` as well.
-7. **Always create a GitHub Release** — after committing and pushing, ALWAYS tag the version and publish a GitHub Release with the packaged zip. Without a release, the auto-updater cannot see the new version. Run:
+4. **Update `php/docs/changelog.html`** — add the same version block to the developer docs changelog. This is the user-facing changelog at `/outpost/docs/changelog.html`. Match the existing HTML structure. **This is mandatory for every release, not just features that affect docs.**
+5. **Update `ROADMAP.md`** — if the feature was on the roadmap, mark it as shipped. If it changes the direction or scope of a planned item, update accordingly.
+6. **Update developer docs** (`php/docs/`) if the feature affects a documented area — for example, new API endpoints go in `api/admin-api.html`, content management changes go in the relevant `content/*.html` page. Match the existing HTML structure and style. Deploy updated docs to `test-site/outpost/docs/` as well.
+7. **Update `php/docs/llms.txt`** — if any developer docs were added or changed, update `llms.txt` with the same information in plain-text/markdown format. This is the LLM-readable reference for the entire CMS. Deploy to `test-site/outpost/docs/llms.txt` and `dist/outpost/docs/llms.txt` as well.
+8. **Always create a GitHub Release** — after committing and pushing, ALWAYS tag the version and publish a GitHub Release with the packaged zip. Without a release, the auto-updater cannot see the new version. Run:
    ```bash
    npm run build
    npm run package

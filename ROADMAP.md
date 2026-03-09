@@ -223,11 +223,11 @@ Edit content directly on the live site while logged in as an admin — no round-
 ## v1.9 — Developer Experience & Theme Updates — SHIPPED (v1.9.0)
 
 ### Theme Update System — SHIPPED
-- **Outpost-managed vs. user themes** — `"managed": true` flag in `theme.json` distinguishes bundled themes from user-created themes
+- **Shipped-in-zip = managed** — any theme included in the update zip is automatically updated; no `"managed": true` flag required (v2.1.3)
 - **Theme version comparison** — compare `theme.json` version of installed theme against the version in the update package
 - **Safe theme updates** — hash-based conflict detection via `.outpost-manifest.json`; user-modified files preserved, flagged as conflicts
 - **Theme update UI** — Settings → Updates shows per-theme results after applying an update
-- **Update includes new themes** — new managed themes in future releases install automatically
+- **Update includes new themes** — new themes in future releases install automatically
 
 ### Developer Tools — Shipped
 - ~~**Better Liquid error messages**~~ — **SHIPPED** (v1.9.0): pre-compilation tag validation, source line tracking, enhanced error display with friendly messages
