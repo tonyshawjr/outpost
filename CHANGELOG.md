@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.3] — 2026-03-09
+
+### Added
+- **Use Existing Partial** — when right-clicking a `<nav>`, `<header>`, or `<footer>` and a matching partial already exists, Forge shows "Use Partial: name" at the top of the menu for instant replacement with `{% include %}` tag
+- **Apply partial to all pages** — after extracting a partial, Forge scans other theme files for the same content and offers to replace it in all matching pages at once
+
 ## [2.2.2] — 2026-03-09
 
 ### Fixed

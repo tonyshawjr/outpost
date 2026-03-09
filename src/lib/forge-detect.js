@@ -8,11 +8,23 @@ const DEFAULT_ORDER = ['editable', 'loop', 'menu', 'conditional', 'partial', 'me
 /**
  * Analyze selected HTML text and return a suggested action, field type, and reordered menu.
  * @param {string} text - The selected HTML text
- * @returns {{ suggestedAction: string, suggestedType: string|null, menuOrder: string[] }}
+ * @param {string[]} existingPartials - Names of existing partial files (without .html extension)
+ * @returns {{ suggestedAction: string, suggestedType: string|null, menuOrder: string[], partialName?: string }}
  */
-export function detectForgeIntent(text) {
+export function detectForgeIntent(text, existingPartials = []) {
   const trimmed = text.trim();
   const lower = trimmed.toLowerCase();
+
+  // Check if selected HTML's root tag matches an existing partial
+  if (existingPartials.length > 0) {
+    const rootTag = trimmed.match(/^<([a-z][a-z0-9]*)/i)?.[1]?.toLowerCase();
+    if (rootTag) {
+      const match = existingPartials.find(p => p === rootTag);
+      if (match) {
+        return result('use-partial', null, { partialName: match });
+      }
+    }
+  }
 
   // <form> → Form
   if (/^<form[\s>]/i.test(trimmed)) {
@@ -90,9 +102,9 @@ export function detectForgeIntent(text) {
 /**
  * Build the result object with reordered menu.
  */
-function result(action, type) {
+function result(action, type, extra = {}) {
   const menuOrder = [action, ...DEFAULT_ORDER.filter(a => a !== action)];
-  return { suggestedAction: action, suggestedType: type, menuOrder };
+  return { suggestedAction: action, suggestedType: type, menuOrder, ...extra };
 }
 
 /**

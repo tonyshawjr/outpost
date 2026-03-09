@@ -41,6 +41,11 @@
       </thead>
       <tbody>
         <tr>
+          <td><code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> <em>when matching partial exists</em></td>
+          <td><strong>Use Partial: name</strong></td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
           <td><code>&lt;img&gt;</code>, <code>&lt;picture&gt;</code>, <code>&lt;figure&gt;</code>, or <code>src="...jpg"</code></td>
           <td>Make Editable</td>
           <td>image</td>
@@ -198,6 +203,10 @@
 &lt;!-- After: replaced with --&gt;
 {% include 'main-nav' %}</code></pre>
     <p><strong>Smart nav detection:</strong> When you extract a <code>&lt;nav&gt;</code> element that contains 2 or more links, Forge offers a &ldquo;Connect to admin menu&rdquo; checkbox. When enabled, it wraps the navigation links in a menu loop before saving the partial, so the nav is immediately dynamic.</p>
+
+    <p><strong>Apply to all pages:</strong> After extracting a partial, Forge scans other HTML files in the same theme for the same content. If found, it offers to replace matching blocks in all pages at once &mdash; so you don&rsquo;t have to manually add <code>{% include %}</code> to each file.</p>
+
+    <p><strong>Use Existing Partial:</strong> If you right-click a <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> and a partial with that name already exists (e.g. <code>partials/nav.html</code>), Forge shows &ldquo;Use Partial: nav&rdquo; at the top of the context menu. Clicking it instantly replaces the selection with the include tag &mdash; no form needed.</p>
 
     <h3>Meta Tag</h3>
     <p>Wraps the selection in a meta tag for SEO.</p>

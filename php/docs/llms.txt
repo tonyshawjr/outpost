@@ -1328,6 +1328,7 @@ Forge uses smart detection — it analyzes the selected HTML and reorders the co
 - Long plain text (≥100 chars) → Make Editable (textarea)
 - HTML with child elements → Make Editable (richtext)
 - `<ul>`/`<ol>` with 2+ links → Menu Loop
+- `<nav>`, `<header>`, `<footer>` when matching partial exists → **Use Partial: name** (instant include)
 - `<nav>` with links → Extract Partial (with menu option)
 - `<header>`, `<footer>` → Extract Partial
 - `<title>`, `<meta name="description">` → Meta Tag
@@ -1345,7 +1346,7 @@ Forge uses smart detection — it analyzes the selected HTML and reorders the co
 
 **Conditional** — Wraps selection in `{% if expression %}...{% endif %}`. Fields: expression, operator (truthy/==/!=), value.
 
-**Extract Partial** — Creates `partials/{name}.html` with the selected content, replaces selection with `{% include 'name' %}`, refreshes file tree, opens the new file in a tab. **Smart nav detection**: when extracting a `<nav>` with 2+ links, offers "Connect to admin menu" checkbox to wrap links in a menu loop automatically.
+**Extract Partial** — Creates `partials/{name}.html` with the selected content, replaces selection with `{% include 'name' %}`, refreshes file tree, opens the new file in a tab. **Smart nav detection**: when extracting a `<nav>` with 2+ links, offers "Connect to admin menu" checkbox to wrap links in a menu loop automatically. **Apply to all pages**: after extraction, Forge scans other theme files for the same content and offers to replace it in all matching pages at once. **Use Existing Partial**: if a partial with a matching name already exists (e.g. `partials/nav.html` for a `<nav>` selection), "Use Partial: nav" appears at the top of the context menu for instant replacement.
 
 **Meta Tag** — Wraps selection in `{{ meta.title }}...{{ /meta.title }}` or `{{ meta.description }}...{{ /meta.description }}`.
 

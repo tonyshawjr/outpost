@@ -78,6 +78,36 @@
     return themeDir.children.some(c => c.name === 'theme.json');
   });
 
+  // List of existing partial names (without .html) for the active theme
+  let existingPartials = $derived.by(() => {
+    if (!activeThemeFolder) return [];
+    const themeDir = tree.find(n => n.type === 'directory' && n.name === activeThemeFolder);
+    if (!themeDir?.children) return [];
+    const partialsDir = themeDir.children.find(n => n.type === 'directory' && n.name === 'partials');
+    if (!partialsDir?.children) return [];
+    return partialsDir.children
+      .filter(n => n.type === 'file' && /\.html?$/i.test(n.name))
+      .map(n => n.name.replace(/\.html?$/, ''));
+  });
+
+  // All HTML files in the active theme (excluding partials/ and .forge-snapshot/)
+  let themeHtmlFiles = $derived.by(() => {
+    if (!activeThemeFolder) return [];
+    const themeDir = tree.find(n => n.type === 'directory' && n.name === activeThemeFolder);
+    if (!themeDir?.children) return [];
+    const files = [];
+    function collect(nodes) {
+      for (const n of nodes) {
+        if (n.type === 'file' && /\.html?$/i.test(n.name)) files.push(n);
+        else if (n.type === 'directory' && n.name !== 'partials' && n.name !== '.forge-snapshot' && n.children) {
+          collect(n.children);
+        }
+      }
+    }
+    collect(themeDir.children);
+    return files;
+  });
+
   let cmdResults = $derived.by(() => {
     if (!cmdQuery.trim()) return getAllFiles(tree);
     const q = cmdQuery.toLowerCase();
@@ -255,7 +285,7 @@
 
           event.preventDefault();
           const text = view.state.doc.sliceString(sel.from, sel.to);
-          const detection = detectForgeIntent(text);
+          const detection = detectForgeIntent(text, existingPartials);
           forgeMenu = { x: event.clientX, y: event.clientY, from: sel.from, to: sel.to, text, detection };
           return true;
         }
@@ -274,7 +304,7 @@
           if (!isHtmlFile(tabs[activeTabIndex])) return false;
 
           const text = view.state.doc.sliceString(sel.from, sel.to);
-          const detection = detectForgeIntent(text);
+          const detection = detectForgeIntent(text, existingPartials);
           const coords = view.coordsAtPos(sel.from);
           forgePopover = {
             type: 'editable',
@@ -558,6 +588,39 @@
     editorView?.focus();
   }
 
+  function handleUsePartial(partialName) {
+    if (!editorView || !forgeMenu) return;
+    const { from, to } = forgeMenu;
+    editorView.dispatch({ changes: { from, to, insert: `{% include '${partialName}' %}` } });
+    forgeMenu = null;
+    editorView.focus();
+  }
+
+  async function handleFilesModified(paths) {
+    // Reload any open tabs whose files were modified externally
+    for (const path of paths) {
+      const idx = tabs.findIndex(t => t.path === path);
+      if (idx >= 0) {
+        try {
+          const data = await codeApi.read(path);
+          const fresh = { ...tabs[idx], content: data.content, originalContent: data.content, editorState: null };
+          tabs[idx] = fresh;
+          if (idx === activeTabIndex && editorView) {
+            const state = createTabState(data.content, path);
+            editorView.setState(state);
+            tabs[idx] = { ...tabs[idx], editorState: state };
+            editorView.dispatch({
+              effects: [
+                themeCompartment.reconfigure(themeExts(isDark)),
+                langCompartment.reconfigure(getLang(path)),
+              ],
+            });
+          }
+        } catch (_) {}
+      }
+    }
+  }
+
   async function handleForgePartialCreated(filePath) {
     await loadTree();
     const name = filePath.split('/').pop();
@@ -731,7 +794,7 @@
 </div>
 
 <!-- Forge context menu -->
-<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onForgeTheme={handleForgeThemeOpen} onClose={() => forgeMenu = null} />
+<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={handleForgeThemeOpen} onClose={() => forgeMenu = null} />
 
 <!-- Forge popovers -->
 {#if forgePopover}
@@ -766,8 +829,10 @@
         selectedText={forgePopover.text}
         activeTabPath={activeTab?.path ?? ''}
         menus={forgeContext?.menus ?? []}
+        themeFiles={themeHtmlFiles}
         onConfirm={handleForgeConfirm}
         onCreated={handleForgePartialCreated}
+        onFilesModified={handleFilesModified}
         onCancel={handleForgeClose}
       />
     {:else if forgePopover.type === 'meta'}

@@ -1,5 +1,5 @@
 <script>
-  let { menu = null, showForgeTheme = false, onSelect, onForgeTheme, onClose } = $props();
+  let { menu = null, showForgeTheme = false, onSelect, onUsePartial, onForgeTheme, onClose } = $props();
 
   const allItems = [
     { key: 'editable',    label: 'Make Editable',    icon: 'pencil' },
@@ -14,10 +14,16 @@
   let orderedItems = $derived.by(() => {
     if (!menu?.detection?.menuOrder) return allItems;
     const order = menu.detection.menuOrder;
-    return [...allItems].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+    return [...allItems].sort((a, b) => {
+      const ai = order.indexOf(a.key);
+      const bi = order.indexOf(b.key);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
   });
 
   let suggestedKey = $derived(menu?.detection?.suggestedAction ?? 'editable');
+  let usePartialName = $derived(menu?.detection?.partialName ?? null);
+  let isUsePartial = $derived(suggestedKey === 'use-partial' && !!usePartialName);
 </script>
 
 <svelte:window onclick={onClose} />
@@ -25,13 +31,28 @@
 {#if menu}
   <div class="forge-ctx" style="left:{menu.x}px;top:{menu.y}px" onclick={(e) => e.stopPropagation()}>
     <div class="forge-ctx-header">Forge</div>
+
+    {#if isUsePartial}
+      <button
+        class="forge-ctx-item suggested"
+        onclick={() => onUsePartial(usePartialName)}
+      >
+        <span class="forge-ctx-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+        </span>
+        <span class="forge-ctx-label">Use Partial: {usePartialName}</span>
+        <span class="forge-ctx-suggested">exists</span>
+      </button>
+      <div class="forge-ctx-sep"></div>
+    {/if}
+
     {#each orderedItems as item, i}
-      {#if i === 4}
+      {#if i === 4 && !isUsePartial}
         <div class="forge-ctx-sep"></div>
       {/if}
       <button
         class="forge-ctx-item"
-        class:suggested={item.key === suggestedKey}
+        class:suggested={!isUsePartial && item.key === suggestedKey}
         onclick={() => onSelect(item.key)}
       >
         <span class="forge-ctx-icon">
@@ -52,7 +73,7 @@
           {/if}
         </span>
         <span class="forge-ctx-label">{item.label}</span>
-        {#if item.key === suggestedKey}
+        {#if !isUsePartial && item.key === suggestedKey}
           <span class="forge-ctx-suggested">suggested</span>
         {/if}
       </button>
