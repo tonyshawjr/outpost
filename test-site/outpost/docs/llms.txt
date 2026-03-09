@@ -103,6 +103,28 @@ URL pattern example: pattern `/post/{slug}` with URL `/post/my-article` → temp
 
 Draft blocking: items with `status='draft'` return 404. Preview: append `?preview=TOKEN` (from `items/preview-token` API) to bypass draft blocking with a secure per-item token. Visibility enforcement runs before rendering (see Protecting Pages).
 
+### Writing links in templates (IMPORTANT)
+
+Links in templates must use **route paths** (the URL visitors see), never template filenames:
+
+| Correct | Wrong | Why |
+|---|---|---|
+| `<a href="/">` | `<a href="index.html">` | `index.html` is the template file, `/` is the URL |
+| `<a href="/about">` | `<a href="about.html">` | `/about.html` is not a valid route — returns 404 |
+| `<a href="/blog">` | `<a href="blog.html">` | The router maps `/blog` to `blog.html` internally |
+
+In collection loops use `{{ post.url }}` — Outpost generates correct URLs automatically. In menu loops use `{{ item.url }}` — already contains the configured route path.
+
+**When converting static HTML sites to Outpost themes, update every `<a href="page.html">` to `<a href="/page">`.**
+
+### Asset paths must be absolute
+
+Always use absolute paths starting with `/` for CSS, JS, images, and fonts:
+- Correct: `/outpost/themes/my-theme/assets/style.css`
+- Wrong: `assets/style.css` (breaks on `/about`, `/post/hello-world`, etc.)
+
+Relative paths resolve differently per page URL. On `/about`, `assets/style.css` becomes `/about/assets/style.css` — a 404.
+
 ## theme.json
 
 Every theme requires a `theme.json` at the root of the theme directory. It provides metadata for the admin browser and optionally controls auto-update behavior.
@@ -571,6 +593,20 @@ Stored in `partials/` inside the theme directory. Included via `{% include 'name
 
 Standard partial names: `head` (DOCTYPE through `<body>`), `nav` (navigation), `footer` (closing tags).
 
+**Recommended `head.html`:** Use `{% seo %}` instead of manual `{{ meta.title }}` / `{{ meta.description }}` tags. The `{% seo %}` tag auto-generates `<title>`, meta description, Open Graph, Twitter Card, canonical URL, JSON-LD Article schema, and pagination links with a fallback chain:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% seo %}
+  <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+</head>
+<body>
+```
+
 ## Theme Assets
 
 Static files in `outpost/themes/my-theme/assets/` are served directly by the web server. Use absolute paths in templates:
@@ -593,6 +629,12 @@ Each collection has:
 - `schema` — field definitions
 
 **Field types:** text, textarea, richtext, image, link, select, color, number, date, toggle, repeater, gallery, flexible, relationship.
+
+**Setup workflow:** Unlike pages (where creating `about.html` instantly makes `/about` work), collections require two steps:
+1. Create the collection in Admin → Collections (set name, slug, URL pattern, add schema fields)
+2. Create the template files — a list page (e.g. `blog.html`) and a single page (e.g. `post.html`). The single template filename **must match the collection slug**: slug `post` → `post.html`, slug `portfolio` → `portfolio.html`.
+
+If the template exists but the collection hasn't been created in admin, `{% for item in collection.post %}` renders nothing (no error). If the collection exists but the template doesn't, visiting an item URL returns 404.
 
 Items have statuses: `published`, `draft`, `scheduled`, `pending_review`. Only `published` items with `published_at` in the past appear in loops and single templates. Items with `pending_review` status are treated as drafts (not visible to visitors).
 
@@ -951,7 +993,35 @@ Render a builder form in any template:
 {% form 'contact' %}
 ```
 
-This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required.
+This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required. Outpost injects no default form styles — your theme CSS has full control.
+
+**Rendered HTML structure** (example with name, email, message fields):
+
+```html
+<form method="POST" action="/outpost/form.php" class="outpost-form outpost-form--contact">
+  <input type="hidden" name="_form" value="contact">
+  <input type="hidden" name="_redirect" value="/contact?sent=1">
+  <input type="hidden" name="_form_id" value="3">
+  <!-- honeypot (hidden from real users) -->
+  <div style="position:absolute;left:-9999px" aria-hidden="true">
+    <input type="text" name="_hp_website" tabindex="-1" autocomplete="off">
+  </div>
+  <div class="outpost-field outpost-field--text">
+    <label for="outpost-f-name">Name <span class="outpost-required">*</span></label>
+    <input type="text" id="outpost-f-name" name="name" required placeholder="Your name">
+  </div>
+  <div class="outpost-field outpost-field--email">
+    <label for="outpost-f-email">Email <span class="outpost-required">*</span></label>
+    <input type="email" id="outpost-f-email" name="email" required>
+  </div>
+  <div class="outpost-field outpost-field--textarea">
+    <label for="outpost-f-message">Message</label>
+    <textarea id="outpost-f-message" name="message" rows="5"></textarea>
+    <p class="outpost-field-desc">We typically respond within 24 hours.</p>
+  </div>
+  <button type="submit" class="outpost-form-submit">Send Message</button>
+</form>
+```
 
 **Field settings:** label, machine name, required, placeholder, description, default value, CSS classes. Choice fields (select/radio/checkbox) support `Label|value` pairs. Number fields support min/max/step.
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.6] — 2026-03-09
+
+### Added
+- **Common Gotchas guide** in Create a Theme docs — covers route-based links vs file paths, absolute asset paths, collection setup workflow, and `{% seo %}` recommendation
+- **Writing Links in Templates** section in Routing docs — explicit guidance with correct/wrong examples
+- **Form rendered HTML output** in Forms docs — full example of what `{% form %}` generates plus starter CSS
+- Updated `llms.txt` with all new documentation for AI/LLM consumers
+
 ## [2.2.5] — 2026-03-09
 
 ### Fixed

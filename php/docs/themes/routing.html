@@ -170,6 +170,36 @@ Request: /post/hello-world
       </tbody>
     </table>
 
+    <h2>Writing links in templates</h2>
+    <p>Because Outpost maps clean URLs to template files, links in your HTML must use the <strong>route path</strong> (the URL visitors see) — never the template filename.</p>
+
+    <h3>Static page links</h3>
+    <pre><code>&lt;!-- Correct --&gt;
+&lt;a href="/"&gt;Home&lt;/a&gt;
+&lt;a href="/about"&gt;About&lt;/a&gt;
+&lt;a href="/contact"&gt;Contact&lt;/a&gt;
+
+&lt;!-- Wrong — these will 404 --&gt;
+&lt;a href="index.html"&gt;Home&lt;/a&gt;
+&lt;a href="about.html"&gt;About&lt;/a&gt;
+&lt;a href="contact.html"&gt;Contact&lt;/a&gt;</code></pre>
+    <p>The front-router matches <code>/about</code> and serves <code>about.html</code> internally. A request for <code>/about.html</code> does not match any route and returns a 404.</p>
+
+    <h3>Collection item links</h3>
+    <p>Inside collection loops, always use <code>{{ item.url }}</code> — Outpost generates the correct URL from the collection's URL pattern automatically:</p>
+    <pre><code>{&#37; for post in collection.post &#37;}
+  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
+  &lt;!-- outputs: /post/hello-world --&gt;
+{&#37; endfor &#37;}</code></pre>
+
+    <h3>Menu links</h3>
+    <p>Menu loops use <code>{{ item.url }}</code> which stores whatever URL was configured in Admin → Navigation. These are already correct route paths:</p>
+    <pre><code>{&#37; for item in menu.main &#37;}
+  &lt;a href="{{ item.url }}"&gt;{{ item.label }}&lt;/a&gt;
+{&#37; endfor &#37;}</code></pre>
+
+    <div class="callout callout-warn"><strong>Common mistake when converting static sites</strong> — If you are converting an existing HTML website into an Outpost theme, you must update every <code>&lt;a href="page.html"&gt;</code> to <code>&lt;a href="/page"&gt;</code>. This is the #1 cause of broken navigation in new themes. The <a href="features/forge.html">Forge</a> visual tag builder can help with this process.</div>
+
     <h2>Dev server vs. production differences</h2>
     <p>The PHP built-in server used in development (<code>php -S localhost:8000 -t . front-router.php</code>) and a production Apache/Nginx server both route requests through the same PHP logic, but there are subtle differences to be aware of:</p>
 

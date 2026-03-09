@@ -65,7 +65,18 @@ mkdir outpost/themes/my-theme/assets</code></pre>
 &lt;/head&gt;
 &lt;body&gt;</code></pre>
 
-    <div class="callout callout-note"><strong>Note</strong> — The asset path <code>/outpost/themes/my-theme/assets/style.css</code> uses an absolute path with the theme slug hardcoded. When you rename or duplicate a theme, update these paths in your partials. The theme slug is the directory name, not the <code>name</code> field in <code>theme.json</code>.</div>
+    <div class="callout callout-warn"><strong>Important — absolute paths only</strong><br>Asset paths like <code>/outpost/themes/my-theme/assets/style.css</code> must start with <code>/</code>. Relative paths (<code>assets/style.css</code>) will work on the homepage but break on every other URL (<code>/about</code>, <code>/post/hello-world</code>, etc.) because the browser resolves them relative to the current path. Always use absolute paths for CSS, JS, images, and fonts.</div>
+
+    <div class="callout callout-note"><strong>Note</strong> — The theme slug in asset paths is the directory name, not the <code>name</code> field in <code>theme.json</code>. When you rename or duplicate a theme, update these paths in your partials.</div>
+
+    <div class="callout callout-tip"><strong>Tip — use {% seo %} instead of manual meta tags</strong><br>The <code>head.html</code> above uses manual <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code> tags. For most sites, the <code>{&#37; seo &#37;}</code> tag is a better choice — it generates <code>&lt;title&gt;</code>, <code>&lt;meta description&gt;</code>, Open Graph, Twitter Card, canonical URL, JSON-LD, and pagination links automatically with a built-in fallback chain. Replace the manual meta tags with a single line:
+    <pre><code>&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  {&#37; seo &#37;}
+  &lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
+&lt;/head&gt;</code></pre>
+    See <a href="features/seo.html">SEO</a> for the full list of tags <code>{&#37; seo &#37;}</code> generates.</div>
 
     <h2>Step 4: Create partials/nav.html</h2>
     <p>The navigation partial renders the site's main menu. The <code>{% for item in menu.main %}</code> loop iterates over items in the navigation menu named <code>main</code>, which you configure in Admin → Navigation. Each item exposes <code>item.url</code>, <code>item.label</code>, and <code>item.target</code>.</p>
@@ -194,6 +205,43 @@ mkdir outpost/themes/my-theme/assets</code></pre>
 {% include 'footer' %}</code></pre>
 
     <div class="callout callout-note"><strong>Note</strong> — The <code>404.html</code> template has no editable page fields in the admin. It is a static template. You can use globals (<code>{{ @site_name }}</code>, etc.) but there is no associated page record in the database for a 404 page.</div>
+
+    <h2>Common gotchas</h2>
+    <p>These are the most common mistakes developers make when building their first Outpost theme. Read this section before you start — it will save you debugging time.</p>
+
+    <h3>Links must use route paths, not file names</h3>
+    <p>Outpost's front-router maps URLs to template files, but visitors never see the file names. When writing links in your templates, always use the <strong>route path</strong> — the URL as it appears in the browser — not the template filename.</p>
+    <table>
+      <thead>
+        <tr><th>Correct</th><th>Wrong</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>&lt;a href="/"&gt;</code></td><td><code>&lt;a href="index.html"&gt;</code></td><td><code>index.html</code> is the template file, <code>/</code> is the URL</td></tr>
+        <tr><td><code>&lt;a href="/about"&gt;</code></td><td><code>&lt;a href="about.html"&gt;</code></td><td><code>about.html</code> is not a valid URL — it returns a 404</td></tr>
+        <tr><td><code>&lt;a href="/blog"&gt;</code></td><td><code>&lt;a href="blog.html"&gt;</code></td><td>Same pattern — use the route, not the file</td></tr>
+        <tr><td><code>&lt;a href="/contact"&gt;</code></td><td><code>&lt;a href="contact.html"&gt;</code></td><td>The router only matches <code>/contact</code>, not <code>/contact.html</code></td></tr>
+      </tbody>
+    </table>
+    <p>This applies to all <code>&lt;a href&gt;</code> links in your templates, partials, and any inline HTML. If you are converting a static HTML site to an Outpost theme, you must update all internal links from <code>.html</code> file references to route paths.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> — This is the #1 cause of broken links in new themes. Relative links like <code>about.html</code> will 404 because the front-router does not serve <code>.html</code> files directly — it maps clean URLs like <code>/about</code> to template files internally.</div>
+
+    <h3>Asset paths must be absolute</h3>
+    <p>CSS, JavaScript, images, and fonts must use absolute paths starting with <code>/</code>. A relative path like <code>assets/style.css</code> resolves differently depending on the current URL:</p>
+    <ul>
+      <li>On <code>/</code> → browser requests <code>/assets/style.css</code> — wrong path, but might work by accident</li>
+      <li>On <code>/about</code> → browser requests <code>/about/assets/style.css</code> — 404</li>
+      <li>On <code>/post/hello-world</code> → browser requests <code>/post/hello-world/assets/style.css</code> — 404</li>
+    </ul>
+    <p>The correct path is always <code>/outpost/themes/{your-theme-slug}/assets/style.css</code>. See <a href="themes/assets.html">Assets</a> for details.</p>
+
+    <h3>Collection templates need admin setup first</h3>
+    <p>Unlike pages (where creating <code>about.html</code> instantly makes <code>/about</code> work), collections require two steps:</p>
+    <ol>
+      <li><strong>Create the collection in the admin</strong> — go to Admin → Collections → New Collection. Set the name, slug (e.g. <code>post</code>), and URL pattern (e.g. <code>/post/{slug}</code>). Add any custom fields to the schema.</li>
+      <li><strong>Create the template files</strong> — create <code>blog.html</code> for the list page and <code>post.html</code> for the single item page. The single template filename must match the collection slug: a collection with slug <code>post</code> needs <code>post.html</code>, a collection with slug <code>portfolio</code> needs <code>portfolio.html</code>.</li>
+    </ol>
+    <p>If you create the template first without the collection, the <code>{&#37; for item in collection.post &#37;}</code> loop will simply render nothing (no error, no items). If you create the collection without the template, visiting a collection item's URL will return a 404.</p>
 
     <h2>How field auto-scaffolding works</h2>
     <p>Every time Outpost compiles a template for the first time — or after you modify it — it scans all <code>{{ field_name }}</code> tags and registers any fields that do not yet exist. This means:</p>

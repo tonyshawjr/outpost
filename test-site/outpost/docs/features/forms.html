@@ -63,21 +63,64 @@
     <pre><code>{&#37; form 'contact' &#37;}</code></pre>
     <p>This renders a complete <code>&lt;form&gt;</code> element with all fields, labels, validation attributes, honeypot, and a submit button. No JavaScript is required — the form submits via standard POST.</p>
 
+    <h3>Rendered HTML output</h3>
+    <p>A builder form with a Name (text, required), Email (email, required), and Message (textarea) field renders as:</p>
+    <pre><code>&lt;form method="POST" action="/outpost/form.php" class="outpost-form outpost-form--contact"&gt;
+  &lt;input type="hidden" name="_form" value="contact"&gt;
+  &lt;input type="hidden" name="_redirect" value="/contact?sent=1"&gt;
+  &lt;input type="hidden" name="_form_id" value="3"&gt;
+
+  &lt;!-- Honeypot (hidden from real users via CSS) --&gt;
+  &lt;div style="position:absolute;left:-9999px" aria-hidden="true"&gt;
+    &lt;input type="text" name="_hp_website" tabindex="-1" autocomplete="off"&gt;
+  &lt;/div&gt;
+
+  &lt;div class="outpost-field outpost-field--text"&gt;
+    &lt;label for="outpost-f-name"&gt;Name &lt;span class="outpost-required"&gt;*&lt;/span&gt;&lt;/label&gt;
+    &lt;input type="text" id="outpost-f-name" name="name" required placeholder="Your name"&gt;
+  &lt;/div&gt;
+
+  &lt;div class="outpost-field outpost-field--email"&gt;
+    &lt;label for="outpost-f-email"&gt;Email &lt;span class="outpost-required"&gt;*&lt;/span&gt;&lt;/label&gt;
+    &lt;input type="email" id="outpost-f-email" name="email" required placeholder="you@example.com"&gt;
+  &lt;/div&gt;
+
+  &lt;div class="outpost-field outpost-field--textarea"&gt;
+    &lt;label for="outpost-f-message"&gt;Message&lt;/label&gt;
+    &lt;textarea id="outpost-f-message" name="message" rows="5" placeholder="How can we help?"&gt;&lt;/textarea&gt;
+    &lt;p class="outpost-field-desc"&gt;We typically respond within 24 hours.&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;button type="submit" class="outpost-form-submit"&gt;Send Message&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+    <p>Every form follows this structure: a <code>&lt;form&gt;</code> wrapper, hidden system fields, an optional honeypot, one <code>.outpost-field</code> wrapper per field (with type-specific modifier class), and a submit button. No JavaScript is injected — the form submits via standard POST.</p>
+
     <h3>Styling builder forms</h3>
-    <p>Builder forms output semantic HTML with BEM-style class names:</p>
+    <p>Builder forms output semantic HTML with BEM-style class names. Target these in your theme's CSS:</p>
     <pre><code>.outpost-form { /* form wrapper */ }
 .outpost-form--contact { /* form-specific, uses the slug */ }
-.outpost-field { /* field wrapper */ }
-.outpost-field--text { /* type-specific field wrapper */ }
+.outpost-field { /* field wrapper — one per field */ }
+.outpost-field--text { /* type-specific: --text, --email, --textarea, --select, etc. */ }
 .outpost-field label { /* field label */ }
 .outpost-field input,
 .outpost-field textarea,
 .outpost-field select { /* inputs */ }
-.outpost-required { /* required asterisk */ }
+.outpost-required { /* required asterisk (*) */ }
 .outpost-field-desc { /* help text below field */ }
 .outpost-form-submit { /* submit button */ }
 .outpost-section-title { /* section heading */ }
 .outpost-radio-group, .outpost-checkbox-group { /* choice groups */ }</code></pre>
+    <p>Outpost does not inject any default form styles. Your theme's CSS has full control over the appearance. A minimal starting point:</p>
+    <pre><code>.outpost-form { max-width: 600px; }
+.outpost-field { margin-bottom: 1.5rem; }
+.outpost-field label { display: block; margin-bottom: 0.25rem; font-weight: 600; }
+.outpost-field input,
+.outpost-field textarea,
+.outpost-field select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+.outpost-required { color: #e53e3e; margin-left: 2px; }
+.outpost-field-desc { font-size: 0.875rem; color: #666; margin-top: 0.25rem; }
+.outpost-form-submit { padding: 0.75rem 2rem; background: #111; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+.outpost-form-submit:hover { background: #333; }</code></pre>
 
     <h3>Honeypot spam protection</h3>
     <p>When enabled (default), the builder injects a hidden text field that is invisible to real users but filled in by bots. If the field has a value on submission, the form handler silently redirects as if the submission succeeded — bots never know they were caught.</p>
