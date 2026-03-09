@@ -6888,7 +6888,8 @@ function outpost_rmdir_recursive(string $dir): void {
 }
 
 /**
- * Update managed themes from a package's content/themes/ directory.
+ * Update shipped themes from a package's content/themes/ directory.
+ * Any theme in the update zip is considered managed — no flag required.
  * Returns an array of results per theme: installed, updated, skipped, conflicts.
  */
 function outpost_update_managed_themes(string $sourceThemesDir): array {
@@ -6909,8 +6910,9 @@ function outpost_update_managed_themes(string $sourceThemesDir): array {
             $srcManifestFile = $srcThemeDir . '/theme.json';
             if (!file_exists($srcManifestFile)) continue;
             $srcManifest = json_decode(file_get_contents($srcManifestFile), true);
-            if (!is_array($srcManifest) || empty($srcManifest['managed'])) continue;
+            if (!is_array($srcManifest)) continue;
 
+            // If a theme ships in the update zip, it's managed — no flag check needed
             $destThemeDir = $installedThemesDir . $slug;
 
             // Fresh install — theme doesn't exist on site
@@ -6924,11 +6926,12 @@ function outpost_update_managed_themes(string $sourceThemesDir): array {
                 continue;
             }
 
-            // Check if installed theme is managed
+            // Read installed theme.json for version comparison
             $destManifestFile = $destThemeDir . '/theme.json';
-            if (!file_exists($destManifestFile)) continue;
-            $destManifest = json_decode(file_get_contents($destManifestFile), true);
-            if (!is_array($destManifest) || empty($destManifest['managed'])) continue;
+            $destManifest = [];
+            if (file_exists($destManifestFile)) {
+                $destManifest = json_decode(file_get_contents($destManifestFile), true) ?: [];
+            }
 
             // Compare versions — skip if installed is same or newer
             $srcVersion = $srcManifest['version'] ?? '0.0.0';

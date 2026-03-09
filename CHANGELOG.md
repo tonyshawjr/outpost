@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.3] — 2026-03-09
+
+### Changed
+- **Theme updater no longer requires `managed` flag** — any theme included in the update zip is automatically updated; pre-existing themes that predate the flag will now receive updates with full conflict detection
+
+---
+
 ## [2.1.2] — 2026-03-09
 
 ### Fixed
