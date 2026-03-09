@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.5] — 2026-03-09
+
+### Changed
+- **Roadmap reordered** — v2.2 Visual Tag Builder, v2.3 Deeper Analytics, v2.4 Theme Gallery, v2.5 Headless-First, v2.6 Collaborative Editing, v3.0 Commerce
+- **Docs roadmap updated** — v2.0 and v2.1 moved to "What's Shipped", future items reordered to match
+- **Docs sidebar accordion navigation** — section labels are now collapsible; clicking a section opens it and closes others; active section auto-opens on page load
+
+---
+
 ## [2.1.4] — 2026-03-09
 
 ### Fixed

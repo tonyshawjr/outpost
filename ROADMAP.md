@@ -264,23 +264,7 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v2.2 — Theme Gallery
-
-**More starting points, less blank-page anxiety.** Ship 4-5 polished themes so users can pick one that fits and customize it with the v1.8 customizer.
-
-- **Business** — homepage with services, team, testimonials, contact form
-- **Portfolio** — grid gallery, project case studies, about page
-- **Blog** — clean reading experience, categories, author pages, newsletter signup
-- **Documentation** — sidebar navigation, search, code blocks, versioned sections
-- **Landing page** — single-page marketing site with sections, CTA blocks, pricing table
-
-All themes ship with full `customizer` config (v1.8), responsive design, dark mode support, and accessibility basics (ARIA, semantic HTML, skip links).
-
-**Docs:** Theme gallery showcase page, "Choosing the right theme" guide, per-theme customization reference.
-
----
-
-## v2.3 — Visual Tag Builder
+## v2.2 — Visual Tag Builder
 
 **Turn any static HTML into an Outpost theme without writing a single template tag.** Import your HTML, select content, click "Make Editable" — Outpost wraps the selection in the correct `{{ }}` or `{% %}` tags for you.
 
@@ -321,9 +305,36 @@ Freelancers and agencies already have HTML sites — from Webflow exports, Tailw
 
 ---
 
-## v2.4 — Headless-First
+## v2.3 — Deeper Analytics
 
-> Renumbered from v2.3 after Visual Tag Builder was inserted.
+Extend beyond pageviews into audience behavior — actionable insights without external tools:
+
+- Content performance cohorts (heavy readers vs. casual visitors)
+- Goal funnels (visitor → member → paid → churned)
+- Search analytics — what are visitors searching for on the site
+- Optional geo enrichment via MaxMind GeoLite2 (off by default, privacy-first)
+
+**Docs:** Analytics dashboard guide, goal funnel setup, privacy configuration reference.
+
+---
+
+## v2.4 — Theme Gallery
+
+**More starting points, less blank-page anxiety.** Ship 4-5 polished themes so users can pick one that fits and customize it with the v1.8 customizer.
+
+- **Business** — homepage with services, team, testimonials, contact form
+- **Portfolio** — grid gallery, project case studies, about page
+- **Blog** — clean reading experience, categories, author pages, newsletter signup
+- **Documentation** — sidebar navigation, search, code blocks, versioned sections
+- **Landing page** — single-page marketing site with sections, CTA blocks, pricing table
+
+All themes ship with full `customizer` config (v1.8), responsive design, dark mode support, and accessibility basics (ARIA, semantic HTML, skip links).
+
+**Docs:** Theme gallery showcase page, "Choosing the right theme" guide, per-theme customization reference.
+
+---
+
+## v2.5 — Headless-First
 
 Position Outpost as the zero-config headless CMS alongside the traditional themed approach:
 
@@ -338,20 +349,22 @@ Position Outpost as the zero-config headless CMS alongside the traditional theme
 
 ---
 
-## v2.5 — Deeper Analytics
+## v2.6 — Collaborative Editing
 
-Extend beyond pageviews into audience behavior — actionable insights without external tools:
+Real-time multi-user editing on the same page or collection item:
 
-- Content performance cohorts (heavy readers vs. casual visitors)
-- Goal funnels (visitor → member → paid → churned)
-- Search analytics — what are visitors searching for on the site
-- Optional geo enrichment via MaxMind GeoLite2 (off by default, privacy-first)
+- Presence indicators (who's viewing this page right now)
+- Live cursor positions via WebSocket
+- Operational transform or CRDT for conflict-free concurrent edits
+- Activity feed ("Tony updated the hero title 2 minutes ago")
 
-**Docs:** Analytics dashboard guide, goal funnel setup, privacy configuration reference.
+This depends on on-page editing being mature and v2.5 (real-time events) being in place.
+
+**Docs:** Collaboration setup guide, real-time editing user guide.
 
 ---
 
-## v2.6 — Commerce
+## v3.0 — Commerce
 
 Lightweight digital product sales via Stripe:
 
@@ -363,21 +376,6 @@ Lightweight digital product sales via Stripe:
 **What this is not:** Physical inventory, shipping, or marketplace features. Just Stripe checkout + access gates.
 
 **Docs:** Stripe integration setup, product creation guide, member tier configuration, commerce template tags reference.
-
----
-
-## v2.7 — Collaborative Editing
-
-Real-time multi-user editing on the same page or collection item:
-
-- Presence indicators (who's viewing this page right now)
-- Live cursor positions via WebSocket
-- Operational transform or CRDT for conflict-free concurrent edits
-- Activity feed ("Tony updated the hero title 2 minutes ago")
-
-This depends on on-page editing being mature and v2.4 (real-time events) being in place.
-
-**Docs:** Collaboration setup guide, real-time editing user guide.
 
 ---
 
@@ -472,10 +470,10 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.9~~ | ~~Q2 2027~~ | ~~Developer Experience & Theme Updates~~ **Shipped** | Developers / Everyone |
 | ~~2.0~~ | ~~Q3 2027~~ | ~~Onboarding & Setup Wizard~~ **Shipped** | Everyone |
 | ~~2.1~~ | ~~Q3 2027~~ | ~~Collection Folders — Inline label sidebar~~ **Shipped** | Everyone |
-| 2.2 | Q4 2027 | Theme Gallery — 4-5 polished starter themes | Everyone |
-| 2.3 | Q4 2027 | Visual Tag Builder — HTML-to-theme conversion | Developers / Everyone |
-| 2.4 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |
-| 2.5 | Q1 2028 | Deeper Analytics — funnels, search, cohorts | Everyone |
-| 2.6 | Q2 2028 | Commerce — Stripe, digital products | Everyone |
-| 2.7 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
-| 3.x | TBD | Internationalization, Theme Marketplace | Everyone |
+| 2.2 | Q4 2027 | Visual Tag Builder — HTML-to-theme conversion | Developers / Everyone |
+| 2.3 | Q4 2027 | Deeper Analytics — funnels, search, cohorts | Everyone |
+| 2.4 | Q1 2028 | Theme Gallery — 4-5 polished starter themes | Everyone |
+| 2.5 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |
+| 2.6 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
+| 3.0 | Q3 2028 | Commerce — Stripe, digital products | Everyone |
+| 3.x+ | TBD | CLI, VS Code Extension, Internationalization, Theme Marketplace | Developers / Everyone |

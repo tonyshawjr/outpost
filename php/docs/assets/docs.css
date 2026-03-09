@@ -63,7 +63,7 @@ body {
 .sidebar-brand-sub { font-size: 11px; color: var(--sidebar-section); margin-top: 3px; }
 
 .sidebar-nav { padding: 16px 0 32px; flex: 1; }
-.nav-section { margin-bottom: 4px; }
+.nav-section { margin-bottom: 0; }
 
 .nav-section-label {
   font-size: 10px;
@@ -72,6 +72,30 @@ body {
   text-transform: uppercase;
   color: var(--sidebar-section);
   padding: 12px 20px 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  transition: color 0.15s;
+}
+.nav-section-label:hover { color: var(--sidebar-text); }
+.nav-section-label::after {
+  content: '\203A';
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+.nav-section.open .nav-section-label::after {
+  transform: rotate(90deg);
+}
+
+.nav-section-links {
+  display: none;
+  padding-bottom: 4px;
+}
+.nav-section.open .nav-section-links {
+  display: block;
 }
 
 .nav-link {

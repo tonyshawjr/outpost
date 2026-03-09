@@ -26,6 +26,8 @@
       // No extension = directory index
       if (rel.indexOf('.') === -1) rel = rel + '/index.html';
 
+      var activeSection = null;
+
       sidebar.querySelectorAll('.nav-link').forEach(function(link) {
         var href = link.getAttribute('href');
         // Normalize: "themes/" -> "themes/index.html"
@@ -33,8 +35,33 @@
         if (normalized.endsWith('/')) normalized += 'index.html';
         if (normalized === rel) {
           link.classList.add('active');
+          // Find the parent nav-section to auto-open it
+          activeSection = link.closest('.nav-section');
         }
       });
+
+      // Accordion: toggle sections on label click
+      sidebar.querySelectorAll('.nav-section-label').forEach(function(label) {
+        label.addEventListener('click', function() {
+          var section = this.closest('.nav-section');
+          var isOpen = section.classList.contains('open');
+
+          // Close all sections
+          sidebar.querySelectorAll('.nav-section.open').forEach(function(s) {
+            s.classList.remove('open');
+          });
+
+          // If it wasn't open, open it
+          if (!isOpen) {
+            section.classList.add('open');
+          }
+        });
+      });
+
+      // Auto-open the section containing the active page
+      if (activeSection) {
+        activeSection.classList.add('open');
+      }
 
       // Re-run anchor fix for sidebar links
       sidebar.querySelectorAll('a[href^="#"]').forEach(function(link) {
