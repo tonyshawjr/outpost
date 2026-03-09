@@ -36,10 +36,9 @@
       updateAvailable.set(false);
       addToast(res.message || 'Update applied successfully!', 'success');
       themeResults = res.theme_updates || null;
-      // Reload after a short delay so the new admin SPA loads (skip if showing results)
-      if (!themeResults || themeResults.length === 0) {
-        setTimeout(() => window.location.reload(), 1500);
-      }
+      // Always auto-reload — give extra time if there are theme results to glance at
+      const delay = (themeResults && themeResults.length > 0) ? 3000 : 1500;
+      setTimeout(() => window.location.reload(), delay);
     } catch (err) {
       addToast('Update failed: ' + err.message, 'error');
     } finally {
