@@ -20,6 +20,7 @@
 - [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
 - [Setup Wizard](/outpost/docs/features/setup-wizard.html): First-run setup wizard, content packs, getting started checklist, contextual tips
+- [Forge](/outpost/docs/features/forge.html): Visual tag builder — select HTML, right-click or Cmd+E, wrap in Liquid tags with smart detection
 - [Content Packs](/outpost/docs/themes/content-packs.html): JSON content packs for seeding starter content
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
@@ -1310,7 +1311,61 @@ Endpoints added to `code-editor.php`:
 - `code/rename` POST — rename/move (validates extension)
 - `code/delete` DELETE — recursive for directories
 - `code/search` GET `?q=term` — full-text search, max 200 results
-- `code/context` GET — returns globals + collections + schema for autocomplete
+- `code/context` GET — returns globals, collections, schema, forms, menus, folders (used by autocomplete and Forge)
+
+## Forge (Visual Tag Builder)
+
+Built into the Code Editor. Select HTML in any `.html`/`.htm` file, right-click to open the Forge context menu, or press Cmd+E / Ctrl+E to jump straight to Make Editable.
+
+Forge uses smart detection — it analyzes the selected HTML and reorders the context menu so the most likely action appears first. It also pre-selects the field type in the Make Editable form.
+
+### Detection rules (priority order)
+
+- `<img>`, `<picture>`, `<figure>`, `src="...jpg"` → Make Editable (image)
+- `<a href>` → Make Editable (link)
+- `<h1>`–`<h6>` → Make Editable (text)
+- Short plain text (<100 chars) → Make Editable (text)
+- Long plain text (≥100 chars) → Make Editable (textarea)
+- HTML with child elements → Make Editable (richtext)
+- `<ul>`/`<ol>` with 2+ links → Menu Loop
+- `<nav>` with links → Extract Partial (with menu option)
+- `<header>`, `<footer>` → Extract Partial
+- `<title>`, `<meta name="description">` → Meta Tag
+- `<form>` → Form
+- Multiple repeated sibling elements → Collection Loop
+- `<section>`, `<article>`, large `<div>` → Conditional
+
+### Seven actions
+
+**Make Editable** — Wraps selection in an output tag. Fields: name (auto-slugified), type (text, richtext, image, link, textarea, select, color, number, date, toggle), scope (page/global), use as default (wrapping default — ON by default for all types including image and link). Output: `{{ field }}`, `{{ field | image }}https://url{{ /field }}`, `{{ @global }}`, or `{{ field }}Default{{ /field }}`.
+
+**Collection Loop** — Wraps selection in `{% for item in collection.slug %}...{% endfor %}`. Fields: collection (dropdown), item variable, limit, order by. **Field mapper**: auto-detects images, headings, paragraphs, and links in selected HTML and maps them to collection fields with auto-guessing.
+
+**Menu Loop** — Wraps navigation links in `{% for link in menu.slug %}...{% endfor %}`. Fields: menu (dropdown of admin menus or free-text slug), link variable. When 2+ links are detected, offers to auto-replace static hrefs and text with `{{ link.url }}` and `{{ link.label }}`.
+
+**Conditional** — Wraps selection in `{% if expression %}...{% endif %}`. Fields: expression, operator (truthy/==/!=), value.
+
+**Extract Partial** — Creates `partials/{name}.html` with the selected content, replaces selection with `{% include 'name' %}`, refreshes file tree, opens the new file in a tab. **Smart nav detection**: when extracting a `<nav>` with 2+ links, offers "Connect to admin menu" checkbox to wrap links in a menu loop automatically.
+
+**Meta Tag** — Wraps selection in `{{ meta.title }}...{{ /meta.title }}` or `{{ meta.description }}...{{ /meta.description }}`.
+
+**Form** — Inserts `{% form 'slug' %}`. Dropdown of existing forms from context data.
+
+### Forge Playground
+
+Ships with a 6-page demo website in `themes/forge-playground/` (index, features, blog, gallery, about, contact) — pure HTML/CSS with Unsplash images. No `theme.json` — users "Forge a Theme" via a guided wizard. Includes a reset button to restore all files to pristine state from `.forge-snapshot/` backups.
+
+### Forge Theme Wizard
+
+Folders in `themes/` without `theme.json` show a banner in the Code Editor. Click "Forge Theme" to create `theme.json` with name, author, and description via a guided wizard. Also available from the Forge context menu.
+
+### Preview Tabs
+
+Single-clicking a file opens it as a preview tab (italic name). Clicking another file replaces the preview. Double-click or editing pins the tab. Files opened from Find in Files, command palette, or newly created files are always pinned.
+
+### Keyboard shortcut
+
+Cmd+E / Ctrl+E opens Make Editable directly with the field type pre-selected by smart detection. Status bar shows "Cmd+E to tag" hint when a selection exists in an HTML file.
 
 ## Settings
 

@@ -249,6 +249,7 @@ match (true) {
     $action === 'code/delete'  && $method === 'DELETE' => handle_code_delete(),
     $action === 'code/search'  && $method === 'GET'    => handle_code_search(),
     $action === 'code/context' && $method === 'GET'    => handle_code_context(),
+    $action === 'code/reset'   && $method === 'POST'   => handle_code_reset(),
 
     // Member Admin
     $action === 'members' && $method === 'GET' => handle_members_list(),

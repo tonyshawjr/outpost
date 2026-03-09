@@ -1,5 +1,5 @@
 <script>
-  let { tabs = [], activeIndex = -1, onSwitch, onClose } = $props();
+  let { tabs = [], activeIndex = -1, onSwitch, onClose, onPin } = $props();
 
   function handleClose(e, index) {
     e.stopPropagation();
@@ -21,7 +21,9 @@
     <button
       class="et-tab"
       class:active={i === activeIndex}
+      class:preview={tab.preview}
       onclick={() => onSwitch(i)}
+      ondblclick={() => { if (onPin) onPin(i); }}
       title={tab.path}
     >
       {#if dirty}
@@ -66,6 +68,7 @@
     transition: background var(--transition-fast), color var(--transition-fast);
     position: relative;
   }
+  .et-tab.preview .et-name { font-style: italic; }
   .et-tab:hover { background: var(--ce-btn-hover-bg); color: var(--ce-text); }
   .et-tab.active {
     background: var(--ce-btn-hover-bg);

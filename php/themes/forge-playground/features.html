@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features — Forge</title>
+  <meta name="description" content="Everything Forge can do — from smart detection to instant partial extraction.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">Forge<span>.</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="contact.html" class="nav-cta">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="page-hero-sm">
+    <h1>Features</h1>
+    <p>Everything Forge does to make theme building faster. Each feature maps to a real Outpost template concept.</p>
+  </section>
+
+  <!-- MAKE EDITABLE -->
+  <section class="section">
+    <div class="container">
+      <div class="showcase">
+        <div class="showcase-text">
+          <h2>Make Editable</h2>
+          <p>The core action. Select any text, heading, image, or link and turn it into an admin-editable field. Forge auto-detects the field type — headings become text fields, images get the image filter, links get the link filter.</p>
+          <p>Your content stays on the page as a default value. Nothing disappears. The text you selected becomes the fallback that shows until the admin enters something new.</p>
+          <ul>
+            <li>10 field types: text, richtext, image, link, textarea, select, color, number, date, toggle</li>
+            <li>Page fields or global fields — one toggle</li>
+            <li>Auto-generated snake_case field names</li>
+            <li>Wrapping defaults preserve your content</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&h=600&fit=crop" alt="Syntax highlighted code">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLLECTION LOOPS -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="showcase">
+        <div class="showcase-image">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop" alt="Organized grid of content cards">
+        </div>
+        <div class="showcase-text">
+          <h2>Collection Loops</h2>
+          <p>Got a grid of blog cards, team members, or portfolio items? Select the repeating block, right-click, and wrap it in a collection loop.</p>
+          <p>Pick your collection from a dropdown, set the item variable, add an optional limit or sort order, and Forge writes the entire for/endfor block for you.</p>
+          <ul>
+            <li>Dropdown of all your collections</li>
+            <li>Custom item variable names</li>
+            <li>Optional limit and order-by fields</li>
+            <li>Preserves your HTML inside the loop</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONDITIONALS -->
+  <section class="section">
+    <div class="container">
+      <div class="showcase">
+        <div class="showcase-text">
+          <h2>Conditionals</h2>
+          <p>Wrap any section in an if/endif block to show or hide it based on a field value. Perfect for optional CTAs, seasonal banners, or member-only content.</p>
+          <p>Forge supports three operators: truthy (field has a value), equals, and not-equals. Complex logic without writing a single bracket by hand.</p>
+          <ul>
+            <li>Truthy, equals, and not-equals operators</li>
+            <li>Works with page fields, globals, and item fields</li>
+            <li>Clean block syntax around your selection</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800&h=600&fit=crop" alt="Logic branching diagram">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXTRACT PARTIAL -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="showcase">
+        <div class="showcase-image">
+          <img src="https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?w=800&h=600&fit=crop" alt="Modular building blocks">
+        </div>
+        <div class="showcase-text">
+          <h2>Extract Partial</h2>
+          <p>The most magical action in Forge. Select an entire navigation, header, or footer section. Choose "Extract Partial" and name it. Forge does the rest:</p>
+          <ul>
+            <li>Creates the partial file in partials/</li>
+            <li>Moves your selected HTML into it</li>
+            <li>Replaces the selection with an include tag</li>
+            <li>Refreshes the file tree and opens the new file</li>
+          </ul>
+          <p>One click turns inline HTML into a reusable component. Every page that includes it gets updates automatically.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- META + FORMS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">And More</div>
+        <h2>Meta Tags &amp; Forms</h2>
+        <p>Two more actions for the things every page needs.</p>
+      </div>
+      <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 720px;">
+        <div class="feature-card">
+          <div class="feature-icon">🏷️</div>
+          <h3>Meta Tags</h3>
+          <p>Select your page title or meta description and wrap it in SEO-friendly template tags. Forge detects whether you're inside a title element or a meta tag and sets the type automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Forms</h3>
+          <p>Insert a form tag that renders any form you've built in the Outpost admin. Pick from a dropdown of existing forms or type a slug. The entire form is rendered from one template tag.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SMART DETECTION DEEP DIVE -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Under the Hood</div>
+        <h2>How smart detection works</h2>
+        <p>Forge reads the structure of your HTML and applies pattern matching to predict what you're trying to do.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">&lt;img&gt;</div>
+          <div>
+            <h3>Images</h3>
+            <p>Any img, picture, or figure tag — or any element with a src attribute pointing to an image file — automatically suggests "Make Editable" with the image type pre-selected.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">&lt;a&gt;</div>
+          <div>
+            <h3>Links</h3>
+            <p>Anchor tags with href attributes suggest "Make Editable" with the link filter, so the URL becomes editable in the admin.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">&lt;nav&gt;</div>
+          <div>
+            <h3>Structural elements</h3>
+            <p>Nav, header, and footer elements suggest "Extract Partial" because they're almost always shared across pages and belong in their own file.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">&times;3</div>
+          <div>
+            <h3>Repeated siblings</h3>
+            <p>If your selection contains multiple sibling elements with the same tag name, Forge suggests "Collection Loop" — because repeated markup usually means dynamic data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-banner">
+    <h2>Start building with Forge</h2>
+    <p>Open the Code Editor, select some HTML, and press Cmd+E. It's already installed — no setup required.</p>
+    <a href="contact.html" class="btn btn-primary">Get In Touch</a>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-brand">Forge<span>.</span></div>
+        <p>The visual tag builder for Outpost CMS. Select HTML, right-click, and build templates without memorizing syntax.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="features.html">Features</a>
+        <a href="blog.html">Blog</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">Template Syntax</a>
+        <a href="#">Changelog</a>
+        <a href="#">Roadmap</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <a href="#">Twitter</a>
+        <a href="#">GitHub</a>
+        <a href="#">Discord</a>
+        <a href="#">Email</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Forge. Built with Outpost CMS.</span>
+      <div class="footer-social">
+        <a href="#">Twitter</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

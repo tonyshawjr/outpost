@@ -4,6 +4,7 @@
     activePath = '',
     loading = false,
     onOpenFile,
+    onPinFile,
     onRefresh,
     onCreateFile,
     onCreateFolder,
@@ -260,6 +261,7 @@
         class:active={activePath === node.path}
         style="padding-left:{12 + depth * 14 + 14}px"
         onclick={() => onOpenFile(node)}
+        ondblclick={() => { if (onPinFile) onPinFile(node); }}
         oncontextmenu={(e) => showCtx(e, node)}
         onmouseenter={() => hoverPath = node.path}
         onmouseleave={() => hoverPath = null}

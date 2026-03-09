@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forge — The Visual Tag Builder for Outpost CMS</title>
+  <meta name="description" content="Select HTML, right-click, and Forge wraps it in the perfect template tag. Smart detection, zero guesswork.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <!-- NAVIGATION — Try: Select this entire <nav>, right-click → Extract Partial → "nav" -->
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">Forge<span>.</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="contact.html" class="nav-cta">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- HERO — Try: Select the headline → Cmd+E → Forge detects "text" → name it "headline" -->
+  <section class="hero">
+    <div class="hero-badge">New in Outpost 2.2</div>
+    <h1>Build templates <em>visually</em></h1>
+    <p class="hero-sub">Select any HTML in the code editor, right-click, and Forge wraps it in the perfect Outpost template tag. Smart detection means zero guesswork.</p>
+    <div class="hero-actions">
+      <a href="features.html" class="btn btn-primary">See All Features</a>
+      <a href="about.html" class="btn btn-ghost">Learn More</a>
+    </div>
+    <div class="hero-image">
+      <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop" alt="Code on a screen showing template syntax">
+    </div>
+  </section>
+
+  <!-- FEATURES GRID — Try: Select each heading → Cmd+E for "text", each paragraph for "textarea" -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">What Forge Does</div>
+        <h2>Six powerful actions, one right-click</h2>
+        <p>Every action Forge offers maps directly to an Outpost template tag. No syntax to memorize — just select, click, done.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">✏️</div>
+          <h3>Make Editable</h3>
+          <p>Turn any text, image, or link into an editable field. Forge auto-detects the type and suggests the right filter.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔁</div>
+          <h3>Collection Loop</h3>
+          <p>Wrap repeated elements in a collection loop. Pick your collection, set the variable name, and you're looping.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔀</div>
+          <h3>Conditional</h3>
+          <p>Show or hide sections based on field values. Supports truthy checks, equals, and not-equals comparisons.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✂️</div>
+          <h3>Extract Partial</h3>
+          <p>Move a section into its own partial file and auto-insert the include tag. Perfect for navs, headers, and footers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏷️</div>
+          <h3>Meta Tags</h3>
+          <p>Wrap your title or meta description in SEO-friendly template tags with a single click.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Forms</h3>
+          <p>Insert a form tag that connects to any form you've built in the admin. One tag, fully rendered.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS — Try: Make each step heading editable, then the descriptions -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">How It Works</div>
+        <h2>Three steps. No learning curve.</h2>
+        <p>If you can right-click, you can use Forge. It meets you where you already work — inside the code editor.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <h3>Select your HTML</h3>
+            <p>Highlight any element in the code editor — a heading, an image tag, a navigation block, a full section. Forge works with any selection size.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <h3>Right-click or press Cmd+E</h3>
+            <p>The Forge menu appears with smart suggestions. It analyzes your selection and puts the most likely action at the top — images get "image", headings get "text".</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <h3>Name and confirm</h3>
+            <p>Give the field a name, choose any options, and click confirm. Your HTML is instantly wrapped in the correct template tag with the right filter.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOWCASE — Try: Select the image → Forge detects "image" → make it editable -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="showcase">
+        <div class="showcase-image">
+          <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&h=600&fit=crop" alt="Developer working on laptop">
+        </div>
+        <div class="showcase-text">
+          <h2>Smart detection does the thinking</h2>
+          <p>Forge doesn't just list every option — it reads your HTML and brings the right one to the top. Select an image tag and "image" is pre-selected. Select a nav element and "Extract Partial" jumps to first.</p>
+          <ul>
+            <li>Images, pictures, and figures detected automatically</li>
+            <li>Links and anchor tags get the link filter</li>
+            <li>Headings default to text fields</li>
+            <li>Nav, header, footer suggest partial extraction</li>
+            <li>Repeated elements suggest collection loops</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOWCASE REVERSED -->
+  <section class="section">
+    <div class="container">
+      <div class="showcase">
+        <div class="showcase-text">
+          <h2>Extract partials instantly</h2>
+          <p>Select your entire navigation, right-click, choose "Extract Partial", and name it "nav". Forge creates the file, moves the HTML into it, and replaces your selection with an include tag — all in one click.</p>
+          <p>The file tree refreshes, the new partial opens in a tab, and you're ready to keep building. No copy-paste, no switching files, no manual cleanup.</p>
+        </div>
+        <div class="showcase-image">
+          <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=600&fit=crop" alt="Code editor with organized files">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS — Try: Select each card → make the quote richtext, author name text -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">What Developers Say</div>
+        <h2>Built for people who ship</h2>
+        <p>Forge was designed by developers for developers. Here's what early users are saying.</p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial">
+          <blockquote>"I used to keep the template syntax docs open in another tab. With Forge, I haven't looked at them once. Select, click, done."</blockquote>
+          <div class="testimonial-author">
+            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Alex Chen" class="testimonial-avatar">
+            <div>
+              <div class="testimonial-name">Alex Chen</div>
+              <div class="testimonial-role">Frontend Developer</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <blockquote>"The partial extraction is genius. I built a full theme in half the time because I never had to manually create partials or write include tags."</blockquote>
+          <div class="testimonial-author">
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" alt="Sarah Miller" class="testimonial-avatar">
+            <div>
+              <div class="testimonial-name">Sarah Miller</div>
+              <div class="testimonial-role">Agency Lead</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <blockquote>"Smart detection is the feature I didn't know I needed. It just knows that an img tag should be an image field. Tiny detail, huge time saver."</blockquote>
+          <div class="testimonial-author">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="Marcus Johnson" class="testimonial-avatar">
+            <div>
+              <div class="testimonial-name">Marcus Johnson</div>
+              <div class="testimonial-role">Freelance Developer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER — Try: Make the heading and paragraph editable -->
+  <section class="cta-banner">
+    <h2>Ready to build faster?</h2>
+    <p>Forge is built into every Outpost installation. Open the Code Editor, select some HTML, and start tagging.</p>
+    <a href="features.html" class="btn btn-primary">Explore Features</a>
+  </section>
+
+  <!-- FOOTER — Try: Select this entire <footer>, right-click → Extract Partial → "footer" -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-brand">Forge<span>.</span></div>
+        <p>The visual tag builder for Outpost CMS. Select HTML, right-click, and build templates without memorizing syntax.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="features.html">Features</a>
+        <a href="blog.html">Blog</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">Template Syntax</a>
+        <a href="#">Changelog</a>
+        <a href="#">Roadmap</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <a href="#">Twitter</a>
+        <a href="#">GitHub</a>
+        <a href="#">Discord</a>
+        <a href="#">Email</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Forge. Built with Outpost CMS.</span>
+      <div class="footer-social">
+        <a href="#">Twitter</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

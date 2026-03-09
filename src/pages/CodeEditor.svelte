@@ -4,23 +4,41 @@
   import { addToast, darkMode } from '$lib/stores.js';
   import { setOutpostContext, outpostCompletionSource } from '$lib/outpost-completions.js';
   import { outpostHighlight } from '$lib/outpost-highlight.js';
-  import FileTree    from '$components/ce/FileTree.svelte';
-  import EditorTabs  from '$components/ce/EditorTabs.svelte';
-  import StatusBar   from '$components/ce/StatusBar.svelte';
-  import FindInFiles from '$components/ce/FindInFiles.svelte';
+  import { detectForgeIntent } from '$lib/forge-detect.js';
+  import FileTree        from '$components/ce/FileTree.svelte';
+  import EditorTabs      from '$components/ce/EditorTabs.svelte';
+  import StatusBar       from '$components/ce/StatusBar.svelte';
+  import FindInFiles     from '$components/ce/FindInFiles.svelte';
+  import ForgeMenu       from '$components/ce/ForgeMenu.svelte';
+  import ForgePopover    from '$components/ce/ForgePopover.svelte';
+  import ForgeEditable   from '$components/ce/ForgeEditable.svelte';
+  import ForgeLoop       from '$components/ce/ForgeLoop.svelte';
+  import ForgeConditional from '$components/ce/ForgeConditional.svelte';
+  import ForgePartial    from '$components/ce/ForgePartial.svelte';
+  import ForgeMeta       from '$components/ce/ForgeMeta.svelte';
+  import ForgeForm       from '$components/ce/ForgeForm.svelte';
+  import ForgeMenuLoop   from '$components/ce/ForgeMenuLoop.svelte';
+  import ForgeTheme      from '$components/ce/ForgeTheme.svelte';
 
   // ── Tree ─────────────────────────────────────────────────────────
   let tree        = $state([]);
   let treeLoading = $state(true);
 
   // ── Tabs ─────────────────────────────────────────────────────────
-  // Each tab: { path, name, content, originalContent, editorState: null, size: 0 }
+  // Each tab: { path, name, content, originalContent, editorState: null, size: 0, preview: bool }
   let tabs            = $state([]);
   let activeTabIndex  = $state(-1);
   let saving          = $state(false);
 
   let activeTab = $derived(tabs[activeTabIndex] ?? null);
   let isDirty   = $derived(!!activeTab && activeTab.content !== activeTab.originalContent);
+
+  // Pin preview tab when content changes
+  $effect(() => {
+    if (activeTab && activeTab.preview && activeTab.content !== activeTab.originalContent) {
+      tabs[activeTabIndex] = { ...tabs[activeTabIndex], preview: false };
+    }
+  });
 
   // ── Editor ───────────────────────────────────────────────────────
   let editorContainer = $state(null);
@@ -39,6 +57,26 @@
   let showCmdPalette     = $state(false);
   let cmdQuery           = $state('');
   let cmdSelectedIndex   = $state(0);
+
+  // ── Forge ──────────────────────────────────────────────────────
+  let forgeMenu       = $state(null);  // { x, y, from, to, text, detection }
+  let forgePopover    = $state(null);  // { type, x, y, from, to, text, detection }
+  let forgeContext    = $state(null);  // { globals, collections, forms, menus, folders }
+  let forgeThemeWizard = $state(null); // { folder } or null
+
+  // Detect if the active file's theme folder is missing theme.json
+  let activeThemeFolder = $derived.by(() => {
+    if (!activeTab) return '';
+    const parts = activeTab.path.split('/');
+    return parts.length > 1 ? parts[0] : '';
+  });
+
+  let hasThemeJson = $derived.by(() => {
+    if (!activeThemeFolder) return true;
+    const themeDir = tree.find(n => n.type === 'directory' && n.name === activeThemeFolder);
+    if (!themeDir?.children) return true;
+    return themeDir.children.some(c => c.name === 'theme.json');
+  });
 
   let cmdResults = $derived.by(() => {
     if (!cmdQuery.trim()) return getAllFiles(tree);
@@ -126,6 +164,7 @@
     try {
       const ctx = await codeApi.context();
       setOutpostContext(ctx);
+      forgeContext = ctx; // Populate Forge popovers
     } catch (_) {}
   }
 
@@ -184,6 +223,12 @@
     }
   }
 
+  function isHtmlFile(tab) {
+    if (!tab) return false;
+    const ext = tab.path.split('.').pop().toLowerCase();
+    return ext === 'html' || ext === 'htm';
+  }
+
   function buildSharedExts() {
     const { cm, cmState, cmView } = cmModules;
     return [
@@ -201,6 +246,20 @@
           cursorCol  = sel.head - line.from + 1;
         }
       }),
+      // Forge: right-click context menu on selection in HTML files
+      cmView.EditorView.domEventHandlers({
+        contextmenu(event, view) {
+          const sel = view.state.selection.main;
+          if (sel.from === sel.to) return false;
+          if (!isHtmlFile(tabs[activeTabIndex])) return false;
+
+          event.preventDefault();
+          const text = view.state.doc.sliceString(sel.from, sel.to);
+          const detection = detectForgeIntent(text);
+          forgeMenu = { x: event.clientX, y: event.clientY, from: sel.from, to: sel.to, text, detection };
+          return true;
+        }
+      }),
       cmView.keymap.of([
         { key: 'Mod-s',       run: () => { saveActiveTab(); return true; } },
         { key: 'Mod-w',       run: () => { closeTab(activeTabIndex); return true; } },
@@ -208,6 +267,23 @@
         { key: 'Mod-Shift-[', run: () => { prevTab(); return true; } },
         { key: 'Mod-p',       run: () => { openCmdPalette(); return true; } },
         { key: 'Mod-Shift-f', run: () => { showFindInFiles = true; return true; } },
+        // Forge: Cmd+E to open Make Editable popover
+        { key: 'Mod-e', run: (view) => {
+          const sel = view.state.selection.main;
+          if (sel.from === sel.to) return false;
+          if (!isHtmlFile(tabs[activeTabIndex])) return false;
+
+          const text = view.state.doc.sliceString(sel.from, sel.to);
+          const detection = detectForgeIntent(text);
+          const coords = view.coordsAtPos(sel.from);
+          forgePopover = {
+            type: 'editable',
+            x: coords?.left ?? 400,
+            y: (coords?.bottom ?? 300) + 8,
+            from: sel.from, to: sel.to, text, detection,
+          };
+          return true;
+        }},
       ]),
     ];
   }
@@ -234,9 +310,13 @@
   }
 
   // ── Tab management ───────────────────────────────────────────────
-  async function openFile(node, jumpLine = null) {
+  async function openFile(node, jumpLine = null, pin = false) {
     const existingIdx = tabs.findIndex(t => t.path === node.path);
     if (existingIdx >= 0) {
+      // If re-opening same file, pin it (double-click or explicit pin)
+      if (pin && tabs[existingIdx].preview) {
+        tabs[existingIdx] = { ...tabs[existingIdx], preview: false };
+      }
       switchToTab(existingIdx);
       if (jumpLine && editorView) jumpToLine(jumpLine);
       return;
@@ -253,12 +333,27 @@
 
     try {
       const data  = await codeApi.read(node.path);
-      const newTab = { path: node.path, name: node.name, content: data.content, originalContent: data.content, editorState: null, size: data.size || 0 };
-      tabs = [...tabs, newTab];
-      switchToTab(tabs.length - 1);
+      const newTab = { path: node.path, name: node.name, content: data.content, originalContent: data.content, editorState: null, size: data.size || 0, preview: !pin };
+
+      // Replace existing preview tab instead of adding a new one
+      const previewIdx = tabs.findIndex(t => t.preview);
+      if (!pin && previewIdx >= 0) {
+        tabs[previewIdx] = newTab;
+        switchToTab(previewIdx);
+      } else {
+        tabs = [...tabs, newTab];
+        switchToTab(tabs.length - 1);
+      }
+
       if (jumpLine) setTimeout(() => jumpToLine(jumpLine), 50);
     } catch (err) {
       addToast(err.message, 'error');
+    }
+  }
+
+  function pinTab(index) {
+    if (tabs[index]?.preview) {
+      tabs[index] = { ...tabs[index], preview: false };
     }
   }
 
@@ -366,7 +461,7 @@
     try {
       await codeApi.create(path, 'file');
       await loadTree();
-      openFile({ path, name: path.split('/').pop(), type: 'file' });
+      openFile({ path, name: path.split('/').pop(), type: 'file' }, null, true);
     } catch (err) { addToast(err.message, 'error'); }
   }
 
@@ -426,7 +521,7 @@
 
   function cmdSelect(node) {
     closeCmdPalette();
-    openFile(node);
+    openFile(node, null, true);
   }
 
   let cmdInputEl = $state(null);
@@ -442,12 +537,89 @@
   // Reset selected on query change
   $effect(() => { cmdQuery; cmdSelectedIndex = 0; });
 
+  // ── Forge handlers ─────────────────────────────────────────────
+  function handleForgeMenuSelect(type) {
+    forgePopover = { ...forgeMenu, type };
+    forgeMenu = null;
+  }
+
+  function handleForgeConfirm(output) {
+    if (!editorView || !forgePopover) return;
+    const { from, to } = forgePopover;
+    editorView.dispatch({ changes: { from, to, insert: output } });
+    forgePopover = null;
+    editorView.focus();
+  }
+
+  function handleForgeClose() {
+    forgeMenu = null;
+    forgePopover = null;
+    editorView?.focus();
+  }
+
+  async function handleForgePartialCreated(filePath) {
+    await loadTree();
+    const name = filePath.split('/').pop();
+    openFile({ path: filePath, name, type: 'file' }, null, true);
+  }
+
+  function handleForgeThemeOpen() {
+    forgeMenu = null;
+    forgePopover = null;
+    forgeThemeWizard = { folder: activeThemeFolder };
+  }
+
+  async function handleForgeThemeCreated(folder) {
+    forgeThemeWizard = null;
+    await loadTree();
+    addToast(`Theme created! Activate it in Settings → Themes.`, 'success');
+  }
+
+  async function handleForgeReset() {
+    if (!activeThemeFolder) return;
+    if (!confirm(`Reset "${activeThemeFolder}" to its original state? This will undo all your changes and remove theme.json.`)) return;
+    try {
+      await codeApi.reset(activeThemeFolder);
+      // Close all tabs from this folder
+      tabs = tabs.filter(t => !t.path.startsWith(activeThemeFolder + '/'));
+      activeTabIndex = tabs.length ? 0 : -1;
+      await loadTree();
+      addToast('Playground reset to original state.', 'success');
+    } catch (err) {
+      addToast(err.message || 'Reset failed', 'error');
+    }
+  }
+
+  function handleForgeThemeClose() {
+    forgeThemeWizard = null;
+    editorView?.focus();
+  }
+
+  const forgePopoverTitles = {
+    editable: 'Make Editable',
+    loop: 'Collection Loop',
+    menu: 'Menu Loop',
+    conditional: 'Conditional',
+    partial: 'Extract Partial',
+    meta: 'Meta Tag',
+    form: 'Form',
+  };
+
+  // Forge: StatusBar hint when selection exists in HTML file
+  let forgeHint = $derived.by(() => {
+    if (!activeTab || !isHtmlFile(activeTab)) return '';
+    // The hint is static — we show it whenever the user is in an HTML file
+    return '\u2318E to tag';
+  });
+
   // ── Window shortcuts ─────────────────────────────────────────────
   function handleWindowKeydown(e) {
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key === 'p') { e.preventDefault(); openCmdPalette(); return; }
     if (mod && e.shiftKey && (e.key === 'F' || e.key === 'f')) { e.preventDefault(); showFindInFiles = !showFindInFiles; return; }
     if (e.key === 'Escape') {
+      if (forgePopover) { forgePopover = null; return; }
+      if (forgeMenu) { forgeMenu = null; return; }
       if (showCmdPalette) { closeCmdPalette(); return; }
       if (showFindInFiles) { showFindInFiles = false; return; }
     }
@@ -475,6 +647,7 @@
       activePath={activeTab?.path ?? ''}
       loading={treeLoading}
       onOpenFile={openFile}
+      onPinFile={(node) => openFile(node, null, true)}
       onRefresh={loadTree}
       onCreateFile={handleCreateFile}
       onCreateFolder={handleCreateFolder}
@@ -490,7 +663,7 @@
     <div class="ce-top">
       <div class="ce-tabs-wrap">
         {#if tabs.length > 0}
-          <EditorTabs {tabs} activeIndex={activeTabIndex} onSwitch={switchToTab} onClose={closeTab} />
+          <EditorTabs {tabs} activeIndex={activeTabIndex} onSwitch={switchToTab} onClose={closeTab} onPin={pinTab} />
         {/if}
       </div>
       <div class="ce-toolbar">
@@ -512,6 +685,16 @@
       </div>
     </div>
 
+    <!-- Forge a Theme banner — shown when file's folder has no theme.json -->
+    {#if activeTab && !hasThemeJson && activeThemeFolder}
+      <div class="forge-banner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        <span>This folder has HTML files but no <code>theme.json</code>. Ready to make it a theme?</span>
+        <button class="forge-banner-link" onclick={handleForgeReset}>Reset</button>
+        <button class="forge-banner-btn" onclick={handleForgeThemeOpen}>Forge Theme</button>
+      </div>
+    {/if}
+
     <!-- Editor wrap — always in DOM so editorView.dom stays attached -->
     <div class="ce-editor-wrap" class:hidden={!activeTab} bind:this={editorContainer}></div>
 
@@ -528,7 +711,7 @@
     <FindInFiles
       visible={showFindInFiles}
       onClose={() => showFindInFiles = false}
-      onOpenFile={openFile}
+      onOpenFile={(node, line) => openFile(node, line, true)}
     />
 
     <!-- Status bar -->
@@ -539,11 +722,92 @@
         language={langLabel}
         filepath={activeTab.path}
         fileSize={activeTab.size}
+        hint={forgeHint}
       />
     {/if}
 
   </div>
 </div>
+
+<!-- Forge context menu -->
+<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onForgeTheme={handleForgeThemeOpen} onClose={() => forgeMenu = null} />
+
+<!-- Forge popovers -->
+{#if forgePopover}
+  <ForgePopover
+    x={forgePopover.x}
+    y={forgePopover.y}
+    title={forgePopoverTitles[forgePopover.type] ?? 'Forge'}
+    onClose={handleForgeClose}
+  >
+    {#if forgePopover.type === 'editable'}
+      <ForgeEditable
+        selectedText={forgePopover.text}
+        suggestedType={forgePopover.detection?.suggestedType ?? 'text'}
+        onConfirm={handleForgeConfirm}
+        onCancel={handleForgeClose}
+      />
+    {:else if forgePopover.type === 'loop'}
+      <ForgeLoop
+        selectedText={forgePopover.text}
+        collections={forgeContext?.collections ?? []}
+        onConfirm={handleForgeConfirm}
+        onCancel={handleForgeClose}
+      />
+    {:else if forgePopover.type === 'conditional'}
+      <ForgeConditional
+        selectedText={forgePopover.text}
+        onConfirm={handleForgeConfirm}
+        onCancel={handleForgeClose}
+      />
+    {:else if forgePopover.type === 'partial'}
+      <ForgePartial
+        selectedText={forgePopover.text}
+        activeTabPath={activeTab?.path ?? ''}
+        menus={forgeContext?.menus ?? []}
+        onConfirm={handleForgeConfirm}
+        onCreated={handleForgePartialCreated}
+        onCancel={handleForgeClose}
+      />
+    {:else if forgePopover.type === 'meta'}
+      <ForgeMeta
+        selectedText={forgePopover.text}
+        suggestedType={forgePopover.detection?.suggestedType ?? 'title'}
+        onConfirm={handleForgeConfirm}
+        onCancel={handleForgeClose}
+      />
+    {:else if forgePopover.type === 'menu'}
+      <ForgeMenuLoop
+        selectedText={forgePopover.text}
+        menus={forgeContext?.menus ?? []}
+        onConfirm={handleForgeConfirm}
+        onCancel={handleForgeClose}
+      />
+    {:else if forgePopover.type === 'form'}
+      <ForgeForm
+        forms={forgeContext?.forms ?? []}
+        onConfirm={handleForgeConfirm}
+        onCancel={handleForgeClose}
+      />
+    {/if}
+  </ForgePopover>
+{/if}
+
+<!-- Forge Theme wizard -->
+{#if forgeThemeWizard}
+  <ForgePopover
+    x={Math.round(window.innerWidth / 2 - 160)}
+    y={120}
+    title="Forge Theme"
+    onClose={handleForgeThemeClose}
+  >
+    <ForgeTheme
+      themeFolder={forgeThemeWizard.folder}
+      onCreated={handleForgeThemeCreated}
+      onCancel={handleForgeThemeClose}
+    />
+  </ForgePopover>
+{/if}
 
 <!-- Command Palette overlay -->
 {#if showCmdPalette}
@@ -748,6 +1012,57 @@
   .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-output)  { color: #0e7c6b; background: rgba(14,124,107,.06); border-radius: 2px; }
   .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-block)   { color: #1a56db; background: rgba(26,86,219,.06); border-radius: 2px; }
   .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-comment) { color: #9ca3af; background: rgba(156,163,175,.06); border-radius: 2px; font-style: italic; }
+
+  /* Forge banner */
+  .forge-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: var(--forest-light, rgba(34,150,114,.08));
+    border-bottom: 1px solid var(--forest-border, rgba(34,150,114,.18));
+    font-size: 13px;
+    color: var(--ce-fg);
+    flex-shrink: 0;
+  }
+  .forge-banner code {
+    background: rgba(255,255,255,.15);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .ce-col2:not(.dark) .forge-banner code {
+    background: rgba(0,0,0,.08);
+  }
+  .forge-banner-btn {
+    margin-left: auto;
+    padding: 4px 14px;
+    background: var(--forest, #229672);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--transition-fast);
+  }
+  .forge-banner-btn:hover { background: var(--forest-hover, #1a7a5c); }
+  .forge-banner-link {
+    margin-left: auto;
+    padding: 4px 10px;
+    background: none;
+    border: none;
+    color: var(--ce-muted, #888);
+    font-size: 12px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .forge-banner-link:hover { color: var(--ce-fg); }
+  .forge-banner-link + .forge-banner-btn { margin-left: 0; }
 
   .ce-empty {
     flex: 1;

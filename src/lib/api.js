@@ -308,8 +308,8 @@ export const code = {
     request('code/read', { params: { path } }),
   write: (path, content) =>
     request('code/write', { method: 'PUT', body: { path, content } }),
-  create: (path, type = 'file') =>
-    request('code/create', { method: 'POST', body: { path, type } }),
+  create: (path, type = 'file', content = '') =>
+    request('code/create', { method: 'POST', body: { path, type, content } }),
   rename: (oldPath, newPath) =>
     request('code/rename', { method: 'POST', body: { oldPath, newPath } }),
   delete: (path) =>
@@ -318,6 +318,8 @@ export const code = {
     request('code/search', { params: { q } }),
   context: () =>
     request('code/context'),
+  reset: (folder) =>
+    request('code/reset', { method: 'POST', body: { folder } }),
 };
 
 // Themes

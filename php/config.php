@@ -3,7 +3,7 @@
  * Outpost CMS — Configuration
  */
 
-define('OUTPOST_VERSION', '2.1.5');
+define('OUTPOST_VERSION', '2.2.1');
 
 // Paths (resolved relative to this file's location)
 define('OUTPOST_DIR', __DIR__ . '/');
@@ -48,7 +48,7 @@ define('OUTPOST_SESSION_NAME', 'outpost_session');
 define('OUTPOST_CACHE_ENABLED', true);
 
 // Code editor
-define('OUTPOST_CODE_EXTENSIONS', ['php', 'html', 'htm', 'css', 'js', 'json', 'xml', 'svg', 'txt', 'md', 'yml', 'yaml']);
+define('OUTPOST_CODE_EXTENSIONS', ['html', 'htm', 'css', 'js', 'json', 'xml', 'svg', 'txt', 'md', 'yml', 'yaml']);
 
 // ── Auto-migrate old directory layout to content/ ──
 (function() {

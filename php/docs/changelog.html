@@ -22,6 +22,45 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.2.1">2.2.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Forge Playground theme</strong> &mdash; 6-page demo website shipped as flat HTML/CSS in <code>themes/forge-playground/</code> for hands-on Forge practice</li>
+      <li><strong>Menu Loop action</strong> &mdash; 7th Forge action wraps navigation links in <code>&lbrace;% for link in menu.slug %&rbrace;</code> with smart link replacement</li>
+      <li><strong>Smart Extract Partial</strong> &mdash; extracting a <code>&lt;nav&gt;</code> now offers &ldquo;Connect to admin menu&rdquo; to wrap links in a menu loop</li>
+      <li><strong>Loop field mapper</strong> &mdash; Collection Loop detects images, headings, paragraphs, and links and maps them to collection fields</li>
+      <li><strong>Forge Theme wizard</strong> &mdash; guided <code>theme.json</code> creation for folders without one</li>
+      <li><strong>Forge reset</strong> &mdash; restores the Playground to pristine state from <code>.forge-snapshot/</code> backups</li>
+      <li><strong>Preview tabs</strong> &mdash; single-click opens preview tabs (italic); double-click or editing pins them</li>
+      <li><strong>Wrapping defaults on by default</strong> &mdash; images and links now preserve original URLs as fallback values</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>FindInFiles XSS</strong> &mdash; search result previews now escape HTML before rendering</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Removed PHP from code editor allowed extensions</li>
+      <li>Input sanitization on all Forge tag output functions</li>
+      <li>Snapshot restore now skips symlinks and validates extensions</li>
+      <li>Content size limit (1 MB) on file write/create endpoints</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="2.2.0">2.2.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Forge (Visual Tag Builder)</strong> &mdash; select HTML in the code editor, right-click or press &lcub;Cmd+E&rcub;, and wrap it in the correct Outpost Liquid template tag via a guided popover</li>
+      <li><strong>Smart detection engine</strong> &mdash; Forge analyzes the selected HTML (img, link, heading, nav, form, etc.) and suggests the most likely tag type, reordering the context menu and pre-selecting the field type</li>
+      <li><strong>6 tag actions</strong> &mdash; Make Editable (all field types + page/global scope + wrapping defaults), Collection Loop, Conditional, Extract Partial (auto-creates file), Meta Tag, Form</li>
+      <li><strong>Extract Partial</strong> &mdash; select a reusable HTML block, name it, and Forge creates the partial file and replaces the selection with <code>&lbrace;% include %&rbrace;</code> in one step</li>
+      <li><strong>StatusBar hint</strong> &mdash; &ldquo;⌘E to tag&rdquo; appears in the status bar when editing HTML files</li>
+      <li><strong>Extended code/context endpoint</strong> &mdash; now returns forms, menus, and folders for Forge popover dropdowns</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="2.1.5">2.1.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
     <h3>Changed</h3>
     <ul>

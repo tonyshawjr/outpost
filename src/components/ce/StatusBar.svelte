@@ -1,5 +1,5 @@
 <script>
-  let { line = 1, col = 1, language = '', filepath = '', fileSize = 0 } = $props();
+  let { line = 1, col = 1, language = '', filepath = '', fileSize = 0, hint = '' } = $props();
 
   function formatSize(bytes) {
     if (!bytes) return '';
@@ -29,6 +29,10 @@
     <span class="sb-item">UTF-8</span>
     <span class="sb-sep">·</span>
     <span class="sb-item">2 spaces</span>
+    {#if hint}
+      <span class="sb-sep">·</span>
+      <span class="sb-item sb-hint">{hint}</span>
+    {/if}
   </div>
 </div>
 
@@ -66,4 +70,9 @@
   }
 
   .sb-sep { opacity: .4; }
+
+  .sb-hint {
+    color: var(--forest);
+    opacity: .7;
+  }
 </style>

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.1] — 2026-03-09
+
+### Added
+- **Forge Playground theme** — a 6-page demo website (index, features, blog, gallery, about, contact) shipped as flat HTML/CSS in `themes/forge-playground/`. Users open it in the Code Editor and practice converting static HTML into a fully tagged Outpost theme using Forge.
+- **Menu Loop action** — new 7th Forge action wraps navigation links in `{% for link in menu.slug %}...{% endfor %}`. Auto-detects `<ul>`/`<ol>` with 2+ links and offers to replace static links with `{{ link.url }}` and `{{ link.label }}` template tags.
+- **Smart Extract Partial** — when extracting a `<nav>` as a partial, Forge now offers a "Connect to admin menu" checkbox. When enabled, it wraps the navigation links in a menu loop before saving the partial file.
+- **Loop field mapper** — Collection Loop popover detects images, headings, paragraphs, and links in the selected HTML and shows a field mapper UI. Auto-guesses which collection fields match each content element.
+- **Forge Theme wizard** — banner and context menu item for folders without `theme.json`. Guided wizard creates `theme.json` with name, author, and description.
+- **Forge reset** — reset button restores the Playground to its pristine state via `.forge-snapshot/` backups, removing `theme.json` and all partials.
+- **Preview tabs** — single-clicking a file in the Code Editor file tree opens it as a preview tab (italic name). Clicking another file replaces the preview. Double-click or editing pins the tab. Matches VS Code behavior.
+- **Wrapping defaults on by default** — "Use as default" is now checked by default when Forge detects selected text. Extended to image and link types so original URLs are preserved as fallback values.
+
+### Fixed
+- **FindInFiles XSS** — search result previews now HTML-escape file content before rendering via `{@html}`, preventing script injection from theme files.
+
+### Security
+- **Removed PHP from code editor extensions** — `.php` files can no longer be created or edited via the code editor, preventing remote code execution.
+- **Template injection prevention** — all Forge tag functions now sanitize field names, slugs, and variables, stripping unsafe characters.
+- **Snapshot restore hardening** — `code_restore_snapshot()` now skips symlinks and validates file extensions before restoring.
+- **Content size limit** — `code/write` and `code/create` endpoints now enforce a 1 MB content limit.
+- **Reset endpoint fix** — `handle_code_reset()` now uses `get_json_body()` for proper JSON validation.
+- **Conditional value escaping** — double quotes in conditional comparison values are now escaped.
+
+---
+
+## [2.2.0] — 2026-03-09
+
+### Added
+- **Forge (Visual Tag Builder)** — select HTML in the code editor, right-click or press Cmd+E, and wrap it in the correct Outpost Liquid template tag via a guided popover
+- **Smart detection engine** — Forge analyzes the selected HTML (img, link, heading, nav, form, etc.) and suggests the most likely tag type, reordering the context menu and pre-selecting the field type
+- **6 tag actions** — Make Editable (all field types + page/global scope + wrapping defaults), Collection Loop, Conditional, Extract Partial (auto-creates file), Meta Tag, Form
+- **Extract Partial** — select a reusable HTML block, name it, and Forge creates the partial file and replaces the selection with `{% include %}` in one step
+- **StatusBar hint** — "⌘E to tag" appears in the status bar when editing HTML files
+- **Extended code/context endpoint** — now returns forms, menus, and folders for Forge popover dropdowns
+- **code/create accepts content** — partial extraction creates files with content in a single API call
+
+---
+
 ## [2.1.5] — 2026-03-09
 
 ### Changed

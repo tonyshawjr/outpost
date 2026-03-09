@@ -46,7 +46,7 @@ function code_allowed_extension(string $filename): bool {
  * Directories to skip when building the file tree.
  */
 function code_skip_dir(string $name): bool {
-    return in_array($name, ['node_modules', '.git', '.svn', 'vendor', '__pycache__'], true);
+    return in_array($name, ['node_modules', '.git', '.svn', 'vendor', '__pycache__', '.forge-snapshot'], true);
 }
 
 /**
@@ -172,7 +172,9 @@ function handle_code_create(): void {
         if (!is_dir($dir)) {
             json_error('Parent directory does not exist', 404);
         }
-        if (file_put_contents($real, '', LOCK_EX) === false) {
+        $content = $data['content'] ?? '';
+        if (strlen($content) > 1048576) json_error('Content too large (max 1 MB)');
+        if (file_put_contents($real, $content, LOCK_EX) === false) {
             json_error('Could not create file');
         }
     }
@@ -345,7 +347,34 @@ function handle_code_context(): void {
         }
     } catch (\Exception $e) {}
 
-    json_response(['globals' => $globals, 'collections' => $collections]);
+    // Forms (for Forge popover)
+    $forms = [];
+    try {
+        $rows = OutpostDB::fetchAll('SELECT id, slug, name FROM forms ORDER BY name');
+        $forms = $rows ?: [];
+    } catch (\Exception $e) {}
+
+    // Menus (for Forge popover)
+    $menus = [];
+    try {
+        $rows = OutpostDB::fetchAll('SELECT id, slug, name FROM menus ORDER BY name');
+        $menus = $rows ?: [];
+    } catch (\Exception $e) {}
+
+    // Folders (for Forge popover)
+    $folders = [];
+    try {
+        $rows = OutpostDB::fetchAll('SELECT id, slug, name FROM folders ORDER BY name');
+        $folders = $rows ?: [];
+    } catch (\Exception $e) {}
+
+    json_response([
+        'globals'     => $globals,
+        'collections' => $collections,
+        'forms'       => $forms,
+        'menus'       => $menus,
+        'folders'     => $folders,
+    ]);
 }
 
 /**
@@ -360,6 +389,7 @@ function handle_code_write(): void {
     $content = $data['content'] ?? '';
 
     if (!$path) json_error('Path required');
+    if (strlen($content) > 1048576) json_error('Content too large (max 1 MB)');
 
     if (!code_allowed_extension($path)) {
         json_error('File type not allowed', 403);
@@ -387,4 +417,78 @@ function handle_code_write(): void {
         'path' => $path,
         'size' => $bytes,
     ]);
+}
+
+/**
+ * POST code/reset — Reset a theme folder from its .forge-snapshot backup.
+ * Restores original HTML/CSS files, removes theme.json, and clears partials created by Forge.
+ */
+function handle_code_reset(): void {
+    outpost_require_cap('code.*');
+
+    $data = get_json_body();
+    $folder = $data['folder'] ?? '';
+
+    if (!$folder || str_contains($folder, '..') || str_contains($folder, '/')) {
+        json_error('Invalid folder name');
+    }
+
+    $themeDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/' . $folder;
+    $snapshotDir = $themeDir . '/.forge-snapshot';
+
+    if (!is_dir($themeDir) || !is_dir($snapshotDir)) {
+        json_error('No snapshot found for this folder');
+    }
+
+    // Recursively copy snapshot files back to theme directory
+    code_restore_snapshot($snapshotDir, $themeDir);
+
+    // Delete theme.json if it exists
+    $themeJson = $themeDir . '/theme.json';
+    if (file_exists($themeJson)) {
+        unlink($themeJson);
+    }
+
+    // Delete partials created by Forge (remove entire directory)
+    $partialsDir = $themeDir . '/partials';
+    if (is_dir($partialsDir)) {
+        $files = scandir($partialsDir);
+        foreach ($files as $f) {
+            if ($f === '.' || $f === '..') continue;
+            $path = $partialsDir . '/' . $f;
+            if (is_file($path)) unlink($path);
+        }
+        rmdir($partialsDir);
+    }
+
+    // Clear template cache
+    require_once __DIR__ . '/engine.php';
+    outpost_clear_cache();
+
+    json_response(['success' => true]);
+}
+
+/**
+ * Recursively copy files from snapshot back to the target directory.
+ */
+function code_restore_snapshot(string $src, string $dst): void {
+    $entries = scandir($src);
+    foreach ($entries as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+
+        $srcPath = $src . '/' . $entry;
+        $dstPath = $dst . '/' . $entry;
+
+        // Skip symlinks to prevent symlink-following attacks
+        if (is_link($srcPath)) continue;
+
+        if (is_dir($srcPath)) {
+            if (!is_dir($dstPath)) mkdir($dstPath, 0755, true);
+            code_restore_snapshot($srcPath, $dstPath);
+        } else {
+            // Only restore files with allowed extensions
+            if (!code_allowed_extension($entry)) continue;
+            copy($srcPath, $dstPath);
+        }
+    }
 }

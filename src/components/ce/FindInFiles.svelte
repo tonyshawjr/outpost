@@ -49,11 +49,15 @@
     onOpenFile({ path: r.path, name: r.path.split('/').pop(), type: 'file' }, r.line);
   }
 
+  function escHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function highlight(text, q) {
-    if (!q) return text;
+    if (!q) return escHtml(text);
     const idx = text.toLowerCase().indexOf(q.toLowerCase());
-    if (idx < 0) return text;
-    return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + q.length) + '</mark>' + text.slice(idx + q.length);
+    if (idx < 0) return escHtml(text);
+    return escHtml(text.slice(0, idx)) + '<mark>' + escHtml(text.slice(idx, idx + q.length)) + '</mark>' + escHtml(text.slice(idx + q.length));
   }
 </script>
 

@@ -264,7 +264,7 @@ Edit content directly on the live site while logged in as an admin — no round-
 
 ---
 
-## v2.2 — Visual Tag Builder
+## v2.2 — Forge (Visual Tag Builder) — SHIPPED (v2.2.0)
 
 **Turn any static HTML into an Outpost theme without writing a single template tag.** Import your HTML, select content, click "Make Editable" — Outpost wraps the selection in the correct `{{ }}` or `{% %}` tags for you.
 
@@ -291,6 +291,18 @@ Edit content directly on the live site while logged in as an admin — no round-
 - **Conditionals** — select a section, choose "Conditional" → wraps in `{% if field_name %}...{% endif %}`
 - **Includes** — select a `<header>` or `<footer>`, choose "Extract Partial" → moves the HTML to `partials/header.html` and replaces it with `{% include 'header' %}`
 - **Meta tags** — select a `<title>` or `<meta>` description, choose "Meta" → converts to `{{ meta.title }}` / `{{ meta.description }}`
+
+### Forge Playground — SHIPPED (v2.2.1)
+
+- **6-page demo theme** — ships as flat HTML/CSS in `themes/forge-playground/` for hands-on practice
+- **Menu Loop** — 7th action, wraps nav links in `{% for link in menu.slug %}` with smart link replacement
+- **Smart Extract Partial** — nav detection with "Connect to admin menu" option
+- **Loop field mapper** — auto-detects content elements and maps them to collection fields
+- **Forge Theme wizard** — guided `theme.json` creation for flat HTML folders
+- **Forge reset** — one-click restore to pristine state from `.forge-snapshot/` backups
+- **Preview tabs** — single-click preview, double-click to pin (VS Code behavior)
+- **Wrapping defaults** — ON by default for all field types including images and links
+- **Security hardening** — removed PHP from code editor, input sanitization, content size limits
 
 ### Code editor enhancements (ships with this release)
 
@@ -470,7 +482,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.9~~ | ~~Q2 2027~~ | ~~Developer Experience & Theme Updates~~ **Shipped** | Developers / Everyone |
 | ~~2.0~~ | ~~Q3 2027~~ | ~~Onboarding & Setup Wizard~~ **Shipped** | Everyone |
 | ~~2.1~~ | ~~Q3 2027~~ | ~~Collection Folders — Inline label sidebar~~ **Shipped** | Everyone |
-| 2.2 | Q4 2027 | Visual Tag Builder — HTML-to-theme conversion | Developers / Everyone |
+| ~~2.2~~ | ~~Q4 2027~~ | ~~Forge — visual HTML-to-theme conversion~~ **Shipped** | Developers / Everyone |
 | 2.3 | Q4 2027 | Deeper Analytics — funnels, search, cohorts | Everyone |
 | 2.4 | Q1 2028 | Theme Gallery — 4-5 polished starter themes | Everyone |
 | 2.5 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |

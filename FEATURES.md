@@ -4,6 +4,28 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Forge — Visual Tag Builder (v2.2.0)
+
+- **Forge** — a visual tag builder embedded in the code editor. Select HTML in any `.html` theme file, right-click (or press Cmd+E), and Forge wraps the selection in the correct Outpost Liquid template tag via a guided popover. No template syntax knowledge required.
+- **Smart detection** — `forge-detect.js` analyzes the selected HTML and intelligently suggests the most likely action and field type. `<img>` → image, `<a href>` → link, `<h1>` → text, `<nav>` → extract partial, `<form>` → form, `<ul>` with links → menu loop, rich HTML → richtext, plain text → text/textarea. The context menu reorders to put the best match first.
+- **Make Editable** — wrap any content in `{{ field }}` output tags. Configure field name (auto-slugified from selection), type (text, richtext, image, link, textarea, select, color, number, date, toggle), scope (page field or global), and optional wrapping default. "Use as default" is ON by default — original content is preserved as a fallback. Works for images and links too (`{{ field | image }}https://...{{ /field }}`).
+- **Collection Loop** — wrap HTML in `{% for item in collection.slug %}...{% endfor %}`. Select collection from dropdown, set item variable name, limit, and order by. **Loop field mapper** auto-detects images, headings, paragraphs, and links in the selection and maps them to collection fields.
+- **Menu Loop** — wrap navigation links in `{% for link in menu.slug %}...{% endfor %}`. Select a menu from the admin, and Forge replaces static `<a>` href/text with `{{ link.url }}` and `{{ link.label }}`.
+- **Conditional** — wrap in `{% if expression %}...{% endif %}`. Supports truthy, `==`, and `!=` operators.
+- **Extract Partial** — select a reusable block (nav, header, footer), name the partial, and Forge creates `partials/{name}.html` with the content and replaces the selection with `{% include 'name' %}` — all in one step. Auto-creates the `partials/` directory if needed. **Smart nav detection**: when extracting a `<nav>` with links, offers to connect to the admin menu system automatically.
+- **Meta Tag** — wrap in `{{ meta.title }}...{{ /meta.title }}` or `{{ meta.description }}...{{ /meta.description }}`.
+- **Form** — insert `{% form 'slug' %}` with form selection from dropdown or free-text input.
+- **Forge Playground** — ships with a 6-page marketing website (`themes/forge-playground/`) as flat HTML/CSS. Users practice converting it into a theme using Forge. Includes blog cards for loop practice, nav for menu loop practice, images for editable practice.
+- **Forge Theme wizard** — folders without `theme.json` show a banner and "Forge Theme..." menu item. Guided wizard creates `theme.json` with name, author, and description.
+- **Forge reset** — resets the Playground to its pristine state from `.forge-snapshot/` backups. Removes `theme.json`, all partials, and all template tags.
+- **Preview tabs** — single-click opens files as preview tabs (italic name); clicking another file replaces the preview. Double-click or editing pins the tab.
+- **StatusBar hint** — "⌘E to tag" in status bar for HTML files.
+- **Extended context endpoint** — `code/context` now returns forms, menus, and folders for Forge popover dropdowns.
+- **Security hardening** — removed PHP from code editor extensions, sanitized all Forge tag output, hardened snapshot restore, added content size limits.
+- **Files**: `src/lib/forge-detect.js`, `src/lib/forge-tags.js`, `src/components/ce/ForgeMenu.svelte`, `src/components/ce/ForgePopover.svelte`, `src/components/ce/ForgeEditable.svelte`, `src/components/ce/ForgeLoop.svelte`, `src/components/ce/ForgeConditional.svelte`, `src/components/ce/ForgePartial.svelte`, `src/components/ce/ForgeMeta.svelte`, `src/components/ce/ForgeForm.svelte`, `src/components/ce/ForgeMenuLoop.svelte`, `src/components/ce/ForgeTheme.svelte`, `src/pages/CodeEditor.svelte`, `src/components/ce/StatusBar.svelte`, `src/components/ce/EditorTabs.svelte`, `src/components/ce/FileTree.svelte`, `src/components/ce/FindInFiles.svelte`, `src/lib/api.js`, `php/code-editor.php`, `php/themes/forge-playground/`
+
+---
+
 ## Inline Collection Folders (v2.1.0)
 
 - **Label sidebar** — `LabelSidebar.svelte` component shown inline on collection items page when the collection has folders. Displays "All Items" (total count), "Unfiled" (unfiled count), and all labels with per-label item counts. Modeled after MediaLibrary folder sidebar pattern.
