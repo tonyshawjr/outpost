@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.4] — 2026-03-09
+
+### Fixed
+- Forge Playground theme uses absolute paths for CSS and navigation links so pages render correctly when served through the front-router
+
 ## [2.2.3] — 2026-03-09
 
 ### Added
