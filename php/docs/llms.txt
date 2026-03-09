@@ -2078,6 +2078,105 @@ echo json_encode(['items' => $items]);
 
 **Important:** `engine.php` is overwritten during auto-updates. Never modify it for custom logic — your changes will be lost. Use standalone files instead.
 
+### Intercepting and modifying API requests
+
+Outpost has no built-in middleware pipeline, hooks, or request interceptors. `api.php` processes requests directly — there is no way to register a PHP callback that runs before or after an API action inside Outpost's codebase.
+
+However, you can intercept and modify requests to `api.php` at the **web server level** or with a **PHP proxy wrapper**:
+
+**Approach 1 — PHP proxy wrapper (most flexible):**
+Create a PHP file that sits in front of `api.php`, runs your custom logic, then forwards the request:
+
+```php
+<?php
+// /outpost/api-proxy.php — intercepts requests before api.php
+$action = $_GET['action'] ?? '';
+$method = $_SERVER['REQUEST_METHOD'];
+
+// PRE-PROCESSING: Log, validate, modify request data
+file_put_contents('/tmp/api-log.txt', date('c') . " $method $action\n", FILE_APPEND);
+
+// Example: Block writes from unauthorized IPs
+if ($method !== 'GET' && !in_array($_SERVER['REMOTE_ADDR'], ['192.168.1.10'])) {
+    http_response_code(403);
+    echo json_encode(['error' => 'IP not allowed']);
+    exit;
+}
+
+// Forward to Outpost
+require __DIR__ . '/api.php';
+```
+
+**Approach 2 — Output buffering wrapper (modify responses):**
+```php
+<?php
+// /outpost/api-wrapper.php — modifies API responses
+ob_start();
+require __DIR__ . '/api.php';
+$response = ob_get_clean();
+
+$data = json_decode($response, true);
+// Modify the response before sending
+if (isset($data['pages'])) {
+    foreach ($data['pages'] as &$page) {
+        $page['word_count'] = str_word_count(strip_tags($page['body'] ?? ''));
+    }
+}
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode($data);
+```
+
+**Approach 3 — Apache/Nginx rewrite rules (server-level):**
+```apache
+# .htaccess — rewrite api.php to your proxy
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/outpost/api\.php
+RewriteRule ^outpost/api\.php$ outpost/api-proxy.php [QSA,L]
+```
+
+```nginx
+# Nginx — rate limit API mutations
+limit_req_zone $binary_remote_addr zone=api_writes:10m rate=10r/s;
+location = /outpost/api.php {
+    limit_except GET {
+        limit_req zone=api_writes burst=20 nodelay;
+    }
+    include fastcgi_params;
+    fastcgi_pass unix:/run/php/php-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+}
+```
+
+**Approach 4 — Standalone endpoint using Outpost's database:**
+```php
+<?php
+// /my-api.php — custom endpoint with full access to Outpost data
+require_once __DIR__ . '/outpost/db.php';
+require_once __DIR__ . '/outpost/members.php';
+header('Content-Type: application/json');
+
+$member = OutpostMember::current();
+if (!$member) { http_response_code(401); echo json_encode(['error' => 'Login required']); exit; }
+
+$items = OutpostDB::fetchAll("SELECT * FROM collection_items WHERE status = 'published' ORDER BY published_at DESC LIMIT 20");
+echo json_encode(['items' => $items]);
+```
+
+**Which approach to use:**
+
+| Goal | Approach |
+|---|---|
+| Log/audit API requests | PHP proxy wrapper |
+| Add authentication or IP restrictions | Apache/Nginx rules or PHP proxy |
+| Modify request data before Outpost processes it | PHP proxy wrapper |
+| Modify response data after Outpost processes it | Output buffering wrapper |
+| Rate limit API endpoints | Nginx rate limiting |
+| Add CORS headers for specific domain | Apache/Nginx headers |
+| Build entirely custom API logic using Outpost data | Standalone endpoint |
+| Webhook on content changes | PHP proxy that fires webhook after `require api.php` |
+
+**Important:** Proxy files inside `outpost/` are overwritten by auto-updates. Place them at your document root (outside `outpost/`) or use Apache/Nginx configuration.
+
 ## Key PHP Classes & Functions
 
 | Symbol | Location | Purpose |

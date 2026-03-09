@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.8] — 2026-03-09
+
+### Added
+- **Intercepting API requests guide** — 4 concrete approaches for intercepting/modifying `api.php` requests (PHP proxy wrapper, output buffering wrapper, Apache/Nginx rewrite rules, standalone endpoints) with full code examples and a decision matrix
+- Updated `llms.txt` with all API interception patterns
+
 ## [2.2.7] — 2026-03-09
 
 ### Added

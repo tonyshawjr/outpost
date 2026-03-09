@@ -91,6 +91,180 @@ const data = await res.json();
 
     <div class="callout callout-note"><strong>Note</strong> — <code>engine.php</code> is part of Outpost's core and is overwritten during auto-updates. Do not modify it for custom logic — your changes will be lost on the next update. Use standalone files instead.</div>
 
+    <h2>Intercepting and modifying API requests</h2>
+    <p>Outpost has no built-in middleware pipeline, hooks, or request interceptors. <code>api.php</code> processes requests directly — there is no way to register a PHP callback that runs before or after an API action inside Outpost's codebase.</p>
+    <p>However, you can intercept and modify requests to <code>api.php</code> at the <strong>web server level</strong> or with a <strong>PHP proxy wrapper</strong>. Here are the concrete approaches:</p>
+
+    <h3>Approach 1 — PHP proxy wrapper (most flexible)</h3>
+    <p>Create a PHP file that sits in front of <code>api.php</code>, intercepts the request, runs your custom logic, then forwards the request to Outpost. This gives you full control over the request and response.</p>
+    <pre><code>&lt;?php
+// /outpost/api-proxy.php — intercepts requests before api.php
+// Point your client to api-proxy.php instead of api.php
+
+// --- PRE-PROCESSING (before Outpost handles the request) ---
+
+// Example: Log every API request
+$action = $_GET['action'] ?? '';
+$method = $_SERVER['REQUEST_METHOD'];
+file_put_contents('/tmp/api-log.txt', date('c') . " $method $action\n", FILE_APPEND);
+
+// Example: Add custom authentication (e.g. IP allowlist)
+$allowed = ['192.168.1.0/24', '10.0.0.0/8'];
+$clientIp = $_SERVER['REMOTE_ADDR'];
+if ($action === 'items' &amp;&amp; $method === 'POST') {
+    $allowed_ip = false;
+    foreach ($allowed as $range) {
+        // (simplified check — use a proper CIDR function in production)
+        if (str_starts_with($clientIp, explode('/', $range)[0])) {
+            $allowed_ip = true;
+        }
+    }
+    if (!$allowed_ip) {
+        http_response_code(403);
+        echo json_encode(['error' => 'IP not allowed']);
+        exit;
+    }
+}
+
+// Example: Modify request data before Outpost sees it
+if ($action === 'items' &amp;&amp; $method === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    // Auto-set a field value
+    $input['data']['source'] = 'api';
+    // Re-encode so api.php reads the modified data
+    // Override php://input via a stream wrapper or use $_POST
+}
+
+// --- FORWARD TO OUTPOST ---
+// Option A: Include api.php directly (shares the same PHP process)
+require __DIR__ . '/api.php';
+
+// --- POST-PROCESSING ---
+// If you used output buffering (ob_start before require), you can
+// modify the response here before sending it to the client.
+?&gt;</code></pre>
+
+    <h3>Approach 2 — Output buffering wrapper (modify responses)</h3>
+    <p>To intercept and modify the <strong>response</strong> from <code>api.php</code>, wrap the include with output buffering:</p>
+    <pre><code>&lt;?php
+// /outpost/api-wrapper.php — modifies API responses
+ob_start();
+require __DIR__ . '/api.php';
+$response = ob_get_clean();
+
+// Parse and modify the response
+$data = json_decode($response, true);
+
+if (isset($data['pages'])) {
+    // Example: Add a computed field to every page
+    foreach ($data['pages'] as &amp;$page) {
+        $page['word_count'] = str_word_count(strip_tags($page['body'] ?? ''));
+    }
+}
+
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode($data);
+?&gt;</code></pre>
+
+    <h3>Approach 3 — Apache/Nginx rewrite rules (server-level)</h3>
+    <p>Use web server configuration to add headers, enforce authentication, rate-limit, or redirect API requests before PHP is invoked.</p>
+    <p><strong>Apache — add custom headers and IP restrictions:</strong></p>
+    <pre><code># .htaccess — intercept api.php requests
+&lt;Files "api.php"&gt;
+    # Add CORS headers for a specific domain
+    Header set Access-Control-Allow-Origin "https://myapp.com"
+    Header set Access-Control-Allow-Headers "Content-Type, X-CSRF-Token, Authorization"
+
+    # Block all non-GET requests from external IPs
+    &lt;If "%{REQUEST_METHOD} != 'GET' &amp;&amp; ! -R '192.168.1.0/24'"&gt;
+        Require all denied
+    &lt;/If&gt;
+&lt;/Files&gt;
+
+# Rewrite api.php to your proxy wrapper
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/outpost/api\.php
+RewriteRule ^outpost/api\.php$ outpost/api-proxy.php [QSA,L]</code></pre>
+    <p><strong>Nginx — rate limiting and proxy headers:</strong></p>
+    <pre><code># Rate limit API mutations to 10 req/sec
+limit_req_zone $binary_remote_addr zone=api_writes:10m rate=10r/s;
+
+location = /outpost/api.php {
+    # Apply rate limiting only to POST/PUT/DELETE
+    limit_except GET {
+        limit_req zone=api_writes burst=20 nodelay;
+    }
+
+    # Add custom headers before PHP processes the request
+    fastcgi_param HTTP_X_FORWARDED_FOR $remote_addr;
+    fastcgi_param HTTP_X_REQUEST_ID $request_id;
+
+    # Forward to PHP-FPM
+    include fastcgi_params;
+    fastcgi_pass unix:/run/php/php-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+}</code></pre>
+
+    <h3>Approach 4 — Standalone endpoint that reads/writes Outpost data</h3>
+    <p>Instead of intercepting <code>api.php</code>, create your own endpoint that uses Outpost's database and PHP classes directly. This is the cleanest approach when you need entirely custom behavior:</p>
+    <pre><code>&lt;?php
+// /my-api.php — custom endpoint with full access to Outpost data
+require_once __DIR__ . '/outpost/db.php';
+require_once __DIR__ . '/outpost/members.php';
+
+header('Content-Type: application/json');
+
+// Use Outpost's member auth
+$member = OutpostMember::current();
+if (!$member) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Login required']);
+    exit;
+}
+
+// Read from Outpost's database
+$db = OutpostDB::connect();
+$items = $db->query(
+    "SELECT ci.*, c.slug as collection_slug
+     FROM collection_items ci
+     JOIN collections c ON c.id = ci.collection_id
+     WHERE ci.status = 'published'
+     ORDER BY ci.published_at DESC
+     LIMIT 20"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// Write to Outpost's database
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $db->prepare("INSERT INTO collection_items (collection_id, slug, status, data, created_at)
+                  VALUES (?, ?, 'draft', ?, datetime('now'))")
+       ->execute([$input['collection_id'], $input['slug'], json_encode($input['data'])]);
+    echo json_encode(['success' => true, 'id' => $db->lastInsertId()]);
+    exit;
+}
+
+echo json_encode(['items' => $items]);
+?&gt;</code></pre>
+
+    <div class="callout callout-warn"><strong>Important</strong> — Approaches 1 and 2 (proxy wrappers) will be overwritten if placed inside the <code>outpost/</code> directory during an auto-update. Place proxy files at your <strong>document root</strong> (outside <code>outpost/</code>) or use the Apache/Nginx approach which lives in server configuration.</div>
+
+    <h3>Which approach to use</h3>
+    <table>
+      <thead>
+        <tr><th>Goal</th><th>Recommended approach</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Log or audit API requests</td><td>PHP proxy wrapper (Approach 1)</td></tr>
+        <tr><td>Add extra authentication or IP restrictions</td><td>Apache/Nginx rules (Approach 3) or PHP proxy</td></tr>
+        <tr><td>Modify request data before Outpost processes it</td><td>PHP proxy wrapper (Approach 1)</td></tr>
+        <tr><td>Modify response data after Outpost processes it</td><td>Output buffering wrapper (Approach 2)</td></tr>
+        <tr><td>Rate limit API endpoints</td><td>Nginx rate limiting (Approach 3)</td></tr>
+        <tr><td>Add CORS headers for a specific domain</td><td>Apache/Nginx headers (Approach 3)</td></tr>
+        <tr><td>Build entirely custom API logic using Outpost data</td><td>Standalone endpoint (Approach 4)</td></tr>
+        <tr><td>Webhook on content changes</td><td>PHP proxy wrapper that fires a webhook after <code>require api.php</code></td></tr>
+      </tbody>
+    </table>
+
     <h2>Key PHP files</h2>
     <table>
       <thead>
