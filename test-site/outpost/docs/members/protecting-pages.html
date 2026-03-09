@@ -18,6 +18,45 @@
   </div>
   <div class="content">
 
+    <h2>Quick start — checking if a user is authenticated</h2>
+    <p>The recommended way to check member authentication is through <code>OutpostMember</code> in a PHP partial. Here is the simplest approach:</p>
+    <pre><code>&lt;?php
+// Include Outpost's member system
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+
+// Check if ANY member is logged in (returns true/false)
+$isLoggedIn = OutpostMember::check();
+
+// Get the full member record (returns array or null)
+$member = OutpostMember::current();
+
+// Common checks:
+if (!$member) {
+    // Not logged in — redirect to login
+    header('Location: /outpost/member-pages/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
+// Check specific role
+if ($member['role'] === 'paid_member') {
+    // Paid member — show premium content
+}
+
+// Check if membership has expired
+if ($member['member_expires'] &amp;&amp; strtotime($member['member_expires']) &lt; time()) {
+    // Expired — prompt renewal
+}
+
+// Available member fields:
+// $member['id'], $member['email'], $member['display_name'],
+// $member['role'], $member['status'], $member['member_expires'],
+// $member['created_at']
+?&gt;</code></pre>
+
+    <div class="callout callout-note"><strong>Setup requirement</strong> — The member system works out of the box. No configuration is needed beyond having Outpost installed. The <code>members.php</code> file handles sessions, cookie validation, and database lookups automatically. Just <code>require_once</code> it and call the static methods.</div>
+
+    <p>For most sites, you do not need PHP partials at all. Use the <strong>page-level visibility</strong> setting below to gate entire pages without writing any code.</p>
+
     <h2>Page-level visibility</h2>
     <p>Every page managed through <strong>Admin → Pages</strong> has a visibility setting. Find it in the right sidebar of the page editor under the SEO / Settings panel. Three options are available:</p>
     <table>

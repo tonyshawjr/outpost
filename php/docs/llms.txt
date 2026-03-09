@@ -117,6 +117,24 @@ In collection loops use `{{ post.url }}` — Outpost generates correct URLs auto
 
 **When converting static HTML sites to Outpost themes, update every `<a href="page.html">` to `<a href="/page">`.**
 
+### Defining custom routes
+
+Outpost uses file-based routing — there is no route registration function, no config file, no middleware pipeline. Creating a template file IS defining a route:
+
+| You create | The route becomes |
+|---|---|
+| `events.html` | `/events` |
+| `pricing.html` | `/pricing` |
+| `contact.html` | `/contact` |
+| `docs.html` | `/docs` |
+
+Dynamic routes use collections: create a collection with URL pattern `/event/{slug}` and a template `event.html`. The router matches `/event/my-event`, extracts the slug, and renders the template with `{% single event from collection.event %}`.
+
+**What you cannot do:**
+- Multi-segment static routes like `/docs/getting-started` — template files map 1:1 to single-segment paths. Use query params (`/docs?page=getting-started`) or collection URL patterns instead.
+- Custom PHP route handlers — the router is not extensible. For custom server-side logic, create a standalone PHP file (e.g. `/custom-api.php`) outside the theme.
+- Route parameters beyond `{slug}` — collections and channels support only `{slug}` in URL patterns.
+
 ### Asset paths must be absolute
 
 Always use absolute paths starting with `/` for CSS, JS, images, and fonts:
@@ -254,6 +272,8 @@ All output tags register the field in the admin page editor automatically.
 {{ field_name | or_body }}    <!-- text/excerpt fallback: uses auto-excerpt from body field if field is empty -->
 {{ field_name | focal }}      <!-- focal point: outputs "X% Y%" for object-position/background-position -->
 ```
+
+**Filter purpose:** Filters like `| image`, `| link`, `| textarea` do NOT transform the output. They tell the admin page editor which input type to render for that field (media picker, URL input, multiline textarea, etc.). The template output is always the stored value. `{{ hero | image }}` outputs the image URL string — wrap it in `<img src="...">` yourself.
 
 Both inline (`{{ field "Default" }}`) and closing-tag (`{{ field }}Default{{ /field }}`) default syntax is fully supported. Closing-tag defaults also work with filters: `{{ field | raw }}<p>HTML</p>{{ /field }}`. Defaults are extracted by the template scanner and stored in `page_field_registry.default_value`, so the admin page editor pre-fills fields (including WYSIWYG richtext) with the template default when content is empty.
 
@@ -534,6 +554,8 @@ All loop types support `{% else %}` for empty-state fallbacks (v1.9.3). This inc
 {% if field %}...{% else %}...{% endif %}
 {% if admin %}...{% endif %}   <!-- true only when previewing in the admin editor -->
 ```
+
+**Conditional limitations:** Outpost conditionals do not support `&&` (AND), `||` (OR), or `!` (NOT) operators. Each `{% if %}` tests a single expression. For compound logic, nest `{% if %}` blocks. There is no `{% elseif %}` — use nested `{% if %}` inside `{% else %}`.
 
 ### Includes
 
@@ -874,6 +896,42 @@ Member pages at `outpost/member-pages/`:
 **Email verification** (optional): Enable in Admin → Settings → Members. When on, new members receive a verification email with a 24-hour token link. They cannot sign in until verified. Members registered before the setting was enabled are grandfathered in. Admins can manually verify from Admin → Members. Setting key: `require_email_verification` ('0'/'1').
 
 ## Protecting Pages
+
+### Quick start — checking member authentication
+
+```php
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
+
+// Check if ANY member is logged in (returns true/false)
+$isLoggedIn = OutpostMember::check();
+
+// Get the full member record (returns array or null)
+$member = OutpostMember::current();
+
+if (!$member) {
+    header('Location: /outpost/member-pages/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
+// Check specific role
+if ($member['role'] === 'paid_member') {
+    // Paid member — show premium content
+}
+
+// Check if membership has expired
+if ($member['member_expires'] && strtotime($member['member_expires']) < time()) {
+    // Expired — prompt renewal
+}
+
+// Available member fields:
+// $member['id'], $member['email'], $member['display_name'],
+// $member['role'], $member['status'], $member['member_expires'],
+// $member['created_at']
+?>
+```
+
+The member system works out of the box. No configuration is needed beyond having Outpost installed. The `members.php` file handles sessions, cookie validation, and database lookups automatically. Just `require_once` it and call the static methods.
 
 ### Page-level visibility
 
@@ -1508,7 +1566,7 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `fields/bulk` | PUT | Bulk page field update |
 | `globals` | GET | Global fields |
 | `collections` | GET, POST, PUT, DELETE | Collections CRUD |
-| `items` | GET, POST, PUT, DELETE | Collection items CRUD |
+| `items` | GET, POST, PUT, DELETE | Collection items CRUD (see create example below) |
 | `items/inline` | PUT | Partial field update for collection items (on-page editing) |
 | `items/bulk-status` | PUT | Bulk update item status (draft/published/pending_review) |
 | `items/bulk-delete` | DELETE | Bulk delete items |
@@ -1594,6 +1652,52 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `revisions` | GET | List revisions for entity (entity_type, entity_id params) |
 | `revisions/restore` | POST | Restore a revision (snapshots current state first) |
 
+### Creating a collection item — full example
+
+```js
+// Step 1: Get CSRF token (required for all POST/PUT/DELETE)
+const meRes = await fetch('/outpost/api.php?action=auth/me', {
+  credentials: 'include',
+});
+const { csrf_token } = await meRes.json();
+
+// Step 2: Create the item
+const res = await fetch('/outpost/api.php?action=items', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': csrf_token,
+  },
+  body: JSON.stringify({
+    collection_id: 3,
+    slug: 'my-first-post',
+    status: 'published',
+    data: {
+      title: 'My First Post',
+      body: '<p>Hello world.</p>',
+      featured_image: '/outpost/uploads/hero.jpg'
+    }
+  })
+});
+
+// Step 3: Handle response
+if (!res.ok) {
+  const err = await res.json();
+  // err.error contains the message, e.g. "Slug already exists"
+  console.error('Create failed:', err.error);
+} else {
+  const item = await res.json();
+  console.log('Created item:', item.id);
+}
+```
+
+**Required fields:** `collection_id` (numeric ID), `slug` (URL-safe, unique within collection). **Optional:** `data` (field values object), `status` (`draft`/`published`/`scheduled`), `scheduled_at` (ISO datetime for scheduled status).
+
+**Error responses:** 401 = no active session, 403 = invalid CSRF token, 400 = validation error (missing required field or duplicate slug).
+
+**API key alternative:** Use `Authorization: Bearer op_...` header instead of session + CSRF. No CSRF token needed with API keys.
+
 ### Member API
 
 Base URL: `/outpost/member-api.php?action=ENDPOINT`
@@ -1652,14 +1756,26 @@ JavaScript examples:
 // Fetch blog listing with pagination
 const res = await fetch('/outpost/api.php?action=content/items&collection=blog&limit=10&orderBy=published_at&order=DESC');
 const { data: posts, meta } = await res.json();
+// meta.total = total items, meta.limit = per page, meta.offset = current offset
 
 // Filter by folder label
 const res = await fetch('/outpost/api.php?action=content/items&collection=blog&category=tutorials');
 
-// Single post
+// Single post by slug
 const res = await fetch('/outpost/api.php?action=content/items&collection=blog&slug=my-post');
 const { data: post } = await res.json();
+// post.fields.title, post.fields.body (HTML), post.labels.category (array)
+
+// Error handling
+const res = await fetch('/outpost/api.php?action=content/items&collection=nonexistent');
+if (!res.ok) {
+  // 404 if collection doesn't exist
+  const err = await res.json();
+  console.error(err.error);
+}
 ```
+
+**Content API always returns published items only.** Draft, scheduled, and pending_review items are excluded. Empty collections return `{ "data": [], "meta": { "total": 0 } }` — not an error.
 
 ## Sync API
 
@@ -1898,6 +2014,69 @@ Two cache layers:
 2. **Template cache** — compiled PHP stored in `outpost/cache/templates/{md5(templatePath)}.php`. Recompiled when template file changes (mtime check). Disable with `OUTPOST_TEMPLATE_CACHE = false` during development.
 
 Cache bypass: `?nocache=1` in URL (development only).
+
+### Performance optimization for high-traffic sites
+
+**HTML page cache** is the single biggest optimization. When enabled (default), fully rendered pages are served as static HTML files — PHP and SQLite are bypassed entirely. TTL defaults to 1 hour. Admins always bypass cache to see fresh content.
+
+**SQLite WAL mode** is enabled by default for concurrent read performance. Outpost sets `PRAGMA journal_mode=WAL` at connection time. No configuration needed.
+
+**Minimize template-level API calls.** Each `{% for item in collection.slug %}` runs a SQL query. Use `limit:N` to cap results. Avoid multiple loops against the same collection — restructure templates to use a single loop where possible.
+
+**CDN / reverse proxy:** Place Cloudflare, Fastly, or Nginx caching in front of the site. Outpost's HTML cache headers respect standard cache-control. Static assets in `outpost/themes/slug/assets/` can be served directly by the web server with long cache headers.
+
+**Template warm-up:** After deploying a new theme or clearing the template cache, the first request for each page compiles the Liquid template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
+
+**SQLite tuning** (optional, in a custom bootstrap):
+```php
+$db = OutpostDB::connect();
+$db->exec("PRAGMA cache_size = -20000");    // 20 MB page cache
+$db->exec("PRAGMA mmap_size = 268435456");  // 256 MB memory-mapped I/O
+```
+
+## Architecture — Design Philosophy
+
+Outpost is a **zero-dependency, file-based CMS**. It uses PHP 8, SQLite, and Liquid-style HTML templates. There is no Composer, no Node.js runtime, no Redis, no external services.
+
+**Outpost does NOT have:**
+- A middleware pipeline
+- Action/filter hooks (like WordPress)
+- A plugin or extension system
+- Event dispatchers or subscribers
+- Dependency injection containers
+
+This is a deliberate design decision. Hooks and plugins add architectural complexity, security surface area, and maintenance burden. Outpost keeps the codebase small and auditable instead.
+
+**How to add custom logic:**
+
+1. **Custom API endpoint** — Create a standalone PHP file at your document root. It can query Outpost's SQLite database directly:
+```php
+<?php
+require_once __DIR__ . '/outpost/db.php';
+header('Content-Type: application/json');
+$items = OutpostDB::fetchAll("SELECT * FROM items WHERE collection_id = ? AND status = 'published'", [1]);
+echo json_encode(['items' => $items]);
+```
+
+2. **PHP partial in a template** — Create a `.php` file in `partials/` and include it via `{% include 'name' %}`. PHP executes server-side before template output.
+
+3. **Cron job** — For periodic tasks, create a PHP script and run it via cron. Use Outpost's database classes (`OutpostDB`).
+
+4. **JavaScript on the front end** — Call the Public Content API from JS for interactive features.
+
+**Key PHP files:**
+
+| File | Purpose |
+|---|---|
+| `api.php` | REST API router |
+| `engine.php` | Template engine runtime — `cms_text()`, `cms_collection_list()`, etc. |
+| `template-engine.php` | Liquid → PHP compiler |
+| `front-router.php` | URL → template file routing |
+| `db.php` | SQLite wrapper (`OutpostDB` class) |
+| `members.php` | Member authentication (`OutpostMember` class) |
+| `config.php` | Constants — paths, limits, version |
+
+**Important:** `engine.php` is overwritten during auto-updates. Never modify it for custom logic — your changes will be lost. Use standalone files instead.
 
 ## Key PHP Classes & Functions
 

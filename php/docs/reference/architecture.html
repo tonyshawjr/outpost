@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Architecture</h1>
+    <p class="lead">How Outpost CMS is structured, what it intentionally does not include, and how to extend it when you need custom behavior.</p>
+  </div>
+  <div class="content">
+
+    <h2>Design philosophy</h2>
+    <p>Outpost is a <strong>zero-dependency, file-based CMS</strong>. It uses PHP 8, SQLite, and Liquid-style HTML templates. There is no Composer, no Node.js runtime, no Redis, no external services. The entire system fits in a single <code>outpost/</code> directory.</p>
+    <p>This simplicity is intentional. Outpost prioritizes:</p>
+    <ul>
+      <li>One-click deploy to any PHP host</li>
+      <li>No build step for themes</li>
+      <li>No package manager dependencies</li>
+      <li>Self-contained — everything in one directory</li>
+    </ul>
+
+    <h2>Request lifecycle</h2>
+    <p>Every front-end request follows this path:</p>
+    <ol>
+      <li><strong>Web server</strong> receives the request. Static files (CSS, JS, images) are served directly — PHP never sees them.</li>
+      <li><strong>Router</strong> (<code>front-router.php</code> or <code>index.php</code>) maps the URL to a template file in the active theme.</li>
+      <li><strong>Template engine</strong> compiles the Liquid <code>.html</code> template to PHP (cached in <code>cache/templates/</code>), then executes it.</li>
+      <li><strong>Engine functions</strong> (<code>engine.php</code>) resolve field values from SQLite, render collection loops, evaluate conditionals.</li>
+      <li><strong>HTML page cache</strong> (optional) stores the fully rendered output for subsequent requests.</li>
+    </ol>
+
+    <h2>No middleware, hooks, or plugin system</h2>
+    <p>Outpost <strong>does not have</strong>:</p>
+    <ul>
+      <li>A middleware pipeline</li>
+      <li>Action/filter hooks (like WordPress)</li>
+      <li>A plugin or extension system</li>
+      <li>Event dispatchers or subscribers</li>
+      <li>Dependency injection containers</li>
+    </ul>
+    <p>This is a deliberate design decision. Hooks and plugins add architectural complexity, security surface area, and maintenance burden. Outpost keeps the codebase small and auditable instead.</p>
+
+    <h2>How to add custom logic</h2>
+    <p>If you need behavior that Outpost does not provide out of the box, here are the recommended approaches:</p>
+
+    <h3>Custom API endpoint</h3>
+    <p>Create a standalone PHP file at your document root. It can query Outpost's SQLite database directly or call Outpost's PHP functions:</p>
+    <pre><code>&lt;?php
+// /custom-api.php — standalone endpoint, not part of Outpost
+require_once __DIR__ . '/outpost/db.php';
+
+header('Content-Type: application/json');
+
+// Query Outpost's database directly
+$items = OutpostDB::fetchAll("SELECT * FROM items WHERE collection_id = ? AND status = 'published'", [1]);
+
+echo json_encode(['items' => $items]);
+?&gt;</code></pre>
+
+    <h3>PHP partial in a Liquid template</h3>
+    <p>Create a <code>.php</code> file in your theme's <code>partials/</code> directory and include it in a Liquid template. PHP partials execute server-side before the template output is sent:</p>
+    <pre><code>&lt;?php
+// partials/weather-widget.php
+$weather = json_decode(file_get_contents('https://api.example.com/weather?city=nyc'), true);
+?&gt;
+&lt;div class="weather"&gt;
+  &lt;span&gt;&lt;?= htmlspecialchars($weather['temp'] ?? 'N/A') ?&gt;&deg;F&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+    <pre><code>{&#37; include 'weather-widget' &#37;}</code></pre>
+
+    <h3>Pre-processing with a cron job</h3>
+    <p>For periodic tasks (syncing data, sending emails, cleaning up), create a PHP script and run it via cron. You can use Outpost's database classes:</p>
+    <pre><code># Run every hour
+0 * * * * php /var/www/my-task.php</code></pre>
+
+    <h3>JavaScript on the front end</h3>
+    <p>For interactive features (dynamic filtering, search, real-time updates), use JavaScript in your theme's <code>assets/main.js</code>. Call Outpost's <a href="api/content-api.html">Public Content API</a> for data:</p>
+    <pre><code>// Fetch published blog posts via the public API
+const res = await fetch('/outpost/api.php?action=content/items&amp;collection=blog');
+const data = await res.json();
+// data.data contains the items array</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> — <code>engine.php</code> is part of Outpost's core and is overwritten during auto-updates. Do not modify it for custom logic — your changes will be lost on the next update. Use standalone files instead.</div>
+
+    <h2>Key PHP files</h2>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>api.php</code></td><td>REST API router — handles all <code>api.php?action=</code> requests</td></tr>
+        <tr><td><code>engine.php</code></td><td>Template engine runtime — <code>cms_text()</code>, <code>cms_collection_list()</code>, etc.</td></tr>
+        <tr><td><code>template-engine.php</code></td><td>Liquid → PHP compiler</td></tr>
+        <tr><td><code>front-router.php</code></td><td>URL → template file routing (dev server)</td></tr>
+        <tr><td><code>db.php</code></td><td>SQLite wrapper (<code>OutpostDB</code> class)</td></tr>
+        <tr><td><code>members.php</code></td><td>Member authentication (<code>OutpostMember</code> class)</td></tr>
+        <tr><td><code>config.php</code></td><td>Constants — paths, limits, version</td></tr>
+        <tr><td><code>form.php</code></td><td>Form submission handler</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Database</h2>
+    <p>Outpost uses a single SQLite file at <code>outpost/content/data/cms.db</code>. SQLite is bundled with PHP — no database server to install or configure. Migrations run automatically on the next request after an update.</p>
+    <p>See <a href="reference/database-schema.html">Database Schema</a> for the full table structure.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

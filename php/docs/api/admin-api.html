@@ -284,6 +284,70 @@
       </tbody>
     </table>
 
+    <p>Request body:</p>
+    <pre><code>{
+  "collection_id": 3,
+  "slug": "my-first-post",
+  "status": "published",
+  "data": {
+    "title": "My First Post",
+    "body": "&lt;p&gt;Hello world.&lt;/p&gt;",
+    "featured_image": "/outpost/uploads/hero.jpg"
+  }
+}</code></pre>
+
+    <p>Example — JavaScript <code>fetch()</code>:</p>
+    <pre><code>const res = await fetch('/outpost/api.php?action=items', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': csrfToken       // from GET api.php?action=csrf
+  },
+  credentials: 'same-origin',       // include session cookie
+  body: JSON.stringify({
+    collection_id: 3,
+    slug: 'my-first-post',
+    status: 'published',
+    data: {
+      title: 'My First Post',
+      body: '&lt;p&gt;Hello world.&lt;/p&gt;'
+    }
+  })
+});
+
+if (!res.ok) {
+  const err = await res.json();
+  // err.error contains the message, e.g. "Slug already exists"
+  console.error('Create failed:', err.error);
+} else {
+  const item = await res.json();
+  // item.id, item.slug, item.data, item.status, etc.
+  console.log('Created item:', item.id);
+}</code></pre>
+
+    <div class="callout callout-note"><strong>CSRF token</strong> — Before making any POST/PUT/DELETE request, fetch a CSRF token with <code>GET api.php?action=csrf</code>. The response contains <code>{ "token": "..." }</code>. Pass it as the <code>X-CSRF-Token</code> header on every mutation.</div>
+
+    <p>Response (success):</p>
+    <pre><code>{
+  "id": 42,
+  "collection_id": 3,
+  "slug": "my-first-post",
+  "status": "published",
+  "data": { "title": "My First Post", "body": "&lt;p&gt;Hello world.&lt;/p&gt;" },
+  "published_at": "2026-03-09 12:00:00",
+  "created_at": "2026-03-09 12:00:00"
+}</code></pre>
+
+    <p>Error responses:</p>
+    <table class="schema-table">
+      <thead><tr><th>Status</th><th>Cause</th></tr></thead>
+      <tbody>
+        <tr><td>401</td><td>No active admin session — log in first.</td></tr>
+        <tr><td>403</td><td>Missing or invalid <code>X-CSRF-Token</code> header.</td></tr>
+        <tr><td>400</td><td>Validation error — missing <code>collection_id</code>, missing <code>slug</code>, or slug already exists.</td></tr>
+      </tbody>
+    </table>
+
     <div class="endpoint">
       <div class="endpoint-line">
         <span class="method method-put">PUT</span>

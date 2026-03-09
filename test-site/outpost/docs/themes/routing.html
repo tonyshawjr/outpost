@@ -200,6 +200,37 @@ Request: /post/hello-world
 
     <div class="callout callout-warn"><strong>Common mistake when converting static sites</strong> — If you are converting an existing HTML website into an Outpost theme, you must update every <code>&lt;a href="page.html"&gt;</code> to <code>&lt;a href="/page"&gt;</code>. This is the #1 cause of broken navigation in new themes. The <a href="features/forge.html">Forge</a> visual tag builder can help with this process.</div>
 
+    <h2>Defining custom routes</h2>
+    <p>Outpost uses <strong>file-based routing</strong>. There is no route configuration file, no route registration function, and no <code>engine.php</code> modification needed. Creating a template file IS defining a route.</p>
+
+    <h3>Static page routes</h3>
+    <p>To add a new route, create an HTML template file in your theme's root directory. The filename (minus <code>.html</code>) becomes the URL:</p>
+    <table>
+      <thead>
+        <tr><th>Create this file</th><th>This URL works</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>events.html</code></td><td><code>/events</code></td></tr>
+        <tr><td><code>pricing.html</code></td><td><code>/pricing</code></td></tr>
+        <tr><td><code>team.html</code></td><td><code>/team</code></td></tr>
+        <tr><td><code>faq.html</code></td><td><code>/faq</code></td></tr>
+      </tbody>
+    </table>
+    <p>No restart, no rebuild, no registration. The next request to that URL will render the template and auto-scaffold any fields it contains.</p>
+
+    <h3>Dynamic routes (collections)</h3>
+    <p>For dynamic content with URL parameters (e.g. <code>/event/summer-gala</code>), create a <strong>collection</strong> in Admin → Collections with a URL pattern like <code>/event/{slug}</code>. The router will automatically match incoming URLs against the pattern and render the corresponding template (<code>event.html</code>).</p>
+
+    <h3>What you cannot do</h3>
+    <p>Outpost's routing is intentionally simple. These features are <strong>not supported</strong>:</p>
+    <ul>
+      <li><strong>Multi-segment static routes</strong> — <code>/blog/categories</code> is not possible as a static page. Only single-segment paths (<code>/categories</code>) map to templates.</li>
+      <li><strong>Custom PHP route handlers</strong> — you cannot register a PHP function to handle a specific URL. Outpost does not have a middleware, hook, or plugin system. All routes render Liquid templates.</li>
+      <li><strong>Route parameters beyond <code>{slug}</code></strong> — patterns like <code>/blog/{year}/{slug}</code> are not supported. Use <code>/blog/{slug}</code> and handle filtering within the template.</li>
+    </ul>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — If you need custom server-side logic for a specific route, create a standalone PHP file at your document root (e.g. <code>custom-endpoint.php</code>) and configure your web server to serve it directly. This bypasses Outpost's router entirely.</div>
+
     <h2>Dev server vs. production differences</h2>
     <p>The PHP built-in server used in development (<code>php -S localhost:8000 -t . front-router.php</code>) and a production Apache/Nginx server both route requests through the same PHP logic, but there are subtle differences to be aware of:</p>
 

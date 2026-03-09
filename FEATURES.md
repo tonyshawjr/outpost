@@ -4,6 +4,17 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Developer Docs — Context7-Optimized Coverage (v2.2.7)
+
+- **Architecture reference page** — explains Outpost's no-middleware/no-plugin design philosophy, request lifecycle, and four patterns for adding custom logic (standalone PHP endpoints, PHP partials, cron jobs, front-end JS)
+- **Custom routing guide** — explains file-based routing with file-to-URL mapping table and explicit limitations (no multi-segment static routes, no custom handlers, no params beyond {slug})
+- **Performance optimization guide** — covers HTML page cache, SQLite WAL mode, CDN/reverse proxy strategy, template warm-up, and SQLite PRAGMA tuning for high-traffic sites
+- **Member auth quick start** — comprehensive PHP code example in Protecting Pages with OutpostMember::check(), ::current(), role checking, expiry checking, and all available member fields
+- **Admin API create item example** — full JavaScript fetch() code with CSRF authentication, request/response bodies, error status table
+- **llms.txt comprehensive update** — architecture, routing, performance, auth quick start, API examples, conditional limitations, image filter clarification, Content API error handling
+
+---
+
 ## Forge — Visual Tag Builder (v2.2.0)
 
 - **Forge** — a visual tag builder embedded in the code editor. Select HTML in any `.html` theme file, right-click (or press Cmd+E), and Forge wraps the selection in the correct Outpost Liquid template tag via a guided popover. No template syntax knowledge required.

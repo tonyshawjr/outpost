@@ -244,6 +244,48 @@ rm -f outpost/cache/*.html outpost/cache/templates/*.php</code></pre>
 chmod 755 outpost/cache outpost/cache/templates
 chown www-data:www-data outpost/cache outpost/cache/templates</code></pre>
 
+    <h2>Performance optimization for high-traffic sites</h2>
+    <p>Outpost uses SQLite, which is fast for read-heavy workloads but has limitations under high concurrency. Here are strategies to maximize performance.</p>
+
+    <h3>1. Enable the HTML page cache</h3>
+    <p>This is the single biggest performance win. With the page cache enabled, subsequent requests for the same URL are served from a static HTML file — no PHP, no SQLite, no template compilation. Set <code>OUTPOST_CACHE_ENABLED</code> to <code>true</code> in <code>config.php</code> (enabled by default).</p>
+    <p>With the page cache, a high-traffic site can handle thousands of requests per second because most requests never touch PHP at all — the web server serves the cached HTML file directly.</p>
+
+    <h3>2. SQLite WAL mode</h3>
+    <p>Outpost enables SQLite's <a href="https://www.sqlite.org/wal.html">Write-Ahead Logging (WAL)</a> mode automatically. WAL allows concurrent reads while a write is in progress, which is critical for sites with both visitors (reads) and editors (writes) active simultaneously.</p>
+    <p>You can verify WAL mode is active by checking for a <code>cms.db-wal</code> file alongside your database. If it exists, WAL is working.</p>
+
+    <h3>3. Minimize API calls from the front end</h3>
+    <p>The Public Content API is designed for headless use cases. If you are building a traditional server-rendered site, use Liquid template tags instead of client-side API calls — template tags resolve data server-side in a single PHP process, avoiding HTTP overhead.</p>
+    <p>If you must use the API, apply these optimizations:</p>
+    <ul>
+      <li>Use <code>limit</code> and <code>offset</code> to paginate — never fetch all items at once</li>
+      <li>Use <code>fields</code> parameter to request only the fields you need</li>
+      <li>Cache API responses on the client side or in a CDN</li>
+    </ul>
+
+    <h3>4. Use a reverse proxy or CDN</h3>
+    <p>For truly high-traffic sites, place a reverse proxy (Nginx, Varnish) or CDN (Cloudflare, Fastly) in front of Outpost. With Outpost's page cache generating static HTML files, a CDN can serve them from edge locations worldwide with sub-10ms response times.</p>
+    <p>Configure cache headers or CDN rules to cache public pages for a short TTL (e.g. 5 minutes) and bypass the cache for:</p>
+    <ul>
+      <li>URLs starting with <code>/outpost/</code> (admin, API)</li>
+      <li>POST requests</li>
+      <li>Requests with the <code>outpost_session</code> or <code>outpost_member</code> cookies</li>
+    </ul>
+
+    <h3>5. Template cache warm-up</h3>
+    <p>The first request to a page after a code change triggers a template recompilation, which is slower than subsequent cached requests. After deploying a new version, visit your key pages once to warm the template cache before traffic hits.</p>
+
+    <h3>6. SQLite tuning</h3>
+    <p>For advanced use cases, you can tune SQLite's performance in a custom bootstrap script:</p>
+    <pre><code>// These are already set by Outpost's default configuration:
+PRAGMA journal_mode = WAL;       // concurrent reads during writes
+PRAGMA synchronous = NORMAL;     // good durability with better speed
+PRAGMA cache_size = -2000;       // 2MB page cache in memory
+PRAGMA busy_timeout = 5000;      // wait up to 5s for locks</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> — SQLite handles millions of rows and hundreds of concurrent readers without issue. Most Outpost sites will never hit SQLite's limits. If you are running a site with 100K+ pages or 1000+ concurrent editors, consider offloading writes to a queue or switching to PostgreSQL with a custom adapter.</div>
+
   </div>
 </main>
 

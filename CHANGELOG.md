@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.7] — 2026-03-09
+
+### Added
+- **Architecture docs** — new Reference page explaining Outpost's no-middleware/no-plugin design philosophy, request lifecycle, and how to add custom logic (standalone PHP, partials, cron, JS)
+- **Custom routing guide** in Routing docs — explains file-based routing IS the routing system, with file-to-URL mapping table and limitations
+- **Performance optimization guide** in Caching docs — HTML page cache, SQLite WAL mode, CDN strategy, template warm-up, and SQLite PRAGMA tuning
+- **Member auth quick start** in Protecting Pages docs — comprehensive PHP code example with all OutpostMember methods and available fields
+- **Admin API create item example** — full JavaScript fetch example with CSRF auth, request/response bodies, and error handling table
+- **Architecture link** added to docs sidebar
+- Updated `llms.txt` with architecture, custom routing, performance optimization, member auth, API examples, conditional limitations, image filter clarification, and Content API error handling
+
 ## [2.2.6] — 2026-03-09
 
 ### Added
