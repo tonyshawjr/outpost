@@ -6907,22 +6907,32 @@ function outpost_update_managed_themes(string $sourceThemesDir): array {
         if (is_link($srcThemeDir) || !is_dir($srcThemeDir)) continue;
 
         try {
-            // Read theme.json from the package
+            // Read theme.json from the package (optional for new themes)
             $srcManifestFile = $srcThemeDir . '/theme.json';
-            if (!file_exists($srcManifestFile)) continue;
-            $srcManifest = json_decode(file_get_contents($srcManifestFile), true);
-            if (!is_array($srcManifest)) continue;
+            $srcManifest = [];
+            if (file_exists($srcManifestFile)) {
+                $srcManifest = json_decode(file_get_contents($srcManifestFile), true) ?: [];
+            }
 
-            // If a theme ships in the update zip, it's managed — no flag check needed
             $destThemeDir = $installedThemesDir . $slug;
 
-            // Fresh install — theme doesn't exist on site
+            // Fresh install — theme doesn't exist on site → always install
             if (!is_dir($destThemeDir)) {
                 outpost_copy_recursive($srcThemeDir, $destThemeDir);
                 $results[] = [
                     'theme' => $slug,
                     'action' => 'installed',
                     'version' => $srcManifest['version'] ?? '0.0.0',
+                ];
+                continue;
+            }
+
+            // Theme exists on site but has no theme.json in the package → skip updates
+            if (empty($srcManifest)) {
+                $results[] = [
+                    'theme' => $slug,
+                    'action' => 'skipped',
+                    'reason' => 'no_manifest',
                 ];
                 continue;
             }

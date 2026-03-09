@@ -100,7 +100,7 @@ Maintained as features are built. Used for documentation generation.
 - **Managed badge in admin** — Themes page shows "Managed by Outpost" label on managed themes and hides the delete button for them.
 - **Theme update results** — Settings → Updates shows per-theme results after applying an update (installed, updated with version diff, conflicts with expandable file list).
 - **Package manifest generation** — `npm run package` generates `.outpost-manifest.json` with MD5 hashes of all files in each managed theme for conflict detection.
-- **New theme auto-install** — when a new managed theme is added to a future release, the updater installs it automatically on existing sites.
+- **New theme auto-install** — when a new theme is added to a future release, the updater installs it automatically on existing sites (with or without `theme.json`).
 - **Pre-compilation tag validation** — template engine validates balanced `{% if %}` / `{% for %}` / `{% single %}` tags before compilation. Throws descriptive errors with line numbers for unclosed or mismatched tags.
 - **Source line tracking** — compiled PHP templates include `/* @line:N */` markers for mapping runtime errors back to template source lines.
 - **Enhanced error display** — admin-only error pages show the template filename, source line number, 5-line context window with error highlighting, and translated friendly messages for common PHP errors. Visitors see a generic error page.

@@ -1702,8 +1702,8 @@ Check for and apply core updates from Settings → Updates. Requires `super_admi
 Managed themes (those with `"managed": true` in theme.json) are updated alongside the CMS core. The update package includes managed themes in `content/themes/`.
 
 **Update flow per theme:**
-1. If the theme doesn't exist on the site → installed as fresh copy
-2. If the installed theme doesn't have `managed: true` → skipped
+1. If the theme doesn't exist on the site → installed as fresh copy (with or without `theme.json`)
+2. If the theme exists but has no `theme.json` in the package → skipped (no version to compare)
 3. If installed version >= package version → skipped (up to date)
 4. Otherwise → file-by-file update with conflict detection
 

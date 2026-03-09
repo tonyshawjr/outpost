@@ -1,0 +1,7 @@
+{
+    "$schema": "/outpost/docs/schemas/theme.schema.json",
+    "name": "Forge Playground",
+    "version": "1.0.0",
+    "author": "Port City Pixel",
+    "description": "Starter theme for learning the Forge visual tag builder. Select HTML, right-click, and wrap it in Outpost template tags."
+}

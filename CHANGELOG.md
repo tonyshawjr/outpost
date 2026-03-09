@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.5] — 2026-03-09
+
+### Fixed
+- Auto-updater now installs new themes from the update package even if they lack a `theme.json` (previously only themes with `theme.json` were installed on fresh sites)
+
+### Added
+- Forge Playground theme now ships with a `theme.json` for proper version tracking
+
 ## [2.2.4] — 2026-03-09
 
 ### Fixed
