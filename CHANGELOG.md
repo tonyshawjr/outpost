@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.2] — 2026-03-10
+
+### Fixed
+- **"Theme not configured" on cPanel** — root `index.php` used symlink path (`outpost/themes/`) which fails when Apache `FollowSymLinks` is disabled. Now uses `OUTPOST_THEMES_DIR` constant to resolve `content/themes/` directly.
+- **Updater now deploys root `index.php`** — the auto-updater previously only updated files inside `outpost/`. Now it also copies the root front-controller so future `index.php` fixes deploy automatically.
+
+---
+
 ## [2.6.1] — 2026-03-10
 
 ### Added

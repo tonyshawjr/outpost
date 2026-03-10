@@ -7308,6 +7308,14 @@ function handle_updates_apply(): void {
             $themeResults = outpost_update_managed_themes($sourceThemesDir);
         }
 
+        // Update root index.php (front controller, lives one level above outpost/)
+        $sourceIndex = dirname($sourceDir) . '/index.php';
+        $destIndex   = dirname($outpostDir) . '/index.php';
+        if (file_exists($sourceIndex) && is_dir(dirname($destIndex))) {
+            copy($sourceIndex, $destIndex);
+            $updatedFiles[] = '../index.php';
+        }
+
         // Clear template cache
         $cacheDir = OUTPOST_CACHE_DIR . 'templates/';
         if (is_dir($cacheDir)) {

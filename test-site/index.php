@@ -32,7 +32,7 @@ if ($reqPath_ === '/sitemap.xml') {
 
 $themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
 $activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'starter';
-$themeDir    = $outpostDir . '/themes/' . $activeTheme;
+$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
 
 // PHP theme (legacy)
 if (file_exists($themeDir . '/index.php')) {
@@ -43,7 +43,9 @@ if (file_exists($themeDir . '/index.php')) {
 // Liquid theme
 if (!file_exists($themeDir . '/index.html')) {
     http_response_code(503);
-    echo '<h1>Theme not configured</h1><p><a href="/outpost/">Go to admin</a></p>';
+    echo '<h1>Theme not configured</h1>';
+    echo '<p>Active theme <code>' . htmlspecialchars($activeTheme) . '</code> has no <code>index.html</code> or <code>index.php</code>.</p>';
+    echo '<p><a href="/outpost/">Go to admin</a></p>';
     exit;
 }
 
