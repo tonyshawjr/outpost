@@ -1524,7 +1524,7 @@ Features: syntax highlighting (HTML, CSS, JS), tab bar with dirty-state indicato
 Endpoints added to `code-editor.php`:
 - `code/files` GET — list theme code files
 - `code/read` GET — read a theme file
-- `code/write` PUT — write a theme file
+- `code/write` POST — write a theme file
 - `code/create` POST — create file or folder
 - `code/rename` POST — rename/move (validates extension)
 - `code/delete` DELETE — recursive for directories
@@ -1701,7 +1701,7 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `forms/builder/duplicate` | POST | Duplicate a form |
 | `code/files` | GET | List theme code files |
 | `code/read` | GET | Read a theme file |
-| `code/write` | PUT | Write a theme file |
+| `code/write` | POST | Write a theme file |
 | `code/create` | POST | Create file or folder |
 | `code/rename` | POST | Rename/move file |
 | `code/delete` | DELETE | Delete file or directory |

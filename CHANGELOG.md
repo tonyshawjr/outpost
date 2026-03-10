@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.3] — 2026-03-10
+
+### Fixed
+- **Code Editor save fails on cPanel** — Apache on many shared hosts blocks PUT requests with large HTML payloads, returning "Forbidden". Changed `code/write` to use POST instead of PUT, which cPanel allows without restriction.
+
+---
+
 ## [2.6.2] — 2026-03-10
 
 ### Fixed

@@ -22,6 +22,12 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.6.3">2.6.3 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Code Editor save fails on cPanel</strong> &mdash; Apache on many shared hosts blocks PUT requests with large HTML payloads, returning &ldquo;Forbidden&rdquo;. Changed <code>code/write</code> to use POST instead of PUT, which cPanel allows without restriction.</li>
+    </ul>
+
     <h2 id="2.6.2">2.6.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
     <h3>Fixed</h3>
     <ul>

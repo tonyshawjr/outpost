@@ -247,7 +247,7 @@ match (true) {
     // Code Editor
     $action === 'code/files'   && $method === 'GET'    => handle_code_files(),
     $action === 'code/read'    && $method === 'GET'    => handle_code_read(),
-    $action === 'code/write'   && $method === 'PUT'    => handle_code_write(),
+    $action === 'code/write'   && ($method === 'PUT' || $method === 'POST') => handle_code_write(),
     $action === 'code/create'  && $method === 'POST'   => handle_code_create(),
     $action === 'code/rename'  && $method === 'POST'   => handle_code_rename(),
     $action === 'code/delete'  && $method === 'DELETE' => handle_code_delete(),
