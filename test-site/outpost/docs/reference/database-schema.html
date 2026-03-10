@@ -25,7 +25,7 @@
     <p>The schema is created and evolved via idempotent migrations that run automatically on every boot. You never need to run SQL manually to set up or upgrade a site. See <a href="reference/migrations.html">Migrations</a> for the full pattern.</p>
 
     <h2>Table Index</h2>
-    <p>Outpost uses 16 tables organised into four functional groups.</p>
+    <p>Outpost uses 18 tables organised into four functional groups.</p>
 
     <table class="schema-table">
       <thead>
@@ -34,8 +34,8 @@
       <tbody>
         <tr><td>Content</td><td><code>pages</code>, <code>fields</code>, <code>collections</code>, <code>collection_items</code></td></tr>
         <tr><td>Folder &amp; Navigation</td><td><code>folders</code>, <code>labels</code>, <code>item_labels</code>, <code>menus</code></td></tr>
-        <tr><td>Users &amp; Members</td><td><code>users</code>, <code>members</code>, <code>settings</code></td></tr>
-        <tr><td>Media, Forms &amp; Logs</td><td><code>media</code>, <code>form_configs</code>, <code>form_submissions</code>, <code>analytics_hits</code>, <code>activity_log</code>, <code>revisions</code></td></tr>
+        <tr><td>Users &amp; Members</td><td><code>users</code>, <code>members</code>, <code>member_events</code>, <code>settings</code></td></tr>
+        <tr><td>Media, Forms &amp; Logs</td><td><code>media</code>, <code>form_configs</code>, <code>form_submissions</code>, <code>analytics_hits</code>, <code>analytics_searches</code>, <code>activity_log</code>, <code>revisions</code></td></tr>
       </tbody>
     </table>
 
@@ -394,7 +394,46 @@
         <tr><td><code>referrer</code></td><td>TEXT</td><td>The <code>document.referrer</code> value — where the visitor came from. Empty for direct visits.</td></tr>
         <tr><td><code>ip_hash</code></td><td>TEXT</td><td>SHA-256 hash of the visitor's IP + a daily salt. Never stored as plain text.</td></tr>
         <tr><td><code>user_agent</code></td><td>TEXT</td><td>Browser user agent string for device/browser breakdown reporting.</td></tr>
+        <tr><td><code>country_code</code></td><td>TEXT</td><td>2-letter ISO country code from MaxMind GeoLite2 lookup. <code>NULL</code> when geo enrichment is not enabled. <em>Added in v2.3.</em></td></tr>
         <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp of the page view.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="analytics_searches">analytics_searches</h2>
+    <p>Records every search query made on the front-end site search. Tracks what visitors searched for, how many results were returned, and which result (if any) they clicked. <em>Added in v2.3.</em></p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>query</code></td><td>TEXT NOT NULL</td><td>The search query string entered by the visitor.</td></tr>
+        <tr><td><code>results_count</code></td><td>INTEGER</td><td>Number of results returned for the query. Defaults to <code>0</code>.</td></tr>
+        <tr><td><code>clicked_path</code></td><td>TEXT</td><td>The URL path of the result the visitor clicked. <code>NULL</code> if they didn't click any result.</td></tr>
+        <tr><td><code>session_id</code></td><td>TEXT</td><td>Anonymised session identifier linking the search to a visitor session.</td></tr>
+        <tr><td><code>created_at</code></td><td>DATETIME</td><td>Timestamp of the search, defaults to <code>CURRENT_TIMESTAMP</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="member_events">member_events</h2>
+    <p>Audit log of member lifecycle events — signups, logins, role changes, and email verifications. Used for member analytics and debugging authentication flows. <em>Added in v2.3.</em></p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
+        <tr><td><code>user_id</code></td><td>INTEGER FK &rarr; users</td><td>The member who triggered the event. Set to <code>NULL</code> if the member is later deleted (<code>ON DELETE SET NULL</code>).</td></tr>
+        <tr><td><code>event_type</code></td><td>TEXT NOT NULL</td><td>Machine-readable event code: <code>signup</code>, <code>login</code>, <code>role_change</code>, or <code>email_verified</code>.</td></tr>
+        <tr><td><code>details</code></td><td>TEXT</td><td>Optional JSON or plain-text context (e.g. previous role for <code>role_change</code> events). <code>NULL</code> when not applicable.</td></tr>
+        <tr><td><code>session_id</code></td><td>TEXT</td><td>Session identifier at the time of the event. <code>NULL</code> for server-initiated events.</td></tr>
+        <tr><td><code>created_at</code></td><td>DATETIME</td><td>Timestamp of the event, defaults to <code>CURRENT_TIMESTAMP</code>.</td></tr>
       </tbody>
     </table>
 
@@ -452,6 +491,12 @@
         <tr><td><code>idx_hits_created</code></td><td>analytics_hits</td><td><code>created_at</code></td><td>Analytics time-range queries.</td></tr>
         <tr><td><code>idx_hits_session</code></td><td>analytics_hits</td><td><code>session_id</code></td><td>Unique visitor counting.</td></tr>
         <tr><td><code>idx_revisions_entity</code></td><td>revisions</td><td><code>entity_type, entity_id, created_at DESC</code></td><td>Fast revision listing per entity.</td></tr>
+        <tr><td><code>idx_hits_country</code></td><td>analytics_hits</td><td><code>country_code</code></td><td>Geographic breakdown queries. <em>v2.3</em></td></tr>
+        <tr><td><code>idx_searches_query</code></td><td>analytics_searches</td><td><code>query</code></td><td>Top search terms reporting. <em>v2.3</em></td></tr>
+        <tr><td><code>idx_searches_created</code></td><td>analytics_searches</td><td><code>created_at</code></td><td>Search analytics time-range queries. <em>v2.3</em></td></tr>
+        <tr><td><code>idx_member_events_type</code></td><td>member_events</td><td><code>event_type</code></td><td>Filtering events by type. <em>v2.3</em></td></tr>
+        <tr><td><code>idx_member_events_created</code></td><td>member_events</td><td><code>created_at</code></td><td>Member event time-range queries. <em>v2.3</em></td></tr>
+        <tr><td><code>idx_member_events_user</code></td><td>member_events</td><td><code>user_id</code></td><td>Per-member event history lookup. <em>v2.3</em></td></tr>
       </tbody>
     </table>
 

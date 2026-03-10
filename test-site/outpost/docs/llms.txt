@@ -1339,7 +1339,7 @@ Built-in tracker injected before `</body>` on every page. Fires GET to `/outpost
 The Analytics page has 6 tabs:
 
 1. **Traffic** — pageviews, unique visitors, top pages, referrers, device breakdown, geo data (if enabled)
-2. **Events** — custom events tracked via `outpost.trackEvent(name, properties)`
+2. **Events** — custom events tracked via `outpost.track(name, properties)`
 3. **Goals** — conversion tracking with configurable goals
 4. **Search** — internal site search analytics (v2.3)
 5. **Content** — content performance cohorts by page publish date (v2.3)
@@ -1358,7 +1358,7 @@ outpost.trackSearch('keyword', 5);
 outpost.trackSearchClick('keyword', '/path/clicked');
 ```
 
-**Automatic detection**: The tracker automatically detects search queries from URL params `?q=`, `?search=`, `?s=` and tracks them with the results count from the DOM.
+**Automatic detection**: The tracker automatically detects search queries from URL params `?q=`, `?search=`, `?s=` and tracks them (results count defaults to 0 for auto-detected searches).
 
 **API endpoint**: `GET api.php?action=dashboard/search&period=30days`
 Returns: `total_searches`, `unique_queries`, `click_rate`, `top_queries`, `zero_result_queries`, `top_clicked`, `chart` (daily trend).

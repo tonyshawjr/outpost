@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] — 2026-03-10
+
+### Security
+- MMDB reader: add recursion depth limit (max 16) to prevent stack overflow from malicious pointer loops
+- MMDB reader: cap map/array decode size to 512 entries to prevent memory exhaustion
+- Remove member email from funnels recent_events API response (privacy)
+- Normalize stored event properties JSON (re-encode after decode to strip injection payloads)
+
+### Fixed
+- Funnels recent_events query now filters by selected period instead of returning all-time events
+- Funnels upgrade detection uses exact `paid_member` match instead of fragile `LIKE '%paid%'`
+- Duplicate `$effect` in AnalyticsTraffic.svelte consolidated — chart no longer builds twice on load
+- MMDB reader uint64 decoding now handles 32-bit PHP gracefully
+- Funnels activity feed timestamp parsed as UTC to prevent timezone offset errors
+- Missing `country_code` index on `analytics_hits` added for geo query performance
+
+### Changed
+- Updated developer docs: analytics.html (all 6 tabs + v2.3 features), admin-api.html (7 new endpoints), database-schema.html (2 new tables + column), migrations.html (v2.3 migrations)
+- Fixed llms.txt: `outpost.trackEvent` → `outpost.track`, corrected search auto-detection description
+
 ## [2.3.0] — 2026-03-09
 
 ### Added

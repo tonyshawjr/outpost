@@ -6240,9 +6240,9 @@ function handle_analytics_funnels(): void {
     );
     $login_count = (int)($logins['c'] ?? 0);
 
-    // Stage 4: Upgrades (role_change to paid)
+    // Stage 4: Upgrades (role_change to paid_member)
     $upgrades = OutpostDB::fetchOne(
-        "SELECT COUNT(*) as c FROM member_events WHERE event_type = 'role_change' AND details LIKE '%paid%' AND DATE(created_at) >= ?",
+        "SELECT COUNT(*) as c FROM member_events WHERE event_type = 'role_change' AND details = 'paid_member' AND DATE(created_at) >= ?",
         [$start]
     );
     $upgrade_count = (int)($upgrades['c'] ?? 0);
@@ -6263,13 +6263,15 @@ function handle_analytics_funnels(): void {
     $stages[0]['rate'] = 1;
     $stages[0]['dropoff'] = 0;
 
-    // Recent member events
+    // Recent member events (within period, no email for privacy)
     $recent = OutpostDB::fetchAll(
-        "SELECT me.event_type, me.details, me.created_at, u.username, u.email
+        "SELECT me.event_type, me.details, me.created_at, u.username
          FROM member_events me
          LEFT JOIN users u ON me.user_id = u.id
+         WHERE DATE(me.created_at) >= ?
          ORDER BY me.created_at DESC
-         LIMIT 20"
+         LIMIT 20",
+        [$start]
     );
 
     json_response(['data' => [

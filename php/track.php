@@ -108,6 +108,7 @@ function ensure_analytics_tables(): void {
     if (!in_array('country_code', $cols)) {
         $db->exec("ALTER TABLE analytics_hits ADD COLUMN country_code TEXT DEFAULT NULL");
     }
+    OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_hits_country ON analytics_hits(country_code)');
 
     // Rate-limit table for tracker (separate from sync rate limits)
     OutpostDB::query('CREATE TABLE IF NOT EXISTS tracker_rate_limits (
@@ -227,12 +228,12 @@ if ($type === 'event') {
     // Rate limit
     if (!check_rate_limit($ip)) track_respond_pixel();
 
-    // Validate and cap properties JSON
+    // Validate, normalize and cap properties JSON
     $properties = null;
     if ($props_raw && strlen($props_raw) <= 2048) {
         $decoded = json_decode($props_raw, true);
         if (is_array($decoded)) {
-            $properties = $props_raw;
+            $properties = json_encode($decoded, JSON_UNESCAPED_UNICODE);
         }
     }
 

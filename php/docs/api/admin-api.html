@@ -1332,6 +1332,174 @@ if (!res.ok) {
       <p>Returns member analytics: growth over time, paid vs. free breakdown, and recent joins.</p>
     </div>
 
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/search</span>
+      </div>
+      <p>Returns search analytics: total searches, unique queries, click-through rate, top queries, zero-result queries, top clicked results, and a daily trend chart.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>period</code></td><td><code>7days</code>, <code>30days</code> (default), <code>90days</code>, or <code>12months</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "total_searches": 842,
+  "unique_queries": 156,
+  "click_rate": 0.73,
+  "top_queries": [
+    { "query": "pricing", "count": 45 }
+  ],
+  "zero_result_queries": [
+    { "query": "refund policy", "count": 12 }
+  ],
+  "top_clicked": [
+    { "url": "/pricing", "clicks": 38 }
+  ],
+  "chart": [
+    { "date": "2026-03-01", "searches": 28 }
+  ]
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/cohorts</span>
+      </div>
+      <p>Returns content performance cohorts — groups pages by publish age and shows aggregate view metrics for each bucket. Cohort buckets: Last 7 days, Last 30 days, Last 90 days, Last 6 months, Older.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>period</code></td><td><code>7days</code>, <code>30days</code> (default), <code>90days</code>, or <code>12months</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>[
+  {
+    "label": "Last 7 days",
+    "page_count": 3,
+    "total_views": 210,
+    "avg_views": 70,
+    "top_pages": [
+      { "path": "/new-feature", "title": "New Feature", "views": 120 }
+    ]
+  }
+]</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/funnels</span>
+      </div>
+      <p>Returns member lifecycle funnel data: stages from visitor to paid member with counts, conversion rates, and drop-off percentages, plus the 20 most recent member events. Only available when the members feature is enabled.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>period</code></td><td><code>7days</code>, <code>30days</code> (default), <code>90days</code>, or <code>12months</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "stages": [
+    {
+      "name": "Visitors",
+      "count": 5200,
+      "rate": 1.0,
+      "dropoff": 0.0
+    },
+    {
+      "name": "Signed Up",
+      "count": 312,
+      "rate": 0.06,
+      "dropoff": 0.94
+    }
+  ],
+  "recent_events": [
+    {
+      "type": "signup",
+      "email": "user@example.com",
+      "created_at": "2026-03-09 14:22:00"
+    }
+  ]
+}</code></pre>
+
+    <h2>Geographic analytics</h2>
+
+    <p>Geographic visitor analytics. Requires a MaxMind GeoLite2 MMDB file to be uploaded and geo enrichment enabled.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/geo</span>
+      </div>
+      <p>Returns geographic visitor data: country-level breakdown with visit counts and percentages. Only available when geo enrichment is enabled and a GeoLite2 MMDB file has been uploaded.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>period</code></td><td><code>7days</code>, <code>30days</code> (default), <code>90days</code>, or <code>12months</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "countries": [
+    { "country_code": "US", "count": 1842, "percentage": 0.62 },
+    { "country_code": "GB", "count": 311, "percentage": 0.10 },
+    { "country_code": "DE", "count": 198, "percentage": 0.07 }
+  ],
+  "total_with_geo": 2973
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=dashboard/geo/status</span>
+      </div>
+      <p>Returns the current status of the geo enrichment feature: whether the MMDB file exists, its size and last-modified date, and whether geo enrichment is enabled.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "file_exists": true,
+  "file_size": 68421632,
+  "file_modified": "2026-02-15 10:30:00",
+  "enabled": true
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=dashboard/geo/upload</span>
+      </div>
+      <p>Uploads a GeoLite2-Country or GeoLite2-City MMDB file for geo enrichment. Send as multipart form data with the file in the <code>mmdb</code> field. Maximum file size is 100 MB. The server validates MMDB format marker bytes before accepting the file.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=dashboard/geo/delete</span>
+      </div>
+      <p>Removes the uploaded MMDB file and disables geo enrichment.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "success": true
+}</code></pre>
+
     <h2>Code editor</h2>
 
     <p>Code editor endpoints require the <code>code.*</code> capability.</p>

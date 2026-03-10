@@ -28,7 +28,7 @@
 
   function fmtTime(ts) {
     if (!ts) return '—';
-    const d = new Date(ts);
+    const d = new Date(ts.endsWith('Z') ? ts : ts + 'Z');
     const now = new Date();
     const diff = now - d;
     if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
@@ -135,7 +135,7 @@
           {#each data.recent_events as event}
             <div class="activity-row">
               <span class="activity-icon">{eventIcon(event.event_type)}</span>
-              <span class="activity-user">{event.username || event.email || 'Unknown'}</span>
+              <span class="activity-user">{event.username || 'Unknown'}</span>
               <span class="activity-action">{eventLabel(event.event_type)}</span>
               {#if event.details}
                 <span class="activity-detail">{event.details}</span>

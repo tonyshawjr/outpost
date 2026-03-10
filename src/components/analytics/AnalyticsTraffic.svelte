@@ -233,18 +233,14 @@
   $effect(() => {
     const canvas = trafficChartCanvas;
     const chartData = traffic?.chart;
+    // Track line toggles so chart rebuilds when they change
+    const _pv = activeTrafficLines.pageviews;
+    const _uv = activeTrafficLines.unique;
     if (!canvas || !chartData) return;
     buildTrafficChart();
     return () => {
       if (trafficChartInstance) { trafficChartInstance.destroy(); trafficChartInstance = null; }
     };
-  });
-
-  // Rebuild when active lines toggle
-  $effect(() => {
-    const _ = activeTrafficLines.pageviews || activeTrafficLines.unique;
-    if (!trafficChartCanvas || !traffic?.chart) return;
-    buildTrafficChart();
   });
 
   // ── Data loading ───────────────────────────────────────────

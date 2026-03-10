@@ -30,6 +30,7 @@
       <li><strong>Device type</strong> — desktop, mobile, or tablet (inferred from user agent string)</li>
       <li><strong>Session ID</strong> — a random ID stored in <code>sessionStorage</code> to identify unique sessions; not persisted across browser sessions</li>
       <li><strong>Bot detection</strong> — common bot and crawler user agents are detected and flagged; bot hits are recorded with <code>is_bot=1</code> and excluded from all reports</li>
+      <li><strong>Country code</strong> — 2-letter country code, only when geo enrichment is enabled (see below)</li>
       <li><strong>Timestamp</strong> — when the pageview occurred</li>
     </ul>
 
@@ -43,45 +44,193 @@
 
     <div class="callout callout-tip"><strong>Tip</strong> — Because Outpost analytics uses no cookies and collects no personal data, it generally does not require a cookie consent banner for GDPR compliance. Consult your legal adviser for your specific situation.</div>
 
+    <h2>JavaScript tracking API</h2>
+    <p>The injected tracking snippet exposes a global <code>outpost</code> object with methods for tracking custom interactions beyond pageviews.</p>
+
+    <h3>Custom events</h3>
+    <pre><code>outpost.track('button_click', { label: 'signup-cta' })</code></pre>
+    <p>Sends a custom event with an arbitrary name and optional properties object. Events appear in the Events tab.</p>
+
+    <h3>Search tracking</h3>
+    <pre><code>// Track a search query with the number of results returned
+outpost.trackSearch('keyword', 5)
+
+// Track when a user clicks a search result
+outpost.trackSearchClick('keyword', '/path/to/result')</code></pre>
+    <p>Search events appear in the Search tab. See <a href="#search-analytics">Search Analytics</a> below for details.</p>
+
+    <h3>Auto-tracked events</h3>
+    <p>The tracking snippet automatically captures the following without any code changes:</p>
+    <ul>
+      <li><strong>Outbound clicks</strong> — links to external domains</li>
+      <li><strong>File downloads</strong> — clicks on links to files (PDF, ZIP, DOCX, etc.)</li>
+      <li><strong>Form submissions</strong> — any <code>&lt;form&gt;</code> submit event</li>
+      <li><strong>Search queries from URL params</strong> — pages loaded with <code>?q=</code>, <code>?search=</code>, or <code>?s=</code> query parameters are automatically recorded as search events (results count defaults to 0)</li>
+    </ul>
+
     <h2>Data storage</h2>
-    <p>All analytics data is stored in the <code>analytics_hits</code> table in your SQLite database (<code>outpost/data/cms.db</code>). No data is sent to any external service.</p>
+    <p>Analytics data is stored across several tables in your SQLite database (<code>outpost/content/data/cms.db</code>). No data is sent to any external service.</p>
+    <table>
+      <thead>
+        <tr><th>Table</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>analytics_hits</code></td><td>Pageviews — path, referrer, device, session, timestamp</td></tr>
+        <tr><td><code>analytics_events</code></td><td>Custom events and auto-tracked interactions</td></tr>
+        <tr><td><code>analytics_goals</code></td><td>Goal definitions and conversion tracking</td></tr>
+        <tr><td><code>analytics_searches</code></td><td>Search queries, result counts, and click-throughs</td></tr>
+        <tr><td><code>member_events</code></td><td>Member lifecycle events (signup, login, role_change, email_verified)</td></tr>
+      </tbody>
+    </table>
 
     <h2>The Analytics dashboard</h2>
     <p>Navigate to <strong>Admin &rarr; Analytics</strong> (requires <code>developer</code> or <code>admin</code> role). Use the period selector to view data for the last <strong>7 days</strong>, <strong>30 days</strong>, <strong>90 days</strong>, or <strong>12 months</strong>.</p>
+    <p>The dashboard is organized into six tabs: <strong>Traffic</strong>, <strong>Events</strong>, <strong>Goals</strong>, <strong>Search</strong>, <strong>Content</strong>, and <strong>Funnels</strong>.</p>
 
-    <h3>Traffic section</h3>
+    <!-- ───────────────────── Traffic tab ───────────────────── -->
+    <h3>Traffic tab</h3>
     <ul>
       <li><strong>Pageviews &amp; Unique Visitors</strong> — a line chart comparing total pageviews against unique visitor sessions over the selected period</li>
       <li><strong>Top pages</strong> — table listing each path with pageviews, unique visitors, and average time on page</li>
       <li><strong>Referrers</strong> — domains that sent traffic, with a traffic share percentage for each</li>
       <li><strong>Device breakdown</strong> — proportional split between desktop, mobile, and tablet visits</li>
+      <li><strong>Top countries</strong> — visitor geography with flag emoji and percentage bars (only visible when geo enrichment is enabled; see <a href="#geo-enrichment">Geo Enrichment</a> below)</li>
     </ul>
 
-    <h3>SEO health section</h3>
-    <p>Outpost runs automated checks across all your pages and collection items and produces a score from 0 to 100. Checks include:</p>
+    <!-- ───────────────────── Events tab ───────────────────── -->
+    <h3>Events tab</h3>
+    <p>Shows custom events sent via <code>outpost.track()</code> and auto-tracked interactions (outbound clicks, file downloads, form submissions). Events are grouped by name with total counts and unique session counts.</p>
+
+    <!-- ───────────────────── Goals tab ───────────────────── -->
+    <h3>Goals tab</h3>
+    <p>Define conversion goals and track completion rates. Goals can be triggered by pageviews matching a URL pattern or by specific events.</p>
+
+    <!-- ───────────────────── Search tab ───────────────────── -->
+    <h3 id="search-analytics">Search tab <span class="badge">v2.3</span></h3>
+    <p>Track what visitors search for on your site. Search data is collected two ways:</p>
+    <ol>
+      <li><strong>JavaScript API</strong> — call <code>outpost.trackSearch('keyword', 5)</code> from your search results page, passing the query string and the number of results returned. Call <code>outpost.trackSearchClick('keyword', '/path')</code> when a user clicks a search result.</li>
+      <li><strong>Automatic URL detection</strong> — pages loaded with <code>?q=</code>, <code>?search=</code>, or <code>?s=</code> query parameters are automatically recorded as search events. The results count defaults to 0 since the tracker cannot know how many results your page displays.</li>
+    </ol>
+
+    <p>The Search tab displays:</p>
     <ul>
-      <li>Missing meta descriptions</li>
-      <li>Meta titles that are too long (over 60 characters) or too short (under 10 characters)</li>
-      <li>Missing Open Graph images</li>
-      <li>Pages or items with very short content</li>
-      <li>Duplicate meta descriptions across pages</li>
-      <li>Collection items without excerpts</li>
+      <li><strong>Total searches</strong> — count of all search events in the period</li>
+      <li><strong>Unique queries</strong> — count of distinct search terms</li>
+      <li><strong>Search-to-click rate</strong> — percentage of searches that resulted in a click on a result</li>
+      <li><strong>Top queries</strong> — most searched terms, with search count and click count</li>
+      <li><strong>Zero-result queries</strong> — terms that returned no results (<code>results_count = 0</code>), useful for identifying content gaps</li>
+      <li><strong>Top clicked results</strong> — paths that received the most clicks from search results</li>
+      <li><strong>Daily trend chart</strong> — search volume over time</li>
     </ul>
-    <p>Results are grouped into Critical issues, Warnings, and Passing checks. Clicking a critical issue or warning shows the specific pages affected.</p>
 
-    <h3>Content section</h3>
+    <h4>Database schema</h4>
+    <p>Search data is stored in the <code>analytics_searches</code> table:</p>
+    <table>
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>query</code></td><td>TEXT</td><td>The search term entered by the visitor</td></tr>
+        <tr><td><code>results_count</code></td><td>INTEGER</td><td>Number of results returned (0 for auto-detected URL params)</td></tr>
+        <tr><td><code>clicked_path</code></td><td>TEXT</td><td>Path the user clicked from search results (NULL if no click)</td></tr>
+        <tr><td><code>session_id</code></td><td>TEXT</td><td>Session identifier</td></tr>
+        <tr><td><code>created_at</code></td><td>DATETIME</td><td>Timestamp of the search event</td></tr>
+      </tbody>
+    </table>
+
+    <h4>API endpoint</h4>
+    <pre><code>GET api.php?action=dashboard/search&amp;period=30days</code></pre>
+    <p>Returns search metrics, top queries, zero-result queries, top clicked paths, and daily trend data for the selected period.</p>
+
+    <!-- ───────────────────── Content tab ───────────────────── -->
+    <h3>Content tab</h3>
     <ul>
       <li><strong>Publishing cadence</strong> — a chart showing how many collection items were published per week over time, useful for understanding content output consistency</li>
       <li><strong>Top content by pageviews</strong> — cross-references analytics hit data with your collection items to show which pieces of content are driving the most traffic</li>
+      <li><strong>SEO health</strong> — automated checks across all pages and collection items producing a score from 0 to 100 (missing meta descriptions, title length, Open Graph images, short content, duplicate descriptions, missing excerpts). Results are grouped into Critical, Warnings, and Passing.</li>
     </ul>
 
-    <h3>Members section</h3>
-    <p>This section appears when member data is present in the database:</p>
+    <h4 id="content-cohorts">Content performance cohorts <span class="badge">v2.3</span></h4>
+    <p>Groups pages by publish date to reveal how traffic differs for new versus established content. This helps you understand whether recent content is gaining traction and how older content continues to perform.</p>
+
+    <p>Cohort buckets:</p>
     <ul>
-      <li><strong>Member growth chart</strong> — total members, paid members, and free members over time</li>
-      <li><strong>Tier breakdown</strong> — proportional split of members across membership tiers</li>
+      <li><strong>Last 7 days</strong> — pages published in the past week</li>
+      <li><strong>Last 30 days</strong> — pages published in the past month</li>
+      <li><strong>Last 90 days</strong> — pages published in the past quarter</li>
+      <li><strong>Last 6 months</strong> — pages published in the past half-year</li>
+      <li><strong>Older</strong> — everything published before that</li>
     </ul>
 
+    <p>Each cohort shows: page count, total views, average views per page, and the top pages within that cohort. No new database tables are required — cohorts are computed from existing <code>analytics_hits</code> and <code>pages</code> tables.</p>
+
+    <h4>API endpoint</h4>
+    <pre><code>GET api.php?action=dashboard/cohorts&amp;period=30days</code></pre>
+    <p>Returns cohort breakdowns with page counts, view totals, averages, and top pages per bucket.</p>
+
+    <!-- ───────────────────── Funnels tab ───────────────────── -->
+    <h3>Funnels tab <span class="badge">v2.3</span></h3>
+    <p>Visualizes the member lifecycle funnel. This tab is only visible when the members feature is enabled.</p>
+
+    <p>Funnel stages:</p>
+    <ol>
+      <li><strong>Visitors</strong> — unique sessions in the period</li>
+      <li><strong>Sign Ups</strong> — new member registrations</li>
+      <li><strong>Logins</strong> — members who logged in</li>
+      <li><strong>Upgrades</strong> — members who changed to a paid role</li>
+    </ol>
+
+    <p>Between each stage the funnel shows conversion rates and drop-off percentages, making it easy to see where visitors fall out of the lifecycle. Below the funnel chart is a recent member activity feed showing the latest signup, login, and upgrade events.</p>
+
+    <h4>Database schema</h4>
+    <p>Member events are stored in the <code>member_events</code> table:</p>
+    <table>
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>user_id</code></td><td>INTEGER</td><td>The member's user ID</td></tr>
+        <tr><td><code>event_type</code></td><td>TEXT</td><td>One of: <code>signup</code>, <code>login</code>, <code>role_change</code>, <code>email_verified</code></td></tr>
+        <tr><td><code>details</code></td><td>TEXT</td><td>JSON string with event-specific metadata</td></tr>
+        <tr><td><code>session_id</code></td><td>TEXT</td><td>Session identifier</td></tr>
+        <tr><td><code>created_at</code></td><td>DATETIME</td><td>Timestamp of the event</td></tr>
+      </tbody>
+    </table>
+
+    <h4>API endpoint</h4>
+    <pre><code>GET api.php?action=dashboard/funnels&amp;period=30days</code></pre>
+    <p>Returns funnel stage counts, conversion rates, drop-off percentages, and recent member activity.</p>
+
+    <!-- ───────────────────── Geo Enrichment ───────────────────── -->
+    <h2 id="geo-enrichment">Geo enrichment <span class="badge">v2.3</span></h2>
+    <p>Optional country-level visitor geography. Geo enrichment is double-gated for privacy:</p>
+    <ol>
+      <li>You must upload a <strong>MaxMind GeoLite2-Country.mmdb</strong> database file</li>
+      <li>You must enable the <code>geo_enabled</code> setting</li>
+    </ol>
+    <p>Both conditions must be met before any geo data is recorded. Configure this in <strong>Settings &rarr; Advanced &rarr; Geo Analytics</strong>.</p>
+
+    <h3>How it works</h3>
+    <p>When a pageview is recorded and geo enrichment is active, the tracker looks up the visitor's IP against the MaxMind database to resolve a 2-letter country code (e.g. <code>US</code>, <code>DE</code>, <code>JP</code>). Only the country code is stored — the raw IP address is never written to the analytics table.</p>
+    <p>Country data appears in the Traffic tab as a "Top countries" section showing flag emoji, country name, visit count, and a percentage bar.</p>
+
+    <h3>Management endpoints</h3>
+    <table>
+      <thead>
+        <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>api.php?action=dashboard/geo</code></td><td>GET</td><td>Top countries for the selected period (<code>&amp;period=30days</code>)</td></tr>
+        <tr><td><code>api.php?action=dashboard/geo/status</code></td><td>GET</td><td>Whether the MMDB file is present and geo is enabled</td></tr>
+        <tr><td><code>api.php?action=dashboard/geo/upload</code></td><td>POST</td><td>Upload a GeoLite2-Country.mmdb file</td></tr>
+        <tr><td><code>api.php?action=dashboard/geo/delete</code></td><td>DELETE</td><td>Remove the MMDB file and disable geo enrichment</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Privacy note</strong> — Geo enrichment only stores a 2-letter country code. No city, region, postal code, or IP address is retained. You can delete the MMDB file at any time to stop geo tracking; existing country codes in the database remain but no new ones are recorded.</div>
+
+    <!-- ───────────────────── GA4 ───────────────────── -->
     <h2>GA4 integration</h2>
     <p>Outpost's built-in analytics and Google Analytics 4 can run in parallel. To add GA4, store your Measurement ID in a global field and inject the GA4 snippet conditionally in your theme's <code>head.html</code> partial.</p>
 

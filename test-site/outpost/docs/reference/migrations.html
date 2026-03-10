@@ -291,6 +291,45 @@
       </tbody>
     </table>
 
+    <hr>
+
+    <h2>v2.3 Migrations — Deeper Analytics</h2>
+    <p>The v2.3 release added three automatic migrations for the deeper analytics features.</p>
+
+    <h3>1. analytics_searches table (Pattern 2)</h3>
+    <p>Created by <code>ensure_analytics_searches_table()</code> in <code>track.php</code>. Runs on first search tracking request.</p>
+    <pre><code>CREATE TABLE IF NOT EXISTS analytics_searches (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    query          TEXT NOT NULL,
+    results_count  INTEGER DEFAULT 0,
+    clicked_path   TEXT DEFAULT NULL,
+    session_id     TEXT,
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_searches_query   ON analytics_searches(query);
+CREATE INDEX IF NOT EXISTS idx_searches_created ON analytics_searches(created_at);</code></pre>
+
+    <h3>2. member_events table (Pattern 2)</h3>
+    <p>Created by <code>ensure_member_events_table()</code> in <code>api.php</code>. Runs on first funnels API request.</p>
+    <pre><code>CREATE TABLE IF NOT EXISTS member_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER,
+    event_type  TEXT NOT NULL,
+    details     TEXT DEFAULT NULL,
+    session_id  TEXT DEFAULT NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_member_events_type    ON member_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_member_events_created ON member_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_member_events_user    ON member_events(user_id);</code></pre>
+    <p>Event types recorded: <code>signup</code>, <code>login</code>, <code>role_change</code>, <code>email_verified</code>.</p>
+
+    <h3>3. country_code column on analytics_hits (Pattern 1)</h3>
+    <p>Added by <code>ensure_analytics_tables()</code> in <code>track.php</code>. Stores 2-letter ISO country code from MaxMind GeoLite2 lookup when geo enrichment is enabled.</p>
+    <pre><code>ALTER TABLE analytics_hits ADD COLUMN country_code TEXT DEFAULT NULL;
+CREATE INDEX IF NOT EXISTS idx_hits_country ON analytics_hits(country_code);</code></pre>
+
   </div>
 </main>
 

@@ -22,6 +22,28 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.3.1">2.3.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Security</h3>
+    <ul>
+      <li>MMDB reader: add recursion depth limit (max 16) to prevent stack overflow from malicious pointer loops</li>
+      <li>MMDB reader: cap map/array decode size to 512 entries to prevent memory exhaustion</li>
+      <li>Remove member email from funnels recent_events API response (privacy)</li>
+      <li>Normalize stored event properties JSON to strip injection payloads</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Funnels recent_events query now filters by selected period instead of returning all-time events</li>
+      <li>Funnels upgrade detection uses exact <code>paid_member</code> match instead of fragile <code>LIKE '%paid%'</code></li>
+      <li>Duplicate <code>$effect</code> in AnalyticsTraffic consolidated &mdash; chart no longer builds twice on load</li>
+      <li>MMDB reader uint64 decoding now handles 32-bit PHP gracefully</li>
+      <li>Missing <code>country_code</code> index on analytics_hits added for geo query performance</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Updated developer docs: analytics, admin API, database schema, and migrations pages for v2.3 features</li>
+      <li>Fixed llms.txt: corrected JS tracking function name and search auto-detection description</li>
+    </ul>
+
     <h2 id="2.3.0">2.3.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-09</span></h2>
     <h3>Added</h3>
     <ul>

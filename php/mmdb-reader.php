@@ -173,14 +173,15 @@ function _mmdb_read_record(string $nodeData, int $recordSize, int $side): int {
 /**
  * Read and decode data at a given offset in the data section.
  */
-function _mmdb_read_data_at(array $handle, int $offset): mixed {
+function _mmdb_read_data_at(array $handle, int $offset, int $_depth = 0): mixed {
+    if ($_depth > 16) return null; // Guard against recursive pointer loops
     $fp = $handle['fp'];
     $absOffset = $handle['data_section_offset'] + $offset;
     fseek($fp, $absOffset);
     $chunk = fread($fp, 4096); // Read a chunk — should be enough for country data
     if (!$chunk) return null;
 
-    $result = _mmdb_decode($chunk, 0, $handle);
+    $result = _mmdb_decode($chunk, 0, $handle, $_depth);
     return $result ? $result[0] : null;
 }
 
@@ -188,7 +189,8 @@ function _mmdb_read_data_at(array $handle, int $offset): mixed {
  * Decode MMDB data format.
  * @return array{0: mixed, 1: int}|null  [value, bytes_consumed]
  */
-function _mmdb_decode(string $data, int $offset, ?array $handle = null): ?array {
+function _mmdb_decode(string $data, int $offset, ?array $handle = null, int $_depth = 0): ?array {
+    if ($_depth > 16) return null; // Guard against recursive pointer loops
     if ($offset >= strlen($data)) return null;
 
     $ctrlByte = ord($data[$offset]);
@@ -243,7 +245,7 @@ function _mmdb_decode(string $data, int $offset, ?array $handle = null): ?array 
 
         // Resolve pointer
         if ($handle) {
-            $resolved = _mmdb_read_data_at($handle, $pointer);
+            $resolved = _mmdb_read_data_at($handle, $pointer, $_depth + 1);
             return [$resolved, $offset];
         }
         return [null, $offset];
@@ -275,11 +277,12 @@ function _mmdb_decode(string $data, int $offset, ?array $handle = null): ?array 
         case 7: // map
             $map = [];
             $pos = $offset;
-            for ($i = 0; $i < $size; $i++) {
-                $key = _mmdb_decode($data, $pos, $handle);
+            $cap = min($size, 512); // Cap entries to prevent abuse
+            for ($i = 0; $i < $cap; $i++) {
+                $key = _mmdb_decode($data, $pos, $handle, $_depth + 1);
                 if (!$key) break;
                 $pos = $key[1];
-                $val = _mmdb_decode($data, $pos, $handle);
+                $val = _mmdb_decode($data, $pos, $handle, $_depth + 1);
                 if (!$val) break;
                 $pos = $val[1];
                 $map[$key[0]] = $val[0];
@@ -296,16 +299,26 @@ function _mmdb_decode(string $data, int $offset, ?array $handle = null): ?array 
         case 9: // uint64
             if ($size === 0) return [0, $offset];
             $bytes = str_pad(substr($data, $offset, $size), 8, "\x00", STR_PAD_LEFT);
-            $high = unpack('N', substr($bytes, 0, 4))[1];
-            $low = unpack('N', substr($bytes, 4, 4))[1];
-            $val = ($high << 32) | $low;
+            if (PHP_INT_SIZE >= 8) {
+                $high = unpack('N', substr($bytes, 0, 4))[1];
+                $low = unpack('N', substr($bytes, 4, 4))[1];
+                $val = ($high << 32) | $low;
+            } else {
+                // 32-bit PHP: return as string to avoid overflow
+                $val = '0';
+                for ($b = 0; $b < 8; $b++) {
+                    $val = bcmul($val, '256');
+                    $val = bcadd($val, (string)ord($bytes[$b]));
+                }
+            }
             return [$val, $offset + $size];
 
         case 11: // array
             $arr = [];
             $pos = $offset;
-            for ($i = 0; $i < $size; $i++) {
-                $item = _mmdb_decode($data, $pos, $handle);
+            $cap = min($size, 512); // Cap entries to prevent abuse
+            for ($i = 0; $i < $cap; $i++) {
+                $item = _mmdb_decode($data, $pos, $handle, $_depth + 1);
                 if (!$item) break;
                 $arr[] = $item[0];
                 $pos = $item[1];
