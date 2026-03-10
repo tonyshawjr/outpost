@@ -15,6 +15,7 @@
 - [Members System](/outpost/docs/members/): Member registration, login, password reset
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
+- [Brand Settings](/outpost/docs/features/brand.html): Site-wide colors, fonts, logo, and favicon — baseline identity for themes
 - [Theme Customizer](/outpost/docs/features/theme-customizer.html): Visual color, font, logo, and favicon editor with live preview
 - [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system with theme updates
 - [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
@@ -190,6 +191,22 @@ Outpost ships three managed themes:
 
 The Skeleton theme is the recommended starting point for theme development. Duplicate it in Admin → Themes to create a new theme, then edit the copy. It demonstrates: output tags (text, richtext, image, link, textarea, color, number, date, select, toggle), globals, meta tags, wrapping and inline defaults, conditionals, collection loops with all options, single item fetch, menu loops with dropdowns, folder loops, pagination, form tag, includes, SEO block, and admin check.
 
+### Brand Settings
+
+Brand (Admin → Brand) sets site-wide visual identity: palette (primary, secondary, accent, neutral, background, surface), typography (heading font, body font, type scale ratio), and identity (logo, favicon). Stored in `content/data/brand.json`.
+
+Brand values flow into themes via two paths:
+1. **Customizer with `brand_key`** — customizer fields map to brand values using `"brand_key": "colors.accent"`. Priority: saved customizer value → brand value → theme.json default.
+2. **Framework with `"framework": true`** — injects `--brand-*` CSS tokens and framework CSS directly. Theme CSS uses `var(--brand-primary)`, `var(--brand-font-heading)`, etc.
+
+Available brand keys: `colors.primary`, `colors.secondary`, `colors.accent`, `colors.neutral`, `colors.background`, `colors.surface`, `typography.heading_font`, `typography.body_font`, `identity.logo`, `identity.favicon`.
+
+#### Custom Google Fonts
+
+The font picker in Brand and Theme Customizer ships with ~30 curated Google Fonts. Admins can add any Google Font via Brand → Typography → "Manage fonts". Enter the exact font name from fonts.google.com and choose a category (Sans Serif, Serif, Display, Monospace). Custom fonts are stored in the `settings` table as the `custom_fonts` key (JSON array of `{ name, category }` objects) and automatically appear in all font picker dropdowns.
+
+API: `GET api.php?action=fonts` returns `{ fonts: [...] }` (custom fonts only). `PUT api.php?action=fonts` with body `{ fonts: [{ name, category }, ...] }` saves them. Requires `settings.*` capability.
+
 ### Customizer schema (optional)
 
 Themes can declare customizable properties by adding a `customizer` key to `theme.json`. When present, the admin shows a visual Theme Customizer (Admin → Customize) that lets site owners change colors, fonts, logo, and favicon without editing code.
@@ -227,6 +244,8 @@ Themes can declare customizable properties by adding a `customizer` key to `them
 ```
 
 Field types: `color` (hex picker, requires `var`), `font` (Google Fonts dropdown, requires `var`), `image` (media picker for logo/favicon). The `logo` key syncs to `@site_logo` global on save.
+
+**Brand key mapping (optional):** Fields can include a `brand_key` property (e.g. `"brand_key": "colors.accent"`) to map to a Brand setting. When present, the brand value serves as the baseline default instead of the field's `default`. Value priority: Customizer saved value → Brand value → theme.json field default. The `GET customizer` API enriches fields with a `brand_default` property so the admin UI can show the brand value as the reset target. Fields without `brand_key` are unaffected (fully backward-compatible).
 
 Storage: `content/data/customizer.json` — per-theme key, included in backups, safe from auto-updater. CSS overrides injected before `</head>` with `:root:not([data-theme="dark"])` selector (light mode only). Google Fonts loaded dynamically; hardcoded theme font links stripped.
 

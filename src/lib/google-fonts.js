@@ -43,11 +43,20 @@ export const googleFonts = [
 ];
 
 /** Group fonts by category for <optgroup> rendering. */
-export function fontsByCategory() {
+export function fontsByCategory(extraFonts = []) {
   const groups = {};
   for (const font of googleFonts) {
     if (!groups[font.category]) groups[font.category] = [];
     groups[font.category].push(font);
+  }
+  // Merge custom fonts (deduplicate by name)
+  const existing = new Set(googleFonts.map(f => f.name));
+  for (const font of extraFonts) {
+    if (!font.name || existing.has(font.name)) continue;
+    const cat = font.category || 'Sans Serif';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push({ name: font.name, category: cat, weights: '400;500;600;700' });
+    existing.add(font.name);
   }
   return groups;
 }

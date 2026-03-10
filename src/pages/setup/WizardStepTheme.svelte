@@ -3,19 +3,14 @@
 
   const themes = [
     {
-      slug: 'personal',
-      name: 'Personal',
-      desc: 'Blog, portfolio, and resume. Great for creators.',
-    },
-    {
       slug: 'starter',
       name: 'Starter',
       desc: 'Multi-page business site with features and contact.',
     },
     {
-      slug: 'skeleton',
-      name: 'Skeleton',
-      desc: 'Bare-bones starter for developers. Build from scratch.',
+      slug: 'forge-playground',
+      name: 'Forge Playground',
+      desc: 'Starter theme for learning the Forge visual tag builder.',
     },
   ];
 

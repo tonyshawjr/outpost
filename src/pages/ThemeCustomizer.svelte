@@ -116,7 +116,7 @@
     const section = schema.sections.find(s => s.id === sectionId);
     if (!section) return '';
     const field = section.fields.find(f => f.key === fieldKey);
-    return field?.default || '';
+    return field?.brand_default || field?.default || '';
   }
 </script>
 
@@ -176,7 +176,7 @@
                     key={field.key}
                     label={field.label}
                     value={values[section.id]?.[field.key] ?? ''}
-                    defaultValue={field.default || '#000000'}
+                    defaultValue={field.brand_default || field.default || '#000000'}
                     onchange={(k, v) => handleFieldChange(section.id, k, v)}
                   />
                 {:else if field.type === 'font'}
@@ -184,7 +184,7 @@
                     key={field.key}
                     label={field.label}
                     value={values[section.id]?.[field.key] ?? ''}
-                    defaultValue={field.default || 'Inter'}
+                    defaultValue={field.brand_default || field.default || 'Inter'}
                     onchange={(k, v) => handleFieldChange(section.id, k, v)}
                   />
                 {:else if field.type === 'image'}

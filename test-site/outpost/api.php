@@ -102,7 +102,7 @@ OutpostAuth::requireAuth();
 // CSRF check on mutations (skip for API key auth — CSRF only protects browser sessions)
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
     if (!OutpostAuth::isApiKeyAuth()) {
-        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore') {
+        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore' && $action !== 'themes/upload') {
             OutpostAuth::validateCsrf();
         }
     }
@@ -155,6 +155,7 @@ $cap_map = [
     'customizer' => 'settings.*',
     'setup'      => 'settings.*',
     'brand'      => 'settings.*',
+    'fonts'      => 'settings.*',
     'components' => 'code.*',
 ];
 if (isset($cap_map[$action_prefix])) {
@@ -267,6 +268,9 @@ match (true) {
     $action === 'themes' && $method === 'GET' && !isset($_GET['slug']) => handle_themes_list(),
     $action === 'themes/activate' && $method === 'PUT' => handle_theme_activate(),
     $action === 'themes/duplicate' && $method === 'POST' => handle_theme_duplicate(),
+    $action === 'themes/create' && $method === 'POST' => handle_theme_create(),
+    $action === 'themes/upload' && $method === 'POST' => handle_theme_upload(),
+    $action === 'themes/export' && $method === 'GET' && isset($_GET['slug']) => handle_theme_export(),
     $action === 'themes' && $method === 'DELETE' && isset($_GET['slug']) => handle_theme_delete(),
 
     // Dashboard
@@ -443,6 +447,10 @@ match (true) {
     // Brand (site-wide identity)
     $action === 'brand' && $method === 'GET'  => handle_brand_get(),
     $action === 'brand' && $method === 'PUT'  => handle_brand_save(),
+
+    // Custom Google Fonts
+    $action === 'fonts' && $method === 'GET' => handle_fonts_get(),
+    $action === 'fonts' && $method === 'PUT' => handle_fonts_save(),
 
     default => json_error('Not found', 404),
 };
@@ -3061,6 +3069,47 @@ function handle_settings_update(): void {
     log_activity('system', 'Site settings updated');
 
     json_response(['success' => true]);
+}
+
+// ── Custom Google Fonts Handlers ─────────────────────────
+function handle_fonts_get(): void {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'custom_fonts'");
+    $custom = $row ? json_decode($row['value'], true) : [];
+    if (!is_array($custom)) $custom = [];
+    json_response(['fonts' => $custom]);
+}
+
+function handle_fonts_save(): void {
+    $data = get_json_body();
+    $fonts = $data['fonts'] ?? [];
+
+    if (!is_array($fonts)) {
+        json_error('fonts must be an array', 400);
+    }
+
+    $valid_categories = ['Sans Serif', 'Serif', 'Display', 'Monospace'];
+    $cleaned = [];
+    foreach ($fonts as $font) {
+        if (!is_array($font) || empty($font['name']) || !is_string($font['name'])) {
+            json_error('Each font must have a non-empty name', 400);
+        }
+        $cat = $font['category'] ?? 'Sans Serif';
+        if (!in_array($cat, $valid_categories, true)) {
+            json_error("Invalid category: $cat", 400);
+        }
+        $cleaned[] = [
+            'name' => trim($font['name']),
+            'category' => $cat,
+        ];
+    }
+
+    OutpostDB::query(
+        "INSERT INTO settings (key, value) VALUES ('custom_fonts', ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        [json_encode($cleaned)]
+    );
+
+    json_response(['success' => true, 'fonts' => $cleaned]);
 }
 
 // ── Cache Handler ────────────────────────────────────────

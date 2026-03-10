@@ -158,6 +158,10 @@ const htaccess = `# Outpost CMS — Apache Rewrite Rules
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
+    # Serve directories directly (outpost/ admin, docs, assets)
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
     # Route everything else through index.php
     RewriteRule ^ index.php [L]
 </IfModule>

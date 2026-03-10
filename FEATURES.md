@@ -4,6 +4,46 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Custom Google Fonts (v2.6.1)
+
+- **Manage fonts** — "Manage fonts" link in Brand > Typography opens a modal to add any Google Font by name and category. Fonts are stored in the settings table as `custom_fonts` JSON.
+- **Merged font list** — Font picker dropdowns (Brand + Theme Customizer) merge the curated ~30 fonts with user-added fonts. Deduplication by name, category grouping preserved.
+- **API endpoints** — `GET/PUT fonts` — retrieve and save custom Google Fonts. Validates font name and category (Sans Serif, Serif, Display, Monospace). Gated by `settings.*` capability.
+- **Files**: `php/api.php`, `src/lib/api.js`, `src/lib/google-fonts.js`, `src/components/customizer/FontField.svelte`, `src/pages/Brand.svelte`
+
+---
+
+## Theme Management (v2.6.0)
+
+- **Upload Theme** — Themes page now has an "Upload Theme" button. Accepts `.zip` files containing a valid `theme.json`. Validates zip structure, prevents zip-slip attacks, auto-generates slug from theme name, strips `managed` flag from uploaded themes.
+- **New Theme** — "New Theme" button opens a modal with two starting points: Blank (creates minimal `index.html` + `theme.json`) or Duplicate (copies an existing theme). After creation, navigates to Code Editor for immediate editing.
+- **Theme Export** — "Export" button on every theme card downloads the theme as a `.zip` file. Uses `Content-Disposition: attachment` for browser download.
+- **Shipped themes trimmed** — Personal and Skeleton themes removed from distribution. Only Starter and Forge Playground ship with Outpost.
+- **Setup Wizard updated** — theme picker shows only Starter and Forge Playground.
+- **Content Packs updated** — all pack theme arrays reference only shipped themes.
+- **Files**: `php/themes.php`, `php/api.php`, `src/pages/Themes.svelte`, `src/lib/api.js`, `src/pages/setup/WizardStepTheme.svelte`, `php/content-packs/packs.json`
+
+---
+
+## Brand → Customizer Integration (v2.5.3)
+
+- **Brand as customizer baseline** — Brand settings (colors, fonts, logo, favicon) now flow through as default values for the Theme Customizer. Priority: Customizer saved value → Brand value → theme.json default. Themes opt in per-field via `brand_key` in `theme.json` (e.g. `"brand_key": "colors.accent"`). Fields without `brand_key` are unaffected (fully backward-compatible).
+- **Personal theme mapped** — 8 customizer fields mapped to brand keys: accent, text, background, surface colors + heading/body fonts + logo + favicon. `color-accent-hover` and `color-muted` remain theme-only.
+- **API enrichment** — `GET customizer` response now includes `brand_default` on fields with a `brand_key` mapping, so the admin UI can show the brand value as the reset target.
+- **Files**: `php/customizer.php`, `php/themes/personal/theme.json`, `src/pages/ThemeCustomizer.svelte`
+
+---
+
+## Brand Page Redesign + Sidebar Rename (v2.5.2)
+
+- **Sidebar labels renamed** — "Build" → "Content" (Collections, Form Builder, Channels, Folders), "Design" → "Design & Build" (Themes, Brand, Code Editor). Mobile nav mirrors sidebar labels.
+- **Brand page icon** — fixed paint-palette icon (dots now solid-filled instead of hollow outlines) in sidebar, mobile nav, and page header.
+- **Collection icons** — collection items in sidebar changed from folder to stacked-documents icon; Folders nav item changed from tag to folder icon for clearer differentiation.
+- **Brand page redesign** — three always-open visual zones replacing accordion layout: Palette (3x2 clickable color tiles + live palette bar with WCAG contrast ratios), Typography (font selectors + live type specimen panel with heading/body/paragraph previews and computed scale table), Identity (side-by-side Logo + Favicon uploads). Responsive: all zones collapse to single column at ≤768px, color grid becomes 2x3.
+- **Files**: `src/components/Sidebar.svelte`, `src/components/MobileNav.svelte`, `src/pages/Brand.svelte`
+
+---
+
 ## Outpost Design System (v2.5.0)
 
 - **Sidebar reorganization** — Build section split into "Build" (Collections, Form Builder, Channels, Folders) and "Design" (Themes, Brand, Code Editor). Customize and Template Reference removed from sidebar (Customize accessible from Themes page, Template Reference integrated into Code Editor).

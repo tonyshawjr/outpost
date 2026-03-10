@@ -4,27 +4,27 @@
     "name": "Blog",
     "description": "Personal blog with sample posts and categories.",
     "icon": "pencil",
-    "themes": ["personal", "starter", "skeleton"]
+    "themes": ["starter", "forge-playground"]
   },
   {
     "id": "portfolio",
     "name": "Portfolio",
     "description": "Portfolio with projects, about page, and contact.",
     "icon": "grid",
-    "themes": ["personal", "starter", "skeleton"]
+    "themes": ["starter", "forge-playground"]
   },
   {
     "id": "business",
     "name": "Business",
     "description": "Business site with services, team, and contact form.",
     "icon": "briefcase",
-    "themes": ["starter", "skeleton"]
+    "themes": ["starter"]
   },
   {
     "id": "blank",
     "name": "Start from scratch",
     "description": "Just the theme \u2014 no sample content.",
     "icon": "plus",
-    "themes": ["personal", "starter", "skeleton"]
+    "themes": ["starter", "forge-playground"]
   }
 ]

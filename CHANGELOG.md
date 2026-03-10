@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.1] — 2026-03-10
+
+### Added
+- **Custom Google Fonts** — Brand > Typography now has a "Manage fonts" button to add any Google Font by name. Custom fonts are stored in settings and appear in all font picker dropdowns (Brand + Theme Customizer). No code or config file edits needed.
+
+---
+
+## [2.6.0] — 2026-03-10
+
+### Added
+- **Theme Upload** — install themes from ZIP files via Themes page. Validates theme.json, zip-slip prevention, auto-generates slug from theme name.
+- **New Theme** — create blank themes or duplicate existing ones from the Themes page. Blank themes get a minimal index.html + theme.json scaffold. After creation, navigates to Code Editor.
+- **Theme Export** — download any theme as a ZIP file from the Themes page.
+
+### Changed
+- **Shipped themes** — removed Personal and Skeleton themes from the distribution. Only Starter and Forge Playground ship with Outpost.
+- **Setup Wizard** — theme picker updated to show Starter and Forge Playground only.
+- **Content Packs** — updated to reference only the two shipped themes.
+
+---
+
+## [2.5.3] — 2026-03-10
+
+### Added
+- **Brand → Customizer integration** — Brand settings now serve as baseline defaults for the Theme Customizer. Value priority: Customizer saved value → Brand value → theme.json default. Uses `brand_key` field mapping in theme.json (fully backward-compatible).
+
+### Security
+- **Tightened color regex** in customizer CSS injection — now only accepts valid CSS hex lengths (3, 4, 6, or 8 digits), matching the strict pattern used in brand validation
+- **Font name validation** in framework CSS injection — output-layer regex check added before injecting brand font names into CSS tokens (defense-in-depth)
+
+---
+
+## [2.5.2] — 2026-03-10
+
+### Changed
+- **Sidebar labels renamed** — "Build" → "Content", "Design" → "Design & Build" for clearer navigation grouping
+- **Brand page icon** — fixed paint-palette icon (dots now render as solid fills instead of hollow outlines); consistent across sidebar, mobile nav, and page header
+- **Collection item icons** — changed from folder icon to stacked-documents icon to distinguish from Folders nav item
+- **Folders icon** — changed from tag icon to folder icon (Folders manages taxonomies/categories, folder icon is more intuitive)
+- **Brand page redesign** — replaced accordion-form layout with three always-open visual zones (Palette, Typography, Identity), each with two-column grid; added 3x2 clickable color tile swatches, live palette bar with contrast ratio readability checks, type specimen panel with heading/body/paragraph previews, side-by-side Logo + Favicon uploads; all zones collapse to single column on mobile
+
+---
+
 ## [2.5.1] — 2026-03-10
 
 ### Fixed

@@ -1,19 +1,21 @@
 <script>
   import { onMount } from 'svelte';
   import { fontsByCategory, googleFontsPreviewUrl } from '$lib/google-fonts.js';
+  import { fonts as fontsApi } from '$lib/api.js';
 
   let { key, label, value = '', defaultValue = 'Inter', onchange = () => {} } = $props();
 
   let selectedFont = $state('');
-  let groups = fontsByCategory();
+  let groups = $state(fontsByCategory());
   let fontsLoaded = $state(false);
+  let previewLink = null;
 
   $effect(() => {
     selectedFont = value || defaultValue;
   });
 
-  onMount(() => {
-    // Load preview fonts for the dropdown (lightweight — only a few glyphs each)
+  function loadPreviewFonts() {
+    if (previewLink) previewLink.remove();
     const allFonts = Object.values(groups).flat();
     const link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -23,7 +25,22 @@
     link.href = `https://fonts.googleapis.com/css2?family=${families}&display=swap&text=AaBbCc`;
     link.onload = () => { fontsLoaded = true; };
     document.head.appendChild(link);
-    return () => { link.remove(); };
+    previewLink = link;
+  }
+
+  onMount(() => {
+    // Load custom fonts from API, merge with curated list
+    fontsApi.list().then(data => {
+      if (data.fonts?.length) {
+        groups = fontsByCategory(data.fonts);
+      }
+      loadPreviewFonts();
+    }).catch(() => {
+      // Fallback to curated-only
+      loadPreviewFonts();
+    });
+
+    return () => { if (previewLink) previewLink.remove(); };
   });
 
   function handleChange(e) {

@@ -86,6 +86,12 @@
           <td>No</td>
           <td>When <code>true</code>, marks this theme as managed by Outpost. Managed themes receive automatic updates when the CMS is updated. See <a href="themes/theme-updates.html">Theme Updates</a> for details.</td>
         </tr>
+        <tr>
+          <td><code>framework</code></td>
+          <td>boolean</td>
+          <td>No</td>
+          <td>When <code>true</code>, Outpost injects the CSS Framework stylesheet and <a href="features/brand.html">Brand</a> CSS tokens (<code>--brand-primary</code>, <code>--brand-font-heading</code>, type scale, etc.) before <code>&lt;/head&gt;</code>. See <a href="features/brand.html#framework">Brand Settings &rarr; The framework flag</a>.</td>
+        </tr>
       </tbody>
     </table>
 
@@ -263,7 +269,19 @@
       </tbody>
     </table>
 
-    <p>For full customizer documentation — including CSS requirements, dark mode behavior, and the API — see <a href="features/theme-customizer.html">Theme Customizer</a>.</p>
+    <h3>The brand_key property</h3>
+    <p>Any customizer field can include an optional <code>brand_key</code> property to inherit its baseline value from <a href="features/brand.html">Brand Settings</a> instead of the hardcoded <code>default</code>. The format is <code>"section.field"</code> using dotted notation:</p>
+    <pre><code>{
+  "key": "color-accent",
+  "label": "Accent Color",
+  "type": "color",
+  "default": "#14B8A6",
+  "var": "--color-accent",
+  "brand_key": "colors.accent"
+}</code></pre>
+    <p>When <code>brand_key</code> is present, the value priority is: Customizer saved value &rarr; Brand value &rarr; field <code>default</code>. Fields without <code>brand_key</code> are unaffected. See <a href="features/brand.html#brand-key">Brand Settings</a> for the full list of available keys.</p>
+
+    <p>For full customizer documentation — including CSS requirements, dark mode behavior, brand integration, and the API — see <a href="features/theme-customizer.html">Theme Customizer</a>.</p>
 
     <div class="callout callout-tip"><strong>Tip</strong> — If you omit the <code>customizer</code> key entirely, your theme works normally — the admin will simply show "This theme doesn't support customization yet" when a user navigates to the customizer.</div>
 

@@ -22,6 +22,46 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.6.1">2.6.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Custom Google Fonts</strong> &mdash; Brand &gt; Typography now has a &ldquo;Manage fonts&rdquo; button to add any Google Font by name. Custom fonts appear in all font picker dropdowns (Brand + Theme Customizer). Stored in settings, no code edits needed.</li>
+    </ul>
+
+    <h2 id="2.6.0">2.6.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Theme Upload</strong> &mdash; install themes from ZIP files via the Themes page. Validates theme.json, zip-slip prevention, auto-generates slug from theme name.</li>
+      <li><strong>New Theme</strong> &mdash; create blank themes or duplicate existing ones from the Themes page. Blank themes get a minimal index.html + theme.json scaffold. After creation, navigates to Code Editor.</li>
+      <li><strong>Theme Export</strong> &mdash; download any theme as a ZIP file from the Themes page.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Shipped themes</strong> &mdash; removed Personal and Skeleton themes from the distribution. Only Starter and Forge Playground ship with Outpost.</li>
+      <li><strong>Setup Wizard</strong> &mdash; theme picker updated to show Starter and Forge Playground only.</li>
+      <li><strong>Content Packs</strong> &mdash; updated to reference only the two shipped themes.</li>
+    </ul>
+
+    <h2 id="2.5.3">2.5.3 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Brand &rarr; Customizer integration</strong> &mdash; Brand settings now serve as baseline defaults for the Theme Customizer. Value priority: Customizer saved value &rarr; Brand value &rarr; theme.json default. Uses optional <code>brand_key</code> field mapping in theme.json (fully backward-compatible).</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Tightened color regex in customizer CSS injection &mdash; only valid CSS hex lengths (3, 4, 6, or 8 digits)</li>
+      <li>Font name validation added to framework CSS injection (defense-in-depth)</li>
+    </ul>
+
+    <h2 id="2.5.2">2.5.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Sidebar labels renamed</strong> &mdash; &ldquo;Build&rdquo; &rarr; &ldquo;Content&rdquo;, &ldquo;Design&rdquo; &rarr; &ldquo;Design &amp; Build&rdquo; for clearer navigation grouping</li>
+      <li><strong>Brand page icon</strong> &mdash; fixed paint-palette icon (dots now solid-filled instead of hollow outlines)</li>
+      <li><strong>Collection &amp; Folder icons</strong> &mdash; collection items now use stacked-documents icon; Folders uses folder icon instead of tag</li>
+      <li><strong>Brand page redesign</strong> &mdash; three always-open visual zones (Palette with 3&times;2 color tile swatches + contrast checks, Typography with live type specimen panel, Identity with side-by-side uploads); responsive collapse at &le;768px</li>
+    </ul>
+
     <h2 id="2.5.1">2.5.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
     <h3>Fixed</h3>
     <ul>

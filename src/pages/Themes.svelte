@@ -23,6 +23,17 @@
   // Activating
   let activating = $state('');
 
+  // Upload
+  let uploading = $state(false);
+  let uploadInput;
+
+  // New theme modal
+  let showNewTheme = $state(false);
+  let newThemeMode = $state('blank'); // 'blank' or 'duplicate'
+  let newThemeName = $state('');
+  let newThemeSource = $state('');
+  let creatingTheme = $state(false);
+
   let activeTheme = $derived(themesList.find(t => t.active));
   let draftThemes = $derived(themesList.filter(t => !t.active));
 
@@ -91,6 +102,53 @@
       deleting = false;
     }
   }
+
+  async function handleUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    uploading = true;
+    try {
+      const result = await themesApi.upload(file);
+      addToast(`Theme "${result.name}" installed`, 'success');
+      await loadThemes();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      uploading = false;
+      if (uploadInput) uploadInput.value = '';
+    }
+  }
+
+  function exportTheme(slug) {
+    window.location.href = themesApi.exportUrl(slug);
+  }
+
+  function openNewTheme() {
+    newThemeMode = 'blank';
+    newThemeName = '';
+    newThemeSource = themesList[0]?.slug || '';
+    showNewTheme = true;
+  }
+
+  async function handleCreateTheme() {
+    if (!newThemeName.trim()) return;
+    creatingTheme = true;
+    try {
+      if (newThemeMode === 'blank') {
+        await themesApi.create(newThemeName.trim());
+      } else {
+        await themesApi.duplicate(newThemeSource, newThemeName.trim());
+      }
+      addToast('Theme created', 'success');
+      showNewTheme = false;
+      await loadThemes();
+      navigate('code-editor');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      creatingTheme = false;
+    }
+  }
 </script>
 
 <div class="themes-page">
@@ -105,6 +163,19 @@
     <div class="page-header-content">
       <h1 class="page-title">Themes</h1>
       <p class="page-subtitle">Manage your site's appearance</p>
+    </div>
+    <div class="page-header-actions">
+      <button class="btn btn-secondary" onclick={() => openNewTheme()}>New Theme</button>
+      <button class="btn btn-secondary" onclick={() => uploadInput?.click()} disabled={uploading}>
+        {uploading ? 'Uploading...' : 'Upload Theme'}
+      </button>
+      <input
+        type="file"
+        accept=".zip"
+        class="sr-only"
+        bind:this={uploadInput}
+        onchange={handleUpload}
+      />
     </div>
   </div>
 
@@ -132,6 +203,9 @@
           </button>
           <button class="btn btn-secondary btn-sm" onclick={() => openDuplicate(activeTheme.slug)}>
             Duplicate
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick={() => exportTheme(activeTheme.slug)}>
+            Export
           </button>
         </div>
       </div>
@@ -167,6 +241,9 @@
               <button class="btn btn-secondary btn-sm" onclick={() => openDuplicate(theme.slug)}>
                 Duplicate
               </button>
+              <button class="btn btn-secondary btn-sm" onclick={() => exportTheme(theme.slug)}>
+                Export
+              </button>
               {#if !theme.managed}
                 <button class="theme-delete-btn" onclick={() => { deleteTarget = theme.slug; }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
@@ -182,7 +259,7 @@
   {#if themesList.length === 0}
     <EmptyState
       title="No themes found"
-      description="Create a theme directory with a theme.json manifest to get started."
+      description="Create a new theme or upload a theme zip to get started."
     />
   {/if}
 {/if}
@@ -217,6 +294,69 @@
         <button class="btn btn-secondary" onclick={() => { showDuplicate = false; }}>Cancel</button>
         <button class="btn btn-primary" onclick={handleDuplicate} disabled={duplicating || !duplicateName.trim()}>
           {duplicating ? 'Duplicating...' : 'Duplicate'}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- New Theme Modal -->
+{#if showNewTheme}
+  <div class="modal-overlay" onclick={() => { showNewTheme = false; }} role="dialog">
+    <div class="modal" onclick={(e) => e.stopPropagation()}>
+      <div class="modal-header">
+        <h3 class="modal-title">New Theme</h3>
+        <button class="modal-close" onclick={() => { showNewTheme = false; }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Starting point</label>
+          <div class="new-theme-options">
+            <button
+              class="new-theme-option"
+              class:selected={newThemeMode === 'blank'}
+              onclick={() => { newThemeMode = 'blank'; }}
+            >
+              <span class="new-theme-option-label">Blank theme</span>
+              <span class="new-theme-option-desc">Start from scratch</span>
+            </button>
+            <button
+              class="new-theme-option"
+              class:selected={newThemeMode === 'duplicate'}
+              onclick={() => { newThemeMode = 'duplicate'; }}
+            >
+              <span class="new-theme-option-label">Duplicate existing</span>
+              <span class="new-theme-option-desc">Copy an existing theme</span>
+            </button>
+          </div>
+        </div>
+        {#if newThemeMode === 'duplicate'}
+          <div class="form-group">
+            <label class="form-label">Source theme</label>
+            <select class="input" bind:value={newThemeSource}>
+              {#each themesList as t}
+                <option value={t.slug}>{t.name}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
+        <div class="form-group">
+          <label class="form-label">Theme name</label>
+          <input
+            class="input"
+            type="text"
+            bind:value={newThemeName}
+            placeholder="My New Theme"
+            onkeydown={(e) => { if (e.key === 'Enter') handleCreateTheme(); }}
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick={() => { showNewTheme = false; }}>Cancel</button>
+        <button class="btn btn-primary" onclick={handleCreateTheme} disabled={creatingTheme || !newThemeName.trim()}>
+          {creatingTheme ? 'Creating...' : 'Create & Open Editor'}
         </button>
       </div>
     </div>
@@ -393,6 +533,58 @@
   .theme-delete-btn svg {
     width: 16px;
     height: 16px;
+  }
+
+  /* Screen-reader only utility for hidden file input */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* New theme modal options */
+  .new-theme-options {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  .new-theme-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s;
+  }
+
+  .new-theme-option:hover {
+    border-color: var(--border-color-strong);
+  }
+
+  .new-theme-option.selected {
+    border-color: var(--accent);
+  }
+
+  .new-theme-option-label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .new-theme-option-desc {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
   }
 
   @media (max-width: 768px) {

@@ -168,6 +168,7 @@
         <tr><td><code>type</code></td><td>string</td><td>Yes</td><td>Field type: <code>color</code>, <code>font</code>, or <code>image</code>.</td></tr>
         <tr><td><code>default</code></td><td>string</td><td>No</td><td>Default value. For colors, a hex string. For fonts, the font family name. Not used for images.</td></tr>
         <tr><td><code>var</code></td><td>string</td><td>No</td><td>CSS custom property name to override (e.g. <code>--color-accent</code>). Required for <code>color</code> and <code>font</code> types. Not used for <code>image</code> type.</td></tr>
+        <tr><td><code>brand_key</code></td><td>string</td><td>No</td><td>Maps this field to a <a href="features/brand.html#brand-key">Brand setting</a> using dotted notation (e.g. <code>"colors.accent"</code>). When set, the brand value becomes the baseline default instead of <code>default</code>. See <a href="features/brand.html">Brand Settings</a> for the full list of available keys.</td></tr>
       </tbody>
     </table>
 
@@ -216,6 +217,26 @@
     <p>Then use <code>var(--color-accent)</code> etc. throughout your CSS. When the customizer overrides a variable, all elements using it update automatically.</p>
 
     <div class="callout callout-warn"><strong>Important</strong> — If your CSS uses hardcoded color values instead of custom properties, the customizer cannot override them. Always use <code>var(--variable-name)</code> for any value you want to be customizable.</div>
+
+    <h3>Brand integration</h3>
+    <p>Customizer fields can inherit baseline values from <a href="features/brand.html">Brand Settings</a> using the <code>brand_key</code> property. When a field has a <code>brand_key</code>, the value priority becomes:</p>
+    <ol>
+      <li><strong>Customizer saved value</strong> (user customized this theme specifically)</li>
+      <li><strong>Brand value</strong> (site-wide baseline from Admin &rarr; Brand)</li>
+      <li><strong>Field <code>default</code></strong> (hardcoded in <code>theme.json</code>)</li>
+    </ol>
+    <p>This lets site owners set their brand colors once and have them flow into every theme automatically. Per-theme overrides in the Customizer still take priority.</p>
+    <pre><code>{
+  "key": "color-accent",
+  "label": "Accent Color",
+  "type": "color",
+  "default": "#14B8A6",
+  "var": "--color-accent",
+  "brand_key": "colors.accent"
+}</code></pre>
+    <p>Fields without <code>brand_key</code> work exactly as before &mdash; fully backward-compatible. See <a href="features/brand.html#brand-key">Brand Settings &rarr; Available brand keys</a> for the full mapping table.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; In the Customizer UI, the Reset button resets to the brand value (if mapped) rather than the hardcoded theme default. This means "reset" returns to the site's brand identity, not the theme developer's original colors.</div>
 
     <h3>Dark mode considerations</h3>
     <p>Customizer overrides use the selector <code>:root:not([data-theme="dark"])</code>, which means they only apply to light mode. If your theme supports dark mode via a <code>[data-theme="dark"]</code> attribute, the dark mode colors remain unchanged by the customizer. This is intentional — it ensures a user's light mode customizations do not break the dark mode palette.</p>

@@ -332,6 +332,16 @@ export const themes = {
     request('themes/activate', { method: 'PUT', body: { slug } }),
   duplicate: (source, name) =>
     request('themes/duplicate', { method: 'POST', body: { source, name } }),
+  create: (name) =>
+    request('themes/create', { method: 'POST', body: { name } }),
+  upload: (file) => {
+    const formData = new FormData();
+    formData.append('theme', file);
+    formData.append('csrf_token', csrfToken);
+    return request('themes/upload', { method: 'POST', body: formData });
+  },
+  exportUrl: (slug) =>
+    `${apiBase}?action=themes/export&slug=${encodeURIComponent(slug)}`,
   delete: (slug) =>
     request('themes', { method: 'DELETE', params: { slug } }),
 };
@@ -355,6 +365,13 @@ export const brand = {
     request('brand'),
   save: (values) =>
     request('brand', { method: 'PUT', body: values }),
+};
+
+export const fonts = {
+  list: () =>
+    request('fonts'),
+  save: (fontList) =>
+    request('fonts', { method: 'PUT', body: { fonts: fontList } }),
 };
 
 export const components = {

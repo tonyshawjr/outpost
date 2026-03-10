@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/themes.php';
+require_once __DIR__ . '/brand.php';
 
 // ── File I/O ─────────────────────────────────────────────
 
@@ -30,11 +31,23 @@ function customizer_write_file(array $data): void {
     file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
 }
 
+// ── Brand Key Resolution ─────────────────────────────────
+
+/**
+ * Resolve a dotted brand key (e.g. "colors.accent") to its value.
+ * Returns empty string if the path doesn't exist.
+ */
+function customizer_resolve_brand_key(array $brand, string $brandKey): string {
+    $parts = explode('.', $brandKey, 2);
+    if (count($parts) !== 2) return '';
+    return $brand[$parts[0]][$parts[1]] ?? '';
+}
+
 // ── Merged Values (used by engine for CSS injection) ─────
 
 /**
  * Get merged customizer values for a theme.
- * Merges saved values over schema defaults.
+ * Priority: saved value → brand value → field default.
  * Returns flat map: { "color-accent": "#14B8A6", "font-heading": "Inter", ... }
  */
 function customizer_get_merged_values(string $themeSlug): array {
@@ -44,6 +57,7 @@ function customizer_get_merged_values(string $themeSlug): array {
 
     $saved = customizer_read_file();
     $themeValues = $saved[$themeSlug] ?? [];
+    $brand = brand_get_merged();
 
     $merged = [];
     foreach ($schema['sections'] as $section) {
@@ -52,8 +66,16 @@ function customizer_get_merged_values(string $themeSlug): array {
         foreach ($section['fields'] ?? [] as $field) {
             $key = $field['key'] ?? '';
             if (!$key) continue;
-            // Saved value takes precedence over default
-            $merged[$key] = $sectionSaved[$key] ?? $field['default'] ?? '';
+
+            // Priority: saved → brand → default
+            if (isset($sectionSaved[$key]) && $sectionSaved[$key] !== '') {
+                $merged[$key] = $sectionSaved[$key];
+            } elseif (!empty($field['brand_key'])) {
+                $brandVal = customizer_resolve_brand_key($brand, $field['brand_key']);
+                $merged[$key] = $brandVal !== '' ? $brandVal : ($field['default'] ?? '');
+            } else {
+                $merged[$key] = $field['default'] ?? '';
+            }
         }
     }
 
@@ -72,6 +94,7 @@ function customizer_get_schema(string $themeSlug): ?array {
 
 /**
  * GET customizer — Returns schema + saved values for active theme.
+ * Enriches fields with brand_default when a brand_key mapping exists.
  */
 function handle_customizer_get(): void {
     outpost_require_cap('settings.*');
@@ -80,6 +103,23 @@ function handle_customizer_get(): void {
     $schema = customizer_get_schema($theme);
     $saved = customizer_read_file();
     $values = $saved[$theme] ?? [];
+
+    // Enrich schema fields with resolved brand defaults
+    if ($schema && !empty($schema['sections'])) {
+        $brand = brand_get_merged();
+        foreach ($schema['sections'] as &$section) {
+            foreach ($section['fields'] as &$field) {
+                if (!empty($field['brand_key'])) {
+                    $brandVal = customizer_resolve_brand_key($brand, $field['brand_key']);
+                    if ($brandVal !== '') {
+                        $field['brand_default'] = $brandVal;
+                    }
+                }
+            }
+            unset($field);
+        }
+        unset($section);
+    }
 
     json_response([
         'schema' => $schema,

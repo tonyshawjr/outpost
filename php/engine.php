@@ -1263,8 +1263,12 @@ function outpost_framework_css(string $themeSlug): string {
 
     // Typography tokens
     if (!empty($brand['typography'])) {
-        $hf = str_replace("'", '', $brand['typography']['heading_font'] ?? 'Inter');
-        $bf = str_replace("'", '', $brand['typography']['body_font'] ?? 'Inter');
+        $hf = $brand['typography']['heading_font'] ?? 'Inter';
+        $bf = $brand['typography']['body_font'] ?? 'Inter';
+        if (!preg_match('/^[a-zA-Z0-9 \'\-]+$/', $hf)) $hf = 'Inter';
+        if (!preg_match('/^[a-zA-Z0-9 \'\-]+$/', $bf)) $bf = 'Inter';
+        $hf = str_replace("'", '', $hf);
+        $bf = str_replace("'", '', $bf);
         $tokens[] = "--brand-font-heading: '$hf', -apple-system, BlinkMacSystemFont, sans-serif;";
         $tokens[] = "--brand-font-body: '$bf', -apple-system, BlinkMacSystemFont, sans-serif;";
 
@@ -1309,7 +1313,10 @@ function outpost_customizer_css(string $themeSlug): string {
 
     $saved = customizer_read_file();
     $themeValues = $saved[$themeSlug] ?? [];
-    if (empty($themeValues)) return '';
+
+    // Load brand values for brand_key fallback
+    require_once __DIR__ . '/brand.php';
+    $brand = brand_get_merged();
 
     $cssVars = [];
     $fonts = [];
@@ -1332,7 +1339,11 @@ function outpost_customizer_css(string $themeSlug): string {
                 $fontVarDefaults[$cssVar] = $default;
             }
 
+            // Priority: saved → brand → skip
             $val = $sectionSaved[$key] ?? '';
+            if ($val === '' && !empty($field['brand_key'])) {
+                $val = customizer_resolve_brand_key($brand, $field['brand_key']);
+            }
             if ($val === '') continue;
 
             // Validate CSS variable name
@@ -1340,7 +1351,7 @@ function outpost_customizer_css(string $themeSlug): string {
 
             // CSS variable fields — only if different from default
             if ($cssVar && $val !== $default) {
-                if ($type === 'color' && !preg_match('/^#[0-9A-Fa-f]{3,8}$/', $val)) continue;
+                if ($type === 'color' && !preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/', $val)) continue;
                 if ($type === 'font' && !preg_match('/^[a-zA-Z0-9 \'\-]+$/', $val)) continue;
 
                 if ($type === 'font') {
