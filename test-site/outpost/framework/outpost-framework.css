@@ -400,3 +400,75 @@ small { font-size: var(--text-sm); }
 @media (min-width: 769px) {
   .hide-desktop { display: none !important; }
 }
+
+/* ── Tailwind-Compatible Aliases ───────────────────────── */
+/* Used by built-in component library snippets              */
+
+.font-bold     { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium   { font-weight: 500; }
+
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+.mb-1  { margin-bottom: 0.25rem; }
+.mb-2  { margin-bottom: 0.5rem; }
+.mb-3  { margin-bottom: 0.75rem; }
+.mb-4  { margin-bottom: 1rem; }
+.mb-6  { margin-bottom: 1.5rem; }
+.mb-8  { margin-bottom: 2rem; }
+.mb-12 { margin-bottom: 3rem; }
+
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-8 { gap: 2rem; }
+
+/* ── Focus Styles (WCAG 2.4.7) ────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(45, 90, 71, 0.15);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Responsive Typography ─────────────────────────────── */
+
+@media (max-width: 768px) {
+  h1 { font-size: var(--text-3xl); }
+  h2 { font-size: var(--text-2xl); }
+  h3 { font-size: var(--text-xl); }
+  h4 { font-size: var(--text-lg); }
+  .section    { padding-top: var(--space-2xl); padding-bottom: var(--space-2xl); }
+  .section-lg { padding-top: var(--space-3xl); padding-bottom: var(--space-3xl); }
+}
+
+/* ── Screen Reader Only ────────────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Positioning ───────────────────────────────────────── */
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.overflow-hidden { overflow: hidden; }

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] — 2026-03-10
+
+### Fixed
+- **Critical: Brand + Components API crash** — `outpost_json()`, `outpost_error()`, `outpost_require_auth()` were undefined; replaced with `json_response()`, `json_error()`, and capability pre-flight guard
+- **CSS class mismatch** — component snippets used Tailwind-style classes (`font-bold`, `mb-4`, `gap-3`, `mx-auto`) not defined in framework; added Tailwind-compatible utility aliases
+- **`--color-primary` → `--brand-primary`** in pricing and CTA banner components
+- **Empty `alt` attributes** on team, testimonial, and blog images now use name/title template tags
+
+### Security
+- **Output-side validation** in engine.php — colors re-validated with hex regex, font names stripped of quotes, Google Fonts URL HTML-escaped with `htmlspecialchars()`
+- **Identity field path validation** — logo/favicon values must be empty or match `uploads/` path pattern
+- **Logo/favicon clearing** — removing brand logo now deletes stale global field from DB instead of leaving orphaned value
+- **Brand/components added to `$cap_map`** — pre-flight capability check (`settings.*` / `code.*`)
+- **Color regex tightened** — now only accepts valid CSS hex lengths (3, 4, 6, 8 digits)
+- **Theme slug validation** — `outpost_framework_css()` validates slug with alphanumeric regex
+- **Division-by-zero guard** — corrupted type scale ratio defaults to 1.25
+- **Defensive returns** after `json_error()` calls in component handlers
+- **`file_put_contents` error check** — brand save returns 500 on write failure
+
+### Changed
+- Framework CSS now includes `:focus-visible` styles (WCAG 2.4.7), responsive typography for mobile, and `.sr-only` utility
+- Framework CSS link includes cache-busting `?v=` query param
+- `insertAtCursor` in Code Editor now replaces selection instead of inserting before it
+- Removed dead code: `currentScaleLabel` (Brand.svelte), `schemaTypeMap` (TemplateRefPanel.svelte)
+- Added `aria-expanded` to Brand page section toggle buttons
+
 ## [2.5.0] — 2026-03-10
 
 ### Added

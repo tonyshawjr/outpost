@@ -17,12 +17,6 @@
   let pages = $derived(schema?.data?.pages ?? []);
   let globals = $derived(schema?.data?.globals ?? []);
 
-  // Schema type lookup for selected item
-  let schemaTypeMap = $derived.by(() => {
-    if (!selectedItem) return {};
-    return Object.fromEntries((selectedItem.fields || []).map(f => [f.name, f.type]));
-  });
-
   onMount(async () => {
     try {
       const [schemaResult, syntaxResult] = await Promise.all([

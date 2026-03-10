@@ -62,7 +62,10 @@ function brand_save(array $data): void {
     $path = OUTPOST_DATA_DIR . 'brand.json';
     $dir = dirname($path);
     if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    $bytes = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    if ($bytes === false) {
+        json_error('Failed to save brand settings', 500);
+    }
 }
 
 /**
@@ -114,7 +117,7 @@ function handle_brand_get(): void {
     $ratio = (float) ($brand['typography']['type_scale'] ?? 1.25);
     $scale = brand_compute_type_scale($ratio);
 
-    outpost_json([
+    json_response([
         'brand'       => $brand,
         'defaults'    => brand_defaults(),
         'scale_options' => brand_type_scale_options(),
@@ -131,7 +134,7 @@ function handle_brand_save(): void {
 
     $input = json_decode(file_get_contents('php://input'), true);
     if (!is_array($input)) {
-        outpost_error('Invalid request body', 400);
+        json_error('Invalid request body', 400);
     }
 
     $defaults = brand_defaults();
@@ -143,7 +146,7 @@ function handle_brand_save(): void {
         foreach ($defaults['colors'] as $key => $default) {
             $val = $input['colors'][$key] ?? $default;
             // Validate hex color
-            if (is_string($val) && preg_match('/^#[0-9A-Fa-f]{3,8}$/', $val)) {
+            if (is_string($val) && preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/', $val)) {
                 $clean['colors'][$key] = $val;
             } else {
                 $clean['colors'][$key] = $default;
@@ -168,12 +171,16 @@ function handle_brand_save(): void {
         $clean['typography']['type_scale'] = in_array($scaleVal, $validScales, true) ? $scaleVal : $defaults['typography']['type_scale'];
     }
 
-    // Validate identity
+    // Validate identity (must be empty or a safe relative path)
     if (isset($input['identity']) && is_array($input['identity'])) {
         $clean['identity'] = [];
         foreach (['logo', 'favicon'] as $key) {
             $val = $input['identity'][$key] ?? '';
-            $clean['identity'][$key] = is_string($val) ? $val : '';
+            if (is_string($val) && ($val === '' || preg_match('#^uploads/[a-zA-Z0-9._/ -]+$#', $val))) {
+                $clean['identity'][$key] = $val;
+            } else {
+                $clean['identity'][$key] = '';
+            }
         }
     }
 
@@ -189,7 +196,7 @@ function handle_brand_save(): void {
     outpost_clear_cache();
 
     $ratio = (float) ($merged['typography']['type_scale'] ?? 1.25);
-    outpost_json([
+    json_response([
         'brand' => brand_get_merged(),
         'computed_scale' => brand_compute_type_scale($ratio),
     ]);
@@ -208,35 +215,39 @@ function brand_sync_globals(array $brand): void {
     if (!$globalsPage) return;
     $pageId = $globalsPage['id'];
 
-    // Upsert logo field
+    // Upsert or clear logo field
+    $existingLogo = OutpostDB::fetchOne(
+        "SELECT id FROM fields WHERE page_id = ? AND name = 'site_logo' AND theme = ''",
+        [$pageId]
+    );
     if ($logo !== '') {
-        $existing = OutpostDB::fetchOne(
-            "SELECT id FROM fields WHERE page_id = ? AND name = 'site_logo' AND theme = ''",
-            [$pageId]
-        );
-        if ($existing) {
-            OutpostDB::query("UPDATE fields SET value = ? WHERE id = ?", [$logo, $existing['id']]);
+        if ($existingLogo) {
+            OutpostDB::query("UPDATE fields SET value = ? WHERE id = ?", [$logo, $existingLogo['id']]);
         } else {
             OutpostDB::query(
                 "INSERT INTO fields (page_id, name, value, type, theme) VALUES (?, 'site_logo', ?, 'image', '')",
                 [$pageId, $logo]
             );
         }
+    } elseif ($existingLogo) {
+        OutpostDB::query("DELETE FROM fields WHERE id = ?", [$existingLogo['id']]);
     }
 
-    // Upsert favicon field
+    // Upsert or clear favicon field
+    $existingFavicon = OutpostDB::fetchOne(
+        "SELECT id FROM fields WHERE page_id = ? AND name = 'site_favicon' AND theme = ''",
+        [$pageId]
+    );
     if ($favicon !== '') {
-        $existing = OutpostDB::fetchOne(
-            "SELECT id FROM fields WHERE page_id = ? AND name = 'site_favicon' AND theme = ''",
-            [$pageId]
-        );
-        if ($existing) {
-            OutpostDB::query("UPDATE fields SET value = ? WHERE id = ?", [$favicon, $existing['id']]);
+        if ($existingFavicon) {
+            OutpostDB::query("UPDATE fields SET value = ? WHERE id = ?", [$favicon, $existingFavicon['id']]);
         } else {
             OutpostDB::query(
                 "INSERT INTO fields (page_id, name, value, type, theme) VALUES (?, 'site_favicon', ?, 'image', '')",
                 [$pageId, $favicon]
             );
         }
+    } elseif ($existingFavicon) {
+        OutpostDB::query("DELETE FROM fields WHERE id = ?", [$existingFavicon['id']]);
     }
 }

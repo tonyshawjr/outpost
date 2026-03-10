@@ -481,8 +481,8 @@
 
   function insertAtCursor(text) {
     if (!editorView) return;
-    const { from } = editorView.state.selection.main;
-    editorView.dispatch({ changes: { from, insert: text }, selection: { anchor: from + text.length } });
+    const { from, to } = editorView.state.selection.main;
+    editorView.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length } });
     editorView.focus();
   }
 

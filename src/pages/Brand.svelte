@@ -102,10 +102,6 @@
     }
   }
 
-  let currentScaleLabel = $derived(() => {
-    const opt = scaleOptions.find(o => o.value === brand.typography?.type_scale);
-    return opt ? opt.label : '';
-  });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -135,7 +131,7 @@
   {:else}
     <!-- Colors Section -->
     <section class="brand-section">
-      <button class="brand-section-toggle" onclick={() => { colorsOpen = !colorsOpen; }}>
+      <button class="brand-section-toggle" onclick={() => { colorsOpen = !colorsOpen; }} aria-expanded={colorsOpen}>
         <svg class="brand-section-chevron" class:open={colorsOpen} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         <div>
           <h2 class="brand-section-title">Colors</h2>
@@ -170,7 +166,7 @@
 
     <!-- Typography Section -->
     <section class="brand-section">
-      <button class="brand-section-toggle" onclick={() => { typographyOpen = !typographyOpen; }}>
+      <button class="brand-section-toggle" onclick={() => { typographyOpen = !typographyOpen; }} aria-expanded={typographyOpen}>
         <svg class="brand-section-chevron" class:open={typographyOpen} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         <div>
           <h2 class="brand-section-title">Typography</h2>
@@ -231,7 +227,7 @@
 
     <!-- Identity Section -->
     <section class="brand-section">
-      <button class="brand-section-toggle" onclick={() => { identityOpen = !identityOpen; }}>
+      <button class="brand-section-toggle" onclick={() => { identityOpen = !identityOpen; }} aria-expanded={identityOpen}>
         <svg class="brand-section-chevron" class:open={identityOpen} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         <div>
           <h2 class="brand-section-title">Identity</h2>

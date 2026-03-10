@@ -1225,7 +1225,7 @@ function outpost_cache_output(string $buffer): string {
  * Only returns content if the active theme has "framework": true in theme.json.
  */
 function outpost_framework_css(string $themeSlug): string {
-    if (!$themeSlug) return '';
+    if (!$themeSlug || !preg_match('/^[a-zA-Z0-9_-]+$/', $themeSlug)) return '';
 
     // Check theme.json for framework opt-in
     $themeJsonPath = OUTPOST_THEMES_DIR . $themeSlug . '/theme.json';
@@ -1234,8 +1234,9 @@ function outpost_framework_css(string $themeSlug): string {
     $themeConfig = json_decode(file_get_contents($themeJsonPath), true);
     if (!is_array($themeConfig) || empty($themeConfig['framework'])) return '';
 
-    // Build the framework <link>
-    $parts = ['<link rel="stylesheet" href="/outpost/framework/outpost-framework.css">'];
+    // Build the framework <link> with cache buster
+    $ver = defined('OUTPOST_VERSION') ? OUTPOST_VERSION : '1.0';
+    $parts = ['<link rel="stylesheet" href="/outpost/framework/outpost-framework.css?v=' . urlencode($ver) . '">'];
 
     // Build brand token overrides from brand.json
     require_once __DIR__ . '/brand.php';
@@ -1253,21 +1254,23 @@ function outpost_framework_css(string $themeSlug): string {
             'surface'    => '--brand-surface',
         ];
         foreach ($colorMap as $key => $var) {
-            if (!empty($brand['colors'][$key])) {
-                $tokens[] = "$var: {$brand['colors'][$key]};";
+            $c = $brand['colors'][$key] ?? '';
+            if ($c && preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/', $c)) {
+                $tokens[] = "$var: $c;";
             }
         }
     }
 
     // Typography tokens
     if (!empty($brand['typography'])) {
-        $hf = $brand['typography']['heading_font'] ?? 'Inter';
-        $bf = $brand['typography']['body_font'] ?? 'Inter';
+        $hf = str_replace("'", '', $brand['typography']['heading_font'] ?? 'Inter');
+        $bf = str_replace("'", '', $brand['typography']['body_font'] ?? 'Inter');
         $tokens[] = "--brand-font-heading: '$hf', -apple-system, BlinkMacSystemFont, sans-serif;";
         $tokens[] = "--brand-font-body: '$bf', -apple-system, BlinkMacSystemFont, sans-serif;";
 
         // Compute type scale from ratio
         $ratio = (float) ($brand['typography']['type_scale'] ?? 1.25);
+        if ($ratio <= 0) $ratio = 1.25;
         $scale = brand_compute_type_scale($ratio);
         foreach ($scale as $token => $rem) {
             $tokens[] = "--{$token}: {$rem}rem;";
@@ -1282,7 +1285,7 @@ function outpost_framework_css(string $themeSlug): string {
     if ($bf && $bf !== 'System Default' && $bf !== $hf) $fonts[] = str_replace(' ', '+', $bf) . ':wght@400;500;600;700';
     if ($fonts) {
         $fontsUrl = 'https://fonts.googleapis.com/css2?family=' . implode('&family=', $fonts) . '&display=swap';
-        array_unshift($parts, '<link rel="stylesheet" href="' . $fontsUrl . '">');
+        array_unshift($parts, '<link rel="stylesheet" href="' . htmlspecialchars($fontsUrl, ENT_QUOTES, 'UTF-8') . '">');
     }
 
     if ($tokens) {

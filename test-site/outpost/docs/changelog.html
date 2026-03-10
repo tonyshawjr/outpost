@@ -22,6 +22,47 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.5.1">2.5.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Critical: Brand + Components API crash</strong> &mdash; undefined function calls replaced with correct API helpers</li>
+      <li><strong>CSS class mismatch</strong> &mdash; added Tailwind-compatible utility aliases (<code>font-bold</code>, <code>mb-4</code>, <code>gap-3</code>, <code>mx-auto</code>) to framework</li>
+      <li>Fixed <code>--color-primary</code> &rarr; <code>--brand-primary</code> in pricing and CTA banner components</li>
+      <li>Empty <code>alt</code> attributes on team, testimonial, and blog images now use descriptive template tags</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Output-side validation in engine.php &mdash; colors re-validated, font names sanitized, Google Fonts URL HTML-escaped</li>
+      <li>Identity field path validation &mdash; logo/favicon must be empty or match <code>uploads/</code> path pattern</li>
+      <li>Brand/components added to capability pre-flight map</li>
+      <li>Color regex tightened to valid CSS hex lengths only</li>
+      <li>Theme slug validation, division-by-zero guard, defensive returns after error calls</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Framework CSS includes <code>:focus-visible</code> styles (WCAG 2.4.7), responsive typography, <code>.sr-only</code> utility</li>
+      <li>Framework CSS link includes cache-busting version query param</li>
+      <li>Removed dead code, added <code>aria-expanded</code> to Brand page toggles</li>
+    </ul>
+
+    <h2 id="2.5.0">2.5.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Admin sidebar reorganization</strong> &mdash; Build section split into Build (Collections, Form Builder, Channels, Folders) + Design (Themes, Brand, Code Editor)</li>
+      <li><strong>Brand page</strong> &mdash; site-wide identity settings (colors, typography with type scale ratios, logo/favicon) at Design &gt; Brand</li>
+      <li><strong>Outpost CSS Framework</strong> &mdash; lightweight optional CSS framework loaded when <code>theme.json</code> has <code>"framework": true</code>; includes grid, buttons, cards, sections, spacing utilities</li>
+      <li><strong>Brand token injection</strong> &mdash; dynamic CSS custom properties from Brand settings (colors, fonts, type scale) + automatic Google Fonts loading</li>
+      <li><strong>Template Reference panel</strong> &mdash; integrated into Code Editor as a toggleable sidebar; click snippets to insert at cursor</li>
+      <li><strong>Component Library</strong> &mdash; 20 pre-built HTML components across 10 categories using framework CSS + Outpost template tags</li>
+      <li><strong>Component browser</strong> &mdash; searchable modal in Code Editor with right-click menu integration</li>
+      <li><strong>Components API</strong> &mdash; <code>GET components</code> and <code>GET components?file=</code> endpoints</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Template Reference accessible inside Code Editor instead of as a standalone sidebar item</li>
+      <li>Auto-updater now copies <code>framework/</code> and <code>components/</code> directories during updates</li>
+    </ul>
+
     <h2 id="2.4.1">2.4.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
     <h3>Security</h3>
     <ul>

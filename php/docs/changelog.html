@@ -22,6 +22,29 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.5.1">2.5.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Critical: Brand + Components API crash</strong> &mdash; undefined function calls replaced with correct API helpers</li>
+      <li><strong>CSS class mismatch</strong> &mdash; added Tailwind-compatible utility aliases (<code>font-bold</code>, <code>mb-4</code>, <code>gap-3</code>, <code>mx-auto</code>) to framework</li>
+      <li>Fixed <code>--color-primary</code> &rarr; <code>--brand-primary</code> in pricing and CTA banner components</li>
+      <li>Empty <code>alt</code> attributes on team, testimonial, and blog images now use descriptive template tags</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Output-side validation in engine.php &mdash; colors re-validated, font names sanitized, Google Fonts URL HTML-escaped</li>
+      <li>Identity field path validation &mdash; logo/favicon must be empty or match <code>uploads/</code> path pattern</li>
+      <li>Brand/components added to capability pre-flight map</li>
+      <li>Color regex tightened to valid CSS hex lengths only</li>
+      <li>Theme slug validation, division-by-zero guard, defensive returns after error calls</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Framework CSS includes <code>:focus-visible</code> styles (WCAG 2.4.7), responsive typography, <code>.sr-only</code> utility</li>
+      <li>Framework CSS link includes cache-busting version query param</li>
+      <li>Removed dead code, added <code>aria-expanded</code> to Brand page toggles</li>
+    </ul>
+
     <h2 id="2.5.0">2.5.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
     <h3>Added</h3>
     <ul>

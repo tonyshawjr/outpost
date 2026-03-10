@@ -154,6 +154,8 @@ $cap_map = [
     'backup'   => 'settings.*',
     'customizer' => 'settings.*',
     'setup'      => 'settings.*',
+    'brand'      => 'settings.*',
+    'components' => 'code.*',
 ];
 if (isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
@@ -7869,7 +7871,6 @@ function handle_setup_checklist_dismiss(): void {
 // ── Components (design system library) ─────────────────────────────
 
 function handle_components_list(): void {
-    outpost_require_auth();
     $registryPath = __DIR__ . '/components/components.json';
     if (!file_exists($registryPath)) {
         json_response(['categories' => []]);
@@ -7880,14 +7881,15 @@ function handle_components_list(): void {
 }
 
 function handle_component_read(): void {
-    outpost_require_auth();
     $file = $_GET['file'] ?? '';
     if (!$file || !preg_match('/^[a-z0-9\-]+\/[a-z0-9\-]+\.html$/', $file)) {
-        outpost_error('Invalid component file', 400);
+        json_error('Invalid component file', 400);
+        return;
     }
     $path = __DIR__ . '/components/' . $file;
     if (!file_exists($path)) {
-        outpost_error('Component not found', 404);
+        json_error('Component not found', 404);
+        return;
     }
     json_response(['html' => file_get_contents($path)]);
 }
