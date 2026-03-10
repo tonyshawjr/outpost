@@ -24,6 +24,8 @@
 
     <pre><code>GET https://example.com/outpost/api.php?action=content/items&amp;collection=blog</code></pre>
 
+    <p>Rate limiting: 120 requests per 60 seconds per IP address. Exceeding the limit returns <code>429 Too Many Requests</code> with a <code>Retry-After</code> header.</p>
+
     <div class="callout callout-tip">
       <strong>Tip</strong>
       Because CORS is fully open (<code>Access-Control-Allow-Origin: *</code>), you can call these endpoints directly from any browser-side JavaScript without a proxy.
@@ -117,7 +119,7 @@
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=content/pages</span>
       </div>
-      <p>Returns all pages with their field values. Each page's fields are returned as a flat key-value map.</p>
+      <p>Returns all public pages with their field values. Members-only and paid pages are excluded. Each page's fields are returned as a flat key-value map.</p>
     </div>
 
     <p>Response:</p>
@@ -197,7 +199,7 @@ console.log(page.fields.hero_title);</code></pre>
         <tr><td><code>collection</code></td><td>string</td><td>—</td><td>Required. Collection slug.</td></tr>
         <tr><td><code>limit</code></td><td>integer</td><td>10</td><td>Number of items to return. Max 100.</td></tr>
         <tr><td><code>offset</code></td><td>integer</td><td>0</td><td>Number of items to skip (for pagination).</td></tr>
-        <tr><td><code>orderBy</code></td><td>string</td><td>Collection default</td><td>Sort field. Allowed: <code>created_at</code>, <code>updated_at</code>, <code>published_at</code>, <code>slug</code>, <code>sort_order</code>.</td></tr>
+        <tr><td><code>orderby</code></td><td>string</td><td>Collection default</td><td>Sort field. Allowed: <code>created_at</code>, <code>updated_at</code>, <code>published_at</code>, <code>slug</code>, <code>sort_order</code>. Also accepts <code>orderBy</code> (camelCase).</td></tr>
         <tr><td><code>order</code></td><td>string</td><td>Collection default</td><td><code>ASC</code> or <code>DESC</code>.</td></tr>
         <tr><td><code>{folder-slug}</code></td><td>string</td><td>—</td><td>Filter by a folder label slug. E.g. <code>&amp;category=news</code> filters to items tagged with the <code>news</code> label in the <code>category</code> folder.</td></tr>
       </tbody>
@@ -209,6 +211,8 @@ console.log(page.fields.hero_title);</code></pre>
     {
       "id": 10,
       "slug": "my-first-post",
+      "title": "My First Post",
+      "url": "/blog/my-first-post",
       "status": "published",
       "created_at": "2024-02-01 08:00:00",
       "updated_at": "2024-02-01 08:00:00",
@@ -285,8 +289,15 @@ const { data: posts } = await res.json();</code></pre>
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=content/folders</span>
       </div>
-      <p>Returns all folders across all collections, with their type and label count.</p>
+      <p>Returns all folders across all collections, with their type and label count. Optionally filter by collection slug.</p>
     </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>string</td><td>Optional. Filter folders to a specific collection slug.</td></tr>
+      </tbody>
+    </table>
 
     <p>Response:</p>
     <pre><code>{
@@ -355,6 +366,80 @@ const { data: posts } = await res.json();</code></pre>
 
     <p>curl example:</p>
     <pre><code>curl "https://example.com/outpost/api.php?action=content/labels&folder=category"</code></pre>
+
+    <h3>Menus</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=content/menus</span>
+      </div>
+      <p>Returns a list of all navigation menus with their slug, name, and item count.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "data": [
+    { "slug": "main", "name": "Main Menu", "item_count": 5 },
+    { "slug": "footer", "name": "Footer Links", "item_count": 3 }
+  ],
+  "meta": { "total": 2 }
+}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=content/menus&amp;slug=main</span>
+      </div>
+      <p>Returns a single menu by slug, with its full item tree including nested children.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Query param</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>slug</code></td><td>string</td><td>The menu slug.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "data": {
+    "slug": "main",
+    "name": "Main Menu",
+    "items": [
+      {
+        "label": "Home",
+        "url": "/",
+        "target": "",
+        "children": []
+      },
+      {
+        "label": "Blog",
+        "url": "/blog",
+        "target": "",
+        "children": [
+          { "label": "Tech", "url": "/blog?categories=tech", "target": "" }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+    <p>curl example:</p>
+    <pre><code>curl "https://example.com/outpost/api.php?action=content/menus&slug=main"</code></pre>
+
+    <p>JavaScript example:</p>
+    <pre><code>const res = await fetch(
+  '/outpost/api.php?action=content/menus&slug=main'
+);
+const { data: menu } = await res.json();
+
+menu.items.forEach(item => {
+  console.log(item.label, item.url);
+  item.children.forEach(child => {
+    console.log('  ', child.label, child.url);
+  });
+});</code></pre>
 
     <h3>Media</h3>
 
@@ -521,10 +606,13 @@ Access-Control-Allow-Headers: Content-Type</code></pre>
     <p>The Content API never exposes:</p>
     <ul>
       <li>Draft or scheduled content</li>
+      <li>Members-only or paid pages (filtered by <code>visibility = 'public'</code>)</li>
       <li>Admin users, passwords, or session data</li>
       <li>The sync API key or any credentials</li>
       <li>Private settings</li>
     </ul>
+
+    <p>IP-based rate limiting (120 requests per 60 seconds) prevents abuse. Exceeding the limit returns HTTP 429 with a <code>Retry-After</code> header.</p>
 
   </div>
 </main>

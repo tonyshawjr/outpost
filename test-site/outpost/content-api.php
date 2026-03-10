@@ -36,6 +36,9 @@ function handle_content_request(string $action, string $method): void {
         content_error('Method not allowed', 405);
     }
 
+    // Rate limit: 120 requests per 60 seconds per IP
+    outpost_ip_rate_limit('content_api', 120, 60);
+
     // Ensure folder/label tables exist
     ensure_content_folder_tables();
 
@@ -50,6 +53,7 @@ function handle_content_request(string $action, string $method): void {
         'content/terms'        => handle_content_labels(),    // alias (legacy)
         'content/globals'      => handle_content_globals(),
         'content/media'        => handle_content_media(),
+        'content/menus'        => handle_content_menus(),
         'content/syntax'       => handle_content_syntax(),
         default                => content_error('Not found', 404),
     };
@@ -509,9 +513,9 @@ function handle_content_pages(): void {
     $path = $_GET['path'] ?? null;
 
     if ($path !== null) {
-        // Single page by path
+        // Single page by path (exclude members-only pages from public API)
         $page = OutpostDB::fetchOne(
-            "SELECT * FROM pages WHERE path = ? AND path != '__global__'",
+            "SELECT * FROM pages WHERE path = ? AND path != '__global__' AND (visibility IS NULL OR visibility = 'public')",
             [$path]
         );
         if (!$page) content_error('Page not found', 404);
@@ -536,9 +540,9 @@ function handle_content_pages(): void {
         return;
     }
 
-    // All pages
+    // All pages (exclude members-only pages from public API)
     $pages = OutpostDB::fetchAll(
-        "SELECT * FROM pages WHERE path != '__global__' ORDER BY path ASC"
+        "SELECT * FROM pages WHERE path != '__global__' AND (visibility IS NULL OR visibility = 'public') ORDER BY path ASC"
     );
 
     $result = [];
@@ -649,7 +653,8 @@ function handle_content_items(): void {
         );
         if (!$item) content_error('Item not found', 404);
 
-        content_response(format_item($item));
+        $urlPattern = $collection['url_pattern'] ?: ('/' . $collection['slug'] . '/{slug}');
+        content_response(format_item($item, $urlPattern));
         return;
     }
 
@@ -658,7 +663,7 @@ function handle_content_items(): void {
     $offset = max(0, (int) ($_GET['offset'] ?? 0));
 
     // Sorting
-    $orderBy = $_GET['orderBy'] ?? ($collection['sort_field'] ?: 'created_at');
+    $orderBy = $_GET['orderby'] ?? $_GET['orderBy'] ?? ($collection['sort_field'] ?: 'created_at');
     $order = strtoupper($_GET['order'] ?? ($collection['sort_direction'] ?: 'DESC'));
     if (!in_array($order, ['ASC', 'DESC'])) $order = 'DESC';
     // Whitelist sort fields
@@ -709,7 +714,8 @@ function handle_content_items(): void {
         [...$params, $limit, $offset]
     );
 
-    $result = array_map('format_item', $items);
+    $urlPattern = $collection['url_pattern'] ?: ('/' . $collection['slug'] . '/{slug}');
+    $result = array_map(fn($item) => format_item($item, $urlPattern), $items);
 
     content_response($result, [
         'total' => $totalCount,
@@ -721,8 +727,9 @@ function handle_content_items(): void {
 /**
  * Format a collection item for public output.
  * Flattens data JSON to fields, renders blocks to body, attaches labels.
+ * Optional $urlPattern builds the item URL (e.g. '/post/{slug}' → '/post/my-post').
  */
-function format_item(array $item): array {
+function format_item(array $item, string $urlPattern = ''): array {
     $data = json_decode($item['data'], true) ?: [];
 
     // Flatten fields from data
@@ -771,9 +778,15 @@ function format_item(array $item): array {
         ];
     }
 
+    // Build title and URL
+    $title = $data['title'] ?? $item['slug'];
+    $url = $urlPattern ? str_replace('{slug}', $item['slug'], $urlPattern) : '';
+
     return [
         'id' => (int) $item['id'],
         'slug' => $item['slug'],
+        'title' => $title,
+        'url' => $url,
         'status' => $item['status'],
         'created_at' => $item['created_at'],
         'updated_at' => $item['updated_at'],
@@ -785,12 +798,19 @@ function format_item(array $item): array {
 
 // ── Folders endpoint ─────────────────────────────────────
 function handle_content_folders(): void {
-    $folders = OutpostDB::fetchAll(
-        'SELECT f.*, c.slug as collection_slug, c.name as collection_name
-         FROM folders f
-         LEFT JOIN collections c ON c.id = f.collection_id
-         ORDER BY f.name ASC'
-    );
+    $collectionFilter = $_GET['collection'] ?? '';
+    $sql = 'SELECT f.*, c.slug as collection_slug, c.name as collection_name
+            FROM folders f
+            LEFT JOIN collections c ON c.id = f.collection_id';
+    $params = [];
+
+    if ($collectionFilter !== '') {
+        $sql .= ' WHERE c.slug = ?';
+        $params[] = $collectionFilter;
+    }
+
+    $sql .= ' ORDER BY f.name ASC';
+    $folders = OutpostDB::fetchAll($sql, $params);
 
     $result = [];
     foreach ($folders as $fld) {
@@ -919,6 +939,72 @@ function handle_content_media(): void {
         'limit' => $limit,
         'offset' => $offset,
     ]);
+}
+
+// ── Menus endpoint ──────────────────────────────────────
+function handle_content_menus(): void {
+    // Ensure menus table exists (not called in content API bootstrap path)
+    $db = OutpostDB::connect();
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS menus (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            items TEXT NOT NULL DEFAULT '[]',
+            updated_at TEXT DEFAULT (datetime('now'))
+        )
+    ");
+
+    $slug = $_GET['slug'] ?? null;
+
+    if ($slug !== null) {
+        // Single menu by slug
+        $menu = OutpostDB::fetchOne('SELECT * FROM menus WHERE slug = ?', [$slug]);
+        if (!$menu) content_error('Menu not found', 404);
+
+        $items = json_decode($menu['items'], true) ?? [];
+
+        // Build nested items with children
+        $formatted = [];
+        foreach ($items as $item) {
+            $entry = [
+                'label'  => $item['label'] ?? '',
+                'url'    => $item['url'] ?? '',
+                'target' => $item['target'] ?? '',
+            ];
+            if (!empty($item['children']) && is_array($item['children'])) {
+                $entry['children'] = array_map(fn($child) => [
+                    'label'  => $child['label'] ?? '',
+                    'url'    => $child['url'] ?? '',
+                    'target' => $child['target'] ?? '',
+                ], $item['children']);
+            } else {
+                $entry['children'] = [];
+            }
+            $formatted[] = $entry;
+        }
+
+        content_response([
+            'slug' => $menu['slug'],
+            'name' => $menu['name'],
+            'items' => $formatted,
+        ]);
+        return;
+    }
+
+    // List all menus
+    $menus = OutpostDB::fetchAll('SELECT * FROM menus ORDER BY id ASC');
+    $result = [];
+    foreach ($menus as $menu) {
+        $items = json_decode($menu['items'], true) ?? [];
+        $result[] = [
+            'slug' => $menu['slug'],
+            'name' => $menu['name'],
+            'item_count' => count($items),
+        ];
+    }
+
+    content_response($result, ['total' => count($result)]);
 }
 
 // ── Syntax reference ─────────────────────────────────────

@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Content API Polish (v2.4.0)
+
+- **Menus endpoint** — `content/menus` returns all menus (slug, name, item count); `content/menus&slug=main` returns a single menu with nested items and children. Ensures menus table exists on first call.
+- **Item title & URL** — `format_item()` now includes `title` (from data or slug fallback) and `url` (built from collection's `url_pattern`) at the top level of every item response.
+- **Page visibility filter** — `content/pages` now excludes members-only and paid pages (`visibility = 'public'` filter). The Content API is unauthenticated and should never expose gated content.
+- **Case-insensitive orderby** — `?orderby=` (lowercase) now works alongside `?orderBy=` (camelCase) on the items endpoint.
+- **Rate limiting** — 120 requests per 60 seconds per IP on all Content API endpoints. Returns HTTP 429 with `Retry-After` header on exceed. Uses the existing `outpost_ip_rate_limit()` function.
+- **Folders collection filter** — `content/folders` now accepts optional `?collection=slug` to filter folders to a specific collection.
+- **Headless recipe rewrite** — complete rewrite of `docs/recipes/headless-cms.html` with correct endpoint URLs (`api.php?action=content/...`), correct response shapes (`{ "data": [...], "meta": {...} }`), correct folder filtering syntax (`?{folder_slug}={label_slug}`), and updated framework examples (Astro, Next.js, Vue/Nuxt).
+- **Files**: `php/content-api.php`, `php/docs/recipes/headless-cms.html`, `php/docs/api/content-api.html`, `php/docs/llms.txt`
+
+---
+
 ## Deeper Analytics (v2.3.0)
 
 - **Search Analytics** — track internal site searches via `outpost.trackSearch(query, resultsCount)` and `outpost.trackSearchClick(query, clickedPath)` JS API. Auto-detects `?q=`, `?search=`, `?s=` URL params. New Search tab shows total searches, unique queries, click-through rate, top queries, zero-result queries, and daily trend chart. Backend: `analytics_searches` table, `dashboard/search` API endpoint.
@@ -1602,11 +1615,13 @@ Email failures never block the submission — the data is already saved in the D
 
 ## Public Content API (Headless)
 - **Read-only REST API**: All endpoints at `api.php?action=content/...` — no auth, no CSRF, wide-open CORS
+- **Rate limiting**: 120 requests per 60 seconds per IP. Returns 429 with `Retry-After` header on exceed. (v2.4.0)
 - **Schema introspection**: `content/schema` returns full type graph — collections with typed fields, folders with label fields, pages with field types
-- **Pages**: `content/pages` (all with fields) or `content/pages&path=/about` (single by path)
+- **Pages**: `content/pages` (all public with fields) or `content/pages&path=/about` (single by path). Members-only and paid pages excluded. (v2.4.0)
 - **Collections**: `content/collections` (list with field/item counts) or `content/collections&slug=blog` (single with full schema)
-- **Items**: `content/items&collection=blog` — published-only, paginated (`limit`, `offset`), sortable (`orderBy`, `order`), filterable by folder label (`{folder_slug}={label_slug}`)
-- **Folders & labels**: `content/folders` (all with label counts), `content/labels&folder=categories` (labels with item counts and custom field data)
+- **Items**: `content/items&collection=blog` — published-only, paginated (`limit`, `offset`), sortable (`orderby` or `orderBy`, `order`), filterable by folder label (`{folder_slug}={label_slug}`). Each item includes `title` and `url` at top level. (v2.4.0)
+- **Menus**: `content/menus` (list all menus) or `content/menus&slug=main` (single menu with nested items/children). (v2.4.0)
+- **Folders & labels**: `content/folders` (all with label counts, optional `?collection=` filter), `content/labels&folder=categories` (labels with item counts and custom field data). (v2.4.0)
 - **Media**: `content/media` — paginated public media listing
 - **Published-only filter**: Items endpoint strictly returns `status = 'published' AND published_at <= now` — no drafts, no scheduled
 - **Response envelope**: `{ "data": ..., "meta": { "total", "limit", "offset" } }` for lists, `{ "data": { ... } }` for singles

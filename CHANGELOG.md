@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] — 2026-03-10
+
+### Added
+- `content/menus` endpoint — list all menus or fetch a single menu by slug with nested items and children
+- `title` and `url` top-level fields on every item response in the Content API
+- `?collection=` filter on `content/folders` endpoint to scope folders to a specific collection
+- IP-based rate limiting on all Content API endpoints (120 req/60s per IP, returns 429)
+
+### Fixed
+- `content/pages` now excludes members-only and paid pages — the unauthenticated API should never expose gated content
+- `?orderby=` (lowercase) now works alongside `?orderBy=` (camelCase) on the items endpoint
+
+### Changed
+- Complete rewrite of headless recipe docs with correct endpoint URLs, response shapes, folder filtering syntax, and framework examples
+- Updated Content API reference docs with menus endpoint, rate limiting, visibility filtering, and orderby case note
+- Updated `llms.txt` with all Content API changes
+
 ## [2.3.1] — 2026-03-10
 
 ### Security

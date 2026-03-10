@@ -346,6 +346,12 @@ All themes ship with full `customizer` config (v1.8), responsive design, dark mo
 
 ---
 
+## v2.4 — Content API Polish (SHIPPED)
+
+Making the existing Content API reliable: menus endpoint, item title/url, page visibility filtering, orderby case fix, rate limiting, folders collection filter, complete headless recipe docs rewrite.
+
+---
+
 ## v2.5 — Headless-First
 
 Position Outpost as the zero-config headless CMS alongside the traditional themed approach:

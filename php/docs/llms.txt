@@ -1712,8 +1712,11 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `content/pages` | GET | Public pages (read-only) |
 | `content/collections` | GET | Public collections (read-only) |
 | `content/items` | GET | Public collection items (read-only) |
-| `content/folders` | GET | Public folders (read-only) |
+| `content/folders` | GET | Public folders (read-only, optional ?collection= filter) |
 | `content/labels` | GET | Public folder labels (read-only) |
+| `content/menus` | GET | Public navigation menus (read-only, ?slug= for single) |
+| `content/media` | GET | Public media listing (read-only) |
+| `content/syntax` | GET | Template syntax reference (read-only) |
 | `import/wordpress` | POST | Import WordPress WXR export |
 | `sync/key` | GET, POST | Builder sync API key |
 | `sync/key/regenerate` | POST | Regenerate sync API key |
@@ -1794,11 +1797,13 @@ Base URL: `/outpost/member-api.php?action=ENDPOINT`
 
 ## Public Content API
 
-Read-only, unauthenticated. CORS open to all origins. Only published content returned.
+Read-only, unauthenticated. CORS open to all origins. Only published content returned. Members-only and paid pages are excluded.
 
 Base URL: `/outpost/api.php?action=content/ENDPOINT`
 
-All responses wrap payload in `data`. List endpoints include `meta.total`, `meta.limit`, `meta.offset`.
+Rate limit: 120 requests per 60 seconds per IP. Exceeds → HTTP 429 with `Retry-After` header.
+
+All responses wrap payload in `data`. List endpoints include `meta.total`, `meta.limit`, `meta.offset`. Errors return `{ "error": "message" }`.
 
 ### Schema
 ```
@@ -1811,7 +1816,7 @@ Returns all collections (with field definitions), pages with fields, all folders
 GET api.php?action=content/pages
 GET api.php?action=content/pages&path=/about
 ```
-Returns pages with `fields` as flat key-value map.
+Returns public pages with `fields` as flat key-value map. Members-only and paid pages excluded.
 
 ### Items
 ```
@@ -1819,22 +1824,44 @@ GET api.php?action=content/items&collection=blog
 GET api.php?action=content/items&collection=blog&slug=my-post
 ```
 
-Query params: `limit` (default 10, max 100), `offset`, `orderBy` (created_at|updated_at|published_at|slug|sort_order), `order` (ASC|DESC), `{folder-slug}=label-slug` for filtering.
+Query params: `limit` (default 10, max 100), `offset`, `orderby` (also accepts `orderBy`; values: created_at|updated_at|published_at|slug|sort_order), `order` (ASC|DESC), `{folder-slug}=label-slug` for filtering.
 
-Response item fields: `id`, `slug`, `status`, `created_at`, `updated_at`, `published_at`, `fields{}` (all field values), `labels{}` (labels grouped by folder slug).
+Response item fields: `id`, `slug`, `title`, `url`, `status`, `created_at`, `updated_at`, `published_at`, `fields{}` (all field values), `labels{}` (labels grouped by folder slug). The `title` is pulled from the item's title field (fallback: slug). The `url` is built from the collection's `url_pattern` with slug substituted (e.g. `/post/{slug}` → `/post/my-first-post`).
 
 ### Folders / Labels
 ```
 GET api.php?action=content/folders
+GET api.php?action=content/folders&collection=blog
 GET api.php?action=content/labels&folder=category
 ```
+The `?collection=` parameter on folders filters to folders belonging to that collection only.
+
+### Menus
+```
+GET api.php?action=content/menus
+GET api.php?action=content/menus&slug=main
+```
+Without `?slug=`: list all menus (slug, name, item_count). With `?slug=`: single menu with full item tree including nested `children` arrays. Each item has `label`, `url`, `target`, `children[]`.
+
+### Media
+```
+GET api.php?action=content/media
+GET api.php?action=content/media&limit=20&offset=0
+```
+
+### Globals
+```
+GET api.php?action=content/globals
+```
+Returns all global fields as a flat key-value object.
 
 JavaScript examples:
 ```js
 // Fetch blog listing with pagination
-const res = await fetch('/outpost/api.php?action=content/items&collection=blog&limit=10&orderBy=published_at&order=DESC');
+const res = await fetch('/outpost/api.php?action=content/items&collection=blog&limit=10&orderby=published_at&order=DESC');
 const { data: posts, meta } = await res.json();
 // meta.total = total items, meta.limit = per page, meta.offset = current offset
+// each post has: post.title, post.url, post.fields.*, post.labels.*
 
 // Filter by folder label
 const res = await fetch('/outpost/api.php?action=content/items&collection=blog&category=tutorials');
@@ -1842,18 +1869,28 @@ const res = await fetch('/outpost/api.php?action=content/items&collection=blog&c
 // Single post by slug
 const res = await fetch('/outpost/api.php?action=content/items&collection=blog&slug=my-post');
 const { data: post } = await res.json();
-// post.fields.title, post.fields.body (HTML), post.labels.category (array)
+// post.title, post.url, post.fields.body (HTML), post.labels.category (array)
+
+// Fetch a navigation menu
+const res = await fetch('/outpost/api.php?action=content/menus&slug=main');
+const { data: menu } = await res.json();
+// menu.items[].label, menu.items[].url, menu.items[].children[]
+
+// Fetch globals
+const res = await fetch('/outpost/api.php?action=content/globals');
+const { data: globals } = await res.json();
+// globals.site_name, globals.author_name, etc.
 
 // Error handling
 const res = await fetch('/outpost/api.php?action=content/items&collection=nonexistent');
 if (!res.ok) {
-  // 404 if collection doesn't exist
+  // 404 if collection doesn't exist, 429 if rate limited
   const err = await res.json();
   console.error(err.error);
 }
 ```
 
-**Content API always returns published items only.** Draft, scheduled, and pending_review items are excluded. Empty collections return `{ "data": [], "meta": { "total": 0 } }` — not an error.
+**Content API always returns published items only.** Draft, scheduled, and pending_review items are excluded. Members-only pages are excluded from the pages endpoint. Empty collections return `{ "data": [], "meta": { "total": 0 } }` — not an error.
 
 ## Sync API
 

@@ -24,28 +24,45 @@
   </div>
   <div class="content">
 
+    <h2>Quickstart</h2>
+    <p>Get content from Outpost into a frontend app in three steps:</p>
+
+    <ol>
+      <li><strong>Create content</strong> in the Outpost admin — collections, pages, globals, menus</li>
+      <li><strong>Fetch it</strong> from the public Content API — no auth, no API key needed</li>
+      <li><strong>Render it</strong> in your frontend framework of choice</li>
+    </ol>
+
+    <pre><code><span class="t-comment">// Fetch all published posts</span>
+const res = await fetch(
+  'https://yoursite.com/outpost/api.php?action=content/items&amp;collection=post'
+);
+const { data, meta } = await res.json();
+console.log(`${meta.total} posts`, data);</code></pre>
+
     <h2>1. The public Content API</h2>
-    <p>Outpost includes a read-only public Content API that requires no authentication. It returns only published content and is open to cross-origin requests — no CORS configuration needed.</p>
+    <p>Outpost includes a read-only public Content API that requires no authentication. It returns only published content and is open to cross-origin requests.</p>
 
     <table>
       <thead>
         <tr><th>Property</th><th>Value</th></tr>
       </thead>
       <tbody>
-        <tr><td>Base URL</td><td><code>https://yoursite.com/outpost/content/</code></td></tr>
+        <tr><td>Base URL</td><td><code>https://yoursite.com/outpost/api.php?action=content/...</code></td></tr>
         <tr><td>Authentication</td><td>None — fully public</td></tr>
         <tr><td>CORS</td><td>Open (<code>Access-Control-Allow-Origin: *</code>)</td></tr>
-        <tr><td>Content filter</td><td>Published items only — drafts are never exposed</td></tr>
+        <tr><td>Content filter</td><td>Published items only — drafts and members-only pages are never exposed</td></tr>
+        <tr><td>Rate limit</td><td>120 requests per 60 seconds per IP</td></tr>
         <tr><td>Response format</td><td>JSON</td></tr>
       </tbody>
     </table>
 
     <div class="callout callout-note">
       <strong>Note</strong>
-      The public Content API is separate from the admin API at <code>/outpost/api.php</code>. The admin API requires a session cookie and CSRF token. Use the Content API for all frontend reads.
+      All endpoints go through <code>api.php?action=content/...</code>. The admin API uses the same <code>api.php</code> but requires a session cookie and CSRF token. The Content API endpoints are public and read-only.
     </div>
 
-    <h2>2. Key endpoints</h2>
+    <h2>2. Endpoints</h2>
 
     <table>
       <thead>
@@ -53,133 +70,252 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>GET /outpost/content/items?collection=post</code></td>
-          <td>List items from a collection</td>
+          <td><code>GET api.php?action=content/items&amp;collection=post</code></td>
+          <td>List published items from a collection</td>
         </tr>
         <tr>
-          <td><code>GET /outpost/content/item?collection=post&amp;slug=my-slug</code></td>
+          <td><code>GET api.php?action=content/items&amp;collection=post&amp;slug=my-post</code></td>
           <td>Single item by slug</td>
         </tr>
         <tr>
-          <td><code>GET /outpost/content/globals</code></td>
+          <td><code>GET api.php?action=content/pages</code></td>
+          <td>All public pages with their fields</td>
+        </tr>
+        <tr>
+          <td><code>GET api.php?action=content/pages&amp;path=/about</code></td>
+          <td>Single page by path</td>
+        </tr>
+        <tr>
+          <td><code>GET api.php?action=content/globals</code></td>
           <td>All global fields as a flat object</td>
         </tr>
         <tr>
-          <td><code>GET /outpost/content/folders?collection=post</code></td>
-          <td>All folder labels attached to a collection</td>
+          <td><code>GET api.php?action=content/menus&amp;slug=main</code></td>
+          <td>Navigation menu with nested items</td>
         </tr>
         <tr>
-          <td><code>GET /outpost/content/pages</code></td>
-          <td>All public pages</td>
+          <td><code>GET api.php?action=content/menus</code></td>
+          <td>List all menus (slug, name, item count)</td>
         </tr>
         <tr>
-          <td><code>GET /outpost/content/menus?slug=main</code></td>
-          <td>A navigation menu with its items and children</td>
+          <td><code>GET api.php?action=content/collections</code></td>
+          <td>List all collections with schema info</td>
+        </tr>
+        <tr>
+          <td><code>GET api.php?action=content/folders</code></td>
+          <td>All folders (optionally filtered by collection)</td>
+        </tr>
+        <tr>
+          <td><code>GET api.php?action=content/labels&amp;folder=categories</code></td>
+          <td>Labels within a folder</td>
+        </tr>
+        <tr>
+          <td><code>GET api.php?action=content/media</code></td>
+          <td>Media library listing</td>
+        </tr>
+        <tr>
+          <td><code>GET api.php?action=content/schema</code></td>
+          <td>Full site schema — collections, pages, globals, folders</td>
         </tr>
       </tbody>
     </table>
 
     <h2>3. Query parameters</h2>
+
+    <h3>Items endpoint</h3>
     <table>
       <thead>
         <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>collection</code></td><td>string</td><td>Collection slug (required for item endpoints)</td></tr>
-        <tr><td><code>slug</code></td><td>string</td><td>Item slug (for single item fetch)</td></tr>
-        <tr><td><code>limit</code></td><td>integer</td><td>Max items to return (default: 20, max: 100)</td></tr>
-        <tr><td><code>offset</code></td><td>integer</td><td>Skip N items — use for manual pagination</td></tr>
-        <tr><td><code>orderby</code></td><td>string</td><td>Field to sort by, e.g. <code>published_at</code>, <code>title</code></td></tr>
-        <tr><td><code>order</code></td><td><code>asc</code> / <code>desc</code></td><td>Sort direction (default: <code>desc</code>)</td></tr>
-        <tr><td><code>filteredby</code></td><td>string</td><td>Folder slug to filter by, e.g. <code>category</code></td></tr>
-        <tr><td><code>label</code></td><td>string</td><td>Folder label slug to match (used with <code>filteredby</code>)</td></tr>
+        <tr><td><code>collection</code></td><td>string</td><td>Collection slug (<strong>required</strong>)</td></tr>
+        <tr><td><code>slug</code></td><td>string</td><td>Fetch a single item by slug</td></tr>
+        <tr><td><code>limit</code></td><td>integer</td><td>Max items to return (default: 10, max: 100)</td></tr>
+        <tr><td><code>offset</code></td><td>integer</td><td>Skip N items for pagination</td></tr>
+        <tr><td><code>orderby</code></td><td>string</td><td>Sort field: <code>created_at</code>, <code>updated_at</code>, <code>published_at</code>, <code>slug</code>, <code>sort_order</code></td></tr>
+        <tr><td><code>order</code></td><td>string</td><td><code>asc</code> or <code>desc</code> (default: <code>desc</code>)</td></tr>
+        <tr><td><code>{folder_slug}</code></td><td>string</td><td>Filter by folder label — e.g. <code>&amp;categories=engineering</code></td></tr>
       </tbody>
     </table>
 
-    <h2>4. Response shape</h2>
-    <p>All list endpoints return the same envelope:</p>
+    <div class="callout callout-tip">
+      <strong>Folder filtering</strong>
+      To filter items by folder labels, pass the folder slug as the parameter name and the label slug as the value. For example, if you have a folder called <code>categories</code> with a label <code>engineering</code>, use <code>&amp;categories=engineering</code>. You can combine multiple folder filters in one request.
+    </div>
 
-    <pre><code>{
-  "ok": true,
-  "data": {
-    "items": [
-      {
-        "id": 42,
-        "slug": "my-first-post",
+    <h3>Folders endpoint</h3>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>string</td><td>Filter folders to a specific collection slug (optional)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Response shapes</h2>
+
+    <h3>Item list</h3>
+    <pre><code><span class="t-comment">// GET api.php?action=content/items&amp;collection=post</span>
+{
+  "data": [
+    {
+      "id": 42,
+      "slug": "my-first-post",
+      "title": "My First Post",
+      "url": "/post/my-first-post",
+      "status": "published",
+      "created_at": "2025-01-15 09:00:00",
+      "updated_at": "2025-01-15 10:30:00",
+      "published_at": "2025-01-15 09:00:00",
+      "fields": {
         "title": "My First Post",
-        "status": "published",
-        "published_at": "2025-01-15 09:00:00",
-        "url": "/post/my-first-post",
-        "data": {
-          "excerpt": "A short summary of the post.",
-          "featured_image": "/outpost/uploads/2025/01/hero.jpg",
-          "body": "&lt;p&gt;Full richtext HTML...&lt;/p&gt;",
-          "author": "Jane Smith"
-        },
-        "labels": {
-          "category": [
-            { "id": 3, "name": "Engineering", "slug": "engineering" }
-          ],
-          "tag": [
-            { "id": 7, "name": "PHP", "slug": "php" }
-          ]
-        }
+        "excerpt": "A short summary of the post.",
+        "featured_image": "/outpost/uploads/2025/01/hero.jpg",
+        "body": "&lt;p&gt;Full richtext HTML...&lt;/p&gt;",
+        "author": "Jane Smith"
+      },
+      "labels": {
+        "categories": [
+          { "id": 3, "name": "Engineering", "slug": "engineering", "parent_id": null }
+        ]
       }
-    ],
+    }
+  ],
+  "meta": {
     "total": 48,
     "limit": 10,
     "offset": 0
   }
 }</code></pre>
 
-    <div class="callout callout-tip">
-      <strong>Tip</strong>
-      All custom field values are nested under <code>data</code>. The top-level properties (<code>id</code>, <code>slug</code>, <code>title</code>, <code>status</code>, <code>published_at</code>, <code>url</code>) are always present.
-    </div>
+    <h3>Single item</h3>
+    <pre><code><span class="t-comment">// GET api.php?action=content/items&amp;collection=post&amp;slug=my-first-post</span>
+{
+  "data": {
+    "id": 42,
+    "slug": "my-first-post",
+    "title": "My First Post",
+    "url": "/post/my-first-post",
+    "status": "published",
+    "created_at": "2025-01-15 09:00:00",
+    "updated_at": "2025-01-15 10:30:00",
+    "published_at": "2025-01-15 09:00:00",
+    "fields": {
+      "title": "My First Post",
+      "excerpt": "A short summary.",
+      "featured_image": "/outpost/uploads/2025/01/hero.jpg",
+      "body": "&lt;p&gt;Full richtext HTML...&lt;/p&gt;"
+    },
+    "labels": { ... }
+  }
+}</code></pre>
 
-    <h2>5. Basic JavaScript fetch</h2>
-    <p>Fetch and render a list of posts with plain JavaScript:</p>
+    <h3>Globals</h3>
+    <pre><code><span class="t-comment">// GET api.php?action=content/globals</span>
+{
+  "data": {
+    "site_name": "My Blog",
+    "author_name": "Jane Smith",
+    "profile_photo": "/outpost/uploads/photo.jpg",
+    "twitter_url": "https://twitter.com/jane"
+  }
+}</code></pre>
 
-    <pre><code>const BASE = 'https://yoursite.com/outpost/content';
-
-async function getPosts(limit = 10) {
-  const res = await fetch(`${BASE}/items?collection=post&limit=${limit}`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const { data } = await res.json();
-  return data.items;
-}
-
-async function renderPosts() {
-  const posts = await getPosts(6);
-  const container = document.querySelector('#posts');
-
-  container.innerHTML = posts.map(post => `
-    &lt;article&gt;
-      ${post.data.featured_image
-        ? `&lt;img src="${post.data.featured_image}" alt="${post.title}"&gt;`
-        : ''
+    <h3>Menu</h3>
+    <pre><code><span class="t-comment">// GET api.php?action=content/menus&amp;slug=main</span>
+{
+  "data": {
+    "slug": "main",
+    "name": "Main Menu",
+    "items": [
+      {
+        "label": "Home",
+        "url": "/",
+        "target": "",
+        "children": []
+      },
+      {
+        "label": "Blog",
+        "url": "/blog",
+        "target": "",
+        "children": [
+          { "label": "Tech", "url": "/blog?categories=tech", "target": "" }
+        ]
       }
-      &lt;h2&gt;&lt;a href="${post.url}"&gt;${post.title}&lt;/a&gt;&lt;/h2&gt;
-      &lt;p&gt;${post.data.excerpt || ''}&lt;/p&gt;
-      &lt;time&gt;${post.published_at}&lt;/time&gt;
-    &lt;/article&gt;
-  `).join('');
+    ]
+  }
+}</code></pre>
+
+    <h3>Pages</h3>
+    <pre><code><span class="t-comment">// GET api.php?action=content/pages</span>
+{
+  "data": [
+    {
+      "id": 1,
+      "path": "/",
+      "title": "Home",
+      "meta_title": "Welcome to My Site",
+      "meta_description": "A personal blog.",
+      "fields": {
+        "hero_text": "Welcome!",
+        "hero_image": "/outpost/uploads/hero.jpg"
+      }
+    }
+  ],
+  "meta": { "total": 5 }
+}</code></pre>
+
+    <h3>Error response</h3>
+    <pre><code><span class="t-comment">// HTTP 404</span>
+{
+  "error": "Item not found"
 }
 
-renderPosts();</code></pre>
+<span class="t-comment">// HTTP 429 (rate limited)</span>
+{
+  "error": "Too many requests. Please wait."
+}</code></pre>
 
-    <h2>6. Next.js — static generation</h2>
-    <p>Use <code>getStaticProps</code> (Pages Router) or <code>fetch</code> in a Server Component (App Router) to build statically at deploy time.</p>
+    <h2>5. JavaScript helper</h2>
+    <p>A reusable fetch wrapper for any endpoint:</p>
+
+    <pre><code>const OUTPOST = 'https://yoursite.com/outpost/api.php';
+
+async function outpost(endpoint, params = {}) {
+  const url = new URL(OUTPOST);
+  url.searchParams.set('action', endpoint);
+  Object.entries(params).forEach(([k, v]) =&gt; url.searchParams.set(k, v));
+
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const err = await res.json().catch(() =&gt; ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+<span class="t-comment">// Usage</span>
+const { data, meta } = await outpost('content/items', {
+  collection: 'post',
+  limit: '10',
+});
+console.log(`${meta.total} posts`, data);</code></pre>
+
+    <h2>6. Next.js</h2>
+    <p>Use <code>getStaticProps</code> (Pages Router) or <code>fetch</code> in a Server Component (App Router).</p>
 
     <pre><code><span class="t-comment">// pages/blog/index.js — Next.js Pages Router</span>
-const BASE = process.env.OUTPOST_URL + '/outpost/content';
+const API = process.env.OUTPOST_URL + '/outpost/api.php';
 
 export async function getStaticProps() {
-  const res = await fetch(`${BASE}/items?collection=post&limit=20`);
+  const res = await fetch(
+    `${API}?action=content/items&amp;collection=post&amp;limit=20`
+  );
   const { data } = await res.json();
 
   return {
-    props: { posts: data.items },
+    props: { posts: data },
     revalidate: 60, <span class="t-comment">// ISR: revalidate every 60 seconds</span>
   };
 }
@@ -191,34 +327,36 @@ export default function BlogIndex({ posts }) {
       {posts.map(post =&gt; (
         &lt;article key={post.slug}&gt;
           &lt;h2&gt;&lt;a href={post.url}&gt;{post.title}&lt;/a&gt;&lt;/h2&gt;
-          &lt;p&gt;{post.data.excerpt}&lt;/p&gt;
+          &lt;p&gt;{post.fields.excerpt}&lt;/p&gt;
         &lt;/article&gt;
       ))}
     &lt;/main&gt;
   );
 }</code></pre>
 
-    <pre><code><span class="t-comment">// pages/blog/[slug].js — dynamic single post page</span>
+    <pre><code><span class="t-comment">// pages/blog/[slug].js — single post page</span>
 export async function getStaticPaths() {
-  const res = await fetch(`${BASE}/items?collection=post&limit=100`);
+  const res = await fetch(
+    `${API}?action=content/items&amp;collection=post&amp;limit=100`
+  );
   const { data } = await res.json();
 
   return {
-    paths: data.items.map(p =&gt; ({ params: { slug: p.slug } })),
+    paths: data.map(p =&gt; ({ params: { slug: p.slug } })),
     fallback: 'blocking',
   };
 }
 
 export async function getStaticProps({ params }) {
   const res = await fetch(
-    `${BASE}/item?collection=post&slug=${params.slug}`
+    `${API}?action=content/items&amp;collection=post&amp;slug=${params.slug}`
   );
   const { data } = await res.json();
 
-  if (!data.item) return { notFound: true };
+  if (!data) return { notFound: true };
 
   return {
-    props: { post: data.item },
+    props: { post: data },
     revalidate: 60,
   };
 }
@@ -227,122 +365,66 @@ export default function Post({ post }) {
   return (
     &lt;article&gt;
       &lt;h1&gt;{post.title}&lt;/h1&gt;
-      &lt;div dangerouslySetInnerHTML={{ __html: post.data.body }} /&gt;
+      &lt;div dangerouslySetInnerHTML={{ __html: post.fields.body }} /&gt;
     &lt;/article&gt;
   );
 }</code></pre>
 
-    <h2>7. Fetching global fields</h2>
-    <p>Global fields are useful for site-wide data like the site name, logo, and contact details. Fetch them once and pass them to a layout component.</p>
+    <h2>7. Astro</h2>
+    <p>Astro fetches at build time by default. Use <code>fetch</code> inside frontmatter:</p>
 
-    <pre><code>const globalsRes = await fetch(`${BASE}/globals`);
-const { data } = await globalsRes.json();
+    <pre><code><span class="t-comment">---
+// src/pages/blog/index.astro</span>
+const API = import.meta.env.OUTPOST_URL + '/outpost/api.php';
 
-// data.globals is a flat object:
-// {
-//   "site_name": "My Blog",
-//   "author_name": "Jane Smith",
-//   "profile_photo": "/outpost/uploads/photo.jpg",
-//   "twitter_url": "https://twitter.com/jane",
-//   ...
-// }
+const res = await fetch(`${API}?action=content/items&amp;collection=post&amp;limit=50`);
+const { data: posts } = await res.json();
+---
 
-console.log(data.globals.site_name);</code></pre>
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;main&gt;
+      {posts.map(post =&gt; (
+        &lt;article&gt;
+          &lt;h2&gt;&lt;a href={post.url}&gt;{post.title}&lt;/a&gt;&lt;/h2&gt;
+          &lt;p&gt;{post.fields.excerpt}&lt;/p&gt;
+        &lt;/article&gt;
+      ))}
+    &lt;/main&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
 
-    <h2>8. Filtering by folder</h2>
-    <p>Use <code>filteredby</code> and <code>label</code> to fetch only items that belong to a specific folder label:</p>
-
-    <pre><code><span class="t-comment">// Posts in the "engineering" category</span>
+    <pre><code><span class="t-comment">---
+// src/pages/blog/[slug].astro</span>
+const { slug } = Astro.params;
 const res = await fetch(
-  `${BASE}/items?collection=post&filteredby=category&label=engineering&limit=10`
+  `${API}?action=content/items&amp;collection=post&amp;slug=${slug}`
 );
-const { data } = await res.json();
-console.log(data.items);</code></pre>
+const { data: post } = await res.json();
+if (!post) return Astro.redirect('/404');
+---
 
-    <h2>9. When to use the Content API vs. the Admin API</h2>
-
-    <table>
-      <thead>
-        <tr><th>Situation</th><th>Use</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Reading published content in a frontend app</td>
-          <td>Content API — no auth, CORS open</td>
-        </tr>
-        <tr>
-          <td>Creating, updating, or deleting content programmatically</td>
-          <td>Admin API — requires session auth + CSRF token</td>
-        </tr>
-        <tr>
-          <td>Reading draft or unpublished content</td>
-          <td>Admin API</td>
-        </tr>
-        <tr>
-          <td>Server-side rendering at build time (Next.js, Astro)</td>
-          <td>Content API — fast, no credentials needed</td>
-        </tr>
-        <tr>
-          <td>Mobile app reading published articles</td>
-          <td>Content API</td>
-        </tr>
-        <tr>
-          <td>Syncing theme files from the Builder desktop app</td>
-          <td>Sync API</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>10. Using Outpost as a mobile app backend</h2>
-    <p>The Content API works for any HTTP client. In a React Native or Flutter app, point your fetch calls to your Outpost instance and render the content natively. Image URLs in the <code>data</code> object are absolute paths — prefix them with your Outpost base URL if needed.</p>
-
-    <pre><code><span class="t-comment">// React Native example</span>
-import React, { useEffect, useState } from 'react';
-import { FlatList, Text, Image, View } from 'react-native';
-
-const BASE = 'https://yoursite.com/outpost/content';
-
-export default function ArticleList() {
-  const [articles, setArticles] = useState([]);
-
-  useEffect(() => {
-    fetch(`${BASE}/items?collection=article&limit=20`)
-      .then(r =&gt; r.json())
-      .then(({ data }) =&gt; setArticles(data.items));
-  }, []);
-
-  return (
-    &lt;FlatList
-      data={articles}
-      keyExtractor={item =&gt; item.slug}
-      renderItem={({ item }) =&gt; (
-        &lt;View&gt;
-          &lt;Text&gt;{item.title}&lt;/Text&gt;
-          &lt;Text&gt;{item.data.excerpt}&lt;/Text&gt;
-        &lt;/View&gt;
-      )}
-    /&gt;
-  );
-}</code></pre>
+&lt;article&gt;
+  &lt;h1&gt;{post.title}&lt;/h1&gt;
+  &lt;Fragment set:html={post.fields.body} /&gt;
+&lt;/article&gt;</code></pre>
 
     <div class="callout callout-tip">
       <strong>Tip</strong>
-      Set <code>OUTPOST_URL</code> as an environment variable in your frontend project rather than hardcoding it. This makes it easy to point at a staging Outpost instance during development and production at deploy time.
+      When using Astro with <code>output: 'static'</code>, all API calls happen at build time. Set up a webhook or cron job to trigger a rebuild whenever content changes.
     </div>
 
-    <h2>11. Vue 3 / Nuxt pattern</h2>
-    <p>Fetching content in a Nuxt 3 server component or a Vue composable follows the same pattern as Next.js. Use <code>useFetch</code> in Nuxt for automatic SSR + caching:</p>
+    <h2>8. Vue / Nuxt</h2>
+    <p>Use <code>useFetch</code> in Nuxt 3 for automatic SSR + caching:</p>
 
-    <pre><code><span class="t-comment">// composables/usePosts.js — Nuxt 3</span>
+    <pre><code><span class="t-comment">// composables/useOutpost.js — Nuxt 3</span>
 export function usePosts(limit = 10) {
   const config = useRuntimeConfig();
-  return useFetch(
-    `${config.public.outpostUrl}/outpost/content/items`,
-    {
-      query: { collection: 'post', limit },
-      transform: ({ data }) =&gt; data.items,
-    }
-  );
+  const api = config.public.outpostUrl + '/outpost/api.php';
+  return useFetch(api, {
+    query: { action: 'content/items', collection: 'post', limit },
+    transform: ({ data }) =&gt; data,
+  });
 }
 
 <span class="t-comment">// pages/blog.vue</span>
@@ -355,78 +437,129 @@ const { data: posts } = await usePosts(12);
     &lt;h2&gt;
       &lt;a :href="post.url"&gt;{{ post.title }}&lt;/a&gt;
     &lt;/h2&gt;
-    &lt;p&gt;{{ post.data.excerpt }}&lt;/p&gt;
+    &lt;p&gt;{{ post.fields.excerpt }}&lt;/p&gt;
   &lt;/article&gt;
 &lt;/template&gt;</code></pre>
 
-    <h2>12. Astro static site generation</h2>
-    <p>Astro fetches at build time by default. Use <code>fetch</code> inside <code>---</code> frontmatter:</p>
+    <h2>9. Fetching globals and menus</h2>
+    <p>Globals and menus are typically fetched once and shared across your layout.</p>
 
-    <pre><code><span class="t-comment">---
-// src/pages/blog/index.astro</span>
-const BASE = import.meta.env.OUTPOST_URL + '/outpost/content';
-const res = await fetch(`${BASE}/items?collection=post&limit=50`);
-const { data } = await res.json();
-const posts = data.items;
----
+    <pre><code><span class="t-comment">// Fetch globals</span>
+const globalsRes = await fetch(
+  `${API}?action=content/globals`
+);
+const { data: globals } = await globalsRes.json();
+console.log(globals.site_name); <span class="t-comment">// "My Blog"</span>
 
-&lt;html&gt;
-  &lt;body&gt;
-    &lt;main&gt;
-      {posts.map(post =&gt; (
-        &lt;article&gt;
-          &lt;h2&gt;&lt;a href={post.url}&gt;{post.title}&lt;/a&gt;&lt;/h2&gt;
-          &lt;p&gt;{post.data.excerpt}&lt;/p&gt;
-        &lt;/article&gt;
-      ))}
-    &lt;/main&gt;
-  &lt;/body&gt;
-&lt;/html&gt;</code></pre>
+<span class="t-comment">// Fetch a navigation menu</span>
+const menuRes = await fetch(
+  `${API}?action=content/menus&amp;slug=main`
+);
+const { data: menu } = await menuRes.json();
 
-    <div class="callout callout-tip">
-      <strong>Tip</strong>
-      When using Astro with <code>output: 'static'</code>, all API calls happen at build time. Set up a webhook from your Outpost deploy pipeline (or a cron job) to trigger a rebuild whenever content changes.
-    </div>
+menu.items.forEach(item =&gt; {
+  console.log(item.label, item.url);
+  item.children.forEach(child =&gt; {
+    console.log('  ', child.label, child.url);
+  });
+});</code></pre>
 
-    <h2>13. Image URLs in API responses</h2>
-    <p>Image fields in the <code>data</code> object contain the path as stored — typically <code>/outpost/uploads/2025/01/image.jpg</code>. When using Outpost as a headless backend for a separate domain, prepend your Outpost base URL:</p>
+    <h2>10. Filtering by folder</h2>
+    <p>Pass the folder slug as the parameter name and the label slug as the value:</p>
+
+    <pre><code><span class="t-comment">// Posts in the "engineering" category</span>
+const res = await fetch(
+  `${API}?action=content/items&amp;collection=post&amp;categories=engineering&amp;limit=10`
+);
+const { data: posts } = await res.json();
+
+<span class="t-comment">// Combine multiple folder filters</span>
+const res2 = await fetch(
+  `${API}?action=content/items&amp;collection=post&amp;categories=engineering&amp;tags=php`
+);</code></pre>
+
+    <h2>11. Image URLs</h2>
+    <p>Image fields contain paths like <code>/outpost/uploads/2025/01/image.jpg</code>. When fetching from a separate domain, prepend your Outpost base URL:</p>
 
     <pre><code>const BASE_URL = 'https://cms.yoursite.com';
 
-data.items.forEach(post =&gt; {
-  const image = post.data.featured_image
-    ? BASE_URL + post.data.featured_image
+posts.forEach(post =&gt; {
+  const image = post.fields.featured_image
+    ? BASE_URL + post.fields.featured_image
     : null;
-
   console.log(image);
-  // https://cms.yoursite.com/outpost/uploads/2025/01/hero.jpg
 });</code></pre>
 
-    <h2>14. Error handling</h2>
-    <p>The API returns a consistent JSON envelope for both success and error responses. Always check <code>ok</code> before accessing <code>data</code>:</p>
+    <h2>12. Mobile apps</h2>
+    <p>The Content API works for any HTTP client — React Native, Flutter, Swift, Kotlin:</p>
 
-    <pre><code>async function fetchItems(collection, params = {}) {
-  const url = new URL('/outpost/content/items', BASE_URL);
-  url.searchParams.set('collection', collection);
-  Object.entries(params).forEach(([k, v]) =&gt; url.searchParams.set(k, v));
+    <pre><code><span class="t-comment">// React Native</span>
+import React, { useEffect, useState } from 'react';
+import { FlatList, Text, View } from 'react-native';
 
-  const res = await fetch(url.toString());
-  const json = await res.json();
+const API = 'https://yoursite.com/outpost/api.php';
 
-  if (!json.ok) {
-    throw new Error(json.error || 'API request failed');
-  }
+export default function ArticleList() {
+  const [articles, setArticles] = useState([]);
 
-  return json.data;
-}
+  useEffect(() =&gt; {
+    fetch(`${API}?action=content/items&amp;collection=article&amp;limit=20`)
+      .then(r =&gt; r.json())
+      .then(({ data }) =&gt; setArticles(data));
+  }, []);
 
-<span class="t-comment">// Usage</span>
-try {
-  const { items, total } = await fetchItems('post', { limit: 10 });
-  console.log(`Loaded ${items.length} of ${total} posts`);
-} catch (err) {
-  console.error('Failed to load posts:', err.message);
+  return (
+    &lt;FlatList
+      data={articles}
+      keyExtractor={item =&gt; item.slug}
+      renderItem={({ item }) =&gt; (
+        &lt;View&gt;
+          &lt;Text&gt;{item.title}&lt;/Text&gt;
+          &lt;Text&gt;{item.fields.excerpt}&lt;/Text&gt;
+        &lt;/View&gt;
+      )}
+    /&gt;
+  );
 }</code></pre>
+
+    <h2>13. Content API vs. Admin API</h2>
+
+    <table>
+      <thead>
+        <tr><th>Situation</th><th>Use</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Reading published content in a frontend app</td>
+          <td>Content API — no auth, CORS open</td>
+        </tr>
+        <tr>
+          <td>Creating, updating, or deleting content</td>
+          <td>Admin API — requires session auth + CSRF token (or API key)</td>
+        </tr>
+        <tr>
+          <td>Reading draft or unpublished content</td>
+          <td>Admin API</td>
+        </tr>
+        <tr>
+          <td>Server-side rendering at build time</td>
+          <td>Content API</td>
+        </tr>
+        <tr>
+          <td>Mobile app reading published articles</td>
+          <td>Content API</td>
+        </tr>
+        <tr>
+          <td>Syncing theme files from the Builder</td>
+          <td>Sync API</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong>
+      Set <code>OUTPOST_URL</code> as an environment variable in your frontend project rather than hardcoding the URL. This makes it easy to switch between staging and production.
+    </div>
 
     <h2>Next steps</h2>
     <ul>
