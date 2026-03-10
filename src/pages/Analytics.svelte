@@ -3,6 +3,9 @@
   import AnalyticsTraffic from '$components/analytics/AnalyticsTraffic.svelte';
   import AnalyticsEvents from '$components/analytics/AnalyticsEvents.svelte';
   import AnalyticsGoals from '$components/analytics/AnalyticsGoals.svelte';
+  import AnalyticsSearch from '$components/analytics/AnalyticsSearch.svelte';
+  import AnalyticsCohorts from '$components/analytics/AnalyticsCohorts.svelte';
+  import AnalyticsFunnels from '$components/analytics/AnalyticsFunnels.svelte';
 
   // ── Layout: full-width, no right sidebar ──────────────────
   $effect(() => {
@@ -16,13 +19,19 @@
   let route = $derived($currentRoute);
   let activeTab = $derived(
     route === 'analytics-events' ? 'events' :
-    route === 'analytics-goals' ? 'goals' : 'traffic'
+    route === 'analytics-goals' ? 'goals' :
+    route === 'analytics-search' ? 'search' :
+    route === 'analytics-content' ? 'content' :
+    route === 'analytics-funnels' ? 'funnels' : 'traffic'
   );
 
   const TABS = [
     { key: 'traffic', label: 'Traffic', route: 'analytics' },
     { key: 'events',  label: 'Events',  route: 'analytics-events' },
     { key: 'goals',   label: 'Goals',   route: 'analytics-goals' },
+    { key: 'search',  label: 'Search',  route: 'analytics-search' },
+    { key: 'content', label: 'Content', route: 'analytics-content' },
+    { key: 'funnels', label: 'Funnels', route: 'analytics-funnels' },
   ];
 </script>
 
@@ -50,6 +59,12 @@
     <AnalyticsEvents />
   {:else if activeTab === 'goals'}
     <AnalyticsGoals />
+  {:else if activeTab === 'search'}
+    <AnalyticsSearch />
+  {:else if activeTab === 'content'}
+    <AnalyticsCohorts />
+  {:else if activeTab === 'funnels'}
+    <AnalyticsFunnels />
   {/if}
 </div>
 

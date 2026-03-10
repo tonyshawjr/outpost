@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] — 2026-03-09
+
+### Added
+- **Search Analytics** — track what visitors search for on your site with `outpost.trackSearch()` JS API and automatic URL param detection (`?q=`, `?search=`, `?s=`); new Search tab in Analytics with top queries, zero-result queries, click-through rates, and daily trend chart
+- **Content Performance Cohorts** — new Content tab in Analytics groups pages by publish date into cohorts and shows traffic distribution, views per page, and top performers for each age bracket
+- **Goal Funnels** — new Funnels tab in Analytics (visible when members are enabled) tracks the visitor lifecycle (Visit → Sign Up → Login → Upgrade) with conversion rates, drop-off percentages, and a recent member activity feed
+- **Geo Enrichment** — optional country-level visitor analytics using MaxMind GeoLite2 database; double-gated (requires mmdb file upload + setting enabled), stores only 2-letter country codes, pure-PHP MMDB reader with zero dependencies
+- **Geo settings UI** — Settings → Advanced now has a Geo Analytics section with toggle, mmdb file upload/replace/remove, and file status indicator
+- **Member event tracking** — signup, login, and role change events recorded automatically for funnel analytics
+
 ## [2.2.8] — 2026-03-09
 
 ### Added

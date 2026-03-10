@@ -1,9 +1,16 @@
 <script>
   import { onMount } from 'svelte';
-  import { cache as cacheApi, sync as syncApi, cron as cronApi } from '$lib/api.js';
+  import { cache as cacheApi, sync as syncApi, cron as cronApi, analytics as analyticsApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
 
   let { settings = {}, onSettingChange = () => {} } = $props();
+
+  // Geo Analytics
+  let geoStatus = $state({ file_exists: false, file_size: 0, file_modified: null, enabled: false });
+  let geoLoading = $state(true);
+  let geoUploading = $state(false);
+  let geoDeleting = $state(false);
+  let confirmGeoDelete = $state(false);
 
   // Sync & Deploy
   let syncKey = $state({ key_set: false, key_masked: '', last_pull: null, last_push: null });
@@ -27,6 +34,9 @@
 
     try { cronKey = await cronApi.key(); } catch (_) {}
     cronLoading = false;
+
+    try { geoStatus = await analyticsApi.geoStatus(); } catch (_) {}
+    geoLoading = false;
   });
 
   async function clearCache() {
@@ -61,6 +71,44 @@
   function copyCronUrl() {
     navigator.clipboard.writeText(cronUrl).then(() => addToast('URL copied', 'success'));
   }
+
+  async function handleGeoUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    geoUploading = true;
+    try {
+      const result = await analyticsApi.geoUpload(file);
+      geoStatus = { ...geoStatus, file_exists: true, file_size: result.file_size, file_modified: result.file_modified };
+      addToast('GeoLite2 database uploaded', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      geoUploading = false;
+      e.target.value = '';
+    }
+  }
+
+  async function handleGeoDelete() {
+    if (!confirmGeoDelete) { confirmGeoDelete = true; return; }
+    confirmGeoDelete = false;
+    geoDeleting = true;
+    try {
+      await analyticsApi.geoDelete();
+      geoStatus = { file_exists: false, file_size: 0, file_modified: null, enabled: false };
+      onSettingChange('geo_enabled', '0');
+      addToast('GeoLite2 database removed', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      geoDeleting = false;
+    }
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
 </script>
 
 <div class="settings-section">
@@ -80,6 +128,70 @@
       ></button>
     </div>
     <button class="btn btn-secondary" onclick={clearCache} type="button">Clear All Cache</button>
+  </div>
+
+  <!-- Geo Analytics -->
+  <div class="adv-block">
+    <h4 class="adv-block-title">Geo Analytics</h4>
+    <p class="adv-block-desc">
+      Enrich pageview analytics with visitor country data using a MaxMind GeoLite2 database. Only 2-letter country codes are stored — no raw IPs.
+    </p>
+
+    {#if geoLoading}
+      <p style="font-size: var(--font-size-sm); color: var(--text-tertiary);">Loading…</p>
+    {:else}
+      <div class="form-group">
+        <label class="form-label">Enable Geo Enrichment</label>
+        <div style="display: flex; align-items: center; gap: var(--space-md);">
+          <button
+            class="toggle"
+            class:active={settings.geo_enabled === '1'}
+            onclick={() => onSettingChange('geo_enabled', settings.geo_enabled === '1' ? '0' : '1')}
+            type="button"
+            disabled={!geoStatus.file_exists}
+          ></button>
+          {#if !geoStatus.file_exists}
+            <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Upload a GeoLite2 database first</span>
+          {/if}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: var(--space-lg);">
+        <label class="form-label" style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary);">GeoLite2-Country Database</label>
+        {#if geoStatus.file_exists}
+          <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm);">
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              <span style="font-size: var(--font-size-sm); color: var(--text-primary);">GeoLite2-Country.mmdb</span>
+            </div>
+            <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">{formatFileSize(geoStatus.file_size)}</span>
+            {#if geoStatus.file_modified}
+              <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Uploaded {new Date(geoStatus.file_modified).toLocaleDateString()}</span>
+            {/if}
+          </div>
+          <div style="display: flex; gap: var(--space-sm); align-items: center;">
+            <label class="btn btn-secondary" style="cursor: pointer;">
+              Replace file
+              <input type="file" accept=".mmdb" onchange={handleGeoUpload} hidden disabled={geoUploading} />
+            </label>
+            {#if confirmGeoDelete}
+              <span style="font-size: var(--font-size-sm); color: var(--danger);">Remove database?</span>
+              <button class="btn btn-danger" onclick={handleGeoDelete} disabled={geoDeleting} type="button">Yes, remove</button>
+              <button class="btn btn-ghost" onclick={() => confirmGeoDelete = false} type="button">Cancel</button>
+            {:else}
+              <button class="btn btn-ghost" style="color: var(--danger);" onclick={handleGeoDelete} type="button">Remove</button>
+            {/if}
+          </div>
+        {:else}
+          <label class="btn btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-xs);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            {geoUploading ? 'Uploading…' : 'Upload .mmdb file'}
+            <input type="file" accept=".mmdb" onchange={handleGeoUpload} hidden disabled={geoUploading} />
+          </label>
+          <p class="form-hint">Download the free GeoLite2-Country database from <a href="https://dev.maxmind.com/geoip/geolite2-free-geolocation-data" target="_blank" rel="noopener" style="color: var(--accent);">MaxMind</a> (requires free account).</p>
+        {/if}
+      </div>
+    {/if}
   </div>
 
   <!-- Sync & Deploy -->

@@ -122,6 +122,20 @@ class OutpostTemplate {
                 'if(p)try{q.props=JSON.stringify(p)}catch(e){}' .
                 'var eu=T+"?"+new URLSearchParams(q).toString();' .
                 'fetch(eu,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=eu;});' .
+            '},' .
+            // outpost.trackSearch() API
+            'trackSearch:function(q,r){' .
+                'if(!q)return;' .
+                'var d={type:"search",query:q,results:r||0};' .
+                'var su=T+"?"+new URLSearchParams(d).toString();' .
+                'fetch(su,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=su;});' .
+            '},' .
+            // outpost.trackSearchClick() API
+            'trackSearchClick:function(q,p){' .
+                'if(!q||!p)return;' .
+                'var d={type:"search",query:q,results:1,clicked:p};' .
+                'var su=T+"?"+new URLSearchParams(d).toString();' .
+                'fetch(su,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=su;});' .
             '}};' .
             // Auto-track: outbound links + file downloads
             'document.addEventListener("click",function(e){' .
@@ -139,7 +153,13 @@ class OutpostTemplate {
                 'var f=e.target;if(f.tagName==="FORM"){' .
                     'outpost.track("form_submit",{action:f.action||"",id:f.id||"",name:f.getAttribute("name")||""})' .
                 '}' .
-            '})' .
+            '});' .
+            // Auto-track: search queries from URL params (?q=, ?search=, ?s=)
+            '(function(){' .
+                'var sp=new URLSearchParams(location.search);' .
+                'var sq=sp.get("q")||sp.get("search")||sp.get("s");' .
+                'if(sq)outpost.trackSearch(sq)' .
+            '})()' .
         '})();</script>';
     }
 

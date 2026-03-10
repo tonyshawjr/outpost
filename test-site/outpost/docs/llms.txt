@@ -1334,6 +1334,77 @@ Auto-generated at `/sitemap.xml`. No configuration needed. Includes all CMS page
 
 Built-in tracker injected before `</body>` on every page. Fires GET to `/outpost/track.php`. Bot detection via user-agent. No cookies, no fingerprinting, all data in SQLite.
 
+### Analytics Tabs
+
+The Analytics page has 6 tabs:
+
+1. **Traffic** — pageviews, unique visitors, top pages, referrers, device breakdown, geo data (if enabled)
+2. **Events** — custom events tracked via `outpost.trackEvent(name, properties)`
+3. **Goals** — conversion tracking with configurable goals
+4. **Search** — internal site search analytics (v2.3)
+5. **Content** — content performance cohorts by page publish date (v2.3)
+6. **Funnels** — member lifecycle funnel: Visit → Sign Up → Login → Upgrade (v2.3, only visible when members enabled)
+
+### Search Analytics (v2.3)
+
+Track what visitors search for on your site. Two methods:
+
+**JavaScript API** (call from your search results page):
+```javascript
+// Track a search query and the number of results
+outpost.trackSearch('keyword', 5);
+
+// Track when a user clicks a search result
+outpost.trackSearchClick('keyword', '/path/clicked');
+```
+
+**Automatic detection**: The tracker automatically detects search queries from URL params `?q=`, `?search=`, `?s=` and tracks them with the results count from the DOM.
+
+**API endpoint**: `GET api.php?action=dashboard/search&period=30days`
+Returns: `total_searches`, `unique_queries`, `click_rate`, `top_queries`, `zero_result_queries`, `top_clicked`, `chart` (daily trend).
+
+Database table: `analytics_searches` (query, results_count, clicked_path, session_id, created_at).
+
+### Content Performance Cohorts (v2.3)
+
+Groups pages by publish date into 5 cohorts: Last 7 days, Last 30 days, Last 90 days, Last 6 months, Older. Joins with `analytics_hits` to show traffic distribution per cohort.
+
+**API endpoint**: `GET api.php?action=dashboard/cohorts&period=30days`
+Returns: Array of cohorts, each with `page_count`, `total_views`, `avg_views_per_page`, `view_share`, `top_pages`.
+
+No new database tables — computed from existing `pages` + `analytics_hits`.
+
+### Goal Funnels (v2.3)
+
+Tracks member lifecycle as a 4-stage funnel:
+1. **Visitors** — unique sessions from `analytics_hits`
+2. **Sign Ups** — `member_events` where `event_type = 'signup'`
+3. **Logins** — distinct users with `event_type = 'login'`
+4. **Upgrades** — `event_type = 'role_change'` (role changes to paid tiers)
+
+Events are recorded automatically at registration, login, and role change — no developer action needed.
+
+**API endpoint**: `GET api.php?action=dashboard/funnels&period=30days`
+Returns: `stages` array (count + conversion rate per stage), `recent_events` (last 20 member events).
+
+Database table: `member_events` (user_id, event_type, details, session_id, created_at).
+
+### Geo Enrichment (v2.3)
+
+Optional country-level visitor analytics. Double-gated for privacy:
+1. Upload a MaxMind GeoLite2-Country `.mmdb` file to `content/data/`
+2. Enable via Settings → Advanced → Geo Analytics toggle
+
+When enabled, `track.php` looks up visitor IPs against the mmdb file and stores only the 2-letter country code (e.g., `US`, `DE`, `GB`) in `analytics_hits.country_code`. Raw IPs are never stored.
+
+**Pure-PHP MMDB reader** (`mmdb-reader.php`): ~270 LOC, zero Composer dependencies, supports IPv4 and IPv6.
+
+**API endpoints**:
+- `GET api.php?action=dashboard/geo&period=30days` — country breakdown with counts and percentages
+- `GET api.php?action=dashboard/geo/status` — check mmdb file status (exists, size, modified date)
+- `POST api.php?action=dashboard/geo/upload` — upload mmdb file (multipart form, field name: `mmdb`)
+- `DELETE api.php?action=dashboard/geo/delete` — remove mmdb file and disable setting
+
 GA4 integration (optional):
 ```html
 {% if @ga4_id %}
@@ -1626,6 +1697,13 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `backup/settings` | GET, PUT | Auto-backup settings (enabled, frequency, max retention) |
 | `dashboard/stats` | GET | Site stats snapshot |
 | `dashboard/analytics` | GET | Full analytics data |
+| `dashboard/search` | GET | Search analytics (top queries, zero-results, click-through) |
+| `dashboard/cohorts` | GET | Content performance cohorts by page age |
+| `dashboard/funnels` | GET | Member lifecycle funnel (visitors → signups → logins → upgrades) |
+| `dashboard/geo` | GET | Country breakdown from geo-enriched pageviews |
+| `dashboard/geo/status` | GET | Geo mmdb file status (exists, size, modified) |
+| `dashboard/geo/upload` | POST | Upload MaxMind GeoLite2-Country .mmdb file |
+| `dashboard/geo/delete` | DELETE | Remove mmdb file and disable geo |
 | `dashboard/activity` | GET | Recent activity log |
 | `dashboard/seo` | GET | SEO health data |
 | `dashboard/content` | GET | Content overview |
@@ -1987,7 +2065,7 @@ Outpost uses 20 SQLite tables in five groups. Single `.db` file at `outpost/cont
 **Channels:** `channels`, `channel_items`, `channel_sync_log`
 **Folder & Navigation:** `folders`, `labels`, `item_labels`, `menus`
 **Users & Members:** `users`, `members`, `user_collection_grants`, `settings`
-**Media, Forms & Logs:** `media`, `forms` (builder definitions), `form_configs`, `form_submissions` (with form_id, status, starred, notes, user_agent), `analytics_hits`, `activity_log`
+**Media, Forms & Logs:** `media`, `forms` (builder definitions), `form_configs`, `form_submissions` (with form_id, status, starred, notes, user_agent), `analytics_hits` (with country_code for geo), `analytics_searches` (query, results_count, clicked_path), `analytics_events`, `member_events` (user_id, event_type, details for funnel tracking), `activity_log`
 
 Key columns:
 

@@ -70,6 +70,28 @@ function member_api_ensure_reset_columns(): void {
     }
 }
 
+// ── Member event recording (for funnels) ─────────────────
+function _member_api_record_event(int $userId, string $eventType, ?string $details = null): void {
+    try {
+        OutpostDB::query('CREATE TABLE IF NOT EXISTS member_events (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id     INTEGER,
+            event_type  TEXT NOT NULL,
+            details     TEXT DEFAULT NULL,
+            session_id  TEXT DEFAULT NULL,
+            created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        )');
+        OutpostDB::insert('member_events', [
+            'user_id'    => $userId,
+            'event_type' => $eventType,
+            'details'    => $details,
+        ]);
+    } catch (\Throwable $e) {
+        // Non-critical — don't break registration/login flow
+    }
+}
+
 // ── Public routes (no auth required) ─────────────────────
 
 if ($action === 'forgot' && $method === 'POST') {
@@ -196,6 +218,11 @@ if ($action === 'register' && $method === 'POST') {
         $data['password'] ?? ''
     );
     if ($result['success']) {
+        // Record signup event for funnels
+        $memberId = $result['member']['id'] ?? null;
+        if ($memberId) {
+            _member_api_record_event($memberId, 'signup');
+        }
         try {
             require_once __DIR__ . '/webhooks.php';
             ensure_webhooks_tables();
@@ -221,6 +248,11 @@ if ($action === 'login' && $method === 'POST') {
 
     $result = OutpostMember::login($identifier, $password);
     if ($result['success']) {
+        // Record login event for funnels
+        $memberId = $result['member']['id'] ?? null;
+        if ($memberId) {
+            _member_api_record_event($memberId, 'login');
+        }
         $result['csrf_token'] = OutpostMember::csrfToken();
         member_json($result);
     } else {

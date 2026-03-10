@@ -509,6 +509,24 @@ export const analytics = {
     request('dashboard/events/detail', { params: { name, period } }),
   goals: (period = '30days') =>
     request('dashboard/goals', { params: { period } }),
+  search: (period = '30days') =>
+    request('dashboard/search', { params: { period } }),
+  cohorts: (period = '30days') =>
+    request('dashboard/cohorts', { params: { period } }),
+  funnels: (period = '30days') =>
+    request('dashboard/funnels', { params: { period } }),
+  geo: (period = '30days') =>
+    request('dashboard/geo', { params: { period } }),
+  geoStatus: () =>
+    request('dashboard/geo/status'),
+  geoUpload: (file) => {
+    const formData = new FormData();
+    formData.append('mmdb', file);
+    formData.append('csrf_token', csrfToken);
+    return request('dashboard/geo/upload', { method: 'POST', body: formData });
+  },
+  geoDelete: () =>
+    request('dashboard/geo/delete', { method: 'DELETE' }),
 };
 
 export const goals = {

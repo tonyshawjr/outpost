@@ -317,14 +317,14 @@ Freelancers and agencies already have HTML sites — from Webflow exports, Tailw
 
 ---
 
-## v2.3 — Deeper Analytics
+## v2.3 — Deeper Analytics — SHIPPED (v2.3.0)
 
 Extend beyond pageviews into audience behavior — actionable insights without external tools:
 
-- Content performance cohorts (heavy readers vs. casual visitors)
-- Goal funnels (visitor → member → paid → churned)
-- Search analytics — what are visitors searching for on the site
-- Optional geo enrichment via MaxMind GeoLite2 (off by default, privacy-first)
+- ~~Content performance cohorts~~ — **Shipped**: groups pages by publish date into 5 age brackets, shows traffic distribution and top performers per cohort
+- ~~Goal funnels~~ — **Shipped**: 4-stage member lifecycle funnel (Visit → Sign Up → Login → Upgrade) with conversion rates and activity feed
+- ~~Search analytics~~ — **Shipped**: `outpost.trackSearch()` JS API + auto URL param detection, top queries, zero-result queries, click-through rates
+- ~~Optional geo enrichment~~ — **Shipped**: pure-PHP MaxMind MMDB reader, double-gated (file + setting), stores only 2-letter country codes
 
 **Docs:** Analytics dashboard guide, goal funnel setup, privacy configuration reference.
 
@@ -483,7 +483,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~2.0~~ | ~~Q3 2027~~ | ~~Onboarding & Setup Wizard~~ **Shipped** | Everyone |
 | ~~2.1~~ | ~~Q3 2027~~ | ~~Collection Folders — Inline label sidebar~~ **Shipped** | Everyone |
 | ~~2.2~~ | ~~Q4 2027~~ | ~~Forge — visual HTML-to-theme conversion~~ **Shipped** | Developers / Everyone |
-| 2.3 | Q4 2027 | Deeper Analytics — funnels, search, cohorts | Everyone |
+| ~~2.3~~ | ~~Q4 2027~~ | ~~Deeper Analytics — funnels, search, cohorts~~ **Shipped** | Everyone |
 | 2.4 | Q1 2028 | Theme Gallery — 4-5 polished starter themes | Everyone |
 | 2.5 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |
 | 2.6 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |

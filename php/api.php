@@ -284,6 +284,21 @@ match (true) {
     $action === 'goals' && $method === 'DELETE' && isset($_GET['id'])  => handle_goals_delete(),
     $action === 'dashboard/goals' && $method === 'GET'                 => handle_analytics_goals(),
 
+    // Search analytics
+    $action === 'dashboard/search' && $method === 'GET'              => handle_analytics_search(),
+
+    // Content cohorts
+    $action === 'dashboard/cohorts' && $method === 'GET'             => handle_analytics_cohorts(),
+
+    // Funnels
+    $action === 'dashboard/funnels' && $method === 'GET'             => handle_analytics_funnels(),
+
+    // Geo analytics
+    $action === 'dashboard/geo' && $method === 'GET'                 => handle_analytics_geo(),
+    $action === 'dashboard/geo/status' && $method === 'GET'          => handle_geo_status(),
+    $action === 'dashboard/geo/upload' && $method === 'POST'         => handle_geo_upload(),
+    $action === 'dashboard/geo/delete' && $method === 'DELETE'       => handle_geo_delete(),
+
     // Sync settings (admin+ only, gated by cap_map above)
     $action === 'sync/key' && $method === 'GET'          => handle_sync_key_get(),
     $action === 'sync/key/regenerate' && $method === 'POST' => handle_sync_key_regenerate(),
@@ -3668,6 +3683,7 @@ function handle_member_update(): void {
     if (!$member) json_error('Member not found', 404);
 
     $update = [];
+    $oldRole = $member['role'];
     if (isset($data['role']) && in_array($data['role'], ['free_member', 'paid_member'])) {
         $update['role'] = $data['role'];
     }
@@ -3683,6 +3699,15 @@ function handle_member_update(): void {
 
     if (empty($update)) json_error('Nothing to update');
     OutpostDB::update('users', $update, 'id = ?', [$id]);
+
+    // Record role change event for funnels
+    if (isset($update['role']) && $update['role'] !== $oldRole) {
+        try {
+            OutpostDB::update('users', ['role_changed_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
+            record_member_event($id, 'role_change', json_encode(['from' => $oldRole, 'to' => $update['role']]));
+        } catch (\Throwable $e) {} // Non-critical
+    }
+
     dispatch_webhook('member.updated', ['id' => $id, 'email' => $member['email'] ?? '', 'role' => $update['role'] ?? $member['role']]);
     json_response(['success' => true]);
 }
@@ -5824,6 +5849,433 @@ function handle_analytics_goals(): void {
         'goals'          => $result,
         'total_visitors' => $visitor_count,
         'period'         => $period,
+    ]]);
+}
+
+// ── Search Analytics ─────────────────────────────────────
+function handle_analytics_search(): void {
+    require_once __DIR__ . '/track.php';
+    ensure_analytics_searches_table();
+
+    $period = $_GET['period'] ?? '30days';
+    ['start' => $start, 'prev' => $prev, 'days' => $days] = analytics_date_range($period);
+
+    // Total searches
+    $total = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM analytics_searches WHERE DATE(created_at) >= ?",
+        [$start]
+    );
+    $total_prev = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM analytics_searches WHERE DATE(created_at) >= ? AND DATE(created_at) < ?",
+        [$prev, $start]
+    );
+
+    // Unique queries
+    $unique = OutpostDB::fetchOne(
+        "SELECT COUNT(DISTINCT LOWER(query)) as c FROM analytics_searches WHERE DATE(created_at) >= ?",
+        [$start]
+    );
+
+    // Search-to-click rate
+    $with_click = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM analytics_searches WHERE clicked_path IS NOT NULL AND DATE(created_at) >= ?",
+        [$start]
+    );
+    $total_count = (int)($total['c'] ?? 0);
+    $click_rate = $total_count > 0 ? round((int)($with_click['c'] ?? 0) / $total_count, 4) : 0;
+
+    // Previous period total for trend
+    $total_prev_count = (int)($total_prev['c'] ?? 0);
+    $change = $total_prev_count > 0
+        ? round(($total_count - $total_prev_count) / $total_prev_count * 100, 1)
+        : ($total_count > 0 ? 100 : 0);
+
+    // Top queries (top 20 by frequency)
+    $top_queries = OutpostDB::fetchAll(
+        "SELECT LOWER(query) as query, COUNT(*) as count, ROUND(AVG(results_count), 1) as avg_results
+         FROM analytics_searches
+         WHERE DATE(created_at) >= ?
+         GROUP BY LOWER(query)
+         ORDER BY count DESC
+         LIMIT 20",
+        [$start]
+    );
+
+    // Zero-result queries (top 20)
+    $zero_results = OutpostDB::fetchAll(
+        "SELECT LOWER(query) as query, COUNT(*) as count
+         FROM analytics_searches
+         WHERE results_count = 0 AND DATE(created_at) >= ?
+         GROUP BY LOWER(query)
+         ORDER BY count DESC
+         LIMIT 20",
+        [$start]
+    );
+
+    // Top clicked results
+    $top_clicked = OutpostDB::fetchAll(
+        "SELECT clicked_path, COUNT(*) as count
+         FROM analytics_searches
+         WHERE clicked_path IS NOT NULL AND DATE(created_at) >= ?
+         GROUP BY clicked_path
+         ORDER BY count DESC
+         LIMIT 10",
+        [$start]
+    );
+
+    // Daily trend for chart
+    $chart_rows = OutpostDB::fetchAll(
+        "SELECT DATE(created_at) as date, COUNT(*) as searches
+         FROM analytics_searches
+         WHERE DATE(created_at) >= ?
+         GROUP BY DATE(created_at)
+         ORDER BY date ASC",
+        [$start]
+    );
+    $chart_by_date = [];
+    foreach ($chart_rows as $r) {
+        $chart_by_date[$r['date']] = (int)$r['searches'];
+    }
+    $chart = [];
+    for ($i = $days; $i >= 0; $i--) {
+        $d = date('Y-m-d', strtotime("-{$i} days"));
+        $chart[] = ['date' => $d, 'searches' => $chart_by_date[$d] ?? 0];
+    }
+
+    json_response(['data' => [
+        'total_searches'       => $total_count,
+        'total_searches_change'=> $change,
+        'unique_queries'       => (int)($unique['c'] ?? 0),
+        'click_rate'           => $click_rate,
+        'top_queries'          => $top_queries,
+        'zero_result_queries'  => $zero_results,
+        'top_clicked'          => $top_clicked,
+        'chart'                => $chart,
+        'period'               => $period,
+    ]]);
+}
+
+// ── Content Performance Cohorts ──────────────────────────
+function handle_analytics_cohorts(): void {
+    require_once __DIR__ . '/track.php';
+    ensure_analytics_tables();
+
+    $period = $_GET['period'] ?? '30days';
+    ['start' => $start, 'days' => $days] = analytics_date_range($period);
+
+    // Define cohort buckets by page publish date
+    $buckets = [
+        ['label' => 'Last 7 days',   'sql_start' => date('Y-m-d', strtotime('-7 days')),   'sql_end' => date('Y-m-d', strtotime('+1 day'))],
+        ['label' => 'Last 30 days',  'sql_start' => date('Y-m-d', strtotime('-30 days')),  'sql_end' => date('Y-m-d', strtotime('-7 days'))],
+        ['label' => 'Last 90 days',  'sql_start' => date('Y-m-d', strtotime('-90 days')),  'sql_end' => date('Y-m-d', strtotime('-30 days'))],
+        ['label' => 'Last 6 months', 'sql_start' => date('Y-m-d', strtotime('-6 months')), 'sql_end' => date('Y-m-d', strtotime('-90 days'))],
+        ['label' => 'Older',         'sql_start' => '2000-01-01',                           'sql_end' => date('Y-m-d', strtotime('-6 months'))],
+    ];
+
+    $total_views_all = 0;
+    $cohorts = [];
+
+    foreach ($buckets as $bucket) {
+        // Pages published in this cohort window
+        $pages = OutpostDB::fetchAll(
+            "SELECT id, path, title FROM pages
+             WHERE path != '__global__'
+               AND DATE(created_at) >= ? AND DATE(created_at) < ?
+             ORDER BY created_at DESC",
+            [$bucket['sql_start'], $bucket['sql_end']]
+        );
+
+        $page_count = count($pages);
+        if ($page_count === 0) {
+            $cohorts[] = [
+                'label'            => $bucket['label'],
+                'page_count'       => 0,
+                'total_views'      => 0,
+                'avg_views_per_page'=> 0,
+                'top_pages'        => [],
+            ];
+            continue;
+        }
+
+        // Get paths for these pages
+        $paths = array_map(fn($p) => '/' . ltrim($p['path'], '/'), $pages);
+        // For homepage, the path stored is "/" or empty
+        $paths = array_map(fn($p) => $p === '//' ? '/' : $p, $paths);
+
+        // Build placeholders for IN query
+        $placeholders = implode(',', array_fill(0, count($paths), '?'));
+
+        // Total views for these pages in the analytics period
+        $params = array_merge($paths, [$start]);
+        $views_row = OutpostDB::fetchOne(
+            "SELECT COUNT(*) as c FROM analytics_hits
+             WHERE is_bot = 0 AND path IN ({$placeholders}) AND DATE(created_at) >= ?",
+            $params
+        );
+        $total_views = (int)($views_row['c'] ?? 0);
+        $total_views_all += $total_views;
+
+        // Top 5 pages by views in this cohort
+        $top_params = array_merge($paths, [$start]);
+        $top_pages = OutpostDB::fetchAll(
+            "SELECT path, COUNT(*) as views FROM analytics_hits
+             WHERE is_bot = 0 AND path IN ({$placeholders}) AND DATE(created_at) >= ?
+             GROUP BY path ORDER BY views DESC LIMIT 5",
+            $top_params
+        );
+
+        // Map page titles
+        $title_map = [];
+        foreach ($pages as $p) {
+            $pp = '/' . ltrim($p['path'], '/');
+            if ($pp === '//') $pp = '/';
+            $title_map[$pp] = $p['title'] ?? $p['path'];
+        }
+        foreach ($top_pages as &$tp) {
+            $tp['title'] = $title_map[$tp['path']] ?? $tp['path'];
+            $tp['views'] = (int)$tp['views'];
+        }
+
+        $cohorts[] = [
+            'label'             => $bucket['label'],
+            'page_count'        => $page_count,
+            'total_views'       => $total_views,
+            'avg_views_per_page'=> $page_count > 0 ? round($total_views / $page_count, 1) : 0,
+            'top_pages'         => $top_pages,
+        ];
+    }
+
+    // Compute percentage share for insight
+    foreach ($cohorts as &$c) {
+        $c['view_share'] = $total_views_all > 0
+            ? round($c['total_views'] / $total_views_all * 100, 1)
+            : 0;
+    }
+
+    json_response(['data' => [
+        'cohorts'      => $cohorts,
+        'total_views'  => $total_views_all,
+        'period'       => $period,
+    ]]);
+}
+
+// ── Geo Analytics ────────────────────────────────────────
+function handle_analytics_geo(): void {
+    require_once __DIR__ . '/track.php';
+    ensure_analytics_tables();
+
+    $period = $_GET['period'] ?? '30days';
+    ['start' => $start, 'prev' => $prev, 'days' => $days] = analytics_date_range($period);
+
+    // Check if we have any geo data
+    $hasGeo = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM analytics_hits WHERE country_code IS NOT NULL AND country_code != '' AND is_bot = 0 AND DATE(created_at) >= ?",
+        [$start]
+    );
+
+    if (((int)($hasGeo['c'] ?? 0)) === 0) {
+        json_response(['data' => ['countries' => [], 'has_data' => false, 'period' => $period]]);
+        return;
+    }
+
+    // Country breakdown
+    $total = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM analytics_hits WHERE is_bot = 0 AND DATE(created_at) >= ?",
+        [$start]
+    );
+    $totalCount = (int)($total['c'] ?? 1);
+
+    $countries = OutpostDB::fetchAll(
+        "SELECT country_code, COUNT(*) as count
+         FROM analytics_hits
+         WHERE is_bot = 0 AND country_code IS NOT NULL AND country_code != '' AND DATE(created_at) >= ?
+         GROUP BY country_code
+         ORDER BY count DESC
+         LIMIT 30",
+        [$start]
+    );
+
+    foreach ($countries as &$c) {
+        $c['count'] = (int)$c['count'];
+        $c['percentage'] = round($c['count'] / $totalCount * 100, 1);
+    }
+
+    json_response(['data' => [
+        'countries' => $countries,
+        'has_data'  => true,
+        'total'     => $totalCount,
+        'period'    => $period,
+    ]]);
+}
+
+// ── Geo Settings ─────────────────────────────────────────
+
+function handle_geo_status(): void {
+    $mmdb_path = OUTPOST_DATA_DIR . 'GeoLite2-Country.mmdb';
+    $exists = file_exists($mmdb_path);
+    $geo_setting = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'geo_enabled'");
+
+    json_response([
+        'file_exists'  => $exists,
+        'file_size'    => $exists ? filesize($mmdb_path) : 0,
+        'file_modified'=> $exists ? date('Y-m-d H:i:s', filemtime($mmdb_path)) : null,
+        'enabled'      => $geo_setting && $geo_setting['value'] === '1',
+    ]);
+}
+
+function handle_geo_upload(): void {
+    if (empty($_FILES['mmdb']) || $_FILES['mmdb']['error'] !== UPLOAD_ERR_OK) {
+        json_error('No file uploaded or upload error', 400);
+    }
+
+    $file = $_FILES['mmdb'];
+
+    // Validate file size (max 100MB)
+    if ($file['size'] > 100 * 1024 * 1024) {
+        json_error('File too large (max 100MB)', 400);
+    }
+
+    // Validate it looks like an MMDB file (check magic bytes at end)
+    $tmp = $file['tmp_name'];
+    $fp = fopen($tmp, 'rb');
+    if (!$fp) json_error('Cannot read uploaded file', 500);
+    fseek($fp, -min(4096, $file['size']), SEEK_END);
+    $tail = fread($fp, 4096);
+    fclose($fp);
+
+    $marker = "\xab\xcd\xefMaxMind.com";
+    if (strpos($tail, $marker) === false) {
+        json_error('Invalid MMDB file — MaxMind marker not found', 400);
+    }
+
+    // Move to data directory
+    $dest = OUTPOST_DATA_DIR . 'GeoLite2-Country.mmdb';
+    if (!move_uploaded_file($tmp, $dest)) {
+        json_error('Failed to save file', 500);
+    }
+
+    log_activity('system', 'GeoLite2 database uploaded');
+
+    json_response([
+        'success'       => true,
+        'file_size'     => filesize($dest),
+        'file_modified' => date('Y-m-d H:i:s', filemtime($dest)),
+    ]);
+}
+
+function handle_geo_delete(): void {
+    $mmdb_path = OUTPOST_DATA_DIR . 'GeoLite2-Country.mmdb';
+    if (file_exists($mmdb_path)) {
+        unlink($mmdb_path);
+    }
+
+    // Also disable the setting
+    OutpostDB::query(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES ('geo_enabled', '0')"
+    );
+
+    log_activity('system', 'GeoLite2 database removed');
+    json_response(['success' => true]);
+}
+
+// ── Member Events (Funnels) ──────────────────────────────
+function ensure_member_events_table(): void {
+    OutpostDB::query('CREATE TABLE IF NOT EXISTS member_events (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id     INTEGER,
+        event_type  TEXT NOT NULL,
+        details     TEXT DEFAULT NULL,
+        session_id  TEXT DEFAULT NULL,
+        created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    )');
+    OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_member_events_type    ON member_events(event_type)');
+    OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_member_events_created ON member_events(created_at)');
+    OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_member_events_user    ON member_events(user_id)');
+
+    // Ensure role_changed_at column exists on users
+    $db = OutpostDB::connect();
+    $cols = array_column($db->query("PRAGMA table_info(users)")->fetchAll(), 'name');
+    if (!in_array('role_changed_at', $cols)) {
+        $db->exec("ALTER TABLE users ADD COLUMN role_changed_at DATETIME DEFAULT NULL");
+    }
+}
+
+function record_member_event(int $userId, string $eventType, ?string $details = null, ?string $sessionId = null): void {
+    ensure_member_events_table();
+    OutpostDB::insert('member_events', [
+        'user_id'    => $userId,
+        'event_type' => $eventType,
+        'details'    => $details,
+        'session_id' => $sessionId,
+    ]);
+}
+
+function handle_analytics_funnels(): void {
+    require_once __DIR__ . '/track.php';
+    ensure_analytics_tables();
+    ensure_member_events_table();
+
+    $period = $_GET['period'] ?? '30days';
+    ['start' => $start, 'days' => $days] = analytics_date_range($period);
+
+    // Stage 1: Unique visitors (from analytics_hits)
+    $visitors = OutpostDB::fetchOne(
+        "SELECT COUNT(DISTINCT session_id) as c FROM analytics_hits WHERE is_bot = 0 AND DATE(created_at) >= ?",
+        [$start]
+    );
+    $visitor_count = (int)($visitors['c'] ?? 0);
+
+    // Stage 2: Signups
+    $signups = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM member_events WHERE event_type = 'signup' AND DATE(created_at) >= ?",
+        [$start]
+    );
+    $signup_count = (int)($signups['c'] ?? 0);
+
+    // Stage 3: Logins (distinct users)
+    $logins = OutpostDB::fetchOne(
+        "SELECT COUNT(DISTINCT user_id) as c FROM member_events WHERE event_type = 'login' AND DATE(created_at) >= ?",
+        [$start]
+    );
+    $login_count = (int)($logins['c'] ?? 0);
+
+    // Stage 4: Upgrades (role_change to paid)
+    $upgrades = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM member_events WHERE event_type = 'role_change' AND details LIKE '%paid%' AND DATE(created_at) >= ?",
+        [$start]
+    );
+    $upgrade_count = (int)($upgrades['c'] ?? 0);
+
+    // Build funnel stages with conversion rates
+    $stages = [
+        ['name' => 'Visitors',  'count' => $visitor_count],
+        ['name' => 'Sign Ups',  'count' => $signup_count],
+        ['name' => 'Logins',    'count' => $login_count],
+        ['name' => 'Upgrades',  'count' => $upgrade_count],
+    ];
+
+    for ($i = 1; $i < count($stages); $i++) {
+        $prev = $stages[$i - 1]['count'];
+        $stages[$i]['rate'] = $prev > 0 ? round($stages[$i]['count'] / $prev, 4) : 0;
+        $stages[$i]['dropoff'] = $prev > 0 ? round(1 - ($stages[$i]['count'] / $prev), 4) : 0;
+    }
+    $stages[0]['rate'] = 1;
+    $stages[0]['dropoff'] = 0;
+
+    // Recent member events
+    $recent = OutpostDB::fetchAll(
+        "SELECT me.event_type, me.details, me.created_at, u.username, u.email
+         FROM member_events me
+         LEFT JOIN users u ON me.user_id = u.id
+         ORDER BY me.created_at DESC
+         LIMIT 20"
+    );
+
+    json_response(['data' => [
+        'stages'       => $stages,
+        'recent_events'=> $recent,
+        'period'       => $period,
     ]]);
 }
 

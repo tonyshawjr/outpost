@@ -4,6 +4,17 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Deeper Analytics (v2.3.0)
+
+- **Search Analytics** — track internal site searches via `outpost.trackSearch(query, resultsCount)` and `outpost.trackSearchClick(query, clickedPath)` JS API. Auto-detects `?q=`, `?search=`, `?s=` URL params. New Search tab shows total searches, unique queries, click-through rate, top queries, zero-result queries, and daily trend chart. Backend: `analytics_searches` table, `dashboard/search` API endpoint.
+- **Content Performance Cohorts** — groups pages by publish date into 5 cohorts (last 7d, 30d, 90d, 6mo, older) and joins with analytics_hits for traffic distribution. New Content tab shows horizontal bar chart, expandable cohort table, and insight callout. Backend: `dashboard/cohorts` API endpoint.
+- **Goal Funnels** — tracks member lifecycle (Visit → Sign Up → Login → Upgrade) as a 4-stage conversion funnel. Records signup, login, and role_change events in `member_events` table. New Funnels tab (conditionally visible when members enabled) shows CSS funnel visualization, conversion rates, drop-off percentages, and recent activity feed. Backend: `dashboard/funnels` API endpoint, `member_events` table, event recording in `member-api.php` and `api.php`.
+- **Geo Enrichment** — optional country-level visitor analytics using MaxMind GeoLite2 database. Double-gated: requires both `.mmdb` file uploaded to `content/data/` AND `geo_enabled` setting toggled on. Pure-PHP MMDB reader (`mmdb-reader.php`, ~270 LOC) supports IPv4/IPv6, no Composer. Stores only 2-letter country codes — never raw IPs. Traffic tab shows top countries with flags, percentage bars, and counts. Backend: `dashboard/geo` API endpoint, `country_code` column on `analytics_hits`.
+- **Geo settings UI** — Settings → Advanced section with enable toggle, mmdb file upload/replace/remove, file status indicator (size + upload date). Backend: `dashboard/geo/status`, `dashboard/geo/upload`, `dashboard/geo/delete` API endpoints.
+- **Files**: `php/mmdb-reader.php` (new), `php/track.php`, `php/api.php`, `php/member-api.php`, `php/template-engine.php`, `src/lib/api.js`, `src/pages/Analytics.svelte`, `src/App.svelte`, `src/pages/settings/AdvancedSettings.svelte`, `src/components/analytics/AnalyticsSearch.svelte` (new), `src/components/analytics/AnalyticsCohorts.svelte` (new), `src/components/analytics/AnalyticsFunnels.svelte` (new), `src/components/analytics/AnalyticsTraffic.svelte`
+
+---
+
 ## Developer Docs — Context7-Optimized Coverage (v2.2.7)
 
 - **Architecture reference page** — explains Outpost's no-middleware/no-plugin design philosophy, request lifecycle, and four patterns for adding custom logic (standalone PHP endpoints, PHP partials, cron jobs, front-end JS)

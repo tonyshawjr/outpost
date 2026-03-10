@@ -102,6 +102,13 @@ function ensure_analytics_tables(): void {
     OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_hits_created ON analytics_hits(created_at)');
     OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_hits_session ON analytics_hits(session_id)');
 
+    // Geo enrichment column (v2.3)
+    $db = OutpostDB::connect();
+    $cols = array_column($db->query("PRAGMA table_info(analytics_hits)")->fetchAll(), 'name');
+    if (!in_array('country_code', $cols)) {
+        $db->exec("ALTER TABLE analytics_hits ADD COLUMN country_code TEXT DEFAULT NULL");
+    }
+
     // Rate-limit table for tracker (separate from sync rate limits)
     OutpostDB::query('CREATE TABLE IF NOT EXISTS tracker_rate_limits (
         ip_hash    TEXT NOT NULL,
@@ -109,6 +116,19 @@ function ensure_analytics_tables(): void {
         window_start DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (ip_hash)
     )');
+}
+
+function ensure_analytics_searches_table(): void {
+    OutpostDB::query('CREATE TABLE IF NOT EXISTS analytics_searches (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        query          TEXT NOT NULL,
+        results_count  INTEGER DEFAULT 0,
+        clicked_path   TEXT DEFAULT NULL,
+        session_id     TEXT,
+        created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+    )');
+    OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_searches_query   ON analytics_searches(query)');
+    OutpostDB::query('CREATE INDEX IF NOT EXISTS idx_searches_created ON analytics_searches(created_at)');
 }
 
 function ensure_analytics_events_table(): void {
@@ -231,6 +251,36 @@ if ($type === 'event') {
     track_respond_pixel();
 }
 
+// ── Search tracking ──────────────────────────────────────────
+if ($type === 'search') {
+    ensure_analytics_searches_table();
+
+    $query       = trim($_GET['query'] ?? '');
+    $results     = (int)($_GET['results'] ?? 0);
+    $clicked     = trim($_GET['clicked'] ?? '');
+
+    // Validate
+    if (!$query || strlen($query) > 200) track_respond_empty();
+
+    // Rate limit
+    if (!check_rate_limit($ip)) track_respond_pixel();
+
+    $bot        = is_bot($ua) ? 1 : 0;
+    if ($bot) track_respond_pixel(); // Don't track bot searches
+
+    $salt       = get_analytics_salt();
+    $session_id = hash('sha256', $ip . $ua . date('Y-m-d') . $salt);
+
+    OutpostDB::insert('analytics_searches', [
+        'query'        => substr($query, 0, 200),
+        'results_count'=> max(0, $results),
+        'clicked_path' => $clicked ? substr($clicked, 0, 500) : null,
+        'session_id'   => $session_id,
+    ]);
+
+    track_respond_pixel();
+}
+
 // ── Pageview tracking (existing) ──────────────────────────────
 $path   = trim($_GET['path'] ?? '/');
 $ref    = trim($_GET['ref'] ?? '');
@@ -264,6 +314,26 @@ if ($ref_domain && $ref_domain === preg_replace('/^www\./', '', strtolower($site
 }
 if (strlen($ref) > 500) $ref = substr($ref, 0, 500);
 
+// Geo lookup (optional — requires mmdb file + setting)
+$country_code = null;
+try {
+    $mmdb_path = OUTPOST_DATA_DIR . 'GeoLite2-Country.mmdb';
+    if (file_exists($mmdb_path)) {
+        $geo_setting = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'geo_enabled'");
+        if ($geo_setting && $geo_setting['value'] === '1') {
+            require_once __DIR__ . '/mmdb-reader.php';
+            $mmdb = mmdb_open($mmdb_path);
+            if ($mmdb) {
+                $geo = mmdb_lookup($mmdb, $ip);
+                if ($geo && !empty($geo['country_code'])) {
+                    $country_code = substr($geo['country_code'], 0, 2);
+                }
+                mmdb_close($mmdb);
+            }
+        }
+    }
+} catch (\Throwable $e) {} // Non-critical, silently skip
+
 // Insert hit
 OutpostDB::insert('analytics_hits', [
     'path'           => $path,
@@ -273,6 +343,7 @@ OutpostDB::insert('analytics_hits', [
     'device_type'    => $device,
     'session_id'     => $session_id,
     'is_bot'         => $bot,
+    'country_code'   => $country_code,
 ]);
 
 // Weekly pruning: delete hits older than 13 months
@@ -284,6 +355,12 @@ if (mt_rand(1, 100) === 1) {
     OutpostDB::query(
         "DELETE FROM analytics_events WHERE created_at < datetime('now', '-13 months')"
     );
+    // Prune search analytics (table may not exist yet on first run)
+    try {
+        OutpostDB::query(
+            "DELETE FROM analytics_searches WHERE created_at < datetime('now', '-13 months')"
+        );
+    } catch (\Exception $e) {} // Table not created yet, skip
     OutpostDB::query(
         "DELETE FROM tracker_rate_limits WHERE window_start < datetime('now', '-1 hour')"
     );

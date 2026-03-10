@@ -153,7 +153,7 @@
     <div class="app-main">
       <TopBar />
       <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'page-editor' || route === 'theme-customizer'}>
-        {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals'}
+        {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
           {#if hasCodeAccess}
             <Analytics />
           {:else}

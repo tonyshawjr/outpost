@@ -9,6 +9,7 @@
   let seo = $state(null);
   let content = $state(null);
   let members = $state(null);
+  let geo = $state(null);
   let loading = $state(true);
   let trafficChartCanvas = $state(null);
   let trafficChartInstance = null;
@@ -91,6 +92,29 @@
   function getSiteUrl() {
     const base = window.location.origin + window.location.pathname;
     return base.replace(/\/outpost\/.*$/, '');
+  }
+
+  function countryFlag(code) {
+    if (!code || code.length !== 2) return '';
+    const c = code.toUpperCase();
+    return String.fromCodePoint(...[...c].map(ch => ch.charCodeAt(0) + 0x1F1A5));
+  }
+
+  const COUNTRY_NAMES = {
+    US:'United States',GB:'United Kingdom',DE:'Germany',FR:'France',CA:'Canada',
+    AU:'Australia',JP:'Japan',BR:'Brazil',IN:'India',NL:'Netherlands',
+    IT:'Italy',ES:'Spain',MX:'Mexico',KR:'South Korea',SE:'Sweden',
+    CH:'Switzerland',NO:'Norway',DK:'Denmark',FI:'Finland',PL:'Poland',
+    BE:'Belgium',AT:'Austria',PT:'Portugal',IE:'Ireland',NZ:'New Zealand',
+    SG:'Singapore',HK:'Hong Kong',TW:'Taiwan',IL:'Israel',ZA:'South Africa',
+    AR:'Argentina',CL:'Chile',CO:'Colombia',PH:'Philippines',TH:'Thailand',
+    MY:'Malaysia',ID:'Indonesia',VN:'Vietnam',TR:'Turkey',RU:'Russia',
+    UA:'Ukraine',RO:'Romania',CZ:'Czechia',HU:'Hungary',GR:'Greece',
+    CN:'China',EG:'Egypt',NG:'Nigeria',KE:'Kenya',AE:'UAE',SA:'Saudi Arabia',
+  };
+
+  function countryName(code) {
+    return COUNTRY_NAMES[code?.toUpperCase()] || code?.toUpperCase() || '—';
   }
 
   function faviconUrl(domain) {
@@ -227,16 +251,18 @@
   async function loadAll(p = '30days') {
     loading = true;
     try {
-      const [trafficRes, seoRes, contentRes, membersRes] = await Promise.allSettled([
+      const [trafficRes, seoRes, contentRes, membersRes, geoRes] = await Promise.allSettled([
         analyticsApi.traffic(p),
         analyticsApi.seo(),
         analyticsApi.content(p),
         analyticsApi.members(p),
+        analyticsApi.geo(p),
       ]);
       traffic = trafficRes.status === 'fulfilled' ? trafficRes.value.data : null;
       seo     = seoRes.status     === 'fulfilled' ? seoRes.value.data     : null;
       content = contentRes.status === 'fulfilled' ? contentRes.value.data : null;
       members = membersRes.status === 'fulfilled' ? membersRes.value.data : null;
+      geo     = geoRes.status     === 'fulfilled' ? geoRes.value.data     : null;
     } catch (err) {
       addToast('Failed to load analytics', 'error');
     } finally {
@@ -575,7 +601,29 @@
       </div>
     {/if}
 
-    <!-- ── Section 6: Member Metrics ────────────────────── -->
+    <!-- ── Section 6: Geo ──────────────────────────────── -->
+    {#if geo?.has_data && geo.countries?.length}
+      <div class="analytics-section">
+        <div class="section-header">
+          <span class="split-title">Visitors by Country</span>
+        </div>
+        <div class="geo-list">
+          {#each geo.countries.slice(0, 10) as country}
+            <div class="geo-row">
+              <span class="geo-flag">{countryFlag(country.country_code)}</span>
+              <span class="geo-name">{countryName(country.country_code)}</span>
+              <div class="geo-bar-wrap">
+                <div class="geo-bar" style="width: {country.percentage}%"></div>
+              </div>
+              <span class="geo-count">{fmtNum(country.count)}</span>
+              <span class="geo-pct">{country.percentage}%</span>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
+
+    <!-- ── Section 7: Member Metrics ────────────────────── -->
     {#if members?.has_members}
       <div class="analytics-section">
         <div class="section-header">
@@ -1321,6 +1369,62 @@
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.4; }
+  }
+
+  /* ── Geo ────────────────────────────────────────────────── */
+  .geo-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .geo-row {
+    display: grid;
+    grid-template-columns: 28px 140px 1fr 60px 50px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 13px;
+  }
+  .geo-row:last-child { border-bottom: none; }
+
+  .geo-flag {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .geo-name {
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .geo-bar-wrap {
+    height: 6px;
+    background: var(--bg-hover);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .geo-bar {
+    height: 100%;
+    background: var(--forest);
+    border-radius: 3px;
+    min-width: 2px;
+  }
+
+  .geo-count {
+    text-align: right;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .geo-pct {
+    text-align: right;
+    color: var(--text-muted);
+    font-size: 12px;
   }
 
   /* ── Responsive ──────────────────────────────────────────── */
