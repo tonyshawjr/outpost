@@ -5,10 +5,12 @@
  * Accessed via api.php?action=content/...
  */
 
-// ── CORS (wide open for public API) ─────────────────────
+// ── CORS & security headers (wide open for public API) ──
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -20,14 +22,26 @@ function content_response(mixed $data, ?array $meta = null): void {
     http_response_code(200);
     $out = ['data' => $data];
     if ($meta !== null) $out['meta'] = $meta;
-    echo json_encode($out, JSON_UNESCAPED_UNICODE);
+    echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
     exit;
 }
 
 function content_error(string $message, int $code = 400): void {
     http_response_code($code);
-    echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
     exit;
+}
+
+/**
+ * Validate and sanitize a query string parameter.
+ * Returns the trimmed value if valid, or null if missing/over limit.
+ */
+function content_param(string $key, int $maxLen = 255): ?string {
+    $val = $_GET[$key] ?? null;
+    if ($val === null) return null;
+    $val = trim((string) $val);
+    if ($val === '' || mb_strlen($val) > $maxLen) return null;
+    return $val;
 }
 
 // ── Router ──────────────────────────────────────────────
@@ -90,6 +104,13 @@ function ensure_content_folder_tables(): void {
             PRIMARY KEY (item_id, label_id),
             FOREIGN KEY (item_id) REFERENCES collection_items(id) ON DELETE CASCADE,
             FOREIGN KEY (label_id) REFERENCES labels(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS menus (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            items TEXT NOT NULL DEFAULT '[]',
+            updated_at TEXT DEFAULT (datetime('now'))
         );
     ");
 
@@ -404,7 +425,7 @@ function extractAllGlobalFields(string $themeDir): array {
 // ── Schema endpoint ─────────────────────────────────────
 function handle_content_schema(): void {
     // Collections with fields + folders
-    $collections = OutpostDB::fetchAll('SELECT * FROM collections ORDER BY name ASC');
+    $collections = OutpostDB::fetchAll('SELECT id, slug, name, singular_name, schema, url_pattern, sort_field, sort_direction, items_per_page FROM collections ORDER BY name ASC');
     $collectionData = [];
     foreach ($collections as $c) {
         $schema = json_decode($c['schema'] ?: '{}', true);
@@ -449,7 +470,7 @@ function handle_content_schema(): void {
     $themeDir = OUTPOST_THEMES_DIR . $activeThemeSlug;
 
     $pages = OutpostDB::fetchAll(
-        "SELECT * FROM pages WHERE path != '__global__' ORDER BY path ASC"
+        "SELECT id, path, title FROM pages WHERE path != '__global__' AND (visibility IS NULL OR visibility = 'public') ORDER BY path ASC"
     );
 
     $pageData = [];
@@ -510,12 +531,12 @@ function handle_content_schema(): void {
 
 // ── Pages endpoint ──────────────────────────────────────
 function handle_content_pages(): void {
-    $path = $_GET['path'] ?? null;
+    $path = content_param('path');
 
     if ($path !== null) {
         // Single page by path (exclude members-only pages from public API)
         $page = OutpostDB::fetchOne(
-            "SELECT * FROM pages WHERE path = ? AND path != '__global__' AND (visibility IS NULL OR visibility = 'public')",
+            "SELECT id, path, title, meta_title, meta_description FROM pages WHERE path = ? AND path != '__global__' AND (visibility IS NULL OR visibility = 'public')",
             [$path]
         );
         if (!$page) content_error('Page not found', 404);
@@ -542,7 +563,7 @@ function handle_content_pages(): void {
 
     // All pages (exclude members-only pages from public API)
     $pages = OutpostDB::fetchAll(
-        "SELECT * FROM pages WHERE path != '__global__' AND (visibility IS NULL OR visibility = 'public') ORDER BY path ASC"
+        "SELECT id, path, title, meta_title, meta_description FROM pages WHERE path != '__global__' AND (visibility IS NULL OR visibility = 'public') ORDER BY path ASC"
     );
 
     $result = [];
@@ -570,10 +591,13 @@ function handle_content_pages(): void {
 
 // ── Collections endpoint ────────────────────────────────
 function handle_content_collections(): void {
-    $slug = $_GET['slug'] ?? null;
+    $slug = content_param('slug');
 
     if ($slug !== null) {
-        $collection = OutpostDB::fetchOne('SELECT * FROM collections WHERE slug = ?', [$slug]);
+        $collection = OutpostDB::fetchOne(
+            'SELECT id, slug, name, singular_name, schema, url_pattern, sort_field, sort_direction, items_per_page FROM collections WHERE slug = ?',
+            [$slug]
+        );
         if (!$collection) content_error('Collection not found', 404);
 
         $schema = json_decode($collection['schema'] ?: '{}', true);
@@ -610,7 +634,9 @@ function handle_content_collections(): void {
     }
 
     // List all
-    $collections = OutpostDB::fetchAll('SELECT * FROM collections ORDER BY name ASC');
+    $collections = OutpostDB::fetchAll(
+        'SELECT id, slug, name, singular_name, schema, items_per_page FROM collections ORDER BY name ASC'
+    );
     $result = [];
     foreach ($collections as $c) {
         $schema = json_decode($c['schema'] ?: '{}', true);
@@ -637,18 +663,21 @@ function handle_content_collections(): void {
 
 // ── Items endpoint ──────────────────────────────────────
 function handle_content_items(): void {
-    $collectionSlug = $_GET['collection'] ?? '';
+    $collectionSlug = content_param('collection');
     if (!$collectionSlug) content_error('collection parameter required');
 
-    $collection = OutpostDB::fetchOne('SELECT * FROM collections WHERE slug = ?', [$collectionSlug]);
+    $collection = OutpostDB::fetchOne(
+        'SELECT id, slug, url_pattern, sort_field, sort_direction FROM collections WHERE slug = ?',
+        [$collectionSlug]
+    );
     if (!$collection) content_error('Collection not found', 404);
 
-    $slug = $_GET['slug'] ?? null;
+    $slug = content_param('slug');
 
     // Single item by slug
     if ($slug !== null) {
         $item = OutpostDB::fetchOne(
-            "SELECT * FROM collection_items WHERE collection_id = ? AND slug = ? AND status = 'published' AND (published_at IS NULL OR published_at <= datetime('now'))",
+            "SELECT id, slug, status, data, sort_order, created_at, updated_at, published_at FROM collection_items WHERE collection_id = ? AND slug = ? AND status = 'published' AND (published_at IS NULL OR published_at <= datetime('now'))",
             [$collection['id'], $slug]
         );
         if (!$item) content_error('Item not found', 404);
@@ -710,7 +739,7 @@ function handle_content_items(): void {
 
     // Fetch
     $items = OutpostDB::fetchAll(
-        "SELECT * FROM collection_items WHERE {$where} ORDER BY {$orderBy} {$order} LIMIT ? OFFSET ?",
+        "SELECT id, slug, status, data, sort_order, created_at, updated_at, published_at FROM collection_items WHERE {$where} ORDER BY {$orderBy} {$order} LIMIT ? OFFSET ?",
         [...$params, $limit, $offset]
     );
 
@@ -798,8 +827,8 @@ function format_item(array $item, string $urlPattern = ''): array {
 
 // ── Folders endpoint ─────────────────────────────────────
 function handle_content_folders(): void {
-    $collectionFilter = $_GET['collection'] ?? '';
-    $sql = 'SELECT f.*, c.slug as collection_slug, c.name as collection_name
+    $collectionFilter = content_param('collection') ?? '';
+    $sql = 'SELECT f.id, f.slug, f.name, f.singular_name, f.type, c.slug as collection_slug
             FROM folders f
             LEFT JOIN collections c ON c.id = f.collection_id';
     $params = [];
@@ -837,11 +866,11 @@ function handle_content_taxonomies(): void { handle_content_folders(); }
 // ── Labels endpoint ──────────────────────────────────────
 function handle_content_labels(): void {
     // Accept both ?folder= (new) and ?taxonomy= (legacy)
-    $folderSlug = $_GET['folder'] ?? $_GET['taxonomy'] ?? '';
+    $folderSlug = content_param('folder') ?? content_param('taxonomy') ?? '';
     if (!$folderSlug) content_error('folder parameter required');
 
     $folder = OutpostDB::fetchOne(
-        'SELECT f.*, c.slug as collection_slug
+        'SELECT f.id, f.slug, f.name, f.type, c.slug as collection_slug
          FROM folders f
          LEFT JOIN collections c ON c.id = f.collection_id
          WHERE f.slug = ?',
@@ -850,14 +879,17 @@ function handle_content_labels(): void {
     if (!$folder) content_error('Folder not found', 404);
 
     $labels = OutpostDB::fetchAll(
-        'SELECT * FROM labels WHERE folder_id = ? ORDER BY sort_order ASC, name ASC',
+        'SELECT id, slug, name, description, parent_id, data, sort_order FROM labels WHERE folder_id = ? ORDER BY sort_order ASC, name ASC',
         [$folder['id']]
     );
 
     $result = [];
     foreach ($labels as $l) {
         $itemCount = OutpostDB::fetchOne(
-            'SELECT COUNT(*) as count FROM item_labels WHERE label_id = ?',
+            "SELECT COUNT(*) as count FROM item_labels il
+             JOIN collection_items ci ON ci.id = il.item_id
+             WHERE il.label_id = ? AND ci.status = 'published'
+               AND (ci.published_at IS NULL OR ci.published_at <= datetime('now'))",
             [$l['id']]
         );
         $data = json_decode($l['data'] ?: '{}', true);
@@ -943,23 +975,11 @@ function handle_content_media(): void {
 
 // ── Menus endpoint ──────────────────────────────────────
 function handle_content_menus(): void {
-    // Ensure menus table exists (not called in content API bootstrap path)
-    $db = OutpostDB::connect();
-    $db->exec("
-        CREATE TABLE IF NOT EXISTS menus (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            slug TEXT NOT NULL UNIQUE,
-            items TEXT NOT NULL DEFAULT '[]',
-            updated_at TEXT DEFAULT (datetime('now'))
-        )
-    ");
-
-    $slug = $_GET['slug'] ?? null;
+    $slug = content_param('slug');
 
     if ($slug !== null) {
         // Single menu by slug
-        $menu = OutpostDB::fetchOne('SELECT * FROM menus WHERE slug = ?', [$slug]);
+        $menu = OutpostDB::fetchOne('SELECT slug, name, items FROM menus WHERE slug = ?', [$slug]);
         if (!$menu) content_error('Menu not found', 404);
 
         $items = json_decode($menu['items'], true) ?? [];
@@ -993,7 +1013,7 @@ function handle_content_menus(): void {
     }
 
     // List all menus
-    $menus = OutpostDB::fetchAll('SELECT * FROM menus ORDER BY id ASC');
+    $menus = OutpostDB::fetchAll('SELECT slug, name, items FROM menus ORDER BY id ASC');
     $result = [];
     foreach ($menus as $menu) {
         $items = json_decode($menu['items'], true) ?? [];

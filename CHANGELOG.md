@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.1] — 2026-03-10
+
+### Security
+- Content API responses now set `Content-Type: application/json` and `X-Content-Type-Options: nosniff` to prevent MIME-sniffing attacks
+- All JSON output uses `JSON_HEX_TAG | JSON_HEX_AMP` to prevent `</script>` injection in embedded contexts
+- Replace all `SELECT *` queries with explicit column lists to prevent future data leakage as schema evolves
+- Schema endpoint no longer leaks members-only page metadata (visibility filter applied)
+- Rate limiter wraps check-and-update in `BEGIN IMMEDIATE` transaction to prevent TOCTOU race condition
+- All query string parameters validated and length-capped (255 chars) via `content_param()` helper
+- Labels `item_count` now only counts published items (previously included drafts)
+- Menus table migration moved from per-request path to router bootstrap
+
 ## [2.4.0] — 2026-03-10
 
 ### Added

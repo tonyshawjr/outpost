@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Content API Security Hardening (v2.4.1)
+
+- **Response headers** — Content API now sets `Content-Type: application/json` and `X-Content-Type-Options: nosniff` on all responses. JSON output uses `JSON_HEX_TAG | JSON_HEX_AMP` flags to prevent script injection.
+- **Explicit column queries** — all `SELECT *` replaced with explicit column lists to prevent future data leakage as database schema evolves.
+- **Input validation** — `content_param()` helper trims, length-caps (255 chars), and null-coalesces all query string parameters.
+- **Schema visibility** — `content/schema` endpoint now excludes members-only pages.
+- **Rate limit hardening** — rate limiter uses `BEGIN IMMEDIATE` transaction to prevent TOCTOU race condition on concurrent requests.
+- **Labels accuracy** — `item_count` in labels endpoint now only counts published items.
+- **Migration efficiency** — menus table `CREATE TABLE IF NOT EXISTS` moved to router bootstrap, no longer runs per-request.
+- **Files**: `php/content-api.php`, `php/http-security.php`
+
+---
+
 ## Content API Polish (v2.4.0)
 
 - **Menus endpoint** — `content/menus` returns all menus (slug, name, item count); `content/menus&slug=main` returns a single menu with nested items and children. Ensures menus table exists on first call.

@@ -50,26 +50,37 @@ function outpost_ip_rate_limit(string $bucket, int $maxAttempts, int $windowSeco
     $now = time();
     $window = $now - $windowSeconds;
 
-    OutpostDB::connect()->exec("CREATE TABLE IF NOT EXISTS login_rate_limits (
+    $db = OutpostDB::connect();
+    $db->exec("CREATE TABLE IF NOT EXISTS login_rate_limits (
         ip TEXT PRIMARY KEY, attempts TEXT DEFAULT '[]', updated_at INTEGER
     )");
-    OutpostDB::query('DELETE FROM login_rate_limits WHERE updated_at < ?', [$window]);
 
-    $row = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$ip]);
-    $timestamps = $row ? json_decode($row['attempts'], true) : [];
-    $timestamps = array_values(array_filter($timestamps, fn($t) => $t > $window));
+    // Wrap check-and-update in a transaction to prevent TOCTOU race
+    $db->exec('BEGIN IMMEDIATE');
+    try {
+        OutpostDB::query('DELETE FROM login_rate_limits WHERE updated_at < ?', [$window]);
 
-    if (count($timestamps) >= $maxAttempts) {
-        http_response_code(429);
-        header('Retry-After: ' . $windowSeconds);
-        echo json_encode(['error' => 'Too many requests. Please wait.']);
-        exit;
+        $row = OutpostDB::fetchOne('SELECT attempts FROM login_rate_limits WHERE ip = ?', [$ip]);
+        $timestamps = $row ? json_decode($row['attempts'], true) : [];
+        $timestamps = array_values(array_filter($timestamps, fn($t) => $t > $window));
+
+        if (count($timestamps) >= $maxAttempts) {
+            $db->exec('COMMIT');
+            http_response_code(429);
+            header('Retry-After: ' . $windowSeconds);
+            echo json_encode(['error' => 'Too many requests. Please wait.']);
+            exit;
+        }
+
+        $timestamps[] = $now;
+        OutpostDB::query(
+            "INSERT INTO login_rate_limits (ip, attempts, updated_at) VALUES (?, ?, ?)
+             ON CONFLICT(ip) DO UPDATE SET attempts = excluded.attempts, updated_at = excluded.updated_at",
+            [$ip, json_encode($timestamps), $now]
+        );
+        $db->exec('COMMIT');
+    } catch (\Throwable $e) {
+        $db->exec('ROLLBACK');
+        // On DB lock or failure, allow the request through rather than blocking users
     }
-
-    $timestamps[] = $now;
-    OutpostDB::query(
-        "INSERT INTO login_rate_limits (ip, attempts, updated_at) VALUES (?, ?, ?)
-         ON CONFLICT(ip) DO UPDATE SET attempts = excluded.attempts, updated_at = excluded.updated_at",
-        [$ip, json_encode($timestamps), $now]
-    );
 }

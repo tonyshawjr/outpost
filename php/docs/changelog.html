@@ -22,6 +22,19 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.4.1">2.4.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Security</h3>
+    <ul>
+      <li>Content API responses now set <code>Content-Type: application/json</code> and <code>X-Content-Type-Options: nosniff</code> to prevent MIME-sniffing attacks</li>
+      <li>All JSON output uses <code>JSON_HEX_TAG | JSON_HEX_AMP</code> to prevent <code>&lt;/script&gt;</code> injection in embedded contexts</li>
+      <li>Replace all <code>SELECT *</code> queries with explicit column lists to prevent future data leakage</li>
+      <li>Schema endpoint no longer leaks members-only page metadata (visibility filter applied)</li>
+      <li>Rate limiter wraps check-and-update in <code>BEGIN IMMEDIATE</code> transaction to prevent TOCTOU race condition</li>
+      <li>All query string parameters validated and length-capped (255 chars) via <code>content_param()</code> helper</li>
+      <li>Labels <code>item_count</code> now only counts published items (previously included drafts)</li>
+      <li>Menus table migration moved from per-request path to router bootstrap</li>
+    </ul>
+
     <h2 id="2.4.0">2.4.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
     <h3>Added</h3>
     <ul>
