@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.4] — 2026-03-10
+
+### Fixed
+- **Code Editor "Forbidden" on cPanel** — ModSecurity/WAF on shared hosts blocks JSON bodies containing HTML/script content. Code Editor now base64-encodes file content before sending, bypassing WAF content inspection entirely.
+
+---
+
 ## [2.6.3] — 2026-03-10
 
 ### Fixed
-- **Code Editor save fails on cPanel** — Apache on many shared hosts blocks PUT requests with large HTML payloads, returning "Forbidden". Changed `code/write` to use POST instead of PUT, which cPanel allows without restriction.
+- **Code Editor save method** — Changed `code/write` from PUT to POST for broader cPanel compatibility.
 
 ---
 

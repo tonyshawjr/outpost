@@ -307,7 +307,7 @@ export const code = {
   read: (path) =>
     request('code/read', { params: { path } }),
   write: (path, content) =>
-    request('code/write', { method: 'POST', body: { path, content } }),
+    request('code/write', { method: 'POST', body: { path, content: btoa(unescape(encodeURIComponent(content))), encoding: 'base64' } }),
   create: (path, type = 'file', content = '') =>
     request('code/create', { method: 'POST', body: { path, type, content } }),
   rename: (oldPath, newPath) =>

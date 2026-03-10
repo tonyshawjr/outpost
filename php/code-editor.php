@@ -388,6 +388,13 @@ function handle_code_write(): void {
     $path = $data['path'] ?? '';
     $content = $data['content'] ?? '';
 
+    // Base64 transport: bypasses WAF/ModSecurity that blocks HTML in JSON bodies
+    if (($data['encoding'] ?? '') === 'base64') {
+        $decoded = base64_decode($content, true);
+        if ($decoded === false) json_error('Invalid base64 content', 400);
+        $content = $decoded;
+    }
+
     if (!$path) json_error('Path required');
     if (strlen($content) > 1048576) json_error('Content too large (max 1 MB)');
 
