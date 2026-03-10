@@ -1,0 +1,17 @@
+<section class="section">
+  <div class="container">
+    <div class="grid-2" style="align-items: center;">
+      <div>
+        <h1 class="text-5xl font-bold mb-4">{{ hero_heading }}Your Story Starts Here{{ /hero_heading }}</h1>
+        <p class="text-lg text-muted mb-6">{{ hero_subtitle }}Create a website that reflects who you are. Simple tools, powerful results, no code required.{{ /hero_subtitle }}</p>
+        <div class="flex gap-3">
+          <a href="{{ hero_cta_link }}#{{ /hero_cta_link }}" class="btn btn-primary">{{ hero_cta_text }}Get Started{{ /hero_cta_text }}</a>
+          <a href="{{ hero_secondary_link }}#{{ /hero_secondary_link }}" class="btn btn-outline">{{ hero_secondary_text }}Learn More{{ /hero_secondary_text }}</a>
+        </div>
+      </div>
+      <div>
+        <img src="{{ hero_image | image }}" alt="{{ hero_image_alt }}Hero image{{ /hero_image_alt }}" style="width: 100%; border-radius: 8px;">
+      </div>
+    </div>
+  </div>
+</section>

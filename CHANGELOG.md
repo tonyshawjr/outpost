@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] — 2026-03-10
+
+### Added
+- **Admin sidebar reorganization** — split Build into Build (Collections, Form Builder, Channels, Folders) + Design (Themes, Brand, Code Editor); removed redundant Customize and Template Ref sidebar items
+- **Brand page** — site-wide identity settings (colors, typography with 8 type scale ratios, logo/favicon) at Design > Brand; stored in `content/data/brand.json`; logo/favicon sync to global template tags
+- **Outpost CSS Framework** — lightweight optional CSS framework (`php/framework/outpost-framework.css`) loaded when theme.json has `"framework": true`; includes reset, grid system, flex utilities, buttons, cards, sections, containers, spacing/text/background utilities, and responsive breakpoints
+- **Brand token injection** — framework-enabled themes receive dynamic CSS custom properties from Brand settings (colors, fonts, type scale) + automatic Google Fonts loading
+- **Template Reference panel** — integrated into Code Editor as a toggleable right sidebar; click snippets to insert directly at cursor position (replaces standalone page)
+- **Component Library** — 20 pre-built HTML components across 10 categories (Hero, Features, Testimonials, Pricing, CTA, Team, Contact, Blog, Footer, Navigation) using framework CSS classes and Outpost template tags
+- **Component browser** — searchable modal in Code Editor (toolbar button + right-click menu "Insert Component"); fetches and inserts component HTML at cursor
+- **Components API** — `GET components` (list registry) and `GET components?file=` (read snippet HTML) endpoints
+
+### Changed
+- Template Reference accessible inside Code Editor instead of as a standalone sidebar item
+- Auto-updater now copies `framework/` and `components/` directories during updates
+
+---
+
 ## [2.4.1] — 2026-03-10
 
 ### Security

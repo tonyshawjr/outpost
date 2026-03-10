@@ -19,6 +19,8 @@
   import ForgeForm       from '$components/ce/ForgeForm.svelte';
   import ForgeMenuLoop   from '$components/ce/ForgeMenuLoop.svelte';
   import ForgeTheme      from '$components/ce/ForgeTheme.svelte';
+  import TemplateRefPanel from '$components/ce/TemplateRefPanel.svelte';
+  import ForgeComponent  from '$components/ce/ForgeComponent.svelte';
 
   // ── Tree ─────────────────────────────────────────────────────────
   let tree        = $state([]);
@@ -55,6 +57,8 @@
   // ── Panels ───────────────────────────────────────────────────────
   let showFindInFiles    = $state(false);
   let showCmdPalette     = $state(false);
+  let showTemplateRef    = $state(false);
+  let showComponentBrowser = $state(false);
   let cmdQuery           = $state('');
   let cmdSelectedIndex   = $state(0);
 
@@ -475,6 +479,13 @@
     editorView.focus();
   }
 
+  function insertAtCursor(text) {
+    if (!editorView) return;
+    const { from } = editorView.state.selection.main;
+    editorView.dispatch({ changes: { from, insert: text }, selection: { anchor: from + text.length } });
+    editorView.focus();
+  }
+
   // ── File operations ──────────────────────────────────────────────
   async function loadTree() {
     treeLoading = true;
@@ -737,6 +748,12 @@
         <button class="ce-tool-btn" onclick={openCmdPalette} title="Go to File (⌘P)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 000 6h20a3 3 0 000-6zm0-8H2a3 3 0 000 6h20a3 3 0 000-6zm0-8H2a3 3 0 000 6h20a3 3 0 000-6z"/></svg>
         </button>
+        <button class="ce-tool-btn" class:active={showTemplateRef} onclick={() => { showTemplateRef = !showTemplateRef; }} title="Template Reference">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        </button>
+        <button class="ce-tool-btn" onclick={() => { showComponentBrowser = true; }} title="Insert Component">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </button>
         {#if activeTab}
           <div class="ce-tool-sep"></div>
           {#if langLabel}
@@ -791,10 +808,17 @@
     {/if}
 
   </div>
+
+  <!-- Template Reference Panel -->
+  <TemplateRefPanel
+    visible={showTemplateRef}
+    onInsert={insertAtCursor}
+    onClose={() => { showTemplateRef = false; }}
+  />
 </div>
 
 <!-- Forge context menu -->
-<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={handleForgeThemeOpen} onClose={() => forgeMenu = null} />
+<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={handleForgeThemeOpen} onComponent={() => { forgeMenu = null; showComponentBrowser = true; }} onClose={() => forgeMenu = null} />
 
 <!-- Forge popovers -->
 {#if forgePopover}
@@ -874,6 +898,13 @@
     />
   </ForgePopover>
 {/if}
+
+<!-- Component Browser -->
+<ForgeComponent
+  visible={showComponentBrowser}
+  onInsert={(html) => { insertAtCursor(html); showComponentBrowser = false; }}
+  onClose={() => { showComponentBrowser = false; }}
+/>
 
 <!-- Command Palette overlay -->
 {#if showCmdPalette}
@@ -1004,6 +1035,7 @@
     transition: background var(--transition-fast), color var(--transition-fast);
   }
   .ce-tool-btn:hover  { background: var(--ce-btn-hover-bg); color: var(--ce-btn-hover-color); }
+  .ce-tool-btn.active  { background: var(--ce-btn-hover-bg); color: var(--accent); }
   .ce-tool-btn:disabled { opacity: .4; cursor: default; }
 
   .ce-tool-sep {

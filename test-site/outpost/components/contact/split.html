@@ -1,0 +1,43 @@
+<section class="section">
+  <div class="container">
+    <div class="grid-2" style="gap: 48px; align-items: flex-start;">
+      <div>
+        <h2 class="text-3xl font-bold mb-4">{{ contact_heading }}Let's Talk{{ /contact_heading }}</h2>
+        <p class="text-muted mb-8">{{ contact_intro }}We'd love to hear from you. Reach out using any of the methods below, or fill out the form and we'll get back to you within 24 hours.{{ /contact_intro }}</p>
+        <div class="flex flex-col gap-4">
+          <div>
+            <div class="text-xs text-muted" style="text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Email</div>
+            <div class="font-semibold">{{ contact_email }}hello@example.com{{ /contact_email }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted" style="text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Phone</div>
+            <div class="font-semibold">{{ contact_phone }}(555) 123-4567{{ /contact_phone }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted" style="text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Address</div>
+            <div class="font-semibold">{{ contact_address }}123 Main St, Anytown, USA{{ /contact_address }}</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <form action="{{ contact_form_action }}#{{ /contact_form_action }}" method="POST">
+          <div class="flex flex-col gap-4">
+            <div>
+              <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Name</label>
+              <input type="text" name="name" placeholder="Your name" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px;">
+            </div>
+            <div>
+              <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Email</label>
+              <input type="email" name="email" placeholder="you@example.com" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px;">
+            </div>
+            <div>
+              <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Message</label>
+              <textarea name="message" rows="5" placeholder="How can we help?" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; resize: vertical;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">{{ contact_cta }}Send Message{{ /contact_cta }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

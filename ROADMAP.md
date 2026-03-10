@@ -330,29 +330,41 @@ Extend beyond pageviews into audience behavior — actionable insights without e
 
 ---
 
-## v2.4 — Theme Gallery
-
-**More starting points, less blank-page anxiety.** Ship 4-5 polished themes so users can pick one that fits and customize it with the v1.8 customizer.
-
-- **Business** — homepage with services, team, testimonials, contact form
-- **Portfolio** — grid gallery, project case studies, about page
-- **Blog** — clean reading experience, categories, author pages, newsletter signup
-- **Documentation** — sidebar navigation, search, code blocks, versioned sections
-- **Landing page** — single-page marketing site with sections, CTA blocks, pricing table
-
-All themes ship with full `customizer` config (v1.8), responsive design, dark mode support, and accessibility basics (ARIA, semantic HTML, skip links).
-
-**Docs:** Theme gallery showcase page, "Choosing the right theme" guide, per-theme customization reference.
-
----
-
-## v2.4 — Content API Polish (SHIPPED)
+## v2.4 — Content API Polish — SHIPPED (v2.4.0)
 
 Making the existing Content API reliable: menus endpoint, item title/url, page visibility filtering, orderby case fix, rate limiting, folders collection filter, complete headless recipe docs rewrite.
 
 ---
 
-## v2.5 — Headless-First
+## v2.5 — Outpost Design System — SHIPPED (v2.5.0)
+
+- **Sidebar reorganization** — Build split into Build (Collections, Form Builder, Channels, Folders) + Design (Themes, Brand, Code Editor)
+- **Brand page** — site-wide colors, typography (with type scale ratios), logo/favicon
+- **CSS Framework** — lightweight, optional per-theme, powered by Brand tokens
+- **Component Library** — 20 HTML components across 10 categories, insertable from Code Editor
+- **Template Reference** — integrated into Code Editor as toggleable panel with insert-at-cursor
+- **Component browser** — searchable modal + Forge right-click menu item
+
+---
+
+## v2.6 — Theme Gallery + New Themes
+
+**More starting points, less blank-page anxiety.** Ship 5 polished themes on top of the v2.5 Design System.
+
+- **Theme gallery overhaul** — WordPress-style cards with screenshots, live preview, theme details panel
+- **Theme preview** — fullscreen overlay with device toggles (desktop/tablet/mobile)
+- **Business** — homepage with services, team, testimonials, contact form
+- **Portfolio** — grid gallery, project case studies, about page
+- **Blog** — clean reading experience, categories, author pages
+- **Documentation** — sidebar navigation, code blocks, versioned sections
+- **Landing page** — single-page marketing site with sections, CTA blocks, pricing table
+- All new themes use `"framework": true`, ship with content packs, Unsplash images, and documentation
+
+**Docs:** Theme gallery showcase page, per-theme setup guides.
+
+---
+
+## v2.7 — Headless-First
 
 Position Outpost as the zero-config headless CMS alongside the traditional themed approach:
 
@@ -367,7 +379,7 @@ Position Outpost as the zero-config headless CMS alongside the traditional theme
 
 ---
 
-## v2.6 — Collaborative Editing
+## v2.8 — Collaborative Editing
 
 Real-time multi-user editing on the same page or collection item:
 
@@ -375,8 +387,6 @@ Real-time multi-user editing on the same page or collection item:
 - Live cursor positions via WebSocket
 - Operational transform or CRDT for conflict-free concurrent edits
 - Activity feed ("Tony updated the hero title 2 minutes ago")
-
-This depends on on-page editing being mature and v2.5 (real-time events) being in place.
 
 **Docs:** Collaboration setup guide, real-time editing user guide.
 

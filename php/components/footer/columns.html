@@ -1,0 +1,37 @@
+<footer style="border-top: 1px solid #eee; padding: 48px 0 32px;">
+  <div class="container">
+    <div class="grid-4" style="gap: 32px; margin-bottom: 32px;">
+      <div>
+        <div class="font-bold text-lg mb-4">{{ @site_name }}</div>
+        <p class="text-muted text-sm">{{ footer_about }}A modern CMS built for speed, simplicity, and creative freedom.{{ /footer_about }}</p>
+      </div>
+      <div>
+        <div class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Product</div>
+        <div class="flex flex-col gap-2">
+          {% for link in menu.footer_product %}
+          <a href="{{ link.url }}" class="text-muted text-sm" style="text-decoration: none;">{{ link.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Company</div>
+        <div class="flex flex-col gap-2">
+          {% for link in menu.footer_company %}
+          <a href="{{ link.url }}" class="text-muted text-sm" style="text-decoration: none;">{{ link.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Connect</div>
+        <div class="flex flex-col gap-2">
+          {% for link in menu.footer_social %}
+          <a href="{{ link.url }}" class="text-muted text-sm" style="text-decoration: none;">{{ link.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div style="border-top: 1px solid #eee; padding-top: 24px;" class="text-center text-muted text-xs">
+      {{ footer_copyright }}&copy; 2026 {{ @site_name }}. All rights reserved.{{ /footer_copyright }}
+    </div>
+  </div>
+</footer>

@@ -350,6 +350,20 @@ export const customizer = {
     request('customizer/import', { method: 'POST', body: { values } }),
 };
 
+export const brand = {
+  get: () =>
+    request('brand'),
+  save: (values) =>
+    request('brand', { method: 'PUT', body: values }),
+};
+
+export const components = {
+  list: () =>
+    request('components'),
+  read: (file) =>
+    request('components', { params: { file } }),
+};
+
 // Public Content API (read-only, used by Template Reference)
 export const content = {
   schema: () =>

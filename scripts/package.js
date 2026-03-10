@@ -44,6 +44,8 @@ const dirs = [
   { name: 'member-pages',  label: 'member-pages/ (auth pages)' },
   { name: 'tools',         label: 'tools/ (utilities)' },
   { name: 'content-packs', label: 'content-packs/ (setup wizard data)' },
+  { name: 'framework',     label: 'framework/ (CSS design framework)' },
+  { name: 'components',    label: 'components/ (HTML component library)' },
 ];
 
 for (const { name, label } of dirs) {

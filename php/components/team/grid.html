@@ -1,0 +1,25 @@
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold mb-3">{{ team_heading }}Meet the Team{{ /team_heading }}</h2>
+      <p class="text-lg text-muted">{{ team_subtitle }}The people behind the product.{{ /team_subtitle }}</p>
+    </div>
+    <div class="grid-3">
+      <div class="text-center">
+        <img src="{{ member_1_photo | image }}" alt="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; display: block;">
+        <h3 class="text-lg font-semibold mb-1">{{ member_1_name }}Alex Morgan{{ /member_1_name }}</h3>
+        <div class="text-muted text-sm">{{ member_1_role }}Founder & CEO{{ /member_1_role }}</div>
+      </div>
+      <div class="text-center">
+        <img src="{{ member_2_photo | image }}" alt="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; display: block;">
+        <h3 class="text-lg font-semibold mb-1">{{ member_2_name }}Jordan Lee{{ /member_2_name }}</h3>
+        <div class="text-muted text-sm">{{ member_2_role }}Head of Design{{ /member_2_role }}</div>
+      </div>
+      <div class="text-center">
+        <img src="{{ member_3_photo | image }}" alt="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; display: block;">
+        <h3 class="text-lg font-semibold mb-1">{{ member_3_name }}Sam Rivera{{ /member_3_name }}</h3>
+        <div class="text-muted text-sm">{{ member_3_role }}Lead Engineer{{ /member_3_role }}</div>
+      </div>
+    </div>
+  </div>
+</section>

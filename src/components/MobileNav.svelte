@@ -140,20 +140,24 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
       Folders
     </button>
+
+    <!-- Design -->
+    <div class="mobile-drawer-divider"></div>
+    <div class="mobile-drawer-label">Design</div>
     {#if showSettings}
-      <button class="mobile-drawer-item" class:active={route === 'themes'} onclick={() => nav('themes')}>
+      <button class="mobile-drawer-item" class:active={route === 'themes' || route === 'theme-customizer'} onclick={() => nav('themes')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         Themes
       </button>
+      <button class="mobile-drawer-item" class:active={route === 'brand'} onclick={() => nav('brand')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="15.5" r="2.5"/><circle cx="8.5" cy="15.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.73 1.5-1.5 0-.39-.15-.74-.39-1.04-.24-.3-.39-.65-.39-1.04 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.52-4.48-9.92-10-9.92z"/></svg>
+        Brand
+      </button>
     {/if}
     {#if showCode}
-      <button class="mobile-drawer-item" class:active={route === 'code-editor'} onclick={() => nav('code-editor')}>
+      <button class="mobile-drawer-item" class:active={route === 'code-editor' || route === 'template-reference'} onclick={() => nav('code-editor')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         Code Editor
-      </button>
-      <button class="mobile-drawer-item" class:active={route === 'template-reference'} onclick={() => nav('template-reference')}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        Template Ref
       </button>
     {/if}
 

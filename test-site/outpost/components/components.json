@@ -1,0 +1,94 @@
+{
+  "categories": [
+    {
+      "slug": "hero",
+      "name": "Hero",
+      "icon": "star",
+      "components": [
+        { "slug": "centered", "name": "Centered Hero", "file": "hero/centered.html", "description": "Centered heading, subtitle, and CTA button" },
+        { "slug": "split", "name": "Split Hero", "file": "hero/split.html", "description": "Two-column layout: text left, image right" },
+        { "slug": "image-bg", "name": "Image Background Hero", "file": "hero/image-bg.html", "description": "Full-width image background with overlay text" }
+      ]
+    },
+    {
+      "slug": "features",
+      "name": "Features",
+      "icon": "grid",
+      "components": [
+        { "slug": "three-col", "name": "3-Column Features", "file": "features/three-col.html", "description": "Three feature cards in a grid" },
+        { "slug": "four-col", "name": "4-Column Features", "file": "features/four-col.html", "description": "Four feature cards in a grid" },
+        { "slug": "icon-list", "name": "Icon List", "file": "features/icon-list.html", "description": "Vertical list with icons and descriptions" }
+      ]
+    },
+    {
+      "slug": "testimonials",
+      "name": "Testimonials",
+      "icon": "quote",
+      "components": [
+        { "slug": "card-grid", "name": "Testimonial Cards", "file": "testimonials/card-grid.html", "description": "Three testimonial cards with quotes and photos" },
+        { "slug": "single-quote", "name": "Single Quote", "file": "testimonials/single-quote.html", "description": "Large featured testimonial" }
+      ]
+    },
+    {
+      "slug": "pricing",
+      "name": "Pricing",
+      "icon": "tag",
+      "components": [
+        { "slug": "three-col", "name": "3-Column Pricing", "file": "pricing/three-col.html", "description": "Three pricing tiers with highlighted plan" }
+      ]
+    },
+    {
+      "slug": "cta",
+      "name": "Call to Action",
+      "icon": "megaphone",
+      "components": [
+        { "slug": "centered", "name": "Centered CTA", "file": "cta/centered.html", "description": "Centered heading with action buttons" },
+        { "slug": "banner", "name": "Banner CTA", "file": "cta/banner.html", "description": "Full-width colored banner with CTA" }
+      ]
+    },
+    {
+      "slug": "team",
+      "name": "Team",
+      "icon": "users",
+      "components": [
+        { "slug": "grid", "name": "Team Grid", "file": "team/grid.html", "description": "Team member grid with photos and roles" }
+      ]
+    },
+    {
+      "slug": "contact",
+      "name": "Contact",
+      "icon": "mail",
+      "components": [
+        { "slug": "form", "name": "Contact Form", "file": "contact/form.html", "description": "Centered contact form" },
+        { "slug": "split", "name": "Split Contact", "file": "contact/split.html", "description": "Info left, form right" }
+      ]
+    },
+    {
+      "slug": "blog",
+      "name": "Blog",
+      "icon": "file-text",
+      "components": [
+        { "slug": "card-grid", "name": "Blog Card Grid", "file": "blog/card-grid.html", "description": "3-column post cards with collection loop" },
+        { "slug": "list", "name": "Blog List", "file": "blog/list.html", "description": "Vertical post list with collection loop" }
+      ]
+    },
+    {
+      "slug": "footer",
+      "name": "Footer",
+      "icon": "layout",
+      "components": [
+        { "slug": "columns", "name": "Column Footer", "file": "footer/columns.html", "description": "Multi-column footer with links" },
+        { "slug": "simple", "name": "Simple Footer", "file": "footer/simple.html", "description": "Minimal centered footer" }
+      ]
+    },
+    {
+      "slug": "navigation",
+      "name": "Navigation",
+      "icon": "menu",
+      "components": [
+        { "slug": "simple", "name": "Simple Nav", "file": "navigation/simple.html", "description": "Logo left, links right" },
+        { "slug": "centered", "name": "Centered Nav", "file": "navigation/centered.html", "description": "Centered logo with links below" }
+      ]
+    }
+  ]
+}

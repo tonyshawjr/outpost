@@ -1,0 +1,38 @@
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold mb-3">{{ pricing_heading }}Simple, Transparent Pricing{{ /pricing_heading }}</h2>
+      <p class="text-lg text-muted">{{ pricing_subtitle }}Choose the plan that fits your needs. No hidden fees.{{ /pricing_subtitle }}</p>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <h3 class="text-lg font-semibold mb-2">{{ plan_1_name }}Starter{{ /plan_1_name }}</h3>
+          <div class="text-4xl font-bold mb-1">{{ plan_1_price }}$9{{ /plan_1_price }}</div>
+          <div class="text-muted text-sm mb-6">{{ plan_1_period }}per month{{ /plan_1_period }}</div>
+          <div class="text-muted text-sm mb-6" style="line-height: 2;">{{ plan_1_features | raw }}<div>1 Website</div><div>5 GB Storage</div><div>Basic Analytics</div><div>Email Support</div>{{ /plan_1_features }}</div>
+          <a href="{{ plan_1_link }}#{{ /plan_1_link }}" class="btn btn-outline" style="width: 100%;">{{ plan_1_cta }}Choose Starter{{ /plan_1_cta }}</a>
+        </div>
+      </div>
+      <div class="card" style="border: 2px solid var(--color-primary, #000); position: relative;">
+        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--color-primary, #000); color: #fff; padding: 2px 14px; border-radius: 12px; font-size: 12px; font-weight: 600;">Popular</div>
+        <div class="card-body text-center">
+          <h3 class="text-lg font-semibold mb-2">{{ plan_2_name }}Professional{{ /plan_2_name }}</h3>
+          <div class="text-4xl font-bold mb-1">{{ plan_2_price }}$29{{ /plan_2_price }}</div>
+          <div class="text-muted text-sm mb-6">{{ plan_2_period }}per month{{ /plan_2_period }}</div>
+          <div class="text-muted text-sm mb-6" style="line-height: 2;">{{ plan_2_features | raw }}<div>5 Websites</div><div>50 GB Storage</div><div>Advanced Analytics</div><div>Priority Support</div>{{ /plan_2_features }}</div>
+          <a href="{{ plan_2_link }}#{{ /plan_2_link }}" class="btn btn-primary" style="width: 100%;">{{ plan_2_cta }}Choose Professional{{ /plan_2_cta }}</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body text-center">
+          <h3 class="text-lg font-semibold mb-2">{{ plan_3_name }}Enterprise{{ /plan_3_name }}</h3>
+          <div class="text-4xl font-bold mb-1">{{ plan_3_price }}$99{{ /plan_3_price }}</div>
+          <div class="text-muted text-sm mb-6">{{ plan_3_period }}per month{{ /plan_3_period }}</div>
+          <div class="text-muted text-sm mb-6" style="line-height: 2;">{{ plan_3_features | raw }}<div>Unlimited Websites</div><div>500 GB Storage</div><div>Full Analytics Suite</div><div>Dedicated Support</div>{{ /plan_3_features }}</div>
+          <a href="{{ plan_3_link }}#{{ /plan_3_link }}" class="btn btn-outline" style="width: 100%;">{{ plan_3_cta }}Choose Enterprise{{ /plan_3_cta }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

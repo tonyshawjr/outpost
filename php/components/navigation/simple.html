@@ -1,0 +1,16 @@
+<nav style="padding: 16px 0; border-bottom: 1px solid #eee;">
+  <div class="container flex" style="align-items: center; justify-content: space-between;">
+    <a href="/" style="text-decoration: none; color: inherit;">
+      {% if @site_logo %}
+      <img src="{{ @site_logo | image }}" alt="{{ @site_name }}" style="height: 32px;">
+      {% else %}
+      <span class="font-bold text-lg">{{ @site_name }}</span>
+      {% endif %}
+    </a>
+    <div class="flex gap-4" style="align-items: center;">
+      {% for link in menu.main %}
+      <a href="{{ link.url }}" class="text-sm" style="text-decoration: none; color: inherit;">{{ link.label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</nav>

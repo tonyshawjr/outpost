@@ -1,0 +1,31 @@
+<section class="section">
+  <div class="container" style="max-width: 640px;">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold mb-3">{{ contact_heading }}Get in Touch{{ /contact_heading }}</h2>
+      <p class="text-lg text-muted">{{ contact_subtitle }}Have a question or want to work together? Drop us a message.{{ /contact_subtitle }}</p>
+    </div>
+    <form action="{{ contact_form_action }}#{{ /contact_form_action }}" method="POST">
+      <div class="flex flex-col gap-4">
+        <div class="grid-2" style="gap: 16px;">
+          <div>
+            <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Name</label>
+            <input type="text" name="name" placeholder="Your name" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px;">
+          </div>
+          <div>
+            <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Email</label>
+            <input type="email" name="email" placeholder="you@example.com" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px;">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Subject</label>
+          <input type="text" name="subject" placeholder="What is this about?" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px;">
+        </div>
+        <div>
+          <label class="text-xs text-muted" style="display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Message</label>
+          <textarea name="message" rows="5" placeholder="Your message..." required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; resize: vertical;"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">{{ contact_cta }}Send Message{{ /contact_cta }}</button>
+      </div>
+    </form>
+  </div>
+</section>

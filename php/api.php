@@ -23,6 +23,7 @@ require_once __DIR__ . '/webhooks.php';
 require_once __DIR__ . '/totp.php';
 require_once __DIR__ . '/channels.php';
 require_once __DIR__ . '/customizer.php';
+require_once __DIR__ . '/brand.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -251,6 +252,10 @@ match (true) {
     $action === 'code/context' && $method === 'GET'    => handle_code_context(),
     $action === 'code/reset'   && $method === 'POST'   => handle_code_reset(),
 
+    // Components (design system library)
+    $action === 'components' && $method === 'GET' && !isset($_GET['file']) => handle_components_list(),
+    $action === 'components' && $method === 'GET' && isset($_GET['file'])  => handle_component_read(),
+
     // Member Admin
     $action === 'members' && $method === 'GET' => handle_members_list(),
     $action === 'members' && $method === 'PUT' && isset($_GET['id']) => handle_member_update(),
@@ -432,6 +437,10 @@ match (true) {
     $action === 'customizer/reset'  && $method === 'POST' => handle_customizer_reset(),
     $action === 'customizer/export' && $method === 'GET'  => handle_customizer_export(),
     $action === 'customizer/import' && $method === 'POST' => handle_customizer_import(),
+
+    // Brand (site-wide identity)
+    $action === 'brand' && $method === 'GET'  => handle_brand_get(),
+    $action === 'brand' && $method === 'PUT'  => handle_brand_save(),
 
     default => json_error('Not found', 404),
 };
@@ -7227,7 +7236,7 @@ function handle_updates_apply(): void {
         }
 
         // Copy safe directories
-        $safeDirs = ['admin', 'docs', 'member-pages', 'tools'];
+        $safeDirs = ['admin', 'docs', 'member-pages', 'tools', 'framework', 'components'];
         foreach ($safeDirs as $dir) {
             $src = $sourceDir . '/' . $dir;
             if (is_dir($src)) {
@@ -7855,4 +7864,30 @@ function handle_setup_checklist_dismiss(): void {
         []
     );
     json_response(['success' => true]);
+}
+
+// ── Components (design system library) ─────────────────────────────
+
+function handle_components_list(): void {
+    outpost_require_auth();
+    $registryPath = __DIR__ . '/components/components.json';
+    if (!file_exists($registryPath)) {
+        json_response(['categories' => []]);
+        return;
+    }
+    $registry = json_decode(file_get_contents($registryPath), true);
+    json_response($registry ?: ['categories' => []]);
+}
+
+function handle_component_read(): void {
+    outpost_require_auth();
+    $file = $_GET['file'] ?? '';
+    if (!$file || !preg_match('/^[a-z0-9\-]+\/[a-z0-9\-]+\.html$/', $file)) {
+        outpost_error('Invalid component file', 400);
+    }
+    $path = __DIR__ . '/components/' . $file;
+    if (!file_exists($path)) {
+        outpost_error('Component not found', 404);
+    }
+    json_response(['html' => file_get_contents($path)]);
 }

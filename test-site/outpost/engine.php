@@ -1152,7 +1152,15 @@ function outpost_cache_output(string $buffer): string {
 
     $isCustomizerPreview = isset($_GET['_outpost_customizer_preview']) && outpost_is_admin();
 
-    // 0. Inject customizer CSS before </head> (included in cache — same for everyone)
+    // 0a. Inject Outpost Framework CSS + Brand tokens before </head> (if theme opts in)
+    if (stripos($buffer, '</head>') !== false) {
+        $frameworkBlock = outpost_framework_css($_outpost_active_theme);
+        if ($frameworkBlock) {
+            $buffer = preg_replace('/<\/head>/i', $frameworkBlock . "\n</head>", $buffer, 1);
+        }
+    }
+
+    // 0b. Inject customizer CSS before </head> (included in cache — same for everyone)
     if (stripos($buffer, '</head>') !== false) {
         $customizerBlock = outpost_customizer_css($_outpost_active_theme);
         if ($customizerBlock) {
@@ -1210,6 +1218,79 @@ function outpost_cache_output(string $buffer): string {
     }
 
     return $buffer;
+}
+
+/**
+ * Generate Outpost Framework CSS block (link + brand tokens) for injection.
+ * Only returns content if the active theme has "framework": true in theme.json.
+ */
+function outpost_framework_css(string $themeSlug): string {
+    if (!$themeSlug) return '';
+
+    // Check theme.json for framework opt-in
+    $themeJsonPath = OUTPOST_THEMES_DIR . $themeSlug . '/theme.json';
+    if (!file_exists($themeJsonPath)) return '';
+
+    $themeConfig = json_decode(file_get_contents($themeJsonPath), true);
+    if (!is_array($themeConfig) || empty($themeConfig['framework'])) return '';
+
+    // Build the framework <link>
+    $parts = ['<link rel="stylesheet" href="/outpost/framework/outpost-framework.css">'];
+
+    // Build brand token overrides from brand.json
+    require_once __DIR__ . '/brand.php';
+    $brand = brand_get_merged();
+    $tokens = [];
+
+    // Color tokens
+    if (!empty($brand['colors'])) {
+        $colorMap = [
+            'primary'    => '--brand-primary',
+            'secondary'  => '--brand-secondary',
+            'accent'     => '--brand-accent',
+            'neutral'    => '--brand-neutral',
+            'background' => '--brand-bg',
+            'surface'    => '--brand-surface',
+        ];
+        foreach ($colorMap as $key => $var) {
+            if (!empty($brand['colors'][$key])) {
+                $tokens[] = "$var: {$brand['colors'][$key]};";
+            }
+        }
+    }
+
+    // Typography tokens
+    if (!empty($brand['typography'])) {
+        $hf = $brand['typography']['heading_font'] ?? 'Inter';
+        $bf = $brand['typography']['body_font'] ?? 'Inter';
+        $tokens[] = "--brand-font-heading: '$hf', -apple-system, BlinkMacSystemFont, sans-serif;";
+        $tokens[] = "--brand-font-body: '$bf', -apple-system, BlinkMacSystemFont, sans-serif;";
+
+        // Compute type scale from ratio
+        $ratio = (float) ($brand['typography']['type_scale'] ?? 1.25);
+        $scale = brand_compute_type_scale($ratio);
+        foreach ($scale as $token => $rem) {
+            $tokens[] = "--{$token}: {$rem}rem;";
+        }
+    }
+
+    // Build Google Fonts link for brand fonts
+    $fonts = [];
+    $hf = $brand['typography']['heading_font'] ?? '';
+    $bf = $brand['typography']['body_font'] ?? '';
+    if ($hf && $hf !== 'System Default') $fonts[] = str_replace(' ', '+', $hf) . ':wght@400;500;600;700';
+    if ($bf && $bf !== 'System Default' && $bf !== $hf) $fonts[] = str_replace(' ', '+', $bf) . ':wght@400;500;600;700';
+    if ($fonts) {
+        $fontsUrl = 'https://fonts.googleapis.com/css2?family=' . implode('&family=', $fonts) . '&display=swap';
+        array_unshift($parts, '<link rel="stylesheet" href="' . $fontsUrl . '">');
+    }
+
+    if ($tokens) {
+        $css = implode("\n    ", $tokens);
+        $parts[] = "<style id=\"_outpost_brand_tokens\">\n  :root {\n    $css\n  }\n</style>";
+    }
+
+    return implode("\n", $parts);
 }
 
 /**

@@ -1,0 +1,20 @@
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold mb-3">{{ blog_heading }}Latest Posts{{ /blog_heading }}</h2>
+      <p class="text-lg text-muted">{{ blog_subtitle }}Stories, insights, and updates from our team.{{ /blog_subtitle }}</p>
+    </div>
+    <div class="grid-3">
+      {% for item in collection.post %}
+      <a href="{{ item.url }}" class="card" style="text-decoration: none; color: inherit;">
+        <img src="{{ item.featured_image | image }}" alt="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0;">
+        <div class="card-body">
+          <div class="text-xs text-muted mb-2">{{ item.date }}</div>
+          <h3 class="text-lg font-semibold mb-2">{{ item.title }}</h3>
+          <p class="text-muted text-sm">{{ item.excerpt }}</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>

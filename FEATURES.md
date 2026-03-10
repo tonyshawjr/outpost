@@ -4,6 +4,18 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Outpost Design System (v2.5.0)
+
+- **Sidebar reorganization** — Build section split into "Build" (Collections, Form Builder, Channels, Folders) and "Design" (Themes, Brand, Code Editor). Customize and Template Reference removed from sidebar (Customize accessible from Themes page, Template Reference integrated into Code Editor).
+- **Brand page** — site-wide identity settings at Design > Brand. Three sections: Colors (primary, secondary, accent, neutral, background, surface with color picker and hex input), Typography (heading + body font with Google Fonts dropdown, type scale ratio selector from Minor Second through Golden Ratio with live computed scale preview), Identity (logo + favicon upload via media picker). Stored in `content/data/brand.json`. Logo/favicon auto-sync to `{{ @site_logo }}` and `{{ @site_favicon }}` global template tags.
+- **Outpost CSS Framework** — lightweight optional CSS framework at `php/framework/outpost-framework.css`. Opt-in per theme via `"framework": true` in theme.json. Provides: minimal reset, CSS custom properties for brand tokens, type scale tokens (`--text-xs` through `--text-5xl`), spacing scale, grid system (`.grid-2`, `.grid-3`, `.grid-4` with responsive breakpoints), flex utilities, button classes (`.btn`, `.btn-primary`, `.btn-secondary`, `.btn-outline`), card component, section/container/text/spacing/background utilities. Injection order: Google Fonts > Framework CSS > Brand tokens > Customizer CSS.
+- **Template Reference panel** — integrated into Code Editor as a 260px toggleable right panel (book icon in toolbar). Browse Collections, Pages, Globals, and Syntax reference. Click any snippet to insert it directly at cursor position in the editor. Replaces the standalone sidebar item.
+- **Component Library** — 20 HTML component snippets across 10 categories: Hero (centered, split, image-bg), Features (3-col, 4-col, icon-list), Testimonials (card-grid, single-quote), Pricing (3-col), CTA (centered, banner), Team (grid), Contact (form, split), Blog (card-grid, list), Footer (columns, simple), Navigation (simple, centered). All use framework CSS classes and Outpost template tags with wrapping defaults.
+- **Component browser** — searchable categorized modal in Code Editor. Accessible via toolbar button (wrench icon) and "Insert Component" in Forge right-click menu. Click a component to fetch its HTML and insert at cursor.
+- **Files**: `php/brand.php` (new), `php/framework/outpost-framework.css` (new), `php/components/` (new, 20 HTML snippets + registry), `php/engine.php`, `php/api.php`, `src/pages/Brand.svelte` (new), `src/components/ce/TemplateRefPanel.svelte` (new), `src/components/ce/ForgeComponent.svelte` (new), `src/components/ce/ForgeMenu.svelte`, `src/pages/CodeEditor.svelte`, `src/components/Sidebar.svelte`, `src/components/MobileNav.svelte`, `src/App.svelte`, `src/lib/api.js`, `scripts/package.js`
+
+---
+
 ## Content API Security Hardening (v2.4.1)
 
 - **Response headers** — Content API now sets `Content-Type: application/json` and `X-Content-Type-Options: nosniff` on all responses. JSON output uses `JSON_HEX_TAG | JSON_HEX_AMP` flags to prevent script injection.

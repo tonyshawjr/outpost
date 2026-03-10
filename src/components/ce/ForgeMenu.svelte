@@ -1,5 +1,5 @@
 <script>
-  let { menu = null, showForgeTheme = false, onSelect, onUsePartial, onForgeTheme, onClose } = $props();
+  let { menu = null, showForgeTheme = false, onSelect, onUsePartial, onForgeTheme, onComponent = () => {}, onClose } = $props();
 
   const allItems = [
     { key: 'editable',    label: 'Make Editable',    icon: 'pencil' },
@@ -78,8 +78,14 @@
         {/if}
       </button>
     {/each}
+    <div class="forge-ctx-sep"></div>
+    <button class="forge-ctx-item" onclick={onComponent}>
+      <span class="forge-ctx-icon">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </span>
+      <span class="forge-ctx-label">Insert Component&hellip;</span>
+    </button>
     {#if showForgeTheme}
-      <div class="forge-ctx-sep"></div>
       <button class="forge-ctx-item" onclick={onForgeTheme}>
         <span class="forge-ctx-icon">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>

@@ -38,6 +38,7 @@
   import FolderEdit from '$pages/FolderEdit.svelte';
   import CodeEditor from '$pages/CodeEditor.svelte';
   import TemplateReference from '$pages/TemplateReference.svelte';
+  import Brand from '$pages/Brand.svelte';
   import Themes from '$pages/Themes.svelte';
   import Globals from '$pages/Globals.svelte';
   import Navigation from '$pages/Navigation.svelte';
@@ -240,6 +241,12 @@
         {:else if route === 'theme-customizer'}
           {#if hasSettingsAccess}
             <ThemeCustomizer />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'brand'}
+          {#if hasSettingsAccess}
+            <Brand />
           {:else}
             <AccessDenied />
           {/if}

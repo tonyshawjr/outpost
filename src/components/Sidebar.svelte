@@ -219,7 +219,7 @@
     </div>
   {/if}
 
-  <!-- Build (structure/design tools) -->
+  <!-- Build (content structure tools) -->
   <div class="sidebar-divider"></div>
   <div class="sidebar-section sidebar-inner">
     <div class="sidebar-label">Build</div>
@@ -259,10 +259,16 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
       Folders
     </button>
+  </div>
+
+  <!-- Design (visual/theming tools) -->
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section sidebar-inner">
+    <div class="sidebar-label">Design</div>
     {#if showSettings}
       <button
         class="sidebar-item"
-        class:active={route === 'themes'}
+        class:active={route === 'themes' || route === 'theme-customizer'}
         onclick={() => nav('themes')}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -270,29 +276,21 @@
       </button>
       <button
         class="sidebar-item"
-        class:active={route === 'theme-customizer'}
-        onclick={() => nav('theme-customizer')}
+        class:active={route === 'brand'}
+        onclick={() => nav('brand')}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.37 2.63a2.12 2.12 0 0 1 3 3L14 13l-4 1 1-4 7.37-7.37z"/><path d="M9 14c-1.5 1.5-3 3.5-3 5a2 2 0 0 0 4 0c0-1.5-1.5-3.5-1-5"/></svg>
-        Customize
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="15.5" r="2.5"/><circle cx="8.5" cy="15.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.73 1.5-1.5 0-.39-.15-.74-.39-1.04-.24-.3-.39-.65-.39-1.04 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.52-4.48-9.92-10-9.92z"/></svg>
+        Brand
       </button>
     {/if}
     {#if showCode}
       <button
         class="sidebar-item"
-        class:active={route === 'code-editor'}
+        class:active={route === 'code-editor' || route === 'template-reference'}
         onclick={() => nav('code-editor')}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         Code Editor
-      </button>
-      <button
-        class="sidebar-item"
-        class:active={route === 'template-reference'}
-        onclick={() => nav('template-reference')}
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        Template Ref
       </button>
     {/if}
   </div>
