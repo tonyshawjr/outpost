@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.1] — 2026-03-11
+
+### Fixed
+- **Forge Form popover styling** — Fixed incorrect CSS variable reference (`--border-color` → `--border`) in the detected fields list that broke the border styling in the Form action popover.
+
+---
+
 ## [2.7.0] — 2026-03-11
 
 ### Added

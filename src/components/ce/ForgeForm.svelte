@@ -243,7 +243,7 @@
     gap: 2px;
     max-height: 160px;
     overflow-y: auto;
-    border: 1px solid var(--border-color, #e2e8f0);
+    border: 1px solid var(--border, #e2e8f0);
     border-radius: 6px;
     padding: 4px;
   }
