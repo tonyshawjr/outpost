@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.8] — 2026-03-11
+
+### Fixed
+- **"no such table: item_terms" crash** — Template engine still referenced the old `item_terms` and `terms` table names after the folders/labels rename. Updated all SQL queries in `engine.php` to use `item_labels` and `labels`. Fixes collection filter, related posts, and pagination queries.
+
+---
+
 ## [2.6.7] — 2026-03-10
 
 ### Fixed

@@ -958,9 +958,9 @@ function cms_collection_list(string $slug, callable $callback, array $opts = [])
         if ($filterSlug) {
             $countRow = OutpostDB::fetchOne(
                 "SELECT COUNT(DISTINCT ci.id) as c FROM collection_items ci
-                 INNER JOIN item_terms it ON it.item_id = ci.id
-                 INNER JOIN terms t ON t.id = it.term_id
-                 WHERE ci.collection_id = ? AND ci.status = 'published' AND t.slug = ?",
+                 INNER JOIN item_labels il ON il.item_id = ci.id
+                 INNER JOIN labels l ON l.id = il.label_id
+                 WHERE ci.collection_id = ? AND ci.status = 'published' AND l.slug = ?",
                 [$collection['id'], $filterSlug]
             );
         } else {
@@ -973,38 +973,38 @@ function cms_collection_list(string $slug, callable $callback, array $opts = [])
     }
 
     if ($filterSlug) {
-        // Filter by taxonomy term slug from query param (e.g. ?category=bricks)
+        // Filter by label slug from query param (e.g. ?category=bricks)
         $items = OutpostDB::fetchAll(
             "SELECT ci.* FROM collection_items ci
-             INNER JOIN item_terms it ON it.item_id = ci.id
-             INNER JOIN terms t ON t.id = it.term_id
-             WHERE ci.collection_id = ? AND ci.status = 'published' AND t.slug = ?
+             INNER JOIN item_labels il ON il.item_id = ci.id
+             INNER JOIN labels l ON l.id = il.label_id
+             WHERE ci.collection_id = ? AND ci.status = 'published' AND l.slug = ?
              GROUP BY ci.id
              ORDER BY {$order} LIMIT ? OFFSET ?",
             [$collection['id'], $filterSlug, (int) $limit, $offset]
         );
     } elseif ($relatedId) {
-        // Fetch taxonomy terms for the current item
-        $termRows = OutpostDB::fetchAll(
-            "SELECT term_id FROM item_terms WHERE item_id = ?",
+        // Fetch labels for the current item
+        $labelRows = OutpostDB::fetchAll(
+            "SELECT label_id FROM item_labels WHERE item_id = ?",
             [$relatedId]
         );
-        $termIds = array_column($termRows, 'term_id');
+        $labelIds = array_column($labelRows, 'label_id');
 
-        if (!empty($termIds)) {
-            $ph = implode(',', array_fill(0, count($termIds), '?'));
-            $params = array_merge([$collection['id']], $termIds, [$relatedId, (int) $limit]);
+        if (!empty($labelIds)) {
+            $ph = implode(',', array_fill(0, count($labelIds), '?'));
+            $params = array_merge([$collection['id']], $labelIds, [$relatedId, (int) $limit]);
             $items = OutpostDB::fetchAll(
                 "SELECT ci.* FROM collection_items ci
-                 INNER JOIN item_terms it ON it.item_id = ci.id
+                 INNER JOIN item_labels il ON il.item_id = ci.id
                  WHERE ci.collection_id = ? AND ci.status = 'published'
-                   AND it.term_id IN ({$ph}) AND ci.id != ?
+                   AND il.label_id IN ({$ph}) AND ci.id != ?
                  GROUP BY ci.id
                  ORDER BY {$order} LIMIT ?",
                 $params
             );
         } else {
-            // Post has no taxonomy terms — fall back to recent posts excluding current
+            // Post has no labels — fall back to recent posts excluding current
             $items = OutpostDB::fetchAll(
                 "SELECT * FROM collection_items WHERE collection_id = ? AND status = 'published' AND id != ? ORDER BY {$order} LIMIT ?",
                 [$collection['id'], $relatedId, (int) $limit]
