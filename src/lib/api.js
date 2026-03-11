@@ -320,6 +320,8 @@ export const code = {
     request('code/context'),
   reset: (folder) =>
     request('code/reset', { method: 'POST', body: { folder } }),
+  assets: (theme) =>
+    request('code/assets', { params: { theme } }),
 };
 
 // Themes

@@ -1,5 +1,5 @@
 <script>
-  let { menu = null, showForgeTheme = false, onSelect, onUsePartial, onForgeTheme, onComponent = () => {}, onClose } = $props();
+  let { menu = null, showForgeTheme = false, onSelect, onUsePartial, onForgeTheme, onComponent = () => {}, onAsset = () => {}, onClose } = $props();
 
   const allItems = [
     { key: 'editable',    label: 'Make Editable',    icon: 'pencil' },
@@ -32,53 +32,65 @@
   <div class="forge-ctx" style="left:{menu.x}px;top:{menu.y}px" onclick={(e) => e.stopPropagation()}>
     <div class="forge-ctx-header">Forge</div>
 
-    {#if isUsePartial}
-      <button
-        class="forge-ctx-item suggested"
-        onclick={() => onUsePartial(usePartialName)}
-      >
-        <span class="forge-ctx-icon">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
-        </span>
-        <span class="forge-ctx-label">Use Partial: {usePartialName}</span>
-        <span class="forge-ctx-suggested">exists</span>
-      </button>
+    {#if !menu.cursorOnly}
+      {#if isUsePartial}
+        <button
+          class="forge-ctx-item suggested"
+          onclick={() => onUsePartial(usePartialName)}
+        >
+          <span class="forge-ctx-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          </span>
+          <span class="forge-ctx-label">Use Partial: {usePartialName}</span>
+          <span class="forge-ctx-suggested">exists</span>
+        </button>
+        <div class="forge-ctx-sep"></div>
+      {/if}
+
+      {#each orderedItems as item, i}
+        {#if i === 4 && !isUsePartial}
+          <div class="forge-ctx-sep"></div>
+        {/if}
+        <button
+          class="forge-ctx-item"
+          class:suggested={!isUsePartial && item.key === suggestedKey}
+          onclick={() => onSelect(item.key)}
+        >
+          <span class="forge-ctx-icon">
+            {#if item.icon === 'pencil'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            {:else if item.icon === 'list'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            {:else if item.icon === 'menu'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            {:else if item.icon === 'branch'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>
+            {:else if item.icon === 'scissors'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+            {:else if item.icon === 'tag'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            {:else if item.icon === 'form'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+            {/if}
+          </span>
+          <span class="forge-ctx-label">{item.label}</span>
+          {#if !isUsePartial && item.key === suggestedKey}
+            <span class="forge-ctx-suggested">suggested</span>
+          {/if}
+        </button>
+      {/each}
       <div class="forge-ctx-sep"></div>
     {/if}
 
-    {#each orderedItems as item, i}
-      {#if i === 4 && !isUsePartial}
-        <div class="forge-ctx-sep"></div>
+    <button class="forge-ctx-item" class:suggested={menu.cursorOnly} onclick={onAsset}>
+      <span class="forge-ctx-icon">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      </span>
+      <span class="forge-ctx-label">Insert Asset&hellip;</span>
+      {#if menu.cursorOnly}
+        <span class="forge-ctx-suggested">suggested</span>
       {/if}
-      <button
-        class="forge-ctx-item"
-        class:suggested={!isUsePartial && item.key === suggestedKey}
-        onclick={() => onSelect(item.key)}
-      >
-        <span class="forge-ctx-icon">
-          {#if item.icon === 'pencil'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          {:else if item.icon === 'list'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          {:else if item.icon === 'menu'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          {:else if item.icon === 'branch'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>
-          {:else if item.icon === 'scissors'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
-          {:else if item.icon === 'tag'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          {:else if item.icon === 'form'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
-          {/if}
-        </span>
-        <span class="forge-ctx-label">{item.label}</span>
-        {#if !isUsePartial && item.key === suggestedKey}
-          <span class="forge-ctx-suggested">suggested</span>
-        {/if}
-      </button>
-    {/each}
-    <div class="forge-ctx-sep"></div>
+    </button>
     <button class="forge-ctx-item" onclick={onComponent}>
       <span class="forge-ctx-icon">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>

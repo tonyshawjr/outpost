@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.5] — 2026-03-10
+
+### Added
+- **Forge: Insert Asset** — Right-click in the Code Editor (even without a selection) to see "Insert Asset" in the Forge menu. Opens a modal that auto-discovers CSS, JS, and image files from the theme's `assets/` folder. Click any file to insert the correct HTML tag (`<link>`, `<script>`, or `<img>`) at the cursor. New `code/assets` API endpoint scans asset directories including image files.
+
+---
+
 ## [2.6.4] — 2026-03-10
 
 ### Fixed

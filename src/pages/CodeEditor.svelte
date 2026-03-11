@@ -21,6 +21,7 @@
   import ForgeTheme      from '$components/ce/ForgeTheme.svelte';
   import TemplateRefPanel from '$components/ce/TemplateRefPanel.svelte';
   import ForgeComponent  from '$components/ce/ForgeComponent.svelte';
+  import ForgeAsset      from '$components/ce/ForgeAsset.svelte';
 
   // ── Tree ─────────────────────────────────────────────────────────
   let tree        = $state([]);
@@ -59,6 +60,7 @@
   let showCmdPalette     = $state(false);
   let showTemplateRef    = $state(false);
   let showComponentBrowser = $state(false);
+  let showAssetBrowser     = $state(false);
   let cmdQuery           = $state('');
   let cmdSelectedIndex   = $state(0);
 
@@ -283,14 +285,20 @@
       // Forge: right-click context menu on selection in HTML files
       cmView.EditorView.domEventHandlers({
         contextmenu(event, view) {
-          const sel = view.state.selection.main;
-          if (sel.from === sel.to) return false;
           if (!isHtmlFile(tabs[activeTabIndex])) return false;
 
+          const sel = view.state.selection.main;
+          const hasSelection = sel.from !== sel.to;
+
           event.preventDefault();
-          const text = view.state.doc.sliceString(sel.from, sel.to);
-          const detection = detectForgeIntent(text, existingPartials);
-          forgeMenu = { x: event.clientX, y: event.clientY, from: sel.from, to: sel.to, text, detection };
+
+          if (hasSelection) {
+            const text = view.state.doc.sliceString(sel.from, sel.to);
+            const detection = detectForgeIntent(text, existingPartials);
+            forgeMenu = { x: event.clientX, y: event.clientY, from: sel.from, to: sel.to, text, detection, cursorOnly: false };
+          } else {
+            forgeMenu = { x: event.clientX, y: event.clientY, from: sel.from, to: sel.to, text: '', detection: null, cursorOnly: true };
+          }
           return true;
         }
       }),
@@ -818,7 +826,7 @@
 </div>
 
 <!-- Forge context menu -->
-<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={handleForgeThemeOpen} onComponent={() => { forgeMenu = null; showComponentBrowser = true; }} onClose={() => forgeMenu = null} />
+<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={handleForgeThemeOpen} onComponent={() => { forgeMenu = null; showComponentBrowser = true; }} onAsset={() => { forgeMenu = null; showAssetBrowser = true; }} onClose={() => forgeMenu = null} />
 
 <!-- Forge popovers -->
 {#if forgePopover}
@@ -904,6 +912,14 @@
   visible={showComponentBrowser}
   onInsert={(html) => { insertAtCursor(html); showComponentBrowser = false; }}
   onClose={() => { showComponentBrowser = false; }}
+/>
+
+<!-- Asset Browser -->
+<ForgeAsset
+  visible={showAssetBrowser}
+  themeSlug={activeThemeFolder}
+  onInsert={(tag) => { insertAtCursor(tag); showAssetBrowser = false; }}
+  onClose={() => { showAssetBrowser = false; }}
 />
 
 <!-- Command Palette overlay -->

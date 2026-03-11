@@ -254,6 +254,7 @@ match (true) {
     $action === 'code/search'  && $method === 'GET'    => handle_code_search(),
     $action === 'code/context' && $method === 'GET'    => handle_code_context(),
     $action === 'code/reset'   && $method === 'POST'   => handle_code_reset(),
+    $action === 'code/assets'  && $method === 'GET'    => handle_code_assets(),
 
     // Components (design system library)
     $action === 'components' && $method === 'GET' && !isset($_GET['file']) => handle_components_list(),

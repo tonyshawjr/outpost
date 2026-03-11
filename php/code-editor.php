@@ -478,6 +478,51 @@ function handle_code_reset(): void {
 /**
  * Recursively copy files from snapshot back to the target directory.
  */
+/**
+ * GET code/assets — List all files in a theme's assets/ directory (including images).
+ */
+function handle_code_assets(): void {
+    outpost_require_cap('code.*');
+
+    $theme = $_GET['theme'] ?? '';
+    if (!$theme || !preg_match('/^[a-zA-Z0-9_-]+$/', $theme)) {
+        json_error('Invalid theme slug', 400);
+    }
+
+    $assetsDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/' . $theme . '/assets';
+    if (!is_dir($assetsDir)) {
+        json_response(['files' => []]);
+        return;
+    }
+
+    $allowedExts = ['css','js','json','svg','png','jpg','jpeg','gif','webp','avif','ico','woff','woff2','ttf','eot'];
+    $files = [];
+    code_scan_assets($assetsDir, '', $allowedExts, $files);
+    json_response(['files' => $files]);
+}
+
+function code_scan_assets(string $dir, string $prefix, array $allowedExts, array &$result): void {
+    $entries = @scandir($dir);
+    if (!$entries) return;
+
+    foreach ($entries as $entry) {
+        if ($entry === '.' || $entry === '..' || $entry[0] === '.') continue;
+        $full = $dir . '/' . $entry;
+        $rel  = $prefix ? $prefix . '/' . $entry : $entry;
+
+        if (is_link($full)) continue;
+
+        if (is_dir($full)) {
+            code_scan_assets($full, $rel, $allowedExts, $result);
+        } else {
+            $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+            if (in_array($ext, $allowedExts, true)) {
+                $result[] = ['name' => $entry, 'path' => $rel, 'size' => filesize($full)];
+            }
+        }
+    }
+}
+
 function code_restore_snapshot(string $src, string $dst): void {
     $entries = scandir($src);
     foreach ($entries as $entry) {

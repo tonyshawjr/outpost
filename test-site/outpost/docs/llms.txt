@@ -1530,10 +1530,11 @@ Endpoints added to `code-editor.php`:
 - `code/delete` DELETE — recursive for directories
 - `code/search` GET `?q=term` — full-text search, max 200 results
 - `code/context` GET — returns globals, collections, schema, forms, menus, folders (used by autocomplete and Forge)
+- `code/assets` GET `?theme=slug` — list all files in a theme's `assets/` directory (CSS, JS, images, fonts). Returns `{ files: [{ name, path, size }] }`
 
 ## Forge (Visual Tag Builder)
 
-Built into the Code Editor. Select HTML in any `.html`/`.htm` file, right-click to open the Forge context menu, or press Cmd+E / Ctrl+E to jump straight to Make Editable.
+Built into the Code Editor. Select HTML in any `.html`/`.htm` file, right-click to open the Forge context menu, or press Cmd+E / Ctrl+E to jump straight to Make Editable. Right-clicking without a selection shows "Insert Asset" and "Insert Component" options.
 
 Forge uses smart detection — it analyzes the selected HTML and reorders the context menu so the most likely action appears first. It also pre-selects the field type in the Make Editable form.
 
@@ -1573,6 +1574,16 @@ Forge uses smart detection — it analyzes the selected HTML and reorders the co
 ### Forge Playground
 
 Ships with a 6-page demo website in `themes/forge-playground/` (index, features, blog, gallery, about, contact) — pure HTML/CSS with Unsplash images. No `theme.json` — users "Forge a Theme" via a guided wizard. Includes a reset button to restore all files to pristine state from `.forge-snapshot/` backups.
+
+### Insert Asset
+
+Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the theme's `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
+
+- `.css` → `<link rel="stylesheet" href="/outpost/themes/{theme}/assets/{path}">`
+- `.js` → `<script src="/outpost/themes/{theme}/assets/{path}"></script>`
+- images → `<img src="/outpost/themes/{theme}/assets/{path}" alt="">`
+
+Powered by the `code/assets` API endpoint which scans the theme's `assets/` directory recursively.
 
 ### Forge Theme Wizard
 
@@ -1707,6 +1718,7 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `code/delete` | DELETE | Delete file or directory |
 | `code/search` | GET | Full-text search in theme files |
 | `code/context` | GET | Globals + collections for autocomplete |
+| `code/assets` | GET | List theme asset files (CSS, JS, images) |
 | `cache/clear` | POST | Clear HTML + template cache |
 | `backup/create` | POST | Create backup zip (DB + uploads + themes) |
 | `backup/list` | GET | List available backups |
