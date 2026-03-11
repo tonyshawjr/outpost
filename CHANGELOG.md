@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.6] — 2026-03-10
+
+### Security
+- **Symlink protection** — `code_build_tree()` and `code_search_dir()` now skip symlinks to prevent symlink-following attacks in the Code Editor file tree and search.
+- **Asset scan limits** — `code_scan_assets()` enforces a 500-file cap and 5-level depth limit to prevent DoS via deeply nested or oversized asset directories.
+
+### Fixed
+- **Forge docs** — Updated Requirements section to reflect cursor-only mode (right-click without selection shows Insert Asset + Insert Component).
+
+---
+
 ## [2.6.5] — 2026-03-10
 
 ### Added

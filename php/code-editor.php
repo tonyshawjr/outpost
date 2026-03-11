@@ -79,6 +79,8 @@ function code_build_tree(string $base, string $prefix): array {
         $full = $base . '/' . $entry;
         $rel = $prefix ? $prefix . '/' . $entry : $entry;
 
+        if (is_link($full)) continue;
+
         if (is_dir($full)) {
             if (code_skip_dir($entry)) continue;
             $dirs[] = [
@@ -292,6 +294,8 @@ function code_search_dir(string $base, string $prefix, string $q, array &$result
         $full = $base . '/' . $entry;
         $rel  = $prefix ? $prefix . '/' . $entry : $entry;
 
+        if (is_link($full)) continue;
+
         if (is_dir($full)) {
             if (code_skip_dir($entry)) continue;
             code_search_dir($full, $rel, $q, $results);
@@ -501,11 +505,14 @@ function handle_code_assets(): void {
     json_response(['files' => $files]);
 }
 
-function code_scan_assets(string $dir, string $prefix, array $allowedExts, array &$result): void {
+function code_scan_assets(string $dir, string $prefix, array $allowedExts, array &$result, int $maxFiles = 500, int $maxDepth = 5, int $depth = 0): void {
+    if (count($result) >= $maxFiles || $depth >= $maxDepth) return;
+
     $entries = @scandir($dir);
     if (!$entries) return;
 
     foreach ($entries as $entry) {
+        if (count($result) >= $maxFiles) return;
         if ($entry === '.' || $entry === '..' || $entry[0] === '.') continue;
         $full = $dir . '/' . $entry;
         $rel  = $prefix ? $prefix . '/' . $entry : $entry;
@@ -513,7 +520,7 @@ function code_scan_assets(string $dir, string $prefix, array $allowedExts, array
         if (is_link($full)) continue;
 
         if (is_dir($full)) {
-            code_scan_assets($full, $rel, $allowedExts, $result);
+            code_scan_assets($full, $rel, $allowedExts, $result, $maxFiles, $maxDepth, $depth + 1);
         } else {
             $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
             if (in_array($ext, $allowedExts, true)) {

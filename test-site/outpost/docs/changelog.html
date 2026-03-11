@@ -22,6 +22,17 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.6.6">2.6.6 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
+    <h3>Security</h3>
+    <ul>
+      <li><strong>Symlink protection</strong> &mdash; <code>code_build_tree()</code> and <code>code_search_dir()</code> now skip symlinks to prevent symlink-following attacks in the Code Editor file tree and search.</li>
+      <li><strong>Asset scan limits</strong> &mdash; <code>code_scan_assets()</code> enforces a 500-file cap and 5-level depth limit to prevent DoS via deeply nested or oversized asset directories.</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Forge docs</strong> &mdash; Updated Requirements section to reflect cursor-only mode (right-click without selection shows Insert Asset + Insert Component).</li>
+    </ul>
+
     <h2 id="2.6.5">2.6.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-10</span></h2>
     <h3>Added</h3>
     <ul>

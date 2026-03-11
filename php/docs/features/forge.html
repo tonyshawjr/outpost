@@ -223,14 +223,45 @@
     </ul>
     <pre><code>{% form 'contact' %}</code></pre>
 
+    <h3>Insert Asset</h3>
+    <p>Opens a searchable modal that lists all files in the theme&rsquo;s <code>assets/</code> directory &mdash; CSS, JavaScript, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position.</p>
+    <p><strong>No selection needed.</strong> Right-click anywhere in an HTML file (even without selecting text) to see &ldquo;Insert Asset&rdquo; in the Forge menu.</p>
+
+    <p><strong>What gets inserted:</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>File type</th>
+          <th>Inserted tag</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>.css</code></td>
+          <td><code>&lt;link rel="stylesheet" href="/outpost/themes/{theme}/assets/{file}"&gt;</code></td>
+        </tr>
+        <tr>
+          <td><code>.js</code></td>
+          <td><code>&lt;script src="/outpost/themes/{theme}/assets/{file}"&gt;&lt;/script&gt;</code></td>
+        </tr>
+        <tr>
+          <td><code>.png</code>, <code>.jpg</code>, <code>.svg</code>, <code>.webp</code>, etc.</td>
+          <td><code>&lt;img src="/outpost/themes/{theme}/assets/{file}" alt=""&gt;</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Assets are grouped by type (Stylesheets, Scripts, Images) with a search bar to filter. The modal scans the <code>assets/</code> directory recursively, so subdirectories like <code>assets/css/</code>, <code>assets/js/</code>, and <code>assets/images/</code> are all supported.</p>
+
     <h2>Keyboard shortcut</h2>
     <p><strong>Cmd+E</strong> (Mac) / <strong>Ctrl+E</strong> (Windows/Linux) opens the Make Editable popover directly — since it's the most common action. The field type is pre-selected by smart detection, so tagging a field is often just: select text → Cmd+E → Enter.</p>
 
     <h2>Requirements</h2>
     <ul>
       <li>Forge only activates on <code>.html</code> and <code>.htm</code> files. It does not appear when editing CSS, JS, JSON, or other file types.</li>
-      <li>You must have a text selection — Forge does not appear on empty right-clicks.</li>
       <li>The Code Editor must be open with a file loaded.</li>
+      <li><strong>With a selection:</strong> the full Forge menu appears (all 7 tagging actions + Insert Asset + Insert Component).</li>
+      <li><strong>Without a selection:</strong> right-click at any cursor position to see a reduced menu with just Insert Asset and Insert Component.</li>
     </ul>
 
     <h2>Forge Playground</h2>
