@@ -122,23 +122,27 @@
       <li><strong>Field name</strong> — auto-generated from the selected text, in <code>snake_case</code></li>
       <li><strong>Type</strong> — text, richtext, image, link, textarea, select, color, number, date, toggle</li>
       <li><strong>Scope</strong> — Page field or Global field</li>
+      <li><strong>Editable on front-end</strong> — when checked, appends <code>| edit</code> to the tag, enabling on-page editing for this field when an admin views the live site. Unchecked fields are only editable in the admin panel.</li>
       <li><strong>Use as default</strong> — wraps the selected text as a fallback value. ON by default when text is selected. Works for all types including images and links.</li>
     </ul>
 
     <p><strong>Examples of output:</strong></p>
-    <pre><code>&lt;!-- Simple text field --&gt;
+    <pre><code>&lt;!-- Simple text field (admin-only) --&gt;
 {{ headline }}
 
-&lt;!-- Image with filter --&gt;
-{{ hero_image | image }}
+&lt;!-- Text field with front-end editing --&gt;
+{{ headline | edit }}
 
-&lt;!-- Global field --&gt;
-{{ @site_name }}
+&lt;!-- Image with front-end editing --&gt;
+{{ hero_image | image | edit }}
 
-&lt;!-- Wrapping default (selected text becomes fallback) --&gt;
-{{ headline }}Welcome to our site{{ /headline }}
+&lt;!-- Global field with front-end editing --&gt;
+{{ @site_name | edit }}
 
-&lt;!-- Image with wrapping default (preserves original URL) --&gt;
+&lt;!-- Wrapping default with front-end editing --&gt;
+{{ headline | edit }}Welcome to our site{{ /headline }}
+
+&lt;!-- Image with wrapping default (admin-only) --&gt;
 {{ hero_image | image }}https://example.com/photo.jpg{{ /hero_image }}
 
 &lt;!-- Link with wrapping default --&gt;

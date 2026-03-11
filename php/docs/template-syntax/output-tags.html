@@ -193,6 +193,29 @@
 &lt;/article&gt;
 {% endfor %}</code></pre>
 
+    <h3><code>| edit</code> — On-Page Editing (Opt-In)</h3>
+    <p>Append <code>| edit</code> to any field tag to enable on-page editing for that field. When a logged-in admin views the front-end site, fields marked with <code>| edit</code> become click-to-edit. Fields <strong>without</strong> <code>| edit</code> are only editable in the admin panel.</p>
+    <pre><code>&lt;!-- Editable on the front-end --&gt;
+{{ headline | edit }}
+{{ body | raw | edit }}
+{{ hero_image | image | edit }}
+{{ @site_name | edit }}
+
+&lt;!-- NOT editable on front-end (admin panel only) --&gt;
+{{ headline }}
+{{ body | raw }}
+{{ hero_image | image }}</code></pre>
+    <p>The <code>| edit</code> modifier works with all field types that support on-page editing: <code>text</code>, <code>textarea</code>, <code>richtext</code> (<code>| raw</code>), and <code>image</code>. It also works with global fields (<code>@</code> prefix) and collection item fields inside <code>{% single %}</code> blocks:</p>
+    <pre><code>&lt;!-- Global field editable on front-end --&gt;
+{{ @company_name | edit }}
+
+&lt;!-- Collection item field editable in single view --&gt;
+{% single post from collection.post %}
+  &lt;h1&gt;{{ post.title | edit }}&lt;/h1&gt;
+  {{ post.body | raw | edit }}
+{% endsingle %}</code></pre>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The <code>| edit</code> modifier only controls front-end editing. All fields remain fully editable in the admin panel regardless of this modifier. The field scanner strips <code>| edit</code> before detecting types, so <code>{{ hero | image | edit }}</code> correctly registers as an image field.</div>
+
     <h2>Loop Variable Fields</h2>
     <p>Inside a <code>{% for %}</code> or <code>{% single %}</code> block, access item fields using dot notation: <code>{{ item.field }}</code>. The same filters apply.</p>
 

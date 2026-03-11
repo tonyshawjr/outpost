@@ -6,17 +6,18 @@
 /**
  * Wrap selection as an editable field: {{ field }}, {{ field | filter }}, {{ @global }}, or wrapping default.
  */
-export function wrapEditable({ fieldName, type = 'text', scope = 'page', useDefault = false, selectedText = '' }) {
+export function wrapEditable({ fieldName, type = 'text', scope = 'page', useDefault = false, selectedText = '', editable = false }) {
   const prefix = scope === 'global' ? '@' : '';
   const filter = getFilter(type);
   const name = `${prefix}${sanitizeName(fieldName)}`;
+  const editSuffix = editable ? ' | edit' : '';
 
   // Wrapping default: {{ field }}Default{{ /field }}
   if (useDefault && selectedText) {
-    return `{{ ${name}${filter} }}${selectedText}{{ /${name} }}`;
+    return `{{ ${name}${filter}${editSuffix} }}${selectedText}{{ /${name} }}`;
   }
 
-  return `{{ ${name}${filter} }}`;
+  return `{{ ${name}${filter}${editSuffix} }}`;
 }
 
 /**

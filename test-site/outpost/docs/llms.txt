@@ -290,9 +290,15 @@ All output tags register the field in the admin page editor automatically.
 {{ field_name | toggle }}     <!-- boolean toggle -->
 {{ field_name | or_body }}    <!-- text/excerpt fallback: uses auto-excerpt from body field if field is empty -->
 {{ field_name | focal }}      <!-- focal point: outputs "X% Y%" for object-position/background-position -->
+{{ field_name | edit }}       <!-- opt-in on-page editing (text field, editable on frontend) -->
+{{ field_name | raw | edit }} <!-- richtext with on-page editing -->
+{{ field_name | image | edit }}  <!-- image with on-page editing -->
+{{ @global_name | edit }}     <!-- global field with on-page editing -->
 ```
 
 **Filter purpose:** Filters like `| image`, `| link`, `| textarea` do NOT transform the output. They tell the admin page editor which input type to render for that field (media picker, URL input, multiline textarea, etc.). The template output is always the stored value. `{{ hero | image }}` outputs the image URL string — wrap it in `<img src="...">` yourself.
+
+**On-page editing (`| edit`):** Append `| edit` to any field tag to enable on-page editing for that field. When a logged-in admin views the site, fields with `| edit` become click-to-edit. Fields without `| edit` are only editable in the admin panel. Works with text, textarea, richtext, image, and globals. The field scanner strips `| edit` before type detection, so `{{ hero | image | edit }}` registers as an image field.
 
 Both inline (`{{ field "Default" }}`) and closing-tag (`{{ field }}Default{{ /field }}`) default syntax is fully supported. Closing-tag defaults also work with filters: `{{ field | raw }}<p>HTML</p>{{ /field }}`. Defaults are extracted by the template scanner and stored in `page_field_registry.default_value`, so the admin page editor pre-fills fields (including WYSIWYG richtext) with the template default when content is empty.
 
@@ -608,6 +614,7 @@ All loop types support `{% else %}` for empty-state fallbacks (v1.9.3). This inc
 | `{{ field | toggle }}` | Boolean toggle |
 | `{{ field | or_body }}` | Text with auto-excerpt fallback from body |
 | `{{ field | focal }}` | Focal point as CSS `X% Y%` for `object-position` |
+| `{{ field | edit }}` | Opt-in on-page editing (append to any type: `{{ field | image | edit }}`) |
 | `{{ @global }}` | Output global field |
 | `{{ meta.title }}Default{{ /meta.title }}` | `<title>` tag (legacy — use `{% seo %}` in new themes) |
 | `{{ meta.description }}Default{{ /meta.description }}` | `<meta name="description">` tag (legacy — use `{% seo %}` in new themes) |
@@ -1557,7 +1564,7 @@ Forge uses smart detection — it analyzes the selected HTML and reorders the co
 
 ### Seven actions
 
-**Make Editable** — Wraps selection in an output tag. Fields: name (auto-slugified), type (text, richtext, image, link, textarea, select, color, number, date, toggle), scope (page/global), use as default (wrapping default — ON by default for all types including image and link). Output: `{{ field }}`, `{{ field | image }}https://url{{ /field }}`, `{{ @global }}`, or `{{ field }}Default{{ /field }}`.
+**Make Editable** — Wraps selection in an output tag. Fields: name (auto-slugified), type (text, richtext, image, link, textarea, select, color, number, date, toggle), scope (page/global), editable on front-end (appends `| edit` for on-page editing), use as default (wrapping default — ON by default for all types including image and link). Output: `{{ field }}`, `{{ field | edit }}`, `{{ field | image | edit }}`, `{{ @global | edit }}`, or `{{ field | edit }}Default{{ /field }}`.
 
 **Collection Loop** — Wraps selection in `{% for item in collection.slug %}...{% endfor %}`. Fields: collection (dropdown), item variable, limit, order by. **Field mapper**: auto-detects images, headings, paragraphs, and links in selected HTML and maps them to collection fields with auto-guessing.
 

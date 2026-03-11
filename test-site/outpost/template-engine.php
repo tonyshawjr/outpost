@@ -583,14 +583,18 @@ class OutpostTemplate {
             $php
         );
 
-        // {{ @global_name | filter }}Default{{ /@global_name }} — wrapping global with filter
+        // {{ @global_name | filter | edit }}Default{{ /@global_name }} — wrapping global with filter
         $php = preg_replace_callback(
-            '/\{\{\s*@(\w+)\s*\|\s*(\w+)\s*\}\}(.*?)\{\{\s*\/@\1\s*\}\}/s',
+            '/\{\{\s*@(\w+)\s*\|\s*(\w+)(\s*\|\s*edit)?\s*\}\}(.*?)\{\{\s*\/@\1\s*\}\}/s',
             function ($m) {
                 $name = $m[1];
                 $filter = $m[2];
-                $default = addslashes($m[3]);
-                return "<?php cms_global('{$name}', '{$filter}', '{$default}'); ?>";
+                $editable = false;
+                if ($filter === 'edit') { $filter = 'text'; $editable = true; }
+                elseif (!empty($m[3])) { $editable = true; }
+                $default = addslashes($m[4]);
+                $eb = $editable ? 'true' : 'false';
+                return "<?php cms_global('{$name}', '{$filter}', '{$default}', {$eb}); ?>";
             },
             $php
         );
@@ -606,39 +610,47 @@ class OutpostTemplate {
             $php
         );
 
-        // {{ @global_name | type }} — global fields (no wrapping default)
+        // {{ @global_name | type | edit }} — global fields (no wrapping default)
         $php = preg_replace_callback(
-            '/\{\{\s*@(\w+)\s*(?:\|\s*(\w+))?\s*\}\}/',
+            '/\{\{\s*@(\w+)\s*(?:\|\s*(\w+))?(\s*\|\s*edit)?\s*\}\}/',
             function ($m) {
                 $name = $m[1];
                 $filter = $m[2] ?? 'text';
-                return "<?php cms_global('{$name}', '{$filter}'); ?>";
+                $editable = false;
+                if ($filter === 'edit') { $filter = 'text'; $editable = true; }
+                elseif (!empty($m[3])) { $editable = true; }
+                $eb = $editable ? 'true' : 'false';
+                return "<?php cms_global('{$name}', '{$filter}', '', {$eb}); ?>";
             },
             $php
         );
 
-        // {{ item.field }} and {{ item.field | raw }} — loop variable access
+        // {{ item.field }} and {{ item.field | raw | edit }} — loop variable access
         // Uses OPE wrapper functions for on-page editing support in {% single %} blocks.
         // When preceded by =" or =' (inside an HTML attribute), skip OPE wrappers that
         // emit <span>/<div> tags — those break attribute values.
         $php = preg_replace_callback(
-            '/(=["\'])?\{\{\s*(\w+)\.(\w+)\s*(?:\|\s*(\w+))?\s*\}\}/',
+            '/(=["\'])?\{\{\s*(\w+)\.(\w+)\s*(?:\|\s*(\w+))?(\s*\|\s*edit)?\s*\}\}/',
             function ($m) {
                 $inAttr = !empty($m[1]);
                 $prefix = $m[1] ?? '';
                 $var = $m[2];
                 $field = $m[3];
                 $filter = $m[4] ?? null;
+                $editable = false;
+                if ($filter === 'edit') { $filter = null; $editable = true; }
+                elseif (!empty($m[5])) { $editable = true; }
+                $eb = $editable ? 'true' : 'false';
 
                 // Skip meta.* and collection.* (already handled above)
                 if ($var === 'meta' || $var === 'collection') return $m[0];
 
                 if ($filter === 'raw') {
                     if ($inAttr) return "{$prefix}<?= outpost_esc(\${$var}['{$field}'] ?? '') ?>";
-                    return "<?= outpost_ope_item_raw(\${$var}, '{$field}') ?>";
+                    return "<?= outpost_ope_item_raw(\${$var}, '{$field}', {$eb}) ?>";
                 }
                 if ($filter === 'image') {
-                    return "{$prefix}<?= outpost_ope_item_image(\${$var}, '{$field}') ?>";
+                    return "{$prefix}<?= outpost_ope_item_image(\${$var}, '{$field}', {$eb}) ?>";
                 }
                 if ($filter === 'focal') {
                     return "{$prefix}<?php outpost_item_focal(\${$var}, '{$field}'); ?>";
@@ -651,7 +663,7 @@ class OutpostTemplate {
                 if ($inAttr) {
                     return "{$prefix}<?= outpost_esc(\${$var}['{$field}'] ?? '') ?>";
                 }
-                return "<?= outpost_ope_item_text(\${$var}, '{$field}') ?>";
+                return "<?= outpost_ope_item_text(\${$var}, '{$field}', {$eb}) ?>";
             },
             $php
         );
@@ -672,28 +684,32 @@ class OutpostTemplate {
             $php
         );
 
-        // {{ field | filter }}Default{{ /field }} — wrapping filtered fields
+        // {{ field | filter | edit }}Default{{ /field }} — wrapping filtered fields
         $php = preg_replace_callback(
-            '/\{\{\s*(\w+)\s*\|\s*(\w+)\s*\}\}(.*?)\{\{\s*\/\1\s*\}\}/s',
+            '/\{\{\s*(\w+)\s*\|\s*(\w+)(\s*\|\s*edit)?\s*\}\}(.*?)\{\{\s*\/\1\s*\}\}/s',
             function ($m) {
                 $name = $m[1];
                 $filter = $m[2];
-                $default = addslashes($m[3]);
+                $editable = false;
+                if ($filter === 'edit') { $filter = 'text'; $editable = true; }
+                elseif (!empty($m[3])) { $editable = true; }
+                $default = addslashes($m[4]);
+                $eb = $editable ? 'true' : 'false';
 
                 $map = [
-                    'raw'      => "cms_richtext('{$name}', '{$default}')",
-                    'image'    => "cms_image('{$name}', '{$default}')",
+                    'raw'      => "cms_richtext('{$name}', '{$default}', {$eb})",
+                    'image'    => "cms_image('{$name}', '{$default}', {$eb})",
                     'link'     => "cms_link('{$name}', '{$default}')",
                     'color'    => "cms_color('{$name}', '{$default}')",
                     'number'   => "cms_number('{$name}', '{$default}')",
                     'date'     => "cms_date('{$name}', '{$default}')",
-                    'textarea' => "cms_textarea('{$name}', '{$default}')",
-                    'select'   => "cms_text('{$name}', '{$default}')",
+                    'textarea' => "cms_textarea('{$name}', '{$default}', {$eb})",
+                    'select'   => "cms_text('{$name}', '{$default}', {$eb})",
                     'toggle'   => "cms_toggle('{$name}')",
                     'focal'    => "cms_focal('{$name}')",
                 ];
 
-                $call = $map[$filter] ?? "cms_text('{$name}', '{$default}')";
+                $call = $map[$filter] ?? "cms_text('{$name}', '{$default}', {$eb})";
                 return "<?php {$call}; ?>";
             },
             $php
@@ -712,28 +728,32 @@ class OutpostTemplate {
 
         // --- Inline defaults (backwards-compatible) ---
 
-        // {{ field_name | filter "default" }} or {{ field_name | filter }} — CMS fields with explicit type
+        // {{ field_name | filter | edit }} or {{ field_name | filter "default" | edit }} — CMS fields with explicit type
         $php = preg_replace_callback(
-            '/\{\{\s*(\w+)\s*\|\s*(\w+)(?:\s+"([^"]*)")?\s*\}\}/',
+            '/\{\{\s*(\w+)\s*\|\s*(\w+)(?:\s+"([^"]*)")?(\s*\|\s*edit)?\s*\}\}/',
             function ($m) {
                 $name = $m[1];
                 $filter = $m[2];
                 $default = addslashes($m[3] ?? '');
+                $editable = false;
+                if ($filter === 'edit') { $filter = 'text'; $editable = true; }
+                elseif (!empty($m[4])) { $editable = true; }
+                $eb = $editable ? 'true' : 'false';
 
                 $map = [
-                    'raw'      => "cms_richtext('{$name}', '{$default}')",
-                    'image'    => "cms_image('{$name}', '{$default}')",
+                    'raw'      => "cms_richtext('{$name}', '{$default}', {$eb})",
+                    'image'    => "cms_image('{$name}', '{$default}', {$eb})",
                     'link'     => "cms_link('{$name}', '{$default}')",
                     'color'    => "cms_color('{$name}', '{$default}')",
                     'number'   => "cms_number('{$name}', '{$default}')",
                     'date'     => "cms_date('{$name}', '{$default}')",
-                    'textarea' => "cms_textarea('{$name}', '{$default}')",
-                    'select'   => "cms_text('{$name}', '{$default}')",
+                    'textarea' => "cms_textarea('{$name}', '{$default}', {$eb})",
+                    'select'   => "cms_text('{$name}', '{$default}', {$eb})",
                     'toggle'   => "cms_toggle('{$name}')",
                     'focal'    => "cms_focal('{$name}')",
                 ];
 
-                $call = $map[$filter] ?? "cms_text('{$name}', '{$default}')";
+                $call = $map[$filter] ?? "cms_text('{$name}', '{$default}', {$eb})";
                 return "<?php {$call}; ?>";
             },
             $php

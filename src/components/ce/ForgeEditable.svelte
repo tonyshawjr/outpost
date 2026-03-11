@@ -7,6 +7,7 @@
   let type      = $state(suggestedType || 'text');
   let scope     = $state('page');
   let useDefault = $state(!!selectedText);
+  let editable   = $state(false);
 
   let inputEl = $state(null);
 
@@ -55,6 +56,7 @@
       scope,
       useDefault: useDefault && canUseDefault,
       selectedText,
+      editable,
     });
     onConfirm(output);
   }
@@ -107,6 +109,11 @@
     </select>
   </div>
 </div>
+
+<label class="forge-check-row">
+  <input type="checkbox" bind:checked={editable} />
+  Editable on front-end
+</label>
 
 {#if canUseDefault && selectedText}
   <label class="forge-check-row">

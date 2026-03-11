@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## OPE Opt-In & Theme Cleanup (v2.6.9)
+
+- **`| edit` modifier** — On-page editing is now opt-in. Append `| edit` to any template tag to enable frontend editing: `{{ headline | edit }}`, `{{ body | raw | edit }}`, `{{ hero | image | edit }}`, `{{ @site_name | edit }}`. Fields without `| edit` render normally but are only editable in the admin panel. Forge "Insert Editable" includes an "Editable on front-end" checkbox.
+- **Theme page cleanup** — Deleting a theme now purges its fields, field registry, and orphaned pages from the database. Theme activation also cleans up orphans from previously deleted themes.
+- **SEO analytics theme filter** — SEO report in Analytics now only audits pages belonging to the active theme, preventing ghost pages from inflating the score.
+- **Files**: `php/engine.php`, `php/template-engine.php`, `php/themes.php`, `php/api.php`, `src/lib/forge-tags.js`, `src/components/ce/ForgeEditable.svelte`
+
+---
+
 ## Custom Google Fonts (v2.6.1)
 
 - **Manage fonts** — "Manage fonts" link in Brand > Typography opens a modal to add any Google Font by name and category. Fonts are stored in the settings table as `custom_fonts` JSON.

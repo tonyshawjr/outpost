@@ -106,6 +106,11 @@ function handle_theme_activate(): void {
     ensure_fields_theme_column();
     outpost_scan_theme_templates($slug);
 
+    // Clean up orphaned pages from previously deleted themes
+    OutpostDB::query(
+        "DELETE FROM pages WHERE id NOT IN (SELECT DISTINCT page_id FROM fields) AND path != '__global__'"
+    );
+
     json_response(['success' => true, 'active' => $slug]);
 }
 
@@ -173,6 +178,14 @@ function handle_theme_delete(): void {
     }
 
     theme_delete_dir($real);
+
+    // Clean up DB: theme-scoped fields, field registry, and orphaned pages
+    require_once __DIR__ . '/db.php';
+    OutpostDB::query("DELETE FROM fields WHERE theme = ?", [$slug]);
+    OutpostDB::query("DELETE FROM page_field_registry WHERE theme = ?", [$slug]);
+    OutpostDB::query(
+        "DELETE FROM pages WHERE id NOT IN (SELECT DISTINCT page_id FROM fields) AND path != '__global__'"
+    );
 
     json_response(['success' => true]);
 }

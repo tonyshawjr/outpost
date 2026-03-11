@@ -4217,18 +4217,39 @@ function handle_analytics_seo(): void {
         }
     }
 
-    // Fetch all non-collection pages
-    $all_pages = OutpostDB::fetchAll(
-        "SELECT p.id, p.path, p.title,
-                p.meta_title,
-                p.meta_description,
-                MAX(CASE WHEN f.field_name = 'og_image' THEN f.content END) as og_image,
-                GROUP_CONCAT(CASE WHEN f.field_type IN ('text','textarea','richtext') THEN f.content END, ' ') as body_text
-         FROM pages p
-         LEFT JOIN fields f ON f.page_id = p.id
-         WHERE p.path != '__global__'
-         GROUP BY p.id"
+    // Only show pages from the active theme (same pattern as handle_pages_list)
+    $activeTheme = get_active_theme();
+    $hasThemeFields = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as c FROM fields WHERE theme = ?",
+        [$activeTheme]
     );
+
+    if (($hasThemeFields['c'] ?? 0) > 0) {
+        $all_pages = OutpostDB::fetchAll(
+            "SELECT p.id, p.path, p.title,
+                    p.meta_title,
+                    p.meta_description,
+                    MAX(CASE WHEN f.field_name = 'og_image' THEN f.content END) as og_image,
+                    GROUP_CONCAT(CASE WHEN f.field_type IN ('text','textarea','richtext') THEN f.content END, ' ') as body_text
+             FROM pages p
+             JOIN fields f ON f.page_id = p.id
+             WHERE p.path != '__global__' AND f.theme = ?
+             GROUP BY p.id",
+            [$activeTheme]
+        );
+    } else {
+        $all_pages = OutpostDB::fetchAll(
+            "SELECT p.id, p.path, p.title,
+                    p.meta_title,
+                    p.meta_description,
+                    MAX(CASE WHEN f.field_name = 'og_image' THEN f.content END) as og_image,
+                    GROUP_CONCAT(CASE WHEN f.field_type IN ('text','textarea','richtext') THEN f.content END, ' ') as body_text
+             FROM pages p
+             LEFT JOIN fields f ON f.page_id = p.id
+             WHERE p.path != '__global__'
+             GROUP BY p.id"
+        );
+    }
 
     // Filter out collection item paths and system/internal pages
     $pages = array_values(array_filter($all_pages, function($page) use ($prefixes) {

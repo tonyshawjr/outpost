@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.9] — 2026-03-11
+
+### Added
+- **OPE opt-in (`| edit`)** — On-page editing is now opt-in per field. Add `| edit` to any template tag (e.g. `{{ headline | edit }}`, `{{ body | raw | edit }}`, `{{ hero | image | edit }}`) to enable frontend editing. Fields without `| edit` are admin-panel only. Forge UI includes an "Editable on front-end" checkbox.
+
+### Fixed
+- **Theme page cleanup** — Deleting a theme now removes its orphaned pages, fields, and field registry entries from the database. Switching themes also cleans up orphaned pages from previously deleted themes.
+- **SEO analytics ghost pages** — Analytics SEO report now filters pages by active theme, preventing orphaned pages from inflating the page count and SEO score.
+
+---
+
 ## [2.6.8] — 2026-03-11
 
 ### Fixed

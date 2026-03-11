@@ -27,7 +27,7 @@ Everything below is already built and in the current beta (v1.0.0-beta.15).
 - Member system (registration, login, email verification, paid tiers, visibility gates)
 - **Visual form builder** — 14 field types, drag-and-drop, `{% form 'slug' %}` template tag, enhanced submissions inbox
 - **Channels (Phase 1: REST API + Phase 2: RSS + CSV)** — connect to external APIs, RSS feeds, and CSV files, cache data in SQLite, render in templates via `{% for item in channel.slug %}`
-- **On-page editing** — edit text, richtext, textarea, and image fields directly on the live frontend (admin-only, with floating TipTap toolbar, media picker, auto-save)
+- **On-page editing** — edit text, richtext, textarea, and image fields directly on the live frontend (admin-only, with floating TipTap toolbar, media picker, auto-save). Opt-in via `| edit` modifier (v2.6.9)
 - Forms with submissions, email notifications, reCAPTCHA
 - Code editor (VS Code-style IDE with tabs, file tree, autocomplete, find in files)
 - Revision history with field-level diffs and one-click rollback

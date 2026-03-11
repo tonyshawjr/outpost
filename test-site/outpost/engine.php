@@ -198,10 +198,10 @@ function outpost_esc(string $v): string {
     return htmlspecialchars(html_entity_decode($v, ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES, 'UTF-8');
 }
 
-function cms_text(string $name, string $default = ''): void {
+function cms_text(string $name, string $default = '', bool $editable = false): void {
     global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id;
     $val = outpost_esc(outpost_resolve_field($name, 'text', $default));
-    if ($_outpost_edit_mode && isset($_outpost_fields_cache[$name])) {
+    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
         $fid = (int) $_outpost_fields_cache[$name]['id'];
         echo '<span data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $_outpost_page_id . '" data-ope-type="text">' . $val . '</span>';
     } else {
@@ -209,10 +209,10 @@ function cms_text(string $name, string $default = ''): void {
     }
 }
 
-function cms_textarea(string $name, string $default = ''): void {
+function cms_textarea(string $name, string $default = '', bool $editable = false): void {
     global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id;
     $val = nl2br(htmlspecialchars(outpost_resolve_field($name, 'textarea', $default), ENT_QUOTES, 'UTF-8'));
-    if ($_outpost_edit_mode && isset($_outpost_fields_cache[$name])) {
+    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
         $fid = (int) $_outpost_fields_cache[$name]['id'];
         echo '<span data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $_outpost_page_id . '" data-ope-type="textarea">' . $val . '</span>';
     } else {
@@ -220,11 +220,11 @@ function cms_textarea(string $name, string $default = ''): void {
     }
 }
 
-function cms_richtext(string $name, string $default = ''): void {
+function cms_richtext(string $name, string $default = '', bool $editable = false): void {
     global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id;
     // Richtext content is stored sanitized, output as-is
     $val = outpost_resolve_field($name, 'richtext', $default);
-    if ($_outpost_edit_mode && isset($_outpost_fields_cache[$name])) {
+    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
         $fid = (int) $_outpost_fields_cache[$name]['id'];
         echo '<div data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $_outpost_page_id . '" data-ope-type="richtext">' . $val . '</div>';
     } else {
@@ -232,11 +232,11 @@ function cms_richtext(string $name, string $default = ''): void {
     }
 }
 
-function cms_image(string $name, string $default = ''): void {
+function cms_image(string $name, string $default = '', bool $editable = false): void {
     global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id, $_outpost_image_fields;
     $val = htmlspecialchars(outpost_resolve_field($name, 'image', $default), ENT_QUOTES, 'UTF-8');
     echo $val;
-    if ($_outpost_edit_mode && isset($_outpost_fields_cache[$name])) {
+    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
         $_outpost_image_fields[] = [
             'name' => $name,
             'id' => (int) $_outpost_fields_cache[$name]['id'],
@@ -491,10 +491,10 @@ function cms_date(string $name, string $default = ''): void {
 // ── On-Page Editing: Collection Item Wrappers ───────────
 // Used by compiled templates inside {% single %} blocks to annotate item fields.
 
-function outpost_ope_item_text(array $item, string $field): string {
+function outpost_ope_item_text(array $item, string $field, bool $editable = false): string {
     global $_outpost_edit_mode, $_outpost_in_single, $_outpost_current_collection;
     $val = outpost_esc($item[$field] ?? '');
-    if ($_outpost_edit_mode && $_outpost_in_single && isset($item['id'])) {
+    if ($_outpost_edit_mode && $editable && $_outpost_in_single && isset($item['id'])) {
         $itemId = (int) $item['id'];
         $coll = htmlspecialchars($_outpost_current_collection, ENT_QUOTES);
         $fn = htmlspecialchars($field, ENT_QUOTES);
@@ -503,10 +503,10 @@ function outpost_ope_item_text(array $item, string $field): string {
     return $val;
 }
 
-function outpost_ope_item_raw(array $item, string $field): string {
+function outpost_ope_item_raw(array $item, string $field, bool $editable = false): string {
     global $_outpost_edit_mode, $_outpost_in_single, $_outpost_current_collection;
     $val = $item[$field] ?? '';
-    if ($_outpost_edit_mode && $_outpost_in_single && isset($item['id'])) {
+    if ($_outpost_edit_mode && $editable && $_outpost_in_single && isset($item['id'])) {
         $itemId = (int) $item['id'];
         $coll = htmlspecialchars($_outpost_current_collection, ENT_QUOTES);
         $fn = htmlspecialchars($field, ENT_QUOTES);
@@ -515,10 +515,10 @@ function outpost_ope_item_raw(array $item, string $field): string {
     return $val;
 }
 
-function outpost_ope_item_image(array $item, string $field): string {
+function outpost_ope_item_image(array $item, string $field, bool $editable = false): string {
     global $_outpost_edit_mode, $_outpost_in_single, $_outpost_current_collection, $_outpost_image_fields;
     $val = htmlspecialchars($item[$field] ?? '', ENT_QUOTES, 'UTF-8');
-    if ($_outpost_edit_mode && $_outpost_in_single && isset($item['id'])) {
+    if ($_outpost_edit_mode && $editable && $_outpost_in_single && isset($item['id'])) {
         $_outpost_image_fields[] = [
             'name' => $field,
             'item' => (int) $item['id'],
@@ -601,7 +601,7 @@ function cms_meta_description(string $name, string $default = ''): void {
 }
 
 // ── Global Fields ────────────────────────────────────────
-function cms_global(string $name, string $type = 'text', string $default = ''): void {
+function cms_global(string $name, string $type = 'text', string $default = '', bool $editable = false): void {
     global $_outpost_globals_cache, $_outpost_edit_mode, $_outpost_image_fields;
 
     if (!file_exists(OUTPOST_DB_PATH)) {
@@ -645,7 +645,7 @@ function cms_global(string $name, string $type = 'text', string $default = ''): 
     if ($type === 'image') {
         $escaped = htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
         echo $escaped;
-        if ($_outpost_edit_mode && $fid) {
+        if ($_outpost_edit_mode && $editable && $fid) {
             $_outpost_image_fields[] = [
                 'name' => $name,
                 'id' => $fid,
@@ -655,14 +655,14 @@ function cms_global(string $name, string $type = 'text', string $default = ''): 
             ];
         }
     } elseif ($type === 'richtext') {
-        if ($_outpost_edit_mode && $fid) {
+        if ($_outpost_edit_mode && $editable && $fid) {
             echo '<div data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $globalPageId . '" data-ope-type="richtext" data-ope-global="1">' . $output . '</div>';
         } else {
             echo $output;
         }
     } else {
         $escaped = htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
-        if ($_outpost_edit_mode && $fid) {
+        if ($_outpost_edit_mode && $editable && $fid) {
             echo '<span data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $globalPageId . '" data-ope-type="text" data-ope-global="1">' . $escaped . '</span>';
         } else {
             echo $escaped;
@@ -1800,6 +1800,9 @@ function outpost_scan_theme_fields(string $source): array {
     // Strip comments
     $source = preg_replace('/\{#.*?#\}/s', '', $source);
 
+    // Strip | edit modifier so it doesn't interfere with field type detection
+    $source = preg_replace('/\|\s*edit/', '', $source);
+
     $type_map = [
         'raw' => 'richtext', 'image' => 'image', 'link' => 'link',
         'color' => 'color', 'number' => 'number', 'date' => 'date',
@@ -1927,6 +1930,9 @@ function outpost_scan_global_fields(string $source): array {
 
     // Strip comments
     $source = preg_replace('/\{#.*?#\}/s', '', $source);
+
+    // Strip | edit modifier so it doesn't interfere with field type detection
+    $source = preg_replace('/\|\s*edit/', '', $source);
 
     $type_map = [
         'raw' => 'richtext', 'image' => 'image', 'link' => 'link',

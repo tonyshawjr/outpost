@@ -22,6 +22,17 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="2.6.9">2.6.9 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-11</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>OPE opt-in (<code>| edit</code>)</strong> &mdash; On-page editing is now opt-in per field. Add <code>| edit</code> to any template tag (e.g. <code>{{ headline | edit }}</code>, <code>{{ body | raw | edit }}</code>, <code>{{ hero | image | edit }}</code>) to enable frontend editing. Fields without <code>| edit</code> are admin-panel only. Forge UI includes an &ldquo;Editable on front-end&rdquo; checkbox.</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Theme page cleanup</strong> &mdash; Deleting a theme now removes its orphaned pages, fields, and field registry entries from the database. Switching themes also cleans up orphaned pages from previously deleted themes.</li>
+      <li><strong>SEO analytics ghost pages</strong> &mdash; Analytics SEO report now filters pages by active theme, preventing orphaned pages from inflating the page count and SEO score.</li>
+    </ul>
+
     <h2 id="2.6.8">2.6.8 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-11</span></h2>
     <h3>Fixed</h3>
     <ul>
