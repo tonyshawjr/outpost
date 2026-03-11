@@ -49,6 +49,16 @@
   </div>
 
   <div class="settings-section">
+    <div class="settings-section-title">Notifications</div>
+
+    <div class="settings-field">
+      <label class="settings-label">Notification Email</label>
+      <input type="text" class="settings-input" value={settings.notification_email || ''} oninput={(e) => update('notification_email', e.target.value)} placeholder="admin@example.com" />
+      <p class="settings-hint">Comma-separated for multiple recipients. Falls back to global notify email if blank.</p>
+    </div>
+  </div>
+
+  <div class="settings-section">
     <div class="settings-section-title">Template Usage</div>
     <div class="settings-code">
       <code>{`{% form '${formSlug}' %}`}</code>

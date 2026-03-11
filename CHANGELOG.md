@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.3] — 2026-03-11
+
+### Added
+- **Form Builder: Notification Email** — Each form now has a "Notification Email" setting in the Form Builder settings panel. Supports comma-separated addresses for multiple recipients. Falls back to the global notify email if blank. Builder form notification emails take priority over legacy form configs.
+
+---
+
 ## [2.7.2] — 2026-03-11
 
 ### Added

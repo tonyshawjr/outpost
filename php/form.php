@@ -197,7 +197,7 @@ try {
 // ── Send email notification ───────────────────────────────
 
 try {
-    $notifyEmail = get_form_notify($formName) ?: get_setting('notify_email');
+    $notifyEmail = (!empty($bSettings['notification_email']) ? $bSettings['notification_email'] : get_form_notify($formName)) ?: get_setting('notify_email');
 
     if ($notifyEmail) {
         $mailer  = OutpostMailer::fromSettings();

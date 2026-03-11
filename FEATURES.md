@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Form Builder: Notification Email (v2.7.3)
+
+- **Per-form notification email** — Each form in the Form Builder now has a "Notification Email" field in the Settings panel. Enter one or more comma-separated email addresses. When a submission comes in, the notification is sent to these addresses first, falling back to the legacy `form_configs` per-form email, then the global `notify_email` setting.
+- **Files**: `src/components/form-builder/FormSettings.svelte`, `php/form.php`
+
+---
+
 ## Forge Form: Preserve Original CSS Classes (v2.7.2)
 
 - **CSS class preservation** — When Forge auto-creates a form from `<form>` HTML, it now extracts and preserves CSS classes from the form element, submit button, and each field's wrapper `<div>`. The rendered `{% form %}` output includes both Outpost's own classes and the original theme classes, keeping forms styled without manual work.
