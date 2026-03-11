@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.4] — 2026-03-11
+
+### Fixed
+- **Submissions inbox: mobile responsive** — Complete mobile redesign of the form submissions inbox. Sidebar filters collapse to a horizontal scrollable pill bar, list items take full width with larger touch targets, tapping a submission shows a full-screen detail view with a back button. All three panels stack correctly on phones and tablets.
+
+---
+
 ## [2.7.3] — 2026-03-11
 
 ### Added

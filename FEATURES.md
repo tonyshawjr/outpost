@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Submissions Inbox: Mobile Responsive (v2.7.4)
+
+- **Mobile-first inbox** — The submissions inbox now works on phones and tablets. Desktop sidebar filters collapse to a horizontal scrollable pill bar with unread badges. The list takes full width with touch-friendly item sizing. Tapping a submission shows a full-screen detail view with a back arrow. Bulk actions bar scrolls horizontally. All three panels (sidebar/list/detail) stack correctly at <=768px.
+- **Files**: `src/pages/FormSubmissions.svelte`
+
+---
+
 ## Form Builder: Notification Email (v2.7.3)
 
 - **Per-form notification email** — Each form in the Form Builder now has a "Notification Email" field in the Settings panel. Enter one or more comma-separated email addresses. When a submission comes in, the notification is sent to these addresses first, falling back to the legacy `form_configs` per-form email, then the global `notify_email` setting.

@@ -26,6 +26,9 @@
   let savingNotify   = $state(false);
   let _configCache   = {};
 
+  // Mobile navigation state
+  let mobileView     = $state('list'); // 'list' or 'detail'
+
   onMount(async () => {
     loading = true;
     try {
@@ -92,6 +95,7 @@
     selected = sub;
     editingNotes = false;
     notesDraft = sub.notes || '';
+    mobileView = 'detail';
     if (!sub.read_at) {
       try {
         await formsApi.markRead(sub.id);
@@ -99,6 +103,11 @@
         submissions = [...submissions];
       } catch (e) {}
     }
+  }
+
+  function backToList() {
+    mobileView = 'list';
+    selected = null;
   }
 
   async function toggleStar(sub) {
@@ -246,8 +255,19 @@
   {#if loading}
     <div class="loading-overlay"><div class="spinner"></div></div>
   {:else}
-    <div class="subs-layout">
-      <!-- Sidebar: form filter -->
+    <!-- Mobile filter bar (visible only on mobile) -->
+    <div class="subs-mobile-filters">
+      <button class="subs-mobile-pill" class:active={!filter} onclick={() => setFilter('')}>All</button>
+      {#each formsList as form}
+        <button class="subs-mobile-pill" class:active={filter === form.form_name} onclick={() => setFilter(form.form_name)}>
+          {form.form_name}
+          {#if form.unread > 0}<span class="subs-mobile-badge">{form.unread}</span>{/if}
+        </button>
+      {/each}
+    </div>
+
+    <div class="subs-layout" class:mobile-show-detail={mobileView === 'detail'}>
+      <!-- Sidebar: form filter (desktop only) -->
       <div class="subs-sidebar">
         <button class="subs-filter-item" class:active={!filter} onclick={() => setFilter('')}>
           <span>All Forms</span>
@@ -350,6 +370,7 @@
             {:else}
               {@const labels = getFieldLabels(selected)}
               <div class="subs-detail-header">
+                <button class="subs-back-btn" onclick={backToList}>&larr;</button>
                 <h3>{getFormName(selected)}</h3>
                 <span class="subs-detail-date">{fmtDate(selected.created_at)}</span>
               </div>
@@ -782,5 +803,177 @@
 
   .btn-danger-text {
     color: var(--danger-color, #dc2626);
+  }
+
+  /* Back button — hidden on desktop */
+  .subs-back-btn {
+    display: none;
+  }
+
+  /* Mobile filter bar — hidden on desktop */
+  .subs-mobile-filters {
+    display: none;
+  }
+
+  /* ── Mobile ──────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    /* Mobile filter bar */
+    .subs-mobile-filters {
+      display: flex;
+      gap: 6px;
+      padding: 8px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .subs-mobile-filters::-webkit-scrollbar { display: none; }
+
+    .subs-mobile-pill {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      font-size: 13px;
+      border: 1px solid var(--border-color, #e5e7eb);
+      border-radius: 20px;
+      background: var(--card-bg, #fff);
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .subs-mobile-pill.active {
+      background: var(--accent-bg, #eff6ff);
+      border-color: var(--accent-color, #2563eb);
+      color: var(--accent-color, #2563eb);
+      font-weight: 500;
+    }
+    .subs-mobile-badge {
+      display: inline-block;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      margin-left: 4px;
+      background: var(--accent-color, #2563eb);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 16px;
+      text-align: center;
+      border-radius: 8px;
+    }
+
+    /* Hide desktop sidebar */
+    .subs-sidebar {
+      display: none;
+    }
+
+    /* Layout: single-column, fill available height */
+    .subs-layout {
+      flex-direction: column;
+      min-height: 400px;
+      border: none;
+      border-radius: 0;
+    }
+
+    .subs-main {
+      min-height: 0;
+    }
+
+    .subs-list-detail {
+      flex-direction: column;
+    }
+
+    /* List: full width */
+    .subs-list {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--border-color, #e5e7eb);
+    }
+
+    /* Touch-friendly list items */
+    .subs-item {
+      padding: 12px 16px;
+      gap: 10px;
+    }
+    .subs-item-check {
+      width: 18px;
+      height: 18px;
+    }
+    .subs-star {
+      font-size: 18px;
+      padding: 4px;
+      margin-top: 0;
+    }
+
+    /* Detail: full width */
+    .subs-detail {
+      padding: 16px;
+    }
+
+    /* Default: show list, hide detail */
+    .subs-layout .subs-detail {
+      display: none;
+    }
+    .subs-layout .subs-list {
+      display: block;
+    }
+
+    /* When detail is active: show detail, hide list */
+    .subs-layout.mobile-show-detail .subs-detail {
+      display: block;
+    }
+    .subs-layout.mobile-show-detail .subs-list {
+      display: none;
+    }
+    .subs-layout.mobile-show-detail .subs-bulk-bar {
+      display: none;
+    }
+
+    /* Back button */
+    .subs-back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 8px 4px 0;
+      flex-shrink: 0;
+    }
+
+    /* Detail header wraps better */
+    .subs-detail-header {
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .subs-detail-header h3 {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Meta user agent: don't clip on mobile */
+    .meta-ua {
+      max-width: none;
+      white-space: normal;
+      word-break: break-all;
+    }
+
+    /* Detail actions: wrap if needed */
+    .subs-detail-actions {
+      flex-wrap: wrap;
+    }
+
+    /* Bulk bar: scroll horizontally */
+    .subs-bulk-bar {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    /* Pagination: comfortable tap targets */
+    .subs-pagination {
+      padding: 16px 12px;
+    }
   }
 </style>
