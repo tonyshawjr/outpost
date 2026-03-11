@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.7] — 2026-03-10
+
+### Fixed
+- **Insert Asset path** — Asset references now use `/outpost/content/themes/` instead of `/outpost/themes/` (symlink path), fixing broken asset URLs on cPanel hosts with `FollowSymLinks` disabled.
+
+---
+
 ## [2.6.6] — 2026-03-10
 
 ### Security

@@ -1579,9 +1579,9 @@ Ships with a 6-page demo website in `themes/forge-playground/` (index, features,
 
 Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the theme's `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
 
-- `.css` → `<link rel="stylesheet" href="/outpost/themes/{theme}/assets/{path}">`
-- `.js` → `<script src="/outpost/themes/{theme}/assets/{path}"></script>`
-- images → `<img src="/outpost/themes/{theme}/assets/{path}" alt="">`
+- `.css` → `<link rel="stylesheet" href="/outpost/content/themes/{theme}/assets/{path}">`
+- `.js` → `<script src="/outpost/content/themes/{theme}/assets/{path}"></script>`
+- images → `<img src="/outpost/content/themes/{theme}/assets/{path}" alt="">`
 
 Powered by the `code/assets` API endpoint which scans the theme's `assets/` directory recursively.
 

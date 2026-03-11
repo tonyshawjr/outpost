@@ -46,7 +46,7 @@
 
   function buildTag(file) {
     const ext = file.name.split('.').pop().toLowerCase();
-    const href = `/outpost/themes/${themeSlug}/assets/${file.path}`;
+    const href = `/outpost/content/themes/${themeSlug}/assets/${file.path}`;
 
     if (ext === 'css') return `<link rel="stylesheet" href="${href}">`;
     if (ext === 'js') return `<script src="${href}"></` + 'script>';
