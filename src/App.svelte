@@ -102,8 +102,7 @@
   });
 
   function handleRelogin() {
-    sessionExpired = false;
-    user.set(null);
+    window.location.reload();
   }
 
   // Login is handled by Login.svelte directly setting the user store

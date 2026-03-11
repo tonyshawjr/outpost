@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.5] — 2026-03-11
+
+### Fixed
+- **Session expired "Log in" button not working** — The session-expired modal's "Log in" button cleared internal state but never navigated to the login screen. Now triggers a full page reload, which cleanly resets all SPA state and shows the login form.
+
+---
+
 ## [2.7.4] — 2026-03-11
 
 ### Fixed
