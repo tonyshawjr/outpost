@@ -69,6 +69,8 @@
           honeypot: true,
           confirmation_type: 'message',
           confirmation_message: 'Thank you! Your submission has been received.',
+          form_class: parsed?.formClass || '',
+          submit_class: parsed?.submitClass || '',
         },
       });
       addToast('Form created');

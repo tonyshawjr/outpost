@@ -25,7 +25,7 @@ Everything below is already built and in the current beta (v1.0.0-beta.15).
 - Liquid template engine with partials, conditionals, loops, globals, meta tags
 - Built-in analytics (pageviews, referrers, top pages — zero external dependencies)
 - Member system (registration, login, email verification, paid tiers, visibility gates)
-- **Visual form builder** — 14 field types, drag-and-drop, `{% form 'slug' %}` template tag, enhanced submissions inbox, Forge auto-create from HTML (v2.7.0)
+- **Visual form builder** — 14 field types, drag-and-drop, `{% form 'slug' %}` template tag, enhanced submissions inbox, Forge auto-create from HTML (v2.7.0), CSS class preservation (v2.7.2)
 - **Channels (Phase 1: REST API + Phase 2: RSS + CSV)** — connect to external APIs, RSS feeds, and CSV files, cache data in SQLite, render in templates via `{% for item in channel.slug %}`
 - **On-page editing** — edit text, richtext, textarea, and image fields directly on the live frontend (admin-only, with floating TipTap toolbar, media picker, auto-save). Opt-in via `| edit` modifier (v2.6.9)
 - Forms with submissions, email notifications, reCAPTCHA

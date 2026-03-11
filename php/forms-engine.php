@@ -29,6 +29,9 @@ function cms_form(string $slug): void {
     $submitLabel = $settings['submit_label'] ?? 'Submit';
     $honeypot    = $settings['honeypot'] ?? true;
     $cssClass    = 'outpost-form outpost-form--' . htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
+    if (!empty($settings['form_class'])) {
+        $cssClass .= ' ' . htmlspecialchars($settings['form_class'], ENT_QUOTES, 'UTF-8');
+    }
     $formAction  = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/outpost/form.php';
 
     // Use a relative path if we're already inside /outpost/
@@ -56,7 +59,11 @@ function cms_form(string $slug): void {
         echo '  </div>' . "\n";
     }
 
-    echo '  <button type="submit" class="outpost-form-submit">' . htmlspecialchars($submitLabel, ENT_QUOTES, 'UTF-8') . '</button>' . "\n";
+    $submitClass = 'outpost-form-submit';
+    if (!empty($settings['submit_class'])) {
+        $submitClass .= ' ' . htmlspecialchars($settings['submit_class'], ENT_QUOTES, 'UTF-8');
+    }
+    echo '  <button type="submit" class="' . $submitClass . '">' . htmlspecialchars($submitLabel, ENT_QUOTES, 'UTF-8') . '</button>' . "\n";
     echo '</form>' . "\n";
 }
 

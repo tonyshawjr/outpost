@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.2] — 2026-03-11
+
+### Added
+- **Forge Form: Preserve original CSS classes** — When auto-creating a form from HTML, Forge now extracts CSS classes from the `<form>` element, submit button, and field wrapper `<div>`s and stores them alongside the form data. Rendered forms include both Outpost classes and the original theme classes, so forms remain styled without manual re-classing.
+
+---
+
 ## [2.7.1] — 2026-03-11
 
 ### Fixed

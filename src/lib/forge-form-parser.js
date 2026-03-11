@@ -32,8 +32,10 @@ export function parseFormHtml(html) {
   const name = deriveFormName(form);
   const submitLabel = deriveSubmitLabel(form);
   const fields = extractFields(form);
+  const formClass = form.className || '';
+  const submitClass = deriveSubmitClass(form);
 
-  return { name, fields, submitLabel };
+  return { name, fields, submitLabel, formClass, submitClass };
 }
 
 // ── Internal helpers ────────────────────────────────────────
@@ -52,6 +54,14 @@ function deriveFormName(form) {
   }
 
   return 'New Form';
+}
+
+function deriveSubmitClass(form) {
+  const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+  if (btn?.className) return btn.className;
+  const anyBtn = form.querySelector('button:not([type="button"]):not([type="reset"])');
+  if (anyBtn?.className) return anyBtn.className;
+  return '';
 }
 
 function deriveSubmitLabel(form) {
@@ -162,6 +172,10 @@ function buildField(el, tag, inputType, form, usedNames) {
   const rawName = el.getAttribute('name') || slugifyField(label);
   const name = uniqueName(slugifyField(rawName), usedNames);
 
+  // Extract CSS classes from the closest parent wrapper <div>
+  const wrapperDiv = el.closest('div');
+  const cssClasses = (wrapperDiv && wrapperDiv !== form) ? (wrapperDiv.className || '') : '';
+
   const field = {
     id: generateId(),
     type,
@@ -170,6 +184,7 @@ function buildField(el, tag, inputType, form, usedNames) {
     placeholder: el.getAttribute('placeholder') || '',
     required: el.required || el.hasAttribute('required'),
     choices: [],
+    css_classes: cssClasses,
     settings: {},
   };
 
