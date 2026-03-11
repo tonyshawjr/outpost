@@ -1576,7 +1576,7 @@ Forge uses smart detection — it analyzes the selected HTML and reorders the co
 
 **Meta Tag** — Wraps selection in `{{ meta.title }}...{{ /meta.title }}` or `{{ meta.description }}...{{ /meta.description }}`.
 
-**Form** — Inserts `{% form 'slug' %}`. Dropdown of existing forms from context data.
+**Form** — Inserts `{% form 'slug' %}`. Three modes: (A) **Auto-create from HTML** — when a `<form>` element is selected, Forge parses the HTML to detect fields (text, email, phone, URL, number, date, time, hidden, textarea, select, radio, checkbox), extracts labels, groups radio/checkbox by name, derives form name, and creates the form in the database. (B) Pick from existing forms dropdown. (C) Manual slug entry.
 
 ### Forge Playground
 

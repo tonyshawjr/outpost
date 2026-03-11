@@ -884,6 +884,7 @@
     {:else if forgePopover.type === 'form'}
       <ForgeForm
         forms={forgeContext?.forms ?? []}
+        selectedText={forgePopover.text}
         onConfirm={handleForgeConfirm}
         onCancel={handleForgeClose}
       />

@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Forge: Auto-Create Form from HTML (v2.7.0)
+
+- **Auto-create from `<form>` HTML** — Select a `<form>` element in the Code Editor, right-click → Form. Forge parses the HTML using DOMParser, detects input fields (text, email, phone, URL, number, date, time, hidden, textarea, select, radio, checkbox), extracts labels via `<label for>` / wrapping `<label>` / `aria-label` / `placeholder` / name attr, groups radio/checkbox inputs by name, extracts `<option>` choices from selects, and derives the form name from `form.id` / `form.name` / heading / legend. Creates the form in the database via the existing Form Builder API and replaces the selection with `{% form 'slug' %}`.
+- **Three-mode UI** — Mode A: create from HTML (when `<form>` selected), Mode B: pick existing form (dropdown), Mode C: manual slug entry. Seamless fallback between modes.
+- **Files**: `src/lib/forge-form-parser.js` (new), `src/components/ce/ForgeForm.svelte`, `src/pages/CodeEditor.svelte`
+
+---
+
 ## OPE Opt-In & Theme Cleanup (v2.6.9)
 
 - **`| edit` modifier** — On-page editing is now opt-in. Append `| edit` to any template tag to enable frontend editing: `{{ headline | edit }}`, `{{ body | raw | edit }}`, `{{ hero | image | edit }}`, `{{ @site_name | edit }}`. Fields without `| edit` render normally but are only editable in the admin panel. Forge "Insert Editable" includes an "Editable on front-end" checkbox.

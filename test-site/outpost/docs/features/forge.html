@@ -221,10 +221,22 @@
 {{ meta.description }}Page description here{{ /meta.description }}</code></pre>
 
     <h3>Form</h3>
-    <p>Inserts a form tag that renders a form created in the admin.</p>
+    <p>Inserts a form tag that renders a form created in the admin. If you select a <code>&lt;form&gt;</code> element, Forge can auto-create the form for you.</p>
+
+    <h4>Auto-create from HTML (v2.7.0)</h4>
+    <p>Select a <code>&lt;form&gt;</code> element in the Code Editor and choose <strong>Form</strong> from the Forge menu. Forge parses the HTML and:</p>
     <ul>
-      <li><strong>Form</strong> — dropdown of existing forms, or a slug you type in</li>
+      <li>Derives the form name from <code>form.id</code>, <code>form.name</code>, a heading/legend inside the form, or the action URL</li>
+      <li>Detects fields: text, email, phone, URL, number, date, time, hidden, textarea, select, radio, and checkbox</li>
+      <li>Extracts labels from <code>&lt;label for&gt;</code>, wrapping <code>&lt;label&gt;</code>, <code>aria-label</code>, <code>placeholder</code>, or the <code>name</code> attribute</li>
+      <li>Groups radio and checkbox inputs by name into single fields with choices</li>
+      <li>Extracts <code>&lt;option&gt;</code> values from <code>&lt;select&gt;</code> elements</li>
+      <li>Reads the submit button label from <code>&lt;button type="submit"&gt;</code> or <code>&lt;input type="submit"&gt;</code></li>
     </ul>
+    <p>A preview of detected fields is shown with type icons, labels, and required indicators. Click <strong>Create &amp; Insert</strong> to create the form in the database and replace the selection with the tag.</p>
+
+    <h4>Pick existing or manual slug</h4>
+    <p>When no <code>&lt;form&gt;</code> is selected, Forge shows a dropdown of existing forms (if any) or a text input for a slug.</p>
     <pre><code>{% form 'contact' %}</code></pre>
 
     <h3>Insert Asset</h3>

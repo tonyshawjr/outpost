@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0] — 2026-03-11
+
+### Added
+- **Forge: Auto-Create Form from HTML** — Select a `<form>` element in the Code Editor, right-click → Form, and Forge parses the HTML to detect fields, labels, types, and choices. Creates the form in the database and replaces the selection with `{% form 'slug' %}` in one click. Supports text, email, phone, URL, number, date, time, textarea, select (with choices), radio groups, checkbox groups, and hidden fields. Falls back to existing pick-from-dropdown or manual slug entry when no `<form>` is selected.
+
+---
+
 ## [2.6.9] — 2026-03-11
 
 ### Added
