@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Releases (v3.1.0)
+
+- **Content releases** — Bundle multiple content changes (fields, items, pages, menus, collections) into a named release and publish them all at once. Atomic publishing via database transaction ensures all-or-nothing consistency.
+- **Release lifecycle** — Draft > Published > Rolled Back. Draft releases can be edited, have changes added/removed, and deleted. Published releases can be rolled back to revert all changes in reverse order.
+- **Snapshot-based rollback** — Each change captures before/after entity state at publish time. Rollback restores the exact pre-publish state for each modified entity.
+- **Admin UI** — New "Releases" page in the Content sidebar section. List view with status badges, change counts, and creator info. Detail view with change list showing entity type, action (Created/Updated/Deleted), and inline management. Create/edit modal for release name and description.
+- **API endpoints** — Full REST API: `GET/POST/PUT/DELETE releases`, `POST releases/publish`, `POST releases/rollback`, `POST/DELETE releases/changes`. Admin-only (`settings.*` capability).
+- **Ranger integration** — `manage_releases` tool supports list, create, get, publish, rollback, delete, and add_change actions via natural language.
+- **Template cache clearing** — Publish and rollback automatically clear compiled template cache to ensure changes are reflected immediately.
+- **Files**: `php/releases.php` (backend), `src/pages/Releases.svelte` (UI), `src/lib/api.js` (client), `php/api.php` (routes), `php/ranger.php` (AI tool)
+
+---
+
 ## Ranger AI Assistant (v3.0.0)
 
 - **AI-powered assistant** — Built into the admin panel sidebar. Natural-language interface for every CMS operation. Ask Ranger to create pages, edit content, build themes, manage media, configure channels, create forms, manage users, set up webhooks, run backups, query the database, debug templates, configure email, manage navigation, adjust settings, and toggle frontend features.

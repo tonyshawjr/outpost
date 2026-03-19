@@ -54,6 +54,7 @@
   import ThemeCustomizer from '$pages/ThemeCustomizer.svelte';
   import Calendar from '$pages/Calendar.svelte';
   import SetupWizard from '$pages/SetupWizard.svelte';
+  import Releases from '$pages/Releases.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopBar from '$components/TopBar.svelte';
@@ -254,6 +255,12 @@
         {:else if route === 'backups'}
           {#if hasSettingsAccess}
             <Backups />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'releases'}
+          {#if hasSettingsAccess}
+            <Releases />
           {:else}
             <AccessDenied />
           {/if}

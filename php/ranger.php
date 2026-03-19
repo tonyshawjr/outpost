@@ -1239,6 +1239,25 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
             ],
             'required_capability' => 'settings.*',
         ],
+        [
+            'name' => 'manage_releases',
+            'description' => 'Create, publish, or rollback content releases. Releases bundle multiple changes and publish them all at once.',
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'action' => ['type' => 'string', 'enum' => ['list', 'create', 'get', 'publish', 'rollback', 'delete', 'add_change']],
+                    'id' => ['type' => 'integer', 'description' => 'Release ID (for get/publish/rollback/delete/add_change)'],
+                    'name' => ['type' => 'string', 'description' => 'Release name (for create)'],
+                    'description' => ['type' => 'string', 'description' => 'Release description (for create)'],
+                    'entity_type' => ['type' => 'string', 'enum' => ['field', 'item', 'menu', 'page', 'collection'], 'description' => 'Entity type (for add_change)'],
+                    'entity_id' => ['type' => 'integer', 'description' => 'Entity ID (for add_change)'],
+                    'entity_name' => ['type' => 'string', 'description' => 'Human-readable label (for add_change)'],
+                    'change_action' => ['type' => 'string', 'enum' => ['create', 'update', 'delete'], 'description' => 'Change action (for add_change)'],
+                ],
+                'required' => ['action'],
+            ],
+            'required_capability' => 'settings.*',
+        ],
     ];
 
     // Filter by user capabilities
@@ -1252,7 +1271,7 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
         $intentTools = [
             'ui' => ['frontend_action', 'get_site_info', 'update_settings'],
             'build' => ['get_site_info', 'list_content', 'search_docs', 'list_themes', 'read_file', 'write_file', 'delete_file', 'clear_cache', 'manage_theme', 'upload_media', 'create_collection', 'create_item', 'manage_menu', 'frontend_action', 'debug_template', 'manage_channel'],
-            'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email'],
+            'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email', 'manage_releases'],
         ];
         $allowed = $intentTools[$intent] ?? null;
         if ($allowed !== null) {
@@ -1389,6 +1408,8 @@ function ranger_execute_tool(string $name, mixed $input): array {
                 return ranger_tool_debug_template($input);
             case 'manage_email':
                 return ranger_tool_manage_email($input);
+            case 'manage_releases':
+                return ranger_tool_manage_releases($input);
             default:
                 return ['error' => "Unknown tool: $name"];
         }
@@ -3393,4 +3414,134 @@ function handle_ranger_settings_update(): void {
     }
 
     json_response(['success' => true]);
+}
+
+// ── Releases Tool ───────────────────────────────────────
+
+function ranger_tool_manage_releases(array $input): array {
+    $action = $input['action'] ?? '';
+
+    switch ($action) {
+        case 'list':
+            $rows = OutpostDB::fetchAll("
+                SELECT r.*, COUNT(rc.id) as change_count, u.display_name as created_by_name
+                FROM releases r
+                LEFT JOIN release_changes rc ON rc.release_id = r.id
+                LEFT JOIN users u ON u.id = r.created_by
+                GROUP BY r.id
+                ORDER BY r.created_at DESC
+            ");
+            return ['releases' => $rows];
+
+        case 'get':
+            $id = (int)($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $release = OutpostDB::fetchOne("SELECT * FROM releases WHERE id = ?", [$id]);
+            if (!$release) return ['error' => 'Release not found'];
+            $changes = OutpostDB::fetchAll("SELECT * FROM release_changes WHERE release_id = ? ORDER BY created_at ASC", [$id]);
+            $release['changes'] = $changes;
+            return $release;
+
+        case 'create':
+            $name = trim($input['name'] ?? '');
+            if (!$name) return ['error' => 'name is required'];
+            $userId = OutpostAuth::getUserId();
+            $id = OutpostDB::insert('releases', [
+                'name' => $name,
+                'description' => trim($input['description'] ?? ''),
+                'created_by' => $userId,
+            ]);
+            return ['success' => true, 'id' => $id, 'name' => $name];
+
+        case 'publish':
+            $id = (int)($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $release = OutpostDB::fetchOne("SELECT * FROM releases WHERE id = ?", [$id]);
+            if (!$release) return ['error' => 'Release not found'];
+            if ($release['status'] !== 'draft') return ['error' => 'Only draft releases can be published'];
+            $changes = OutpostDB::fetchAll("SELECT * FROM release_changes WHERE release_id = ?", [$id]);
+            if (empty($changes)) return ['error' => 'Cannot publish release with no changes'];
+
+            $db = OutpostDB::connect();
+            $db->beginTransaction();
+            try {
+                foreach ($changes as $change) {
+                    $currentState = release_get_entity_state($change['entity_type'], $change['entity_id']);
+                    if ($currentState !== null) {
+                        OutpostDB::update('release_changes', ['snapshot_before' => json_encode($currentState)], 'id = ?', [$change['id']]);
+                    }
+                    $after = $change['snapshot_after'] ? json_decode($change['snapshot_after'], true) : null;
+                    release_apply_change($change['entity_type'], $change['entity_id'], $change['action'], $after);
+                }
+                $userId = OutpostAuth::getUserId();
+                OutpostDB::update('releases', [
+                    'status' => 'published',
+                    'published_at' => date('Y-m-d H:i:s'),
+                    'published_by' => $userId,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ], 'id = ?', [$id]);
+                $db->commit();
+            } catch (\Exception $e) {
+                $db->rollBack();
+                return ['error' => 'Failed to publish: ' . $e->getMessage()];
+            }
+            return ['success' => true, 'status' => 'published'];
+
+        case 'rollback':
+            $id = (int)($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $release = OutpostDB::fetchOne("SELECT * FROM releases WHERE id = ?", [$id]);
+            if (!$release) return ['error' => 'Release not found'];
+            if ($release['status'] !== 'published') return ['error' => 'Only published releases can be rolled back'];
+
+            $changes = OutpostDB::fetchAll("SELECT * FROM release_changes WHERE release_id = ? ORDER BY id DESC", [$id]);
+            $db = OutpostDB::connect();
+            $db->beginTransaction();
+            try {
+                foreach ($changes as $change) {
+                    $before = $change['snapshot_before'] ? json_decode($change['snapshot_before'], true) : null;
+                    switch ($change['action']) {
+                        case 'update':
+                            if ($before) release_apply_change($change['entity_type'], $change['entity_id'], 'update', $before);
+                            break;
+                        case 'create':
+                            release_apply_change($change['entity_type'], $change['entity_id'], 'delete', null);
+                            break;
+                        case 'delete':
+                            if ($before) release_restore_entity($change['entity_type'], $before);
+                            break;
+                    }
+                }
+                OutpostDB::update('releases', ['status' => 'rolled_back', 'updated_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
+                $db->commit();
+            } catch (\Exception $e) {
+                $db->rollBack();
+                return ['error' => 'Failed to rollback: ' . $e->getMessage()];
+            }
+            return ['success' => true, 'status' => 'rolled_back'];
+
+        case 'delete':
+            $id = (int)($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $release = OutpostDB::fetchOne("SELECT * FROM releases WHERE id = ?", [$id]);
+            if (!$release) return ['error' => 'Release not found'];
+            if ($release['status'] !== 'draft') return ['error' => 'Only draft releases can be deleted'];
+            OutpostDB::delete('releases', 'id = ?', [$id]);
+            return ['success' => true];
+
+        case 'add_change':
+            $id = (int)($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $release = OutpostDB::fetchOne("SELECT * FROM releases WHERE id = ?", [$id]);
+            if (!$release || $release['status'] !== 'draft') return ['error' => 'Release not found or not a draft'];
+            $entityType = $input['entity_type'] ?? '';
+            $entityId = (int)($input['entity_id'] ?? 0);
+            $changeAction = $input['change_action'] ?? 'update';
+            if (!$entityType || !$entityId) return ['error' => 'entity_type and entity_id are required'];
+            release_add_change($id, $entityType, $entityId, $changeAction, null, null, $input['entity_name'] ?? '');
+            return ['success' => true];
+
+        default:
+            return ['error' => "Unknown action: $action. Use list, create, get, publish, rollback, delete, or add_change."];
+    }
 }

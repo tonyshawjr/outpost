@@ -2525,6 +2525,39 @@ Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, 
 - `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
 - `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings
 
+## Releases (v3.1.0)
+
+### What are Releases?
+Releases let users bundle multiple content changes and publish them all at once. A release is like a staging area — create a draft release, add changes to it, preview everything as a bundle, then publish atomically in a single database transaction. Published releases can be rolled back to revert all changes.
+
+### Release Lifecycle
+- **Draft** — Changes can be added, removed, and the release can be edited or deleted
+- **Published** — All changes applied atomically; can be rolled back
+- **Rolled Back** — All changes reverted in reverse order; terminal state
+
+### Entity Types
+Changes can target: `field`, `item`, `page`, `menu`, `collection`
+
+### API Endpoints (admin-only, requires `settings.*` capability)
+- `GET api.php?action=releases` — list all releases with change counts
+- `GET api.php?action=releases&id=X` — get release with all its changes
+- `POST api.php?action=releases` — create release `{ name, description }`
+- `PUT api.php?action=releases&id=X` — update release name/description (draft only)
+- `DELETE api.php?action=releases&id=X` — delete release (draft only)
+- `POST api.php?action=releases/publish` — publish release `{ id }` — applies all changes atomically
+- `POST api.php?action=releases/rollback` — rollback release `{ id }` — reverts all changes
+- `POST api.php?action=releases/changes` — add change `{ release_id, entity_type, entity_id, entity_name, action, snapshot_before, snapshot_after }`
+- `DELETE api.php?action=releases/changes&id=X` — remove a change from a draft release
+
+### Database Tables
+- `releases` — id, name, description, status (draft/published/rolled_back), created_by, published_at, published_by, timestamps
+- `release_changes` — id, release_id, entity_type, entity_id, entity_name, action (create/update/delete), snapshot_before (JSON), snapshot_after (JSON), created_at
+
+### Files
+- `php/releases.php` — all backend handlers and entity state helpers
+- `src/pages/Releases.svelte` — admin UI
+- `src/lib/api.js` — `releases` client object
+
 ## Ranger AI Assistant (v3.0.0)
 
 ### What is Ranger?

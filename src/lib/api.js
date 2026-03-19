@@ -582,6 +582,19 @@ export const search = {
   content: (q) => request('search/content', { params: { q } }),
 };
 
+// Releases
+export const releases = {
+  list: () => request('releases'),
+  get: (id) => request('releases', { params: { id } }),
+  create: (data) => request('releases', { method: 'POST', body: data }),
+  update: (id, data) => request('releases', { method: 'PUT', params: { id }, body: data }),
+  delete: (id) => request('releases', { method: 'DELETE', params: { id } }),
+  publish: (id) => request('releases/publish', { method: 'POST', body: { id } }),
+  rollback: (id) => request('releases/rollback', { method: 'POST', body: { id } }),
+  addChange: (data) => request('releases/changes', { method: 'POST', body: data }),
+  removeChange: (id) => request('releases/changes', { method: 'DELETE', params: { id } }),
+};
+
 // Setup Wizard
 export const setup = {
   packs: () => request('setup/packs'),

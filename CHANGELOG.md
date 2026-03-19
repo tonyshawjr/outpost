@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] — 2026-03-19
+
+### Added
+- **Releases** — Bundle multiple content changes into a named release and publish them all at once. Create draft releases, add changes (fields, items, pages, menus, collections), publish atomically in a single transaction, and roll back published releases to revert all changes. Full API with list, create, update, delete, publish, rollback, and change management endpoints.
+- **Releases UI** — New admin page accessible from the Content sidebar section. List view with status badges (Draft/Published/Rolled Back), change counts, and creation info. Detail view shows all bundled changes with type/action labels and inline add/remove. Create/edit modal for release metadata.
+- **Releases Ranger tool** — `manage_releases` tool added to Ranger AI assistant for creating, publishing, rolling back, and managing releases via natural language.
+
+---
+
 ## [3.0.0] — 2026-03-19
 
 ### Added

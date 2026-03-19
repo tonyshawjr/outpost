@@ -25,6 +25,7 @@ require_once __DIR__ . '/channels.php';
 require_once __DIR__ . '/customizer.php';
 require_once __DIR__ . '/brand.php';
 require_once __DIR__ . '/ranger.php';
+require_once __DIR__ . '/releases.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -136,6 +137,7 @@ ensure_user_media_folder_grants_table();
 cleanup_ghost_collection_pages();
 ensure_setup_completed_setting();
 ensure_ranger_tables();
+ensure_releases_tables();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -159,6 +161,7 @@ $cap_map = [
     'brand'      => 'settings.*',
     'fonts'      => 'settings.*',
     'components' => 'code.*',
+    'releases'   => 'settings.*',
 ];
 if (isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
@@ -454,6 +457,17 @@ match (true) {
     // Custom Google Fonts
     $action === 'fonts' && $method === 'GET' => handle_fonts_get(),
     $action === 'fonts' && $method === 'PUT' => handle_fonts_save(),
+
+    // Releases
+    $action === 'releases' && $method === 'GET' && !isset($_GET['id'])  => handle_releases_list(),
+    $action === 'releases' && $method === 'GET' && isset($_GET['id'])   => handle_release_get(),
+    $action === 'releases' && $method === 'POST'                        => handle_release_create(),
+    $action === 'releases' && $method === 'PUT' && isset($_GET['id'])   => handle_release_update(),
+    $action === 'releases' && $method === 'DELETE' && isset($_GET['id']) => handle_release_delete(),
+    $action === 'releases/publish'  && $method === 'POST'               => handle_release_publish(),
+    $action === 'releases/rollback' && $method === 'POST'               => handle_release_rollback(),
+    $action === 'releases/changes'  && $method === 'POST'               => handle_release_add_change(),
+    $action === 'releases/changes'  && $method === 'DELETE' && isset($_GET['id']) => handle_release_remove_change(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
