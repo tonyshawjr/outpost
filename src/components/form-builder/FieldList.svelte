@@ -76,21 +76,21 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-md, 6px);
     margin-bottom: 6px;
     cursor: pointer;
-    background: var(--card-bg, #fff);
+    background: var(--bg-card);
     transition: all 0.1s;
   }
 
   .field-list-item:hover {
-    border-color: var(--border-hover, #d1d5db);
+    border-color: var(--border-primary);
   }
 
   .field-list-item.selected {
-    border-color: var(--accent-color, #2563eb);
-    background: var(--accent-bg, #eff6ff);
+    border-color: var(--accent);
+    background: var(--accent-soft);
   }
 
   .field-drag-handle {
@@ -152,7 +152,7 @@
   }
 
   .field-remove-btn:hover {
-    color: var(--danger-color, #dc2626);
+    color: var(--danger);
   }
 
   :global(.sortable-ghost) {

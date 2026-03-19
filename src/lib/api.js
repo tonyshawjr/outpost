@@ -221,9 +221,18 @@ export const mediaFolders = {
     request('media-folders', { method: 'DELETE', params: { id } }),
 };
 
-// CSRF & API base exports (for XHR uploads)
+// CSRF & API base exports (for XHR uploads and streaming fetch)
 export function getCsrfToken() { return csrfToken; }
 export function getApiBase() { return apiBase; }
+
+// Ranger AI Assistant
+export const ranger = {
+  conversations: () => request('ranger/conversations'),
+  conversation: (id) => request('ranger/conversations', { params: { id } }),
+  deleteConversation: (id) => request('ranger/conversations', { method: 'DELETE', params: { id } }),
+  getSettings: () => request('ranger/settings'),
+  updateSettings: (data) => request('ranger/settings', { method: 'PUT', body: data }),
+};
 
 // Stats
 export const stats = {

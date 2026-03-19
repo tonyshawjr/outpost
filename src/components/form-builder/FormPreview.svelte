@@ -101,8 +101,8 @@
   }
 
   .preview-form {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg, 8px);
     padding: 24px;
   }
@@ -120,16 +120,16 @@
   }
 
   .preview-required {
-    color: var(--danger-color, #dc2626);
+    color: var(--danger);
   }
 
   .preview-input {
     width: 100%;
     padding: 8px 10px;
     font-size: 14px;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-md, 6px);
-    background: var(--input-bg, #fff);
+    background: var(--bg-tertiary);
     color: var(--text-primary);
   }
 
@@ -173,7 +173,7 @@
     display: block;
     margin-top: 20px;
     padding: 10px 20px;
-    background: var(--accent-color, #2563eb);
+    background: var(--accent);
     color: #fff;
     border: none;
     border-radius: var(--radius-md, 6px);

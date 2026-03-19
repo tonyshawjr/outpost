@@ -18,6 +18,7 @@
     updateAvailable,
     latestVersion,
     setupCompleted,
+    rangerOpen,
     navigate,
   } from '$lib/stores.js';
   import './styles/admin.css';
@@ -60,6 +61,7 @@
   import MobileNav from '$components/MobileNav.svelte';
   import Toast from '$components/Toast.svelte';
   import SearchModal from '$components/SearchModal.svelte';
+  import Ranger from '$components/Ranger.svelte';
   import outpostLogo from './assets/outpost.svg';
   let checking = $state(true);
   let sessionExpired = $state(false);
@@ -148,7 +150,7 @@
 {:else if route === 'setup'}
   <SetupWizard />
 {:else}
-  <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'}>
+  <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'} class:ranger-open={$rangerOpen}>
     <Sidebar />
     <div class="app-main">
       <TopBar />
@@ -278,6 +280,7 @@
     </div>
     <RightSidebar />
   </div>
+  <Ranger open={$rangerOpen} onclose={() => rangerOpen.set(false)} />
   <MobileNav />
 {/if}
 

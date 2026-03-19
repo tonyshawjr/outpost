@@ -1,5 +1,5 @@
 <script>
-  import { currentRoute, darkMode, sidebarOpen, user, navigate, addToast } from '$lib/stores.js';
+  import { currentRoute, darkMode, sidebarOpen, rangerOpen, user, navigate, addToast } from '$lib/stores.js';
   import { cache as cacheApi } from '$lib/api.js';
 
   let clearingCache = $state(false);
@@ -106,6 +106,12 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
       {/if}
     </button>
+    <button class="btn btn-ghost btn-sm" class:ranger-active={$rangerOpen} onclick={() => rangerOpen.update(v => !v)} aria-label="Toggle Ranger AI" title="Ranger AI Assistant">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+        <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
+        <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
+      </svg>
+    </button>
     <button class="btn btn-ghost btn-sm" onclick={toggleDarkMode} aria-label="Toggle dark mode">
       {#if isDark}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -198,6 +204,10 @@
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
     font-weight: 500;
+  }
+
+  .ranger-active {
+    color: var(--accent);
   }
 
   .topbar-role-badge {

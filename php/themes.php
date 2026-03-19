@@ -56,6 +56,7 @@ function handle_themes_list(): void {
             'screenshot' => $manifest['screenshot'] ?? '',
             'managed' => !empty($manifest['managed']),
             'active' => ($entry === $active),
+            'has_snapshot' => is_dir($path . '/.forge-snapshot'),
         ];
     }
 

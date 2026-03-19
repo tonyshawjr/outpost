@@ -497,10 +497,10 @@
     flex-shrink: 0;
     color: var(--text-tertiary);
   }
-  .fm-notify-icon.warn { color: #d97706; }
+  .fm-notify-icon.warn { color: var(--warning); }
 
   .fm-notify-label { flex: 1; min-width: 0; }
-  .fm-notify-label.warn { color: #92400e; }
+  .fm-notify-label.warn { color: var(--warning); }
   .fm-notify-label strong { font-weight: 600; color: var(--text-primary); }
   .fm-notify-label em { font-style: normal; color: var(--text-primary); }
 

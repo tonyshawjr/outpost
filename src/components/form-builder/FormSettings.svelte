@@ -77,7 +77,7 @@
   .settings-section {
     margin-bottom: 24px;
     padding-bottom: 24px;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    border-bottom: 1px solid var(--border-primary);
   }
 
   .settings-section:last-child {
@@ -111,17 +111,17 @@
     font-size: 13px;
     border: 1px solid transparent;
     border-radius: var(--radius-md, 6px);
-    background: var(--input-bg, #fff);
+    background: var(--bg-tertiary);
     color: var(--text-primary);
     transition: border-color 0.15s;
   }
 
   .settings-input:hover {
-    border-color: var(--border-color, #e5e7eb);
+    border-color: var(--border-primary);
   }
 
   .settings-input:focus {
-    border-color: var(--accent-color, #2563eb);
+    border-color: var(--accent);
     outline: none;
   }
 
@@ -147,8 +147,8 @@
   }
 
   .settings-code {
-    background: var(--bg-subtle, #f9fafb);
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-md, 6px);
     padding: 10px 14px;
     font-family: var(--font-mono, monospace);

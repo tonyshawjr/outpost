@@ -232,6 +232,17 @@ a:hover {
   display: none;
 }
 
+.app-layout.ranger-open {
+  margin-right: 400px;
+  transition: margin-right 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  .app-layout.ranger-open {
+    margin-right: 0;
+  }
+}
+
 .app-main {
   display: flex;
   flex-direction: column;

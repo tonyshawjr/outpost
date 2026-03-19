@@ -223,8 +223,8 @@
     align-items: center;
     gap: 12px;
     padding: 12px 20px;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
-    background: var(--bg-surface, #fff);
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-primary);
     flex-shrink: 0;
   }
 
@@ -240,7 +240,7 @@
   }
 
   .builder-back:hover {
-    background: var(--bg-hover, #f3f4f6);
+    background: var(--bg-hover);
     color: var(--text-primary);
   }
 
@@ -256,11 +256,11 @@
   }
 
   .builder-name-input:hover {
-    border-color: var(--border-color, #e5e7eb);
+    border-color: var(--border-primary);
   }
 
   .builder-name-input:focus {
-    border-color: var(--accent-color, #2563eb);
+    border-color: var(--accent);
     outline: none;
   }
 
@@ -274,17 +274,17 @@
   .builder-status-select {
     padding: 5px 8px;
     font-size: 12px;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-md, 6px);
-    background: var(--input-bg, #fff);
+    background: var(--bg-tertiary);
     color: var(--text-primary);
   }
 
   .builder-tabs {
     display: flex;
     gap: 0;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
-    background: var(--bg-surface, #fff);
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-primary);
     padding: 0 20px;
     flex-shrink: 0;
   }
@@ -307,7 +307,7 @@
 
   .builder-tab.active {
     color: var(--text-primary);
-    border-bottom-color: var(--accent-color, #2563eb);
+    border-bottom-color: var(--accent);
   }
 
   .builder-content {
@@ -318,8 +318,8 @@
 
   .builder-palette {
     width: 200px;
-    border-right: 1px solid var(--border-color, #e5e7eb);
-    background: var(--bg-surface, #fff);
+    border-right: 1px solid var(--border-primary);
+    background: var(--bg-primary);
     flex-shrink: 0;
     overflow-y: auto;
   }
@@ -327,13 +327,13 @@
   .builder-fields {
     flex: 1;
     overflow-y: auto;
-    background: var(--bg-subtle, #f9fafb);
+    background: var(--bg-secondary);
   }
 
   .builder-settings {
     width: 300px;
-    border-left: 1px solid var(--border-color, #e5e7eb);
-    background: var(--bg-surface, #fff);
+    border-left: 1px solid var(--border-primary);
+    background: var(--bg-primary);
     flex-shrink: 0;
     overflow-y: auto;
   }
@@ -341,6 +341,6 @@
   .builder-content-full {
     flex: 1;
     overflow-y: auto;
-    background: var(--bg-subtle, #f9fafb);
+    background: var(--bg-secondary);
   }
 </style>

@@ -20,6 +20,7 @@
     canBuildForms,
     collectionGrants,
     updateAvailable,
+    rangerOpen,
   } from '$lib/stores.js';
   import { onMount } from 'svelte';
   import outpostLogo from '../assets/outpost.svg';
@@ -319,6 +320,18 @@
         Settings
       </button>
     {/if}
+    <button
+      class="sidebar-item"
+      class:active={$rangerOpen}
+      onclick={() => rangerOpen.update(v => !v)}
+      title="Ranger AI Assistant"
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+        <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
+        <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
+      </svg>
+      Ranger
+    </button>
     <button class="sidebar-item" onclick={handleLogout}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Log out

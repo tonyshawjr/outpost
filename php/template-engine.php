@@ -234,6 +234,43 @@ class OutpostTemplate {
     }
 
     /**
+     * Replace {% else %} inside {% if %} blocks with {%_IFELSE_%} so that
+     * loop regexes (which also support {% else %} for empty fallbacks) don't
+     * accidentally consume an if-else as a loop-else.
+     */
+    private static function tagIfElse(string $php): string {
+        $pattern = '/\{%\s*(if|for|single|else|endif|endfor|endsingle)\b[^%]*%\}/';
+        preg_match_all($pattern, $php, $matches, PREG_OFFSET_CAPTURE);
+        if (empty($matches[0])) return $php;
+
+        $stack = []; // track block types
+        $replacements = []; // [offset => length] for else tags inside if blocks
+
+        foreach ($matches[0] as $i => $match) {
+            $tag = $matches[1][$i][0];
+            $fullMatch = $match[0];
+            $offset = $match[1];
+
+            if ($tag === 'if' || $tag === 'for' || $tag === 'single') {
+                $stack[] = $tag;
+            } elseif ($tag === 'else') {
+                if (!empty($stack) && end($stack) === 'if') {
+                    $replacements[] = ['offset' => $offset, 'length' => strlen($fullMatch)];
+                }
+            } elseif ($tag === 'endif' || $tag === 'endfor' || $tag === 'endsingle') {
+                if (!empty($stack)) array_pop($stack);
+            }
+        }
+
+        // Apply replacements in reverse order to preserve offsets
+        foreach (array_reverse($replacements) as $r) {
+            $php = substr_replace($php, '{%_IFELSE_%}', $r['offset'], $r['length']);
+        }
+
+        return $php;
+    }
+
+    /**
      * Compile template source to PHP.
      */
     public static function compile(string $source, string $filename = ''): string {
@@ -248,6 +285,10 @@ class OutpostTemplate {
 
         // Strip comments: {# ... #}
         $php = preg_replace('/\{#.*?#\}/s', '', $php);
+
+        // Disambiguate {% else %} — tag those inside {% if %} blocks so loop
+        // regexes don't mistake them for loop empty-fallback clauses.
+        $php = self::tagIfElse($php);
 
         // {% include 'partial' %} → include compiled partial
         $php = preg_replace_callback(
@@ -569,6 +610,7 @@ class OutpostTemplate {
             $php
         );
         $php = preg_replace('/\{%\s*else\s*%\}/', '<?php else: ?>', $php);
+        $php = str_replace('{%_IFELSE_%}', '<?php else: ?>', $php);
         $php = preg_replace('/\{%\s*endif\s*%\}/', '<?php endif; ?>', $php);
 
         // {{ meta.title "Default" }} and {{ meta.description "Default" }}

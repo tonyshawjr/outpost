@@ -426,16 +426,16 @@
   .subs-layout {
     display: flex;
     gap: 0;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg, 8px);
     overflow: hidden;
     min-height: 500px;
-    background: var(--card-bg, #fff);
+    background: var(--bg-card);
   }
 
   .subs-sidebar {
     width: 220px;
-    border-right: 1px solid var(--border-color, #e5e7eb);
+    border-right: 1px solid var(--border-primary);
     padding: 8px 0;
     flex-shrink: 0;
     overflow-y: auto;
@@ -457,12 +457,12 @@
   }
 
   .subs-filter-item:hover {
-    background: var(--bg-hover, #f3f4f6);
+    background: var(--bg-hover);
   }
 
   .subs-filter-item.active {
-    background: var(--accent-bg, #eff6ff);
-    color: var(--accent-color, #2563eb);
+    background: var(--accent-soft);
+    color: var(--accent);
     font-weight: 500;
   }
 
@@ -479,7 +479,7 @@
   .subs-status-filters {
     padding: 8px 0;
     margin-top: 8px;
-    border-top: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--border-primary);
   }
 
   .subs-status-label {
@@ -494,16 +494,18 @@
   .subs-notify-section {
     padding: 8px 16px;
     margin-top: 8px;
-    border-top: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--border-primary);
   }
 
   .subs-notify-input {
     width: 100%;
     padding: 4px 6px;
     font-size: 12px;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-md, 6px);
     margin-top: 4px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
   }
 
   .subs-notify-actions {
@@ -540,8 +542,8 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: var(--accent-bg, #eff6ff);
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--border-primary);
     font-size: 13px;
     flex-shrink: 0;
   }
@@ -554,7 +556,7 @@
 
   .subs-list {
     width: 340px;
-    border-right: 1px solid var(--border-color, #e5e7eb);
+    border-right: 1px solid var(--border-primary);
     overflow-y: auto;
     flex-shrink: 0;
   }
@@ -578,17 +580,17 @@
     align-items: flex-start;
     gap: 8px;
     padding: 10px 12px;
-    border-bottom: 1px solid var(--border-color-light, #f3f4f6);
+    border-bottom: 1px solid var(--border-secondary);
     cursor: pointer;
     transition: background 0.1s;
   }
 
   .subs-item:hover {
-    background: var(--bg-hover, #f3f4f6);
+    background: var(--bg-hover);
   }
 
   .subs-item.selected {
-    background: var(--accent-bg, #eff6ff);
+    background: var(--accent-soft);
   }
 
   .subs-item.unread {
@@ -613,7 +615,7 @@
   }
 
   .subs-star.starred {
-    color: var(--warning-color, #d97706);
+    color: var(--warning);
   }
 
   .subs-item-content {
@@ -703,7 +705,7 @@
 
   .subs-detail-field {
     padding: 10px 0;
-    border-bottom: 1px solid var(--border-color-light, #f3f4f6);
+    border-bottom: 1px solid var(--border-secondary);
   }
 
   .subs-detail-label {
@@ -725,7 +727,7 @@
   .subs-detail-meta {
     margin: 16px 0;
     padding: 12px 0;
-    border-top: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--border-primary);
   }
 
   .subs-detail-meta-row {
@@ -750,7 +752,7 @@
   }
 
   .subs-detail-notes {
-    border-top: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--border-primary);
     padding-top: 12px;
   }
 
@@ -767,9 +769,11 @@
     width: 100%;
     padding: 6px 8px;
     font-size: 13px;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-md, 6px);
     resize: vertical;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
   }
 
   .subs-notes-actions {
@@ -802,7 +806,7 @@
   }
 
   .btn-danger-text {
-    color: var(--danger-color, #dc2626);
+    color: var(--danger);
   }
 
   /* Back button — hidden on desktop */
@@ -832,17 +836,17 @@
       flex-shrink: 0;
       padding: 6px 14px;
       font-size: 13px;
-      border: 1px solid var(--border-color, #e5e7eb);
+      border: 1px solid var(--border-primary);
       border-radius: 20px;
-      background: var(--card-bg, #fff);
+      background: var(--bg-card);
       color: var(--text-secondary);
       cursor: pointer;
       white-space: nowrap;
     }
     .subs-mobile-pill.active {
-      background: var(--accent-bg, #eff6ff);
-      border-color: var(--accent-color, #2563eb);
-      color: var(--accent-color, #2563eb);
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
       font-weight: 500;
     }
     .subs-mobile-badge {
@@ -851,7 +855,7 @@
       height: 16px;
       padding: 0 4px;
       margin-left: 4px;
-      background: var(--accent-color, #2563eb);
+      background: var(--accent);
       color: #fff;
       font-size: 10px;
       font-weight: 600;
@@ -885,7 +889,7 @@
     .subs-list {
       width: 100%;
       border-right: none;
-      border-bottom: 1px solid var(--border-color, #e5e7eb);
+      border-bottom: 1px solid var(--border-primary);
     }
 
     /* Touch-friendly list items */

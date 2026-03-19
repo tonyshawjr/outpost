@@ -198,7 +198,7 @@
     gap: 16px;
     padding: 20px 0;
     margin-bottom: 8px;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    border-bottom: 1px solid var(--border-primary);
   }
 
   .create-fields {
@@ -228,7 +228,7 @@
     padding: 6px 0;
     font-size: 14px;
     border: none;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    border-bottom: 1px solid var(--border-primary);
     background: none;
     color: var(--text-primary);
     outline: none;
@@ -236,7 +236,7 @@
   }
 
   .create-input:focus {
-    border-bottom-color: var(--accent-color, #2563eb);
+    border-bottom-color: var(--accent);
   }
 
   .create-input-mono {
@@ -266,15 +266,15 @@
   }
 
   .form-card {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg, 8px);
     padding: 20px;
     transition: border-color 0.15s;
   }
 
   .form-card:hover {
-    border-color: var(--border-hover, #d1d5db);
+    border-color: var(--border-primary);
   }
 
   .form-card-header {
@@ -293,7 +293,7 @@
   }
 
   .form-card-name:hover {
-    color: var(--accent-color, #2563eb);
+    color: var(--accent);
   }
 
   .form-card-status {
@@ -305,11 +305,11 @@
   }
 
   .status-active {
-    color: var(--success-color, #16a34a);
+    color: var(--success);
   }
 
   .status-draft {
-    color: var(--warning-color, #d97706);
+    color: var(--warning);
   }
 
   .form-card-meta {
@@ -354,6 +354,6 @@
   }
 
   .form-card-link-danger:hover {
-    color: var(--danger-color, #dc2626);
+    color: var(--danger);
   }
 </style>

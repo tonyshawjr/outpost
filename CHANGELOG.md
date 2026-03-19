@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.8] — 2026-03-19
+
+### Fixed
+- **Form Builder & Submissions: Dark mode styling** — Replaced all hardcoded light-mode colors (backgrounds, borders, inputs, status badges) with CSS custom properties across FormBuilder, FormSubmissions, FormsList, Forms, and all form-builder sub-components (FieldPalette, FieldList, FieldSettings, FormPreview, FormSettings). All elements now properly respond to dark mode.
+
+---
+
+## [2.7.7] — 2026-03-19
+
+### Changed
+- **Ranger AI: Production-quality UI polish** — Mobile responsive (full-width overlay with slide-up animation below 768px, safe-area padding for notched phones), smart auto-scroll that only triggers near bottom with scroll-to-bottom button, full-width stop button bar, textarea auto-grows to 150px with character count for long messages, refined typography (14px body, 1.6 line-height, 16px message gap), compact uniform tool call cards with pulse animation and error messages, focus-visible outlines on all interactive elements, aria-live chat region, history list with preview text and hover effects, welcome screen vertical centering with subtle icon glow.
+
+---
+
+## [2.7.6] — 2026-03-19
+
+### Changed
+- **Ranger AI: Token cost optimization** — Prompt caching on system prompt and tools (biggest win — cached rounds cost 90% less input tokens), compact system prompt (~60% smaller), dynamic tool loading by intent classification (UI/build/content tasks send fewer tools), conversation history trimming (keeps first 2 + last 16 messages), and tool result truncation for read_file and list_content responses.
+
+---
+
 ## [2.7.5] — 2026-03-11
 
 ### Fixed

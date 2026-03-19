@@ -1,9 +1,26 @@
 <script>
   import { onMount } from 'svelte';
-  import { webhooks as whApi, apikeys as apikeysApi } from '$lib/api.js';
+  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
 
   let { settings = {}, onSettingChange = () => {} } = $props();
+
+  // Ranger AI settings
+  let rangerSettings = $state({
+    default_provider: '',
+    anthropic_key: '',
+    anthropic_model: 'claude-sonnet-4-20250514',
+    openai_key: '',
+    openai_model: 'gpt-4o',
+    gemini_key: '',
+    gemini_model: 'gemini-2.0-flash',
+    output_style: '',
+  });
+  let rangerLoading = $state(true);
+  let rangerSaving = $state(false);
+  let showAnthropicKey = $state(false);
+  let showOpenaiKey = $state(false);
+  let showGeminiKey = $state(false);
 
   // API Keys
   let apiKeysList = $state([]);
@@ -40,6 +57,25 @@
   let isWildcard = $derived(form.events.includes('*'));
 
   onMount(async () => {
+    // Load Ranger AI settings
+    try {
+      const data = await rangerApi.getSettings();
+      if (data.settings) {
+        const s = data.settings;
+        rangerSettings = {
+          default_provider: s.ranger_default_provider || '',
+          anthropic_key: s.ranger_api_key_claude || '',
+          anthropic_model: s.ranger_model_claude || 'claude-sonnet-4-20250514',
+          openai_key: s.ranger_api_key_openai || '',
+          openai_model: s.ranger_model_openai || 'gpt-4o',
+          gemini_key: s.ranger_api_key_gemini || '',
+          gemini_model: s.ranger_model_gemini || 'gemini-2.0-flash',
+          output_style: s.ranger_output_style || '',
+        };
+      }
+    } catch (_) {}
+    rangerLoading = false;
+
     // Load API keys
     try {
       const data = await apikeysApi.list();
@@ -54,6 +90,27 @@
     } catch (_) {}
     webhooksLoading = false;
   });
+
+  async function saveRangerSettings() {
+    rangerSaving = true;
+    try {
+      await rangerApi.updateSettings({
+        ranger_default_provider: rangerSettings.default_provider,
+        ranger_api_key_claude: rangerSettings.anthropic_key,
+        ranger_model_claude: rangerSettings.anthropic_model,
+        ranger_api_key_openai: rangerSettings.openai_key,
+        ranger_model_openai: rangerSettings.openai_model,
+        ranger_api_key_gemini: rangerSettings.gemini_key,
+        ranger_model_gemini: rangerSettings.gemini_model,
+        ranger_output_style: rangerSettings.output_style,
+      });
+      addToast('Ranger settings saved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      rangerSaving = false;
+    }
+  }
 
   // --- API Keys ---
   async function createApiKey() {
@@ -256,6 +313,142 @@
 <div class="settings-section">
   <h3 class="settings-section-title">Integrations</h3>
   <p class="settings-section-desc">API keys, webhooks, and third-party integrations.</p>
+
+  <!-- Ranger AI Assistant -->
+  <div class="int-block">
+    <h4 class="int-block-title" style="display: flex; align-items: center; gap: 6px;">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="flex-shrink: 0;">
+        <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
+        <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
+      </svg>
+      Ranger AI Assistant
+    </h4>
+    <p class="int-block-desc">Connect an AI provider to enable Ranger, your AI-powered site builder.</p>
+
+    {#if rangerLoading}
+      <p style="font-size: var(--font-size-sm); color: var(--text-tertiary);">Loading...</p>
+    {:else}
+      <!-- Default Provider -->
+      <div class="form-group" style="margin-bottom: var(--space-xl);">
+        <label class="form-label">Default Provider</label>
+        <select class="input" bind:value={rangerSettings.default_provider}>
+          <option value="">None (disabled)</option>
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Gemini (Google)</option>
+        </select>
+      </div>
+
+      <!-- Anthropic / Claude -->
+      <div class="ranger-provider-block">
+        <div class="ranger-provider-label">Claude (Anthropic)</div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div style="display: flex; align-items: center; gap: var(--space-sm);">
+            <input
+              class="input"
+              type={showAnthropicKey ? 'text' : 'password'}
+              placeholder="sk-ant-..."
+              bind:value={rangerSettings.anthropic_key}
+              style="flex: 1;"
+            />
+            <button class="btn btn-ghost btn-sm" type="button" onclick={() => showAnthropicKey = !showAnthropicKey}>
+              {showAnthropicKey ? 'Hide' : 'Show'}
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model</label>
+          <select class="input" bind:value={rangerSettings.anthropic_model}>
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (fast, 64K output)</option>
+            <option value="claude-opus-4-20250514">Claude Opus 4 (smartest, 32K output)</option>
+            <option value="claude-haiku-4-20250414">Claude Haiku (cheapest, 8K output)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- OpenAI -->
+      <div class="ranger-provider-block">
+        <div class="ranger-provider-label">OpenAI</div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div style="display: flex; align-items: center; gap: var(--space-sm);">
+            <input
+              class="input"
+              type={showOpenaiKey ? 'text' : 'password'}
+              placeholder="sk-..."
+              bind:value={rangerSettings.openai_key}
+              style="flex: 1;"
+            />
+            <button class="btn btn-ghost btn-sm" type="button" onclick={() => showOpenaiKey = !showOpenaiKey}>
+              {showOpenaiKey ? 'Hide' : 'Show'}
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model</label>
+          <select class="input" bind:value={rangerSettings.openai_model}>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Gemini -->
+      <div class="ranger-provider-block">
+        <div class="ranger-provider-label">Gemini (Google)</div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div style="display: flex; align-items: center; gap: var(--space-sm);">
+            <input
+              class="input"
+              type={showGeminiKey ? 'text' : 'password'}
+              placeholder="AIza..."
+              bind:value={rangerSettings.gemini_key}
+              style="flex: 1;"
+            />
+            <button class="btn btn-ghost btn-sm" type="button" onclick={() => showGeminiKey = !showGeminiKey}>
+              {showGeminiKey ? 'Hide' : 'Show'}
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model</label>
+          <select class="input" bind:value={rangerSettings.gemini_model}>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Output Style -->
+      <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-secondary, #EDEAE4);">
+        <h5 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin: 0 0 12px;">Response Style</h5>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => rangerSettings.output_style = 'Be very concise. Short sentences. Bullet points over paragraphs. No fluff.'}>Concise</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => rangerSettings.output_style = 'Give detailed, thorough responses. Explain your reasoning. Include examples and context.'}>Detailed</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => rangerSettings.output_style = 'Be casual and friendly. Use simple language. Feel like a helpful coworker, not a manual.'}>Casual</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => rangerSettings.output_style = 'Be technical and precise. Use proper terminology. Include code examples when relevant.'}>Technical</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => rangerSettings.output_style = ''}>Default</button>
+          </div>
+          <textarea
+            class="input"
+            rows="3"
+            placeholder="Custom instructions for Ranger's personality and response style... (e.g., 'Always explain like I'm new to web development' or 'Be brief, I know what I'm doing')"
+            bind:value={rangerSettings.output_style}
+            style="resize: vertical; min-height: 60px;"
+          ></textarea>
+          <p class="form-hint">Click a preset above or write your own. This shapes how Ranger communicates in every conversation.</p>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick={saveRangerSettings} disabled={rangerSaving} type="button">
+        {rangerSaving ? 'Saving...' : 'Save Ranger Settings'}
+      </button>
+    {/if}
+  </div>
 
   <!-- reCAPTCHA -->
   <div class="int-block">
@@ -631,6 +824,21 @@
   .event-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.04em; margin-bottom: 4px; }
   .event-option { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); cursor: pointer; padding: 2px 0; }
   .event-option input[type="checkbox"] { accent-color: var(--accent); }
+
+  .ranger-provider-block {
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+  }
+  .ranger-provider-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
 
   @media (max-width: 768px) {
     .deliveries-table {

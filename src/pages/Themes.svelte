@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { themes as themesApi } from '$lib/api.js';
+  import { themes as themesApi, code as codeApi } from '$lib/api.js';
   import { addToast, navigate } from '$lib/stores.js';
   import EmptyState from '$components/EmptyState.svelte';
   import ContextualTip from '$components/ContextualTip.svelte';
@@ -64,6 +64,23 @@
       addToast(err.message, 'error');
     } finally {
       activating = '';
+    }
+  }
+
+  let resetting = $state('');
+  let confirmReset = $state('');
+
+  async function resetTheme(slug) {
+    resetting = slug;
+    try {
+      await codeApi.reset(slug);
+      addToast('Theme reset to original state', 'success');
+      confirmReset = '';
+      await loadThemes();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      resetting = '';
     }
   }
 
@@ -207,6 +224,18 @@
           <button class="btn btn-secondary btn-sm" onclick={() => exportTheme(activeTheme.slug)}>
             Export
           </button>
+          {#if activeTheme.has_snapshot}
+            {#if confirmReset === activeTheme.slug}
+              <button class="btn btn-sm" style="background: #EB5757; color: white;" onclick={() => resetTheme(activeTheme.slug)} disabled={resetting === activeTheme.slug}>
+                {resetting === activeTheme.slug ? 'Resetting...' : 'Confirm Reset'}
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick={() => { confirmReset = ''; }}>Cancel</button>
+            {:else}
+              <button class="btn btn-secondary btn-sm" onclick={() => { confirmReset = activeTheme.slug; }}>
+                Reset
+              </button>
+            {/if}
+          {/if}
         </div>
       </div>
     </div>
@@ -244,6 +273,18 @@
               <button class="btn btn-secondary btn-sm" onclick={() => exportTheme(theme.slug)}>
                 Export
               </button>
+              {#if theme.has_snapshot}
+                {#if confirmReset === theme.slug}
+                  <button class="btn btn-sm" style="background: #EB5757; color: white;" onclick={() => resetTheme(theme.slug)} disabled={resetting === theme.slug}>
+                    {resetting === theme.slug ? 'Resetting...' : 'Confirm Reset'}
+                  </button>
+                  <button class="btn btn-secondary btn-sm" onclick={() => { confirmReset = ''; }}>Cancel</button>
+                {:else}
+                  <button class="btn btn-secondary btn-sm" onclick={() => { confirmReset = theme.slug; }}>
+                    Reset
+                  </button>
+                {/if}
+              {/if}
               {#if !theme.managed}
                 <button class="theme-delete-btn" onclick={() => { deleteTarget = theme.slug; }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>

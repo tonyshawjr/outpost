@@ -96,9 +96,9 @@
   }
 
   .palette-item:hover {
-    background: var(--bg-hover, #f3f4f6);
+    background: var(--bg-hover);
     color: var(--text-primary);
-    border-color: var(--border-color, #e5e7eb);
+    border-color: var(--border-primary);
   }
 
   .palette-item-icon {

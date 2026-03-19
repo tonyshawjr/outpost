@@ -24,6 +24,7 @@ require_once __DIR__ . '/totp.php';
 require_once __DIR__ . '/channels.php';
 require_once __DIR__ . '/customizer.php';
 require_once __DIR__ . '/brand.php';
+require_once __DIR__ . '/ranger.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -134,6 +135,7 @@ ensure_media_folder_items_table();
 ensure_user_media_folder_grants_table();
 cleanup_ghost_collection_pages();
 ensure_setup_completed_setting();
+ensure_ranger_tables();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -452,6 +454,14 @@ match (true) {
     // Custom Google Fonts
     $action === 'fonts' && $method === 'GET' => handle_fonts_get(),
     $action === 'fonts' && $method === 'PUT' => handle_fonts_save(),
+
+    // Ranger AI Assistant
+    $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
+    $action === 'ranger/conversations' && $method === 'GET' && isset($_GET['id']) => handle_ranger_conversation_get(),
+    $action === 'ranger/conversations' && $method === 'GET' => handle_ranger_conversations_list(),
+    $action === 'ranger/conversations' && $method === 'DELETE' => handle_ranger_conversation_delete(),
+    $action === 'ranger/settings' && $method === 'GET' => handle_ranger_settings_get(),
+    $action === 'ranger/settings' && $method === 'PUT' => handle_ranger_settings_update(),
 
     default => json_error('Not found', 404),
 };

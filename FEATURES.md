@@ -4,6 +4,41 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Form Builder & Submissions: Dark Mode Fix (v2.7.8)
+
+- Replaced all hardcoded light-mode fallback colors with proper CSS custom properties (`--bg-primary`, `--bg-card`, `--bg-tertiary`, `--border-primary`, `--accent`, `--accent-soft`, `--danger`, etc.)
+- Fixed 9 files: `FormBuilder.svelte`, `FormSubmissions.svelte`, `FormsList.svelte`, `Forms.svelte`, `FieldPalette.svelte`, `FieldList.svelte`, `FieldSettings.svelte`, `FormPreview.svelte`, `FormSettings.svelte`
+- Added explicit `background` and `color` to notification email and notes inputs that were missing them
+
+---
+
+## Ranger AI: Production UI Polish (v2.7.7)
+
+- **Mobile responsive** — Below 768px the panel becomes a full-width overlay with slide-up animation and rounded top corners. Close button is larger on mobile. Safe-area padding for notched phones (env(safe-area-inset-bottom/top)). Layout shift margin-right disabled on mobile.
+- **Smart auto-scroll** — Only scrolls to bottom when user is near the bottom (within 80px). Shows a floating "scroll to bottom" button when user scrolls up and new messages arrive.
+- **Stop button** — Full-width red bar above the input area instead of replacing the send button. More visible with pulse animation.
+- **Textarea improvements** — Auto-grows up to 150px (was 120px). Shows character count above 500 chars with amber warning above 2000.
+- **Typography** — Message text bumped to 14px, 1.6 line-height. Message gap increased to 16px. Header padding 16px 20px. Toolbar padding 8px 20px. Input area padding 12px 20px.
+- **Tool call cards** — Compact single-line layout with inline summary. Running state has pulse animation. Shows "Creating..." / "Updating..." labels while running. Error state displays error message text in red.
+- **History list** — Items show preview text, message count, subtle bottom border separator. Better empty state with icon and subtext. Hover shows rgba overlay. Focus-visible outlines.
+- **Welcome screen** — Full-height centering, larger icon with subtle glow animation, wider suggestion buttons with more gap (8px), active press scale.
+- **Dark mode** — Code blocks use rgba(0,0,0,0.35) background for contrast, inline code has dark border. Loading spinner uses green accent. History items use white-alpha colors.
+- **Accessibility** — focus-visible outlines (2px #6FCF97) on all buttons, suggestions, history items, and links. Chat messages area is aria-live="polite" log region. All buttons have aria-labels. Panel has role="complementary".
+- **Files**: `src/components/Ranger.svelte`, `src/components/ranger/ChatMessage.svelte`, `src/components/ranger/ToolCallCard.svelte`, `src/styles/admin.css`
+
+---
+
+## Ranger AI: Token Cost Optimization (v2.7.6)
+
+- **Prompt caching** — System prompt and tool definitions use Claude's `cache_control` ephemeral caching. After the first request, subsequent rounds in the same conversation reuse cached prefixes, reducing input token costs by up to 90% for the stable prefix.
+- **Compact system prompt** — Reduced system prompt from ~120 lines to ~30 lines (~60% smaller). Template syntax reference is now a dense single-line-per-construct format. Guidelines trimmed to essentials.
+- **Dynamic tool loading** — Intent classifier (`ranger_classify_intent`) analyzes user message and sends only relevant tools: UI intents get 3 tools, build intents get 10, content intents get 13, instead of all 25. Fewer tool definitions = fewer input tokens per request.
+- **Conversation trimming** — Conversations over 20 messages are trimmed: keeps first 2 (initial context) + last 16 (recent), drops the middle. Prevents runaway context growth in long sessions.
+- **Tool result truncation** — `read_file` results truncated to 2000 chars, `list_content` items capped at 10, `search_docs` results capped at 500 chars each.
+- **Files**: `php/ranger.php`
+
+---
+
 ## Submissions Inbox: Mobile Responsive (v2.7.4)
 
 - **Mobile-first inbox** — The submissions inbox now works on phones and tablets. Desktop sidebar filters collapse to a horizontal scrollable pill bar with unread badges. The list takes full width with touch-friendly item sizing. Tapping a submission shows a full-screen detail view with a back arrow. Bulk actions bar scrolls horizontally. All three panels (sidebar/list/detail) stack correctly at <=768px.

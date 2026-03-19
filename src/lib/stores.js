@@ -68,6 +68,7 @@ export const revisionReloadSignal = writable(0);
 // UI
 export const sidebarOpen = writable(true);
 export const searchOpen = writable(false);
+export const rangerOpen = writable(false);
 function getInitialDarkMode() {
   if (typeof window === 'undefined') return false;
   const saved = localStorage.getItem('outpost-dark-mode');
