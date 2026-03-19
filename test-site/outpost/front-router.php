@@ -264,7 +264,39 @@ if ($pageRow) {
     }
 }
 
-OutpostTemplate::render($templateFile, $themeDir);
+// ── Review Mode (client feedback overlay) ────────────
+$reviewToken = $_GET['review'] ?? '';
+$_outpost_review_inject = '';
+if ($reviewToken) {
+    $token = OutpostDB::fetchOne(
+        'SELECT * FROM review_tokens WHERE token = ? AND active = 1',
+        [$reviewToken]
+    );
+    if ($token) {
+        $validExpiry = !$token['expires_at'] || $token['expires_at'] > date('Y-m-d H:i:s');
+        $validPage   = !$token['page_path'] || $token['page_path'] === $currentPath;
+        if ($validExpiry && $validPage) {
+            $apiUrl = '/outpost/api.php';
+            $jsUrl  = '/outpost/review-overlay.js';
+            $_outpost_review_inject = <<<HTML
+<script>window.__OUTPOST_REVIEW_TOKEN__="{$reviewToken}";window.__OUTPOST_API_URL__="{$apiUrl}";</script>
+<script src="{$jsUrl}"></script>
+HTML;
+        }
+    }
+}
+
+// Inject review overlay after render if active
+if ($_outpost_review_inject) {
+    ob_start();
+    OutpostTemplate::render($templateFile, $themeDir);
+    $html = ob_get_clean();
+    // Inject before </body>
+    $html = str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
+    echo $html;
+} else {
+    OutpostTemplate::render($templateFile, $themeDir);
+}
 
 } catch (\Throwable $e) {
     if (ob_get_level()) ob_end_clean();

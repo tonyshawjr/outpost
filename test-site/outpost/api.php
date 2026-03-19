@@ -27,6 +27,7 @@ require_once __DIR__ . '/brand.php';
 require_once __DIR__ . '/ranger.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
+require_once __DIR__ . '/comments.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -99,6 +100,18 @@ if ($action === 'auth/totp/verify' && $method === 'POST') {
     exit;
 }
 
+// Public review endpoints (token-authenticated, no login required)
+if ($action === 'review/comment' && $method === 'POST') {
+    ensure_comment_tables();
+    handle_review_comment_create();
+    exit;
+}
+if ($action === 'review/comments' && $method === 'GET') {
+    ensure_comment_tables();
+    handle_review_comments_list();
+    exit;
+}
+
 // Auth check for all other routes
 OutpostAuth::requireAuth();
 
@@ -140,6 +153,7 @@ ensure_setup_completed_setting();
 ensure_ranger_tables();
 ensure_releases_tables();
 ensure_workflow_tables();
+ensure_comment_tables();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -165,6 +179,7 @@ $cap_map = [
     'components' => 'code.*',
     'releases'   => 'settings.*',
     'workflows'  => 'settings.*',
+    'review-tokens' => 'settings.*',
 ];
 // Workflow transition/history/for-collection endpoints are accessible to any authenticated user
 // (stage-level role enforcement is done inside the handlers)
@@ -485,6 +500,20 @@ match (true) {
     $action === 'workflows/bulk-transition' && $method === 'POST'               => handle_workflow_bulk_transition(),
     $action === 'workflows/history' && $method === 'GET'                        => handle_workflow_history(),
     $action === 'workflows/for-collection' && $method === 'GET'                 => handle_workflow_for_collection(),
+
+    // Comments & Collaboration
+    $action === 'comments' && $method === 'GET'                         => handle_comments_list(),
+    $action === 'comments' && $method === 'POST'                        => handle_comment_create(),
+    $action === 'comments' && $method === 'PUT' && isset($_GET['id'])   => handle_comment_update(),
+    $action === 'comments' && $method === 'DELETE' && isset($_GET['id']) => handle_comment_delete(),
+    $action === 'comments/count' && $method === 'GET'                   => handle_comments_count(),
+    $action === 'comments/activity' && $method === 'GET'                => handle_activity_feed(),
+
+    // Review Tokens (admin only)
+    $action === 'review-tokens' && $method === 'GET'                         => handle_review_tokens_list(),
+    $action === 'review-tokens' && $method === 'POST'                        => handle_review_token_create(),
+    $action === 'review-tokens' && $method === 'DELETE' && isset($_GET['id']) => handle_review_token_delete(),
+    $action === 'review-tokens' && $method === 'PUT' && isset($_GET['id'])    => handle_review_token_toggle(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),

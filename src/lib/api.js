@@ -654,6 +654,34 @@ export const backup = {
   updateSettings: (data) => request('backup/settings', { method: 'PUT', body: data }),
 };
 
+// Comments & Collaboration
+export const comments = {
+  list: (params = {}) =>
+    request('comments', { params }),
+  create: (data) =>
+    request('comments', { method: 'POST', body: data }),
+  update: (id, data) =>
+    request('comments', { method: 'PUT', params: { id }, body: data }),
+  delete: (id) =>
+    request('comments', { method: 'DELETE', params: { id } }),
+  count: () =>
+    request('comments/count'),
+  activity: (limit = 50) =>
+    request('comments/activity', { params: { limit } }),
+};
+
+// Review Tokens
+export const reviewTokens = {
+  list: () =>
+    request('review-tokens'),
+  create: (data) =>
+    request('review-tokens', { method: 'POST', body: data }),
+  delete: (id) =>
+    request('review-tokens', { method: 'DELETE', params: { id } }),
+  toggle: (id) =>
+    request('review-tokens', { method: 'PUT', params: { id }, body: {} }),
+};
+
 // Revisions
 export const revisions = {
   list: (entityType, entityId) =>

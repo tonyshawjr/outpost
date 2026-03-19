@@ -4,6 +4,20 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Collaboration & Comments (v3.3.0)
+
+- **Team comments** — Threaded comment system on collection items. Comments panel in the editor right sidebar with open/resolved filtering, reply threads, and @mention autocomplete.
+- **Client review links** — Admin-generated shareable URLs that inject a feedback overlay on the live site. External reviewers leave element-pinned comments without needing an account. Token-based auth with page restriction and expiry.
+- **Review overlay script** — Lightweight vanilla JS (<10KB) injected via `?review=TOKEN`. Floating FAB, element highlighting with click-to-comment, numbered pins on commented elements, slide-out panel with thread view.
+- **Review Links admin page** — New sidebar item under Settings. Create review links with name, optional page scope, and optional expiry. Copy URL, activate/deactivate, delete.
+- **@mention system** — Parse `@username` patterns in comment bodies. Store mention records in `comment_mentions` for future notification integration.
+- **Activity feed** — `comments/activity` API endpoint returns recent comments across all content.
+- **Ranger integration** — `manage_comments` tool for AI-powered comment and review link management.
+- **Database** — Three new tables: `comments` (threaded, supports both internal and external), `review_tokens` (shareable links), `comment_mentions` (@ mentions).
+- **Files**: `php/comments.php` (backend), `php/review-overlay.js` (client script), `src/components/Comments.svelte` (panel), `src/pages/ReviewTokens.svelte` (admin page), `src/lib/api.js` (client), `php/api.php` (routes), `php/front-router.php` (overlay injection), `php/ranger.php` (AI tool), `src/components/RightSidebar.svelte` (Comments tab), `src/components/Sidebar.svelte` (nav link), `src/App.svelte` (route)
+
+---
+
 ## Custom Workflows (v3.2.0)
 
 - **Custom approval stages** — Define workflows with arbitrary stages (Draft, Copy Review, Legal Review, Approved, Published, etc.). Each stage has a name, slug, color, allowed transitions, and role-based permissions.

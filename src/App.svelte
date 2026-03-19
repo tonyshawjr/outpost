@@ -56,6 +56,7 @@
   import SetupWizard from '$pages/SetupWizard.svelte';
   import Releases from '$pages/Releases.svelte';
   import Workflows from '$pages/Workflows.svelte';
+  import ReviewTokens from '$pages/ReviewTokens.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopBar from '$components/TopBar.svelte';
@@ -268,6 +269,12 @@
         {:else if route === 'workflows'}
           {#if hasSettingsAccess}
             <Workflows />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'review-tokens'}
+          {#if hasSettingsAccess}
+            <ReviewTokens />
           {:else}
             <AccessDenied />
           {/if}

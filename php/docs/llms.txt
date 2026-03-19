@@ -25,6 +25,7 @@
 - [Content Packs](/outpost/docs/themes/content-packs.html): JSON content packs for seeding starter content
 - [Ranger AI Assistant](/outpost/docs/features/ranger.html): AI-powered assistant with 35 tools, multi-provider support, and streaming chat
 - [Releases](/outpost/docs/features/releases.html): Bundle multiple content changes and publish them all at once with one-click rollback
+- [Collaboration & Comments](/outpost/docs/features/collaboration.html): Team comments, client review links, @mentions, and feedback overlay
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -2525,6 +2526,46 @@ Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, 
 - `POST setup/apply` — applies wizard choices (site_name, theme, pack) in transaction
 - `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
 - `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings
+
+## Collaboration & Comments (v3.3.0)
+
+### Team Comments
+Leave threaded comments on collection items directly in the editor. The Comments tab in the right sidebar shows all comments with open/resolved filtering, @mention autocomplete, reply threads, and delete.
+
+### @Mentions
+Type `@username` in a comment body to mention a team member. Mentions are stored in the `comment_mentions` table for future notification delivery. Email notifications are planned but not yet implemented.
+
+### Client Review Links
+Generate shareable URLs for external feedback. Admins create review tokens from Settings > Review Links. Each token can be scoped to a specific page path and given an optional expiry date.
+
+When someone opens `yoursite.com/?review=TOKEN`, a lightweight vanilla JS overlay (<10KB) is injected:
+- Floating "Leave Feedback" button in bottom-right corner
+- Click any element to open a feedback panel
+- Reviewer enters their name (saved in localStorage) and comment
+- Submitted comments appear as numbered pins on the page
+- Click a pin to see the comment thread
+
+### API Endpoints
+- `GET comments` — list comments (params: entity_type, entity_id, page_path, status)
+- `POST comments` — create a comment (body: entity_type, entity_id, body, parent_id, page_path)
+- `PUT comments?id=X` — update body or status (open/resolved)
+- `DELETE comments?id=X` — delete (author or admin only)
+- `GET comments/count` — open comment counts by entity
+- `GET comments/activity` — recent comments across all content
+- `GET review-tokens` — list review tokens (admin only)
+- `POST review-tokens` — create a token (body: name, page_path, expires_at)
+- `PUT review-tokens?id=X` — toggle active/inactive
+- `DELETE review-tokens?id=X` — delete a token
+- `POST review/comment` — submit review feedback (public, token auth)
+- `GET review/comments` — list review feedback (public, token auth)
+
+### Database Tables
+- `comments` — entity_type, entity_id, element_selector, page_path, parent_id, user_id, author_name, author_email, body, status, review_token_id
+- `review_tokens` — token, name, page_path, expires_at, active, created_by
+- `comment_mentions` — comment_id, user_id, notified
+
+### Ranger Tool
+`manage_comments` supports actions: list, create, resolve, delete, activity, create_review_link, list_review_links
 
 ## Custom Workflows (v3.2.0)
 

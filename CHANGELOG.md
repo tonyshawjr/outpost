@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] — 2026-03-19
+
+### Added
+- **Collaboration & Comments** — Team members can leave threaded comments on collection items directly in the editor. Comments appear in a new "Comments" tab in the right sidebar with open/resolved filtering, @mention autocomplete, and reply threads.
+- **Client Review Links** — Generate shareable review URLs that inject a lightweight feedback overlay onto the live site. External reviewers click any element to leave comments without needing an admin account. Token-based authentication with optional page restriction and expiry.
+- **Review overlay** — Vanilla JS script (<10KB) injected via `?review=TOKEN` query parameter. Features: floating "Leave Feedback" button, element click-to-comment, numbered comment pins, slide-out feedback panel, localStorage-persisted reviewer identity.
+- **Review Links admin page** — New page under Settings in the sidebar for creating, managing, and sharing review links. Copy URL, activate/deactivate, and delete tokens.
+- **Comment activity feed** — API endpoint for recent comments across all content, powering future dashboard widgets.
+- **@mention support** — Type `@username` in comments to mention team members. Mention records stored in `comment_mentions` table for future notification support.
+- **Ranger tool** — `manage_comments` tool added to Ranger AI assistant for listing, creating, resolving, and deleting comments, plus creating and listing review links via natural language.
+
+---
+
 ## [3.2.0] — 2026-03-19
 
 ### Added

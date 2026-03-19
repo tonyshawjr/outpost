@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaboration &amp; Comments &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Collaboration &amp; Comments</h1>
+    <p class="lead">Team discussion on content and client feedback via shareable review links &mdash; all without leaving Outpost.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Outpost 3.3 adds two collaboration features:</p>
+    <ol>
+      <li><strong>Team Comments</strong> &mdash; Leave threaded comments on collection items directly in the admin panel. @mention teammates, resolve threads when done, and reply to keep discussions organized.</li>
+      <li><strong>Client Review Links</strong> &mdash; Generate a shareable URL that injects a feedback overlay on your live site. Clients click elements to leave pinned comments &mdash; no admin account needed.</li>
+    </ol>
+
+    <h2>Team Comments</h2>
+
+    <h3>Leaving a comment</h3>
+    <ol class="steps">
+      <li>
+        <strong>Open a collection item.</strong> Navigate to any collection and click an item to edit it.
+      </li>
+      <li>
+        <strong>Switch to the Comments tab.</strong> In the right sidebar, click the <strong>Comments</strong> tab (next to Post, SEO, and History).
+      </li>
+      <li>
+        <strong>Type your comment.</strong> Use the textarea at the bottom. Type <code>@username</code> to mention a team member &mdash; an autocomplete dropdown appears.
+      </li>
+      <li>
+        <strong>Press Cmd+Enter or click Comment.</strong> Your comment appears immediately.
+      </li>
+    </ol>
+
+    <h3>Replying</h3>
+    <p>Click <strong>Reply</strong> on any comment to add a threaded reply. Replies are nested below the parent comment.</p>
+
+    <h3>Resolving threads</h3>
+    <p>When a discussion is finished, click the <strong>Resolve</strong> button (green checkmark). Resolved comments fade out but are still visible &mdash; click <strong>Reopen</strong> to bring them back.</p>
+
+    <h3>Filtering</h3>
+    <p>Use the filter tabs at the top of the Comments panel to show <strong>All</strong>, <strong>Open</strong>, or <strong>Resolved</strong> comments.</p>
+
+    <h3>Deleting</h3>
+    <p>Comment authors and admins can delete comments. Click <strong>Delete</strong> on any comment you own (or any comment if you&rsquo;re an admin).</p>
+
+    <h2>Client Review Links</h2>
+
+    <h3>What are review links?</h3>
+    <p>A review link is a special URL you share with clients. When they open it, your live site loads normally but with a lightweight feedback overlay. Clients can click any element on the page to leave a comment &mdash; all without logging in or creating an account.</p>
+
+    <p>This is perfect for:</p>
+    <ul>
+      <li>Getting design feedback from clients before launch</li>
+      <li>Collecting content corrections (&ldquo;change this headline&rdquo;, &ldquo;swap this photo&rdquo;)</li>
+      <li>QA reviews with team members who don&rsquo;t need admin access</li>
+    </ul>
+
+    <h3>Creating a review link</h3>
+    <ol class="steps">
+      <li>
+        <strong>Open Review Links.</strong> Click <strong>Review Links</strong> in the sidebar (under the admin section, visible to admins only).
+      </li>
+      <li>
+        <strong>Click + New Review Link.</strong>
+      </li>
+      <li>
+        <strong>Name it.</strong> Give it a descriptive name like &ldquo;Client Review &mdash; Homepage&rdquo;.
+      </li>
+      <li>
+        <strong>Page scope (optional).</strong> Enter a specific page path (e.g., <code>/about</code>) to restrict the review to that page. Leave empty to allow feedback on any page.
+      </li>
+      <li>
+        <strong>Expiry (optional).</strong> Set a date/time when the link automatically expires.
+      </li>
+      <li>
+        <strong>Click Create Link.</strong> Copy the URL and share it with your client.
+      </li>
+    </ol>
+
+    <h3>How the review overlay works</h3>
+    <p>When someone visits your site with <code>?review=TOKEN</code> in the URL:</p>
+    <ol>
+      <li>A &ldquo;Leave Feedback&rdquo; button appears in the bottom-right corner.</li>
+      <li>Clicking it enters selection mode &mdash; hovering highlights elements with a blue outline.</li>
+      <li>Clicking an element opens a feedback panel where they enter their name (first time only, saved in their browser) and type their comment.</li>
+      <li>Submitted comments appear as numbered pins on the page, visible to everyone with the same review link.</li>
+      <li>Clicking a pin shows the comment thread for that element.</li>
+    </ol>
+    <p>The overlay script is lightweight (~8KB, vanilla JavaScript) and does not interfere with your site&rsquo;s design or performance.</p>
+
+    <h3>Managing review links</h3>
+    <p>From the Review Links page you can:</p>
+    <ul>
+      <li><strong>Copy link</strong> &mdash; Copy the full URL to your clipboard.</li>
+      <li><strong>Activate/Deactivate</strong> &mdash; Temporarily disable a link without deleting it. Deactivated links show &ldquo;Invalid token&rdquo; when accessed.</li>
+      <li><strong>Delete</strong> &mdash; Permanently remove the link. Existing feedback remains in the database.</li>
+    </ul>
+
+    <h3>Viewing review feedback</h3>
+    <p>All review comments appear alongside team comments in the admin panel. External reviewer comments are marked with an &ldquo;External&rdquo; badge so you can distinguish them from team discussions.</p>
+
+    <h2>API Reference</h2>
+
+    <h3>Comments (authenticated)</h3>
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>comments</code></td><td>List comments. Params: <code>entity_type</code>, <code>entity_id</code>, <code>page_path</code>, <code>status</code></td></tr>
+        <tr><td><code>POST</code></td><td><code>comments</code></td><td>Create a comment. Body: <code>{entity_type, entity_id, body, parent_id, page_path}</code></td></tr>
+        <tr><td><code>PUT</code></td><td><code>comments?id=X</code></td><td>Update comment body or status (<code>open</code>/<code>resolved</code>)</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>comments?id=X</code></td><td>Delete a comment (author or admin only)</td></tr>
+        <tr><td><code>GET</code></td><td><code>comments/count</code></td><td>Open comment counts grouped by entity</td></tr>
+        <tr><td><code>GET</code></td><td><code>comments/activity</code></td><td>Recent comments across all content</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Review Tokens (admin only)</h3>
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>review-tokens</code></td><td>List all review tokens</td></tr>
+        <tr><td><code>POST</code></td><td><code>review-tokens</code></td><td>Create a token. Body: <code>{name, page_path, expires_at}</code></td></tr>
+        <tr><td><code>PUT</code></td><td><code>review-tokens?id=X</code></td><td>Toggle active/inactive</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>review-tokens?id=X</code></td><td>Delete a token</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Public Review (token auth, no login required)</h3>
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>POST</code></td><td><code>review/comment</code></td><td>Submit feedback. Body: <code>{token, author_name, body, page_path, element_selector}</code></td></tr>
+        <tr><td><code>GET</code></td><td><code>review/comments</code></td><td>List feedback. Params: <code>token</code>, <code>page_path</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Database Tables</h2>
+    <p>Three tables are created automatically on first use:</p>
+    <ul>
+      <li><code>comments</code> &mdash; Stores all comments (team and external). Supports threading via <code>parent_id</code>, entity targeting (<code>entity_type</code>/<code>entity_id</code>), and element pinning (<code>element_selector</code>).</li>
+      <li><code>review_tokens</code> &mdash; Shareable review links with name, page scope, expiry, and active flag.</li>
+      <li><code>comment_mentions</code> &mdash; Records @mentions for future notification delivery.</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

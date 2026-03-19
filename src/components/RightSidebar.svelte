@@ -4,6 +4,7 @@
   import { addToast, navigate } from '$lib/stores.js';
   import SeoScore from '$components/SeoScore.svelte';
   import RevisionList from '$components/RevisionList.svelte';
+  import Comments from '$components/Comments.svelte';
 
   let route = $derived($currentRoute);
   let collSlug = $derived($currentCollectionSlug);
@@ -313,6 +314,7 @@
       <button class="rs-tab" class:active={sidebarTab === 'post'} onclick={() => sidebarTab = 'post'}>Post</button>
       <button class="rs-tab" class:active={sidebarTab === 'seo'} onclick={() => sidebarTab = 'seo'}>SEO</button>
       <button class="rs-tab" class:active={sidebarTab === 'history'} onclick={() => sidebarTab = 'history'}>History</button>
+      <button class="rs-tab" class:active={sidebarTab === 'comments'} onclick={() => sidebarTab = 'comments'}>Comments</button>
     </div>
 
     {#if sidebarTab === 'post'}
@@ -609,6 +611,10 @@
           key={$revisionReloadSignal}
           onRestore={() => { editorReloadSignal.update(n => n + 1); sidebarTab = 'post'; }}
         />
+      </div>
+    {:else if sidebarTab === 'comments'}
+      <div class="sidebar-card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+        <Comments entityType="item" entityId={editItem.id} />
       </div>
     {/if}
   {/if}

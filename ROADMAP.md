@@ -122,19 +122,20 @@ Everything below is already built and released.
 
 ---
 
-## v3.3 — Collaboration (Comments & Activity)
+## v3.3 — Collaboration (Comments & Client Review) **SHIPPED**
 
-**Team communication directly on content.** No more Slack threads about "which heading are we talking about?" — comment directly on the field.
+**Team communication directly on content + client feedback on the live site.**
 
-- **Comment threads on any field** — click a comment icon next to any field (title, body, image) to leave a note
-- **Comment threads on collection items** — discuss an entire item in context
-- **@mention team members** — type @tony to notify a specific person
-- **Email notifications** — get notified when you're mentioned or when a thread you're in gets a reply
-- **Resolve/unresolve threads** — mark a discussion as done without deleting it
-- **Comment count badges** — see at a glance which items have active discussions
-- **Real-time activity feed** — "Tony updated the hero title 2 min ago", "Sarah added a comment on About page"
-- **Activity dashboard widget** — latest team activity on the main dashboard
-- **Comment history** — full archive of all discussions, searchable
+- ~~**Comment threads on collection items** — discuss an entire item in context~~ **Shipped**
+- ~~**@mention team members** — type @tony to reference a specific person~~ **Shipped** (notification delivery deferred)
+- **Email notifications** — get notified when you're mentioned or when a thread you're in gets a reply (deferred to future release)
+- ~~**Resolve/unresolve threads** — mark a discussion as done without deleting it~~ **Shipped**
+- **Comment count badges** — see at a glance which items have active discussions (deferred to future release)
+- ~~**Activity feed API** — recent comments across all content~~ **Shipped**
+- **Activity dashboard widget** — latest team activity on the main dashboard (deferred to future release)
+- ~~**Client Review Links** — generate shareable URLs for external feedback without admin accounts~~ **Shipped**
+- ~~**Review overlay** — lightweight script injected on frontend for element-pinned feedback~~ **Shipped**
+- ~~**Ranger integration** — manage comments and review links via AI~~ **Shipped**
 
 ---
 
@@ -298,7 +299,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~3.0~~ | Ranger AI Assistant | **Shipped** |
 | ~~3.1~~ | Releases (bundle & publish) | **Shipped** |
 | ~~3.2~~ | Custom Workflows | **Shipped** |
-| 3.3 | Collaboration (Comments) | Planned |
+| ~~3.3~~ | Collaboration (Comments & Review) | **Shipped** |
 | 3.4 | Theme Gallery + 5 Themes | Planned |
 | 3.5 | Multi-Language (i18n) | Planned |
 | 3.6 | Headless-First (GraphQL) | Planned |

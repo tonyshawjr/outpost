@@ -955,6 +955,25 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
             'required_capability' => 'settings.*',
         ],
         [
+            'name' => 'manage_comments',
+            'description' => 'Manage comments, create review links for client feedback, and view activity feed.',
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'action' => ['type' => 'string', 'enum' => ['list', 'create', 'resolve', 'delete', 'activity', 'create_review_link', 'list_review_links']],
+                    'entity_type' => ['type' => 'string', 'description' => 'Entity type: page, item, field, element'],
+                    'entity_id' => ['type' => 'integer', 'description' => 'Entity ID'],
+                    'body' => ['type' => 'string', 'description' => 'Comment body text'],
+                    'comment_id' => ['type' => 'integer', 'description' => 'Comment ID (for resolve/delete)'],
+                    'name' => ['type' => 'string', 'description' => 'Review link name'],
+                    'page_path' => ['type' => 'string', 'description' => 'URL path'],
+                    'expires_at' => ['type' => 'string', 'description' => 'Expiry datetime'],
+                ],
+                'required' => ['action'],
+            ],
+            'required_capability' => null,
+        ],
+        [
             'name' => 'update_fields',
             'description' => 'Update page or global fields by page ID.',
             'parameters' => [
@@ -1289,7 +1308,7 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
         $intentTools = [
             'ui' => ['frontend_action', 'get_site_info', 'update_settings'],
             'build' => ['get_site_info', 'list_content', 'search_docs', 'list_themes', 'read_file', 'write_file', 'delete_file', 'clear_cache', 'manage_theme', 'upload_media', 'create_collection', 'create_item', 'manage_menu', 'frontend_action', 'debug_template', 'manage_channel'],
-            'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email', 'manage_releases', 'manage_workflows'],
+            'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email', 'manage_releases', 'manage_workflows', 'manage_comments'],
         ];
         $allowed = $intentTools[$intent] ?? null;
         if ($allowed !== null) {
@@ -1430,6 +1449,8 @@ function ranger_execute_tool(string $name, mixed $input): array {
                 return ranger_tool_manage_releases($input);
             case 'manage_workflows':
                 return ranger_tool_manage_workflows($input);
+            case 'manage_comments':
+                return ranger_handle_manage_comments($input);
             default:
                 return ['error' => "Unknown tool: $name"];
         }
