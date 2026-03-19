@@ -22,6 +22,51 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="3.0.0">3.0.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-19</span></h2>
+
+    <div class="callout callout-note">
+      <strong>Major release.</strong> Outpost 3.0 introduces Ranger, an AI-powered assistant built into the admin panel.
+    </div>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Ranger AI Assistant</strong> &mdash; AI-powered assistant in the admin sidebar with 35 tools covering every CMS operation: content management, theme building, file operations, media uploads, channels, forms, users, members, webhooks, backups, database queries, template debugging, email config, navigation, settings, and frontend actions.</li>
+      <li><strong>Multi-provider AI</strong> &mdash; 3 AI providers supported: Claude (Anthropic), OpenAI (GPT-4o/GPT-4), and Google (Gemini). Configure at Settings &gt; Integrations with your own API key.</li>
+      <li><strong>Streaming responses</strong> &mdash; Real-time SSE streaming with live tool execution display. Tool calls render as compact cards with running/success/error states.</li>
+      <li><strong>Conversation history</strong> &mdash; Persistent conversations with auto-generated titles, searchable history panel, rename, and delete.</li>
+      <li><strong>Token usage tracking</strong> &mdash; Per-message input/output/cache token counts with cost display in USD.</li>
+      <li><strong>Prompt caching (Claude)</strong> &mdash; System prompt and tool definitions use ephemeral caching. Cached rounds cost up to 90% less in input tokens.</li>
+      <li><strong>Dynamic tool loading</strong> &mdash; Intent classifier sends only relevant tools per message (3&ndash;13 tools instead of all 35) to minimize token usage.</li>
+      <li><strong>Screenshot paste</strong> &mdash; Paste images directly into chat for visual context (Claude provider).</li>
+      <li><strong>Output style</strong> &mdash; Configurable: concise, detailed, casual, technical, or custom free-text instructions.</li>
+      <li><strong>Role-scoped tools</strong> &mdash; Editors get content tools, developers get code tools, admins get everything. Enforced server-side.</li>
+      <li><strong>Forge Playground reset</strong> &mdash; One-click reset button on Themes page for themes with <code>.forge-snapshot</code> backup directories.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Ranger UI: Production polish</strong> &mdash; Mobile responsive (full-width overlay below 768px with slide-up animation), smart auto-scroll, full-width stop button bar, textarea auto-grow with character count, refined typography, compact tool call cards, focus-visible outlines, and aria-live chat region.</li>
+      <li><strong>Ranger: Token cost optimization</strong> &mdash; Compact system prompt (~60% smaller), conversation trimming (first 2 + last 16 messages), tool result truncation.</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Template engine: nested conditionals in loops</strong> &mdash; <code>&#123;% if %&#125;...&#123;% else %&#125;...&#123;% endif %&#125;</code> inside <code>&#123;% for %&#125;</code> loops no longer breaks compilation.</li>
+      <li><strong>Form Builder: dark mode</strong> &mdash; Replaced all hardcoded light-mode colors with CSS custom properties across 9 form-related components.</li>
+    </ul>
+
+    <h3>Security</h3>
+    <ul>
+      <li><strong>SSRF protection</strong> &mdash; Ranger outbound HTTP requests validate against private IP ranges and internal hostnames.</li>
+      <li><strong>Path traversal prevention</strong> &mdash; File operation tools enforce theme directory boundaries.</li>
+      <li><strong>Encrypted API keys</strong> &mdash; Provider API keys stored using AES-256-GCM encryption at rest.</li>
+      <li><strong>SQL restrictions</strong> &mdash; Database query tool allows only SELECT statements.</li>
+      <li><strong>Capability enforcement</strong> &mdash; Every tool checks user role capabilities before execution.</li>
+      <li><strong>Error sanitization</strong> &mdash; Internal errors logged server-side; generic messages returned to client.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="2.7.8">2.7.8 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-19</span></h2>
     <h3>Fixed</h3>
     <ul>

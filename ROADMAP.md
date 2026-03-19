@@ -392,7 +392,27 @@ Real-time multi-user editing on the same page or collection item:
 
 ---
 
-## v3.0 — Commerce
+## v3.0 — Ranger AI Assistant — SHIPPED (v3.0.0)
+
+**An AI-powered assistant built into the admin panel.** Ranger brings natural-language CMS operations to every user — from content editors asking "create a blog post about our spring sale" to developers asking "add a color field to the services collection schema."
+
+- **35 tools** covering every CMS operation: content, themes, files, media, channels, forms, users, members, webhooks, backups, database queries, template debugging, email config, navigation, settings, and frontend actions
+- **3 AI providers** — Claude (Anthropic), OpenAI (GPT-4o/GPT-4), Google (Gemini). Bring your own API key.
+- **Streaming responses** with real-time tool execution display
+- **Conversation persistence** with searchable history
+- **Token usage tracking** with cost display in USD
+- **Prompt caching** for Claude (90% cost reduction after first message)
+- **Dynamic tool loading** by intent classification to minimize token usage
+- **Role-scoped tools** — editors get content tools, developers get code tools, admins get everything
+- **Screenshot paste** for visual context
+- **Configurable output style** — concise, detailed, casual, technical, or custom
+- **Security hardening** — SSRF protection, path traversal prevention, CSRF, capability enforcement, XSS prevention, SQL restrictions, AES-256-GCM encrypted API keys, error sanitization
+
+**Docs:** Ranger feature page, API endpoints in Admin API reference, full tool reference in llms.txt.
+
+---
+
+## v4.0 — Commerce / Payments
 
 Lightweight digital product sales via Stripe:
 
@@ -407,7 +427,7 @@ Lightweight digital product sales via Stripe:
 
 ---
 
-## Long-Term / v3.x+
+## Long-Term / v4.x+
 
 ### Outpost CLI
 
@@ -464,7 +484,7 @@ These are explicitly out of scope. Acknowledging them keeps the codebase focused
 | Managed SaaS hosting | A business model, not a product feature — can be built on top of Outpost separately |
 | Native mobile apps | Web admin + responsive design is sufficient; unnecessary release cycle overhead |
 | Visual drag-and-drop page builder | Theme Customizer (v1.8) handles colors/fonts/logo; on-page editing handles content; structural layout belongs in theme templates |
-| Built-in AI content generation | External API dependencies, ongoing costs, and key management complexity |
+| ~~Built-in AI content generation~~ | **Shipped as Ranger AI (v3.0.0)** — BYO API key model eliminates ongoing costs for Outpost; users control their own provider and spend |
 | MySQL/Postgres support | SQLite is the constraint that enables "backup = one file" and shared-host compatibility |
 | LDAP/SAML enterprise SSO | Out of scope for indie/small-team target market; can be bolted on via custom `auth.php` |
 | Full multi-tenancy | Instance isolation per customer is a hosting infrastructure problem, not a CMS feature |
@@ -503,5 +523,6 @@ These define what Outpost is. Breaking them makes it something else.
 | 2.4 | Q1 2028 | Theme Gallery — 4-5 polished starter themes | Everyone |
 | 2.5 | Q1 2028 | Headless-First — GraphQL, webhooks v2 | Developers |
 | 2.6 | Q2 2028 | Collaborative Editing — real-time multi-user | Everyone |
-| 3.0 | Q3 2028 | Commerce — Stripe, digital products | Everyone |
-| 3.x+ | TBD | CLI, VS Code Extension, Internationalization, Theme Marketplace | Developers / Everyone |
+| ~~3.0~~ | ~~Q3 2028~~ | ~~Ranger AI Assistant~~ **Shipped** | Everyone |
+| 4.0 | Q4 2028 | Commerce / Payments — Stripe, digital products | Everyone |
+| 4.x+ | TBD | CLI, VS Code Extension, Internationalization, Theme Marketplace | Developers / Everyone |

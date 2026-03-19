@@ -23,6 +23,7 @@
 - [Setup Wizard](/outpost/docs/features/setup-wizard.html): First-run setup wizard, content packs, getting started checklist, contextual tips
 - [Forge](/outpost/docs/features/forge.html): Visual tag builder — select HTML, right-click or Cmd+E, wrap in Liquid tags with smart detection
 - [Content Packs](/outpost/docs/themes/content-packs.html): JSON content packs for seeding starter content
+- [Ranger AI Assistant](/outpost/docs/features/ranger.html): AI-powered assistant with 35 tools, multi-provider support, and streaming chat
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -74,6 +75,7 @@ your-site/
     template-engine.php        # Liquid compiler (OutpostTemplate::render)
     mailer.php                 # SMTP / mail() email
     members.php                # member session helpers (OutpostMember)
+    ranger.php                 # Ranger AI assistant: tools, streaming, providers
     config.php                 # constants: DB path, SMTP, upload limits, etc.
     docs/
       index.html               # developer documentation
@@ -2522,3 +2524,108 @@ Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, 
 - `POST setup/apply` — applies wizard choices (site_name, theme, pack) in transaction
 - `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
 - `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings
+
+## Ranger AI Assistant (v3.0.0)
+
+### What is Ranger?
+Ranger is an AI-powered assistant built into the Outpost admin panel sidebar. It provides a natural-language interface for every CMS operation — content editors can ask "create a blog post about our spring sale" and developers can ask "add a color field to the services collection." Ranger understands Outpost's template syntax, field types, collections, and architecture.
+
+### Configuration
+Configure Ranger at **Settings > Integrations**:
+1. Choose an AI provider: Claude (Anthropic), OpenAI (GPT-4o/GPT-4), or Google (Gemini)
+2. Enter your API key (encrypted at rest with AES-256-GCM)
+3. Optionally select a model and output style (concise, detailed, casual, technical, or custom)
+
+No Outpost account or subscription required — bring your own API key.
+
+### API Endpoints
+
+- `POST api.php?action=ranger/chat` — SSE streaming chat endpoint. Body: `{ "message": "...", "conversation_id": "...", "model": "...", "style": "..." }`. Returns Server-Sent Events with `type: "text"`, `type: "tool_call"`, `type: "tool_result"`, `type: "usage"`, and `type: "done"`.
+- `GET api.php?action=ranger/conversations` — list all conversations for the current user (most recent first)
+- `POST api.php?action=ranger/conversations` — create a new conversation. Body: `{ "title": "..." }`
+- `PUT api.php?action=ranger/conversations&id=N` — update conversation (rename). Body: `{ "title": "..." }`
+- `DELETE api.php?action=ranger/conversations&id=N` — delete a conversation and all its messages
+- `GET api.php?action=ranger/conversations&id=N` — get a single conversation with all messages
+- `GET api.php?action=ranger/settings` — get current Ranger configuration (provider, model, style)
+- `PUT api.php?action=ranger/settings` — update Ranger configuration. Body: `{ "provider": "...", "api_key": "...", "model": "...", "style": "..." }`
+
+### Available Tools (35 total)
+
+**Content tools:**
+- `create_page` — create a new page with path, title, and optional content
+- `update_page` — update page fields, meta, or visibility
+- `delete_page` — delete a page (homepage and globals protected)
+- `list_pages` — list all pages with optional search
+- `create_collection` — create a new collection with name, slug, URL pattern, and schema
+- `update_collection` — update collection settings or schema
+- `create_item` — create a collection item with field data
+- `update_item` — update an existing collection item
+- `delete_item` — delete a collection item
+- `list_content` — list items from a collection with filtering and pagination
+- `manage_globals` — get or set global field values
+
+**Media tools:**
+- `upload_media` — upload a file to the media library
+- `upload_media_from_url` — download an image from a URL and add to media library
+
+**Theme & file tools:**
+- `create_theme_file` — create a new file in the active theme
+- `update_theme_file` — update file contents in the active theme
+- `delete_theme_file` — delete a file from the active theme
+- `read_file` — read the contents of a theme file
+- `list_theme_files` — list all files in the active theme directory
+
+**Schema tools:**
+- `create_collection_field` — add a field to a collection's schema
+
+**Configuration tools:**
+- `update_settings` — update site settings (site name, tagline, email, etc.)
+- `list_settings` — list current site settings
+- `configure_email` — configure SMTP email settings
+- `manage_navigation` — create, update, or list navigation menus and items
+
+**User & member tools:**
+- `manage_users` — list, create, update, or delete admin users
+- `manage_members` — list, create, update, or delete site members
+
+**Build tools:**
+- `manage_forms` — create, update, list, or delete forms and view submissions
+- `manage_channels` — create, update, list, or sync external data channels
+- `manage_webhooks` — create, update, list, or delete webhooks
+- `manage_folders` — create, update, list, or delete folders and labels
+- `manage_backups` — create, list, download, or delete backups
+
+**Developer tools:**
+- `query_database` — run read-only SELECT queries against the SQLite database
+- `debug_template` — check a template file for syntax errors and render issues
+- `search_docs` — search the Outpost developer documentation
+- `get_system_info` — get CMS version, PHP version, active theme, database stats
+
+**Frontend tools:**
+- `frontend_action` — toggle dark mode, open/close navigation, or trigger other UI actions
+
+### How the Tool System Works
+
+1. User sends a message via the chat interface
+2. Backend classifies the message intent (content, build, UI, code, general)
+3. Only relevant tools for that intent are sent to the AI provider (3–13 tools instead of all 35)
+4. AI provider decides which tools to call based on the user's request
+5. Backend executes each tool call with full capability and security checks
+6. Tool results stream back to the client as SSE events
+7. AI provider generates a final response incorporating tool results
+
+**Conversation trimming:** Conversations over 20 messages are trimmed to first 2 + last 16 messages to prevent context overflow.
+
+**Tool result truncation:** `read_file` capped at 2000 chars, `list_content` at 10 items, `search_docs` at 500 chars per result.
+
+### Security Model
+
+- **SSRF protection** — outbound HTTP requests (e.g., `upload_media_from_url`) validate URLs against private IP ranges (10.x, 172.16-31.x, 192.168.x, 127.x, ::1) and internal hostnames
+- **Path traversal prevention** — file tools enforce theme directory boundaries; `../` and absolute paths outside the theme are blocked
+- **CSRF enforcement** — all POST/PUT/DELETE endpoints require a valid `X-CSRF-Token` header
+- **Capability enforcement** — every tool checks the authenticated user's role capabilities before execution (e.g., editors cannot access `manage_users`)
+- **XSS prevention** — tool outputs are HTML-escaped before rendering in the chat interface
+- **SQL restrictions** — `query_database` allows only SELECT statements; CREATE, INSERT, UPDATE, DELETE, DROP, ALTER, and PRAGMA are blocked
+- **API key encryption** — provider API keys are encrypted with AES-256-GCM using a site-specific key before storage
+- **Error sanitization** — internal PHP errors, stack traces, and file paths are never sent to the client; logged server-side with generic client messages
+- **Role scoping** — editors see ~13 content tools, developers see ~25 content+code tools, admins see all 35 tools

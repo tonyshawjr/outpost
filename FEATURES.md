@@ -4,6 +4,40 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Ranger AI Assistant (v3.0.0)
+
+- **AI-powered assistant** — Built into the admin panel sidebar. Natural-language interface for every CMS operation. Ask Ranger to create pages, edit content, build themes, manage media, configure channels, create forms, manage users, set up webhooks, run backups, query the database, debug templates, configure email, manage navigation, adjust settings, and toggle frontend features.
+- **35 tools** — Complete coverage of Outpost's API surface: `create_page`, `update_page`, `delete_page`, `list_pages`, `create_collection`, `update_collection`, `create_item`, `update_item`, `delete_item`, `list_content`, `upload_media`, `upload_media_from_url`, `create_theme_file`, `update_theme_file`, `delete_theme_file`, `read_file`, `list_theme_files`, `create_collection_field`, `update_settings`, `list_settings`, `manage_navigation`, `manage_users`, `manage_members`, `manage_forms`, `manage_channels`, `manage_webhooks`, `manage_backups`, `query_database`, `debug_template`, `configure_email`, `manage_globals`, `search_docs`, `get_system_info`, `frontend_action`, `manage_folders`.
+- **3 AI providers** — Claude (Anthropic) with prompt caching, OpenAI (GPT-4o/GPT-4), Google (Gemini). Configure at Settings > Integrations. BYO API key — no Outpost account or subscription needed.
+- **Streaming responses** — SSE streaming with real-time tool execution. Tool calls render as compact cards with running/success/error states and pulse animation.
+- **Conversation persistence** — Auto-generated conversation titles, searchable history panel, rename and delete conversations.
+- **Token usage tracking** — Per-message input/output/cache token counts with cost in USD. Visible in the chat interface.
+- **Prompt caching (Claude)** — System prompt and tool definitions use `cache_control` ephemeral caching. Cached rounds cost ~90% less input tokens.
+- **Dynamic tool loading** — Intent classifier (`ranger_classify_intent`) analyzes each message and sends only relevant tool subsets to minimize token usage.
+- **Screenshot paste** — Paste images directly into the chat for visual context (Claude vision).
+- **Output style** — Configurable: concise, detailed, casual, technical, or custom (free-text instructions).
+- **Role-scoped tools** — Editors see content tools, developers see code tools, admins see everything. Server-side capability enforcement on every tool execution.
+- **Security** — SSRF protection on outbound requests, path traversal prevention on file operations, CSRF on all mutations, capability enforcement per tool, XSS prevention on rendered output, SELECT-only database queries, AES-256-GCM encrypted API key storage, sanitized error responses.
+- **Mobile responsive** — Full-width slide-up overlay below 768px with safe-area padding for notched phones. Smart auto-scroll, scroll-to-bottom button, full-width stop bar.
+- **Accessibility** — focus-visible outlines, aria-live chat region, aria-labels on all controls, role="complementary" panel.
+- **API endpoints** — `POST ranger/chat` (SSE streaming), `GET/POST/PUT/DELETE ranger/conversations` (CRUD), `GET/PUT ranger/settings` (configuration).
+- **Files**: `php/ranger.php` (backend), `src/components/Ranger.svelte`, `src/components/ranger/ChatMessage.svelte`, `src/components/ranger/ToolCallCard.svelte`, `src/styles/admin.css`
+
+---
+
+## Forge Playground Reset (v3.0.0)
+
+- **One-click reset** — Themes page shows a "Reset" button on themes that have a `.forge-snapshot/` backup directory. Restores the theme to its pristine pre-Forge state (removes theme.json, partials, and template tags).
+
+---
+
+## Template Engine: Nested Conditionals Fix (v3.0.0)
+
+- **Nested if/else in loops** — `{% if %}...{% else %}...{% endif %}` blocks inside `{% for %}` loops no longer break the template compiler. The regex-based tag parser now correctly handles nested conditional blocks.
+- **Files**: `php/template-engine.php`
+
+---
+
 ## Form Builder & Submissions: Dark Mode Fix (v2.7.8)
 
 - Replaced all hardcoded light-mode fallback colors with proper CSS custom properties (`--bg-primary`, `--bg-card`, `--bg-tertiary`, `--border-primary`, `--accent`, `--accent-soft`, `--danger`, etc.)

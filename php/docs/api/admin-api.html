@@ -2614,6 +2614,118 @@ if (!res.ok) {
 
     <p>Response: <code>{"success": true}</code></p>
 
+    <h2>Ranger AI Assistant</h2>
+
+    <p>The Ranger AI endpoints power the built-in AI assistant. All endpoints require an active admin session. The chat endpoint uses Server-Sent Events (SSE) for streaming responses.</p>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=ranger/chat</span>
+      </div>
+      <p>Send a message to the AI assistant. Returns a stream of Server-Sent Events with text chunks, tool calls, tool results, token usage, and a done signal. Requires a configured AI provider and API key in Settings &gt; Integrations.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Body field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>message</code></td><td>string</td><td>Required. The user's message text.</td></tr>
+        <tr><td><code>conversation_id</code></td><td>string</td><td>Optional. Conversation ID to continue. Omit to start a new conversation.</td></tr>
+        <tr><td><code>model</code></td><td>string</td><td>Optional. Override the configured model for this request.</td></tr>
+        <tr><td><code>style</code></td><td>string</td><td>Optional. Output style: <code>concise</code>, <code>detailed</code>, <code>casual</code>, <code>technical</code>, or <code>custom</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>SSE event types:</p>
+    <pre><code>event: text
+data: {"content": "Here's how to..."}
+
+event: tool_call
+data: {"id": "call_123", "name": "create_page", "arguments": {...}}
+
+event: tool_result
+data: {"id": "call_123", "result": {...}}
+
+event: usage
+data: {"input_tokens": 1500, "output_tokens": 200, "cache_read_tokens": 1200}
+
+event: done
+data: {"conversation_id": "abc123"}</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=ranger/conversations</span>
+      </div>
+      <p>List all conversations for the current user, ordered by most recent first.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=ranger/conversations&amp;id=N</span>
+      </div>
+      <p>Get a single conversation with all its messages.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=ranger/conversations</span>
+      </div>
+      <p>Create a new conversation.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "title": "My conversation" }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=ranger/conversations&amp;id=N</span>
+      </div>
+      <p>Update a conversation (rename).</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{ "title": "New title" }</code></pre>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">api.php?action=ranger/conversations&amp;id=N</span>
+      </div>
+      <p>Delete a conversation and all its messages.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=ranger/settings</span>
+      </div>
+      <p>Get current Ranger configuration: provider, model, and output style. API key is never returned.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">api.php?action=ranger/settings</span>
+      </div>
+      <p>Update Ranger configuration. The API key is encrypted with AES-256-GCM before storage.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Body field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>provider</code></td><td>string</td><td><code>anthropic</code>, <code>openai</code>, or <code>google</code></td></tr>
+        <tr><td><code>api_key</code></td><td>string</td><td>Your API key for the selected provider</td></tr>
+        <tr><td><code>model</code></td><td>string</td><td>Optional. Model ID (e.g. <code>claude-sonnet-4-20250514</code>, <code>gpt-4o</code>)</td></tr>
+        <tr><td><code>style</code></td><td>string</td><td>Optional. Output style preference</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response: <code>{"success": true}</code></p>
+
     <h2>Revisions diff</h2>
 
     <div class="endpoint">

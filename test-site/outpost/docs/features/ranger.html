@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ranger AI Assistant &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Ranger AI Assistant</h1>
+    <p class="lead">An AI-powered assistant built into the admin panel &mdash; manage your entire CMS with natural language.</p>
+  </div>
+  <div class="content">
+
+    <h2>What is Ranger?</h2>
+    <p>Ranger is an AI assistant that lives in your Outpost admin sidebar. It can do anything you can do in the admin panel &mdash; create pages, edit content, build themes, manage media, configure channels, set up forms, manage users, and more &mdash; all through a simple chat interface.</p>
+    <p>Ranger is powered by your choice of AI provider. Bring your own API key &mdash; no Outpost subscription or account required.</p>
+
+    <h2>Getting Started</h2>
+    <ol>
+      <li>Go to <strong>Settings &gt; Integrations</strong></li>
+      <li>Choose an AI provider: <strong>Claude</strong> (Anthropic), <strong>OpenAI</strong> (GPT-4o/GPT-4), or <strong>Google</strong> (Gemini)</li>
+      <li>Enter your API key &mdash; it is encrypted with AES-256-GCM before storage</li>
+      <li>Optionally select a model and output style</li>
+      <li>Click the Ranger icon in the admin sidebar to open the assistant</li>
+    </ol>
+
+    <h2>What Can Ranger Do?</h2>
+    <p>Ranger has <strong>35 tools</strong> covering every CMS operation:</p>
+
+    <h3>Content Management</h3>
+    <ul>
+      <li>Create, update, delete, and list pages</li>
+      <li>Create and configure collections with schemas</li>
+      <li>Create, update, delete, and list collection items</li>
+      <li>Manage global field values</li>
+    </ul>
+
+    <h3>Theme &amp; File Operations</h3>
+    <ul>
+      <li>Create, update, delete, and read theme files</li>
+      <li>List all files in the active theme</li>
+      <li>Debug templates for syntax errors</li>
+    </ul>
+
+    <h3>Media</h3>
+    <ul>
+      <li>Upload files to the media library</li>
+      <li>Download images from URLs and add to media</li>
+    </ul>
+
+    <h3>Configuration</h3>
+    <ul>
+      <li>Update site settings (name, tagline, email, etc.)</li>
+      <li>Configure SMTP email</li>
+      <li>Manage navigation menus and items</li>
+      <li>Manage folders and labels</li>
+    </ul>
+
+    <h3>Users &amp; Members</h3>
+    <ul>
+      <li>List, create, update, or delete admin users</li>
+      <li>List, create, update, or delete site members</li>
+    </ul>
+
+    <h3>Build Tools</h3>
+    <ul>
+      <li>Create and manage forms, view submissions</li>
+      <li>Configure and sync external data channels</li>
+      <li>Set up webhooks</li>
+      <li>Create and manage backups</li>
+    </ul>
+
+    <h3>Developer Tools</h3>
+    <ul>
+      <li>Run read-only SQL queries against the database</li>
+      <li>Debug template files for errors</li>
+      <li>Search the developer documentation</li>
+      <li>Get system information (CMS version, PHP version, etc.)</li>
+    </ul>
+
+    <h3>Frontend Actions</h3>
+    <ul>
+      <li>Toggle dark mode</li>
+      <li>Open/close navigation</li>
+    </ul>
+
+    <h2>Features</h2>
+
+    <h3>Streaming Responses</h3>
+    <p>Ranger streams responses in real time using Server-Sent Events (SSE). As the AI thinks and executes tools, you see the results appear immediately &mdash; no waiting for the full response to complete.</p>
+
+    <h3>Conversation History</h3>
+    <p>Conversations are automatically saved and can be continued later. The history panel shows all past conversations with preview text and timestamps. You can rename or delete conversations.</p>
+
+    <h3>Token Usage &amp; Cost Tracking</h3>
+    <p>Every message shows input, output, and cache token counts with an estimated cost in USD. This helps you monitor usage and understand costs.</p>
+
+    <h3>Prompt Caching (Claude)</h3>
+    <p>When using Claude as your provider, Ranger uses prompt caching on the system prompt and tool definitions. After the first message in a session, subsequent messages reuse the cached prefix &mdash; reducing input token costs by up to 90%.</p>
+
+    <h3>Dynamic Tool Loading</h3>
+    <p>Ranger classifies each message by intent and sends only relevant tools to the AI provider. A content question sends ~13 tools instead of all 35, reducing token usage and improving response quality.</p>
+
+    <h3>Screenshot Support</h3>
+    <p>Paste a screenshot directly into the chat input for visual context. Available with the Claude provider.</p>
+
+    <h3>Output Styles</h3>
+    <p>Choose how Ranger communicates:</p>
+    <ul>
+      <li><strong>Concise</strong> &mdash; short, direct answers</li>
+      <li><strong>Detailed</strong> &mdash; thorough explanations with context</li>
+      <li><strong>Casual</strong> &mdash; friendly, conversational tone</li>
+      <li><strong>Technical</strong> &mdash; precise, developer-oriented language</li>
+      <li><strong>Custom</strong> &mdash; provide your own instructions</li>
+    </ul>
+
+    <h2>Role-Based Access</h2>
+    <p>Ranger respects Outpost's role system. The tools available to each user depend on their role:</p>
+    <ul>
+      <li><strong>Editors</strong> &mdash; content tools (pages, items, globals, media)</li>
+      <li><strong>Developers</strong> &mdash; content + code tools (themes, files, templates, database queries)</li>
+      <li><strong>Admins</strong> &mdash; all 35 tools including users, settings, backups, and email configuration</li>
+    </ul>
+    <p>Capability enforcement happens server-side on every tool execution &mdash; the AI cannot bypass role restrictions.</p>
+
+    <h2>Security</h2>
+    <ul>
+      <li><strong>API key encryption</strong> &mdash; stored using AES-256-GCM with a site-specific key</li>
+      <li><strong>SSRF protection</strong> &mdash; outbound requests block private IP ranges and internal hostnames</li>
+      <li><strong>Path traversal prevention</strong> &mdash; file operations are confined to the active theme directory</li>
+      <li><strong>CSRF enforcement</strong> &mdash; all mutation endpoints require a valid token</li>
+      <li><strong>SQL restrictions</strong> &mdash; database queries limited to SELECT statements only</li>
+      <li><strong>XSS prevention</strong> &mdash; all AI output is sanitized before rendering</li>
+      <li><strong>Error sanitization</strong> &mdash; internal errors are logged, never exposed to the client</li>
+    </ul>
+
+    <h2>API Reference</h2>
+    <p>See the <a href="api/admin-api.html#ranger-ai-assistant">Admin API &mdash; Ranger AI Assistant</a> section for full endpoint documentation.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] — 2026-03-19
+
+### Added
+- **Ranger AI Assistant** — AI-powered assistant built into the admin panel sidebar. 35 tools covering every CMS operation: content management, theme building, file operations, media upload from URLs, channel configuration, form management, user/member management, webhooks, backups, database queries, template debugging, email config, navigation, settings, and frontend actions (dark mode, navigation toggle).
+- **Multi-provider AI** — 3 AI providers supported: Claude (Anthropic), OpenAI (GPT-4o/GPT-4), and Google (Gemini). Configure via Settings > Integrations with your own API key.
+- **Streaming responses** — Real-time SSE streaming with live tool execution display. Tool calls show as compact cards with status, pulse animation while running, and results on completion.
+- **Conversation history** — Persistent conversation history with auto-generated titles, searchable history panel, and conversation management (rename, delete).
+- **Token usage tracking** — Per-message token counts with cost display in USD. Tracks input, output, and cache tokens across all providers.
+- **Prompt caching** — Claude provider uses `cache_control` ephemeral caching on system prompt and tool definitions. After the first message, subsequent rounds reuse cached prefixes for up to 90% input token cost reduction.
+- **Dynamic tool loading** — Intent classifier analyzes each message and sends only relevant tools (UI intents get 3 tools, build intents get 10, content intents get 13) to minimize token usage.
+- **Screenshot paste support** — Paste screenshots directly into the chat input for visual context (Claude provider).
+- **Configurable output style** — Choose between concise, detailed, casual, technical, or custom output styles. Custom style accepts free-text instructions.
+- **Role-scoped tools** — Editors get content tools, developers get code tools, admins get everything. Tool availability enforced server-side via capability checks.
+- **Deep product expertise** — System prompt includes comprehensive Outpost template syntax, field types, and CMS architecture knowledge for accurate assistance.
+- **Forge Playground reset** — One-click reset button on the Themes page for themes with `.forge-snapshot` backup directories.
+
+### Changed
+- **Ranger UI: Production polish** — Mobile responsive (full-width overlay with slide-up animation below 768px, safe-area padding for notched phones), smart auto-scroll with scroll-to-bottom button, full-width stop button bar, textarea auto-grows to 150px with character count, refined typography and compact tool call cards, focus-visible outlines, aria-live chat region.
+- **Ranger: Token cost optimization** — Compact system prompt (~60% smaller), conversation history trimming (keeps first 2 + last 16 messages), tool result truncation for large responses.
+
+### Fixed
+- **Template engine: nested conditionals in loops** — `{% if %}...{% else %}...{% endif %}` blocks inside `{% for %}` loops no longer break compilation.
+- **Form Builder: dark mode styling** — Replaced all hardcoded light-mode colors with CSS custom properties across 9 form-related components (FormBuilder, FormSubmissions, FormsList, Forms, FieldPalette, FieldList, FieldSettings, FormPreview, FormSettings).
+
+### Security
+- **SSRF protection** — All outbound HTTP requests from Ranger tools validate against private IP ranges and internal hostnames.
+- **Path traversal prevention** — File operation tools enforce theme directory boundaries and block `../` traversal.
+- **CSRF enforcement** — All Ranger mutation endpoints require valid CSRF tokens.
+- **Capability enforcement** — Every tool checks the user's role capabilities before execution.
+- **XSS prevention** — All tool outputs are sanitized before rendering in the chat interface.
+- **SQL restrictions** — Database query tool allows only SELECT statements; no mutations.
+- **Encrypted API keys** — Provider API keys stored using AES-256-GCM encryption at rest.
+- **Error sanitization** — Internal error details are never exposed to the client; generic messages with logging instead.
+
+---
+
 ## [2.7.8] — 2026-03-19
 
 ### Fixed
