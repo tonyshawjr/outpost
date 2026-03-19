@@ -595,6 +595,23 @@ export const releases = {
   removeChange: (id) => request('releases/changes', { method: 'DELETE', params: { id } }),
 };
 
+// Workflows
+export const workflows = {
+  list: () => request('workflows'),
+  get: (id) => request('workflows', { params: { id } }),
+  create: (data) => request('workflows', { method: 'POST', body: data }),
+  update: (id, data) => request('workflows', { method: 'PUT', params: { id }, body: data }),
+  delete: (id) => request('workflows', { method: 'DELETE', params: { id } }),
+  transition: (itemId, toStage, note = '') =>
+    request('workflows/transition', { method: 'POST', body: { item_id: itemId, to_stage: toStage, note } }),
+  bulkTransition: (itemIds, toStage, note = '') =>
+    request('workflows/bulk-transition', { method: 'POST', body: { item_ids: itemIds, to_stage: toStage, note } }),
+  history: (itemId) =>
+    request('workflows/history', { params: { item_id: itemId } }),
+  forCollection: (collectionId) =>
+    request('workflows/for-collection', { params: { collection_id: collectionId } }),
+};
+
 // Setup Wizard
 export const setup = {
   packs: () => request('setup/packs'),

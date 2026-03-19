@@ -4,6 +4,23 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Custom Workflows (v3.2.0)
+
+- **Custom approval stages** — Define workflows with arbitrary stages (Draft, Copy Review, Legal Review, Approved, Published, etc.). Each stage has a name, slug, color, allowed transitions, and role-based permissions.
+- **Built-in defaults** — Two workflows created on first run: "Simple" (Draft → Published) for backward compatibility and "Editorial" (Draft → Review → Approved → Published) for teams with review processes.
+- **Collection assignment** — Each collection can be assigned a workflow via the schema editor. Collections without a workflow use the default Simple workflow.
+- **Stage transitions** — Click status badges in item lists or the editor sidebar to move content between stages. Available transitions are determined by the current stage's `can_move_to` rules and the user's role.
+- **Transition history** — Every stage change is logged with who, when, from/to stage, and optional note. History is visible in the editor's History tab alongside revision history.
+- **Bulk transitions** — Select multiple items and move them all to a target stage. Role and transition rules are enforced per-item.
+- **Visual pipeline builder** — Create and edit workflows with a visual stage editor. Color pickers, transition checkboxes, role selectors, and a live pipeline preview.
+- **Webhook event** — `workflow.transition` event dispatched on every stage change with item, collection, workflow, and user context.
+- **Ranger tool** — `manage_workflows` tool supports list, create, get, update, delete, transition, and history actions via natural language.
+- **Backward compatible** — Existing draft/published/scheduled/pending_review statuses continue to work. The existing `require_review` flag is preserved alongside workflow assignment.
+- **Database** — Two new tables: `workflows` (stages stored as JSON) and `workflow_transitions` (audit log). New `workflow_id` column on `collections` table.
+- **Files**: `php/workflows.php` (backend), `src/pages/Workflows.svelte` (UI), `src/lib/api.js` (client), `php/api.php` (routes), `php/ranger.php` (AI tool), `src/pages/CollectionItems.svelte` (status badges), `src/pages/CollectionList.svelte` (workflow selector), `src/components/RightSidebar.svelte` (editor transitions + history), `src/components/Sidebar.svelte` (nav link)
+
+---
+
 ## Releases (v3.1.0)
 
 - **Content releases** — Bundle multiple content changes (fields, items, pages, menus, collections) into a named release and publish them all at once. Atomic publishing via database transaction ensures all-or-nothing consistency.

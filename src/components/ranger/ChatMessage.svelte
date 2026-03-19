@@ -25,8 +25,11 @@
         if (/^\s*(javascript|data|vbscript):/i.test(url)) return label;
         return `<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
       })
-      // Line breaks
-      .replace(/\n/g, '<br>');
+      // Line breaks — double newlines become paragraph breaks, single newlines become <br>
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+      // Clean up trailing breaks
+      .replace(/(<br>)+$/g, '');
     return html;
   }
 

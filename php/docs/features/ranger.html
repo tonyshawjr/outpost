@@ -14,135 +14,276 @@
 <main class="main">
   <div class="page-hero">
     <h1>Ranger AI Assistant</h1>
-    <p class="lead">An AI-powered assistant built into the admin panel &mdash; manage your entire CMS with natural language.</p>
+    <p class="lead">Your built-in AI assistant that can do just about anything in Outpost &mdash; create pages, write content, build themes, manage your site &mdash; all by asking in plain English.</p>
   </div>
   <div class="content">
 
     <h2>What is Ranger?</h2>
-    <p>Ranger is an AI assistant that lives in your Outpost admin sidebar. It can do anything you can do in the admin panel &mdash; create pages, edit content, build themes, manage media, configure channels, set up forms, manage users, and more &mdash; all through a simple chat interface.</p>
-    <p>Ranger is powered by your choice of AI provider. Bring your own API key &mdash; no Outpost subscription or account required.</p>
+    <p>Ranger is like having a web developer on speed dial, right inside your admin panel. Instead of clicking through menus and filling out forms, you just tell Ranger what you want in your own words. It handles the rest.</p>
+
+    <p>Want a new blog collection with title, image, and body fields? Just ask. Need to update your site name, upload an image, or build an entire theme from scratch? Ranger can do all of that &mdash; and more.</p>
+
+    <p>Ranger works with your choice of AI provider (Claude, OpenAI, or Google). You bring your own API key &mdash; no Outpost subscription or account needed.</p>
 
     <h2>Getting Started</h2>
-    <ol>
-      <li>Go to <strong>Settings &gt; Integrations</strong></li>
-      <li>Choose an AI provider: <strong>Claude</strong> (Anthropic), <strong>OpenAI</strong> (GPT-4o/GPT-4), or <strong>Google</strong> (Gemini)</li>
-      <li>Enter your API key &mdash; it is encrypted with AES-256-GCM before storage</li>
-      <li>Optionally select a model and output style</li>
-      <li>Click the Ranger icon in the admin sidebar to open the assistant</li>
+    <p>Setting up Ranger takes about two minutes.</p>
+    <ol class="steps">
+      <li>
+        <strong>Open Settings.</strong> Click <strong>Settings</strong> in the sidebar, then go to the <strong>Integrations</strong> tab.
+      </li>
+      <li>
+        <strong>Pick a provider.</strong> Choose from Claude (Anthropic), OpenAI, or Google Gemini. We recommend Claude &mdash; it works best with Outpost (more on that below).
+      </li>
+      <li>
+        <strong>Paste your API key.</strong> Get this from your provider's website. Outpost encrypts it before storing it &mdash; nobody can see it after you save.
+      </li>
+      <li>
+        <strong>Choose a model.</strong> Each provider has different models. The default is a good starting point.
+      </li>
+      <li>
+        <strong>Click Save.</strong> That's it for setup.
+      </li>
+      <li>
+        <strong>Open Ranger.</strong> Click the sparkle icon in the top navigation bar, or click <strong>Ranger</strong> in the sidebar. Start chatting.
+      </li>
     </ol>
 
-    <h2>What Can Ranger Do?</h2>
-    <p>Ranger has <strong>35 tools</strong> covering every CMS operation:</p>
+    <h2>What Can You Ask Ranger to Do?</h2>
+    <p>Ranger has access to every part of Outpost. Here are real examples you can type or paste directly into the chat.</p>
 
-    <h3>Content Management</h3>
+    <h3>Create and manage content</h3>
     <ul>
-      <li>Create, update, delete, and list pages</li>
-      <li>Create and configure collections with schemas</li>
-      <li>Create, update, delete, and list collection items</li>
-      <li>Manage global field values</li>
+      <li>"Create a blog collection with title, excerpt, featured_image, and body fields"</li>
+      <li>"Add a new blog post titled 'Our Spring Sale' with some placeholder text"</li>
+      <li>"Update the About page title to 'About Our Team'"</li>
+      <li>"List all my collections"</li>
+      <li>"Delete the draft blog post called 'Test Post'"</li>
+      <li>"Set the global field site_name to 'Mountain View Bakery'"</li>
     </ul>
 
-    <h3>Theme &amp; File Operations</h3>
+    <h3>Build and edit themes</h3>
     <ul>
-      <li>Create, update, delete, and read theme files</li>
-      <li>List all files in the active theme</li>
-      <li>Debug templates for syntax errors</li>
+      <li>"Build me a restaurant theme with a homepage, menu page, and contact page"</li>
+      <li>"Add a footer partial with social media links"</li>
+      <li>"Show me what's in the homepage template"</li>
+      <li>"Check my templates for syntax errors"</li>
+      <li>"Update the nav partial to include a link to the blog"</li>
     </ul>
 
-    <h3>Media</h3>
+    <h3>Work with media</h3>
     <ul>
-      <li>Upload files to the media library</li>
-      <li>Download images from URLs and add to media</li>
+      <li>"Upload this image from Unsplash: https://unsplash.com/photos/example"</li>
+      <li>"Download this logo and add it to my media library: https://example.com/logo.png"</li>
     </ul>
 
-    <h3>Configuration</h3>
+    <h3>Configure your site</h3>
     <ul>
-      <li>Update site settings (name, tagline, email, etc.)</li>
-      <li>Configure SMTP email</li>
-      <li>Manage navigation menus and items</li>
-      <li>Manage folders and labels</li>
+      <li>"Change the site name to 'Fresh Roast Coffee'"</li>
+      <li>"Turn on dark mode"</li>
+      <li>"Set up a navigation menu with Home, About, and Contact links"</li>
+      <li>"Create a folder called 'Categories' for my blog collection"</li>
     </ul>
 
-    <h3>Users &amp; Members</h3>
+    <h3>Manage users and members</h3>
     <ul>
-      <li>List, create, update, or delete admin users</li>
-      <li>List, create, update, or delete site members</li>
+      <li>"Add a new admin user called Sarah with the email sarah@example.com"</li>
+      <li>"List all site members"</li>
+      <li>"Create a member account for john@example.com"</li>
     </ul>
 
-    <h3>Build Tools</h3>
+    <h3>Use build tools</h3>
     <ul>
-      <li>Create and manage forms, view submissions</li>
-      <li>Configure and sync external data channels</li>
-      <li>Set up webhooks</li>
-      <li>Create and manage backups</li>
+      <li>"Create a contact form with name, email, and message fields"</li>
+      <li>"Set up a channel to pull data from this API: https://api.example.com/posts"</li>
+      <li>"Create a backup of my site"</li>
+      <li>"Set up a webhook that fires when a new blog post is published"</li>
     </ul>
 
-    <h3>Developer Tools</h3>
+    <h3>Get help and information</h3>
     <ul>
-      <li>Run read-only SQL queries against the database</li>
-      <li>Debug template files for errors</li>
-      <li>Search the developer documentation</li>
-      <li>Get system information (CMS version, PHP version, etc.)</li>
+      <li>"How do I add a collection loop to my template?"</li>
+      <li>"What version of Outpost am I running?"</li>
+      <li>"Search the docs for pagination"</li>
+      <li>"Show me the database stats"</li>
     </ul>
 
-    <h3>Frontend Actions</h3>
+    <h2>Tips for Getting the Best Results</h2>
+    <p>Ranger is smart, but a little specificity goes a long way.</p>
+
+    <h3>Be specific</h3>
+    <p>Instead of "make a blog," try "create a blog collection with title, excerpt, featured_image, and body fields, using /blog/{slug} as the URL pattern." The more detail you give, the closer the result will be to what you want on the first try.</p>
+
+    <h3>Paste screenshots for context</h3>
+    <p>If something looks wrong on your site, paste a screenshot into the chat. Ranger can see images and use them to understand what you're working with. (Available with the Claude provider.)</p>
+
+    <h3>Use the Stop button</h3>
+    <p>If Ranger starts heading in the wrong direction, click <strong>Stop</strong> to halt the response. Then rephrase your request.</p>
+
+    <h3>Edit previous messages</h3>
+    <p>Made a typo or want to rephrase? You can edit a previous message and Ranger will re-process it with your updated wording.</p>
+
+    <h3>Start fresh for new topics</h3>
+    <p>If you switch from building a theme to managing users, start a new conversation. This keeps the context focused and prevents confusion.</p>
+
+    <h3>Chain requests naturally</h3>
+    <p>Ranger remembers your conversation. You can say "create a blog collection" and then follow up with "now add a featured_image field to it" without repeating the collection name.</p>
+
+    <h2>Choosing a Provider</h2>
+    <p>Ranger works with three AI providers. Each has trade-offs.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Best for</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude</strong> (Anthropic)</td>
+          <td>Everything</td>
+          <td>Best tool use, largest output, prompt caching saves money after the first message. <strong>Recommended.</strong></td>
+        </tr>
+        <tr>
+          <td><strong>OpenAI</strong> (GPT)</td>
+          <td>General use</td>
+          <td>Solid alternative. Familiar if you already use ChatGPT. GPT-4o is fast and capable.</td>
+        </tr>
+        <tr>
+          <td><strong>Google Gemini</strong></td>
+          <td>Budget-conscious use</td>
+          <td>Cheapest per token. Good for simple tasks like listing content or updating settings.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you're not sure which to pick, start with Claude. It handles complex multi-step tasks (like building an entire theme) better than the alternatives.</div>
+
+    <h2>Understanding Costs</h2>
+    <p>Every message you send to Ranger uses "tokens" &mdash; think of them as units of text. Longer messages and more complex responses use more tokens, which cost money through your AI provider.</p>
+
+    <h3>How billing works</h3>
     <ul>
-      <li>Toggle dark mode</li>
-      <li>Open/close navigation</li>
+      <li>You are billed directly by your AI provider (Anthropic, OpenAI, or Google) based on how many tokens you use.</li>
+      <li>Outpost itself is free &mdash; you only pay for the AI usage.</li>
+      <li>Costs vary by provider and model. A typical request costs a fraction of a cent.</li>
     </ul>
 
-    <h2>Features</h2>
+    <h3>The usage indicator</h3>
+    <p>After every message, Ranger shows a small usage breakdown: how many tokens were used for input (your messages + system context) and output (Ranger's response), along with an estimated cost in USD.</p>
 
-    <h3>Streaming Responses</h3>
-    <p>Ranger streams responses in real time using Server-Sent Events (SSE). As the AI thinks and executes tools, you see the results appear immediately &mdash; no waiting for the full response to complete.</p>
+    <h3>Saving money with prompt caching</h3>
+    <p>If you use Claude as your provider, Ranger automatically uses <strong>prompt caching</strong>. The first message in a conversation sends a large system prompt with all of Outpost's context. On every subsequent message, that context is reused from cache &mdash; reducing input token costs by up to 90%. This means the first message in a conversation is the most expensive, and follow-up messages are significantly cheaper.</p>
 
-    <h3>Conversation History</h3>
-    <p>Conversations are automatically saved and can be continued later. The history panel shows all past conversations with preview text and timestamps. You can rename or delete conversations.</p>
+    <h2>Output Styles</h2>
+    <p>You can customize how Ranger communicates. Go to <strong>Settings &gt; Integrations</strong> and choose an output style:</p>
 
-    <h3>Token Usage &amp; Cost Tracking</h3>
-    <p>Every message shows input, output, and cache token counts with an estimated cost in USD. This helps you monitor usage and understand costs.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Style</th>
+          <th>What it does</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Concise</strong></td>
+          <td>Short, direct answers. Just the facts, no extra explanation.</td>
+        </tr>
+        <tr>
+          <td><strong>Detailed</strong></td>
+          <td>Thorough explanations with context and reasoning. Good for learning.</td>
+        </tr>
+        <tr>
+          <td><strong>Casual</strong></td>
+          <td>Friendly and conversational. Less formal, more approachable.</td>
+        </tr>
+        <tr>
+          <td><strong>Technical</strong></td>
+          <td>Precise, developer-oriented language. Includes code details and technical context.</td>
+        </tr>
+        <tr>
+          <td><strong>Custom</strong></td>
+          <td>Write your own instructions for how Ranger should respond.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <h3>Prompt Caching (Claude)</h3>
-    <p>When using Claude as your provider, Ranger uses prompt caching on the system prompt and tool definitions. After the first message in a session, subsequent messages reuse the cached prefix &mdash; reducing input token costs by up to 90%.</p>
+    <h2>Conversation History</h2>
+    <p>Ranger saves every conversation automatically. You can pick up where you left off, or review what you've done in the past.</p>
 
-    <h3>Dynamic Tool Loading</h3>
-    <p>Ranger classifies each message by intent and sends only relevant tools to the AI provider. A content question sends ~13 tools instead of all 35, reducing token usage and improving response quality.</p>
-
-    <h3>Screenshot Support</h3>
-    <p>Paste a screenshot directly into the chat input for visual context. Available with the Claude provider.</p>
-
-    <h3>Output Styles</h3>
-    <p>Choose how Ranger communicates:</p>
     <ul>
-      <li><strong>Concise</strong> &mdash; short, direct answers</li>
-      <li><strong>Detailed</strong> &mdash; thorough explanations with context</li>
-      <li><strong>Casual</strong> &mdash; friendly, conversational tone</li>
-      <li><strong>Technical</strong> &mdash; precise, developer-oriented language</li>
-      <li><strong>Custom</strong> &mdash; provide your own instructions</li>
+      <li><strong>Access history</strong> &mdash; click the history icon (clock) at the top of the Ranger panel to see all past conversations.</li>
+      <li><strong>Load a conversation</strong> &mdash; click any conversation in the list to reload it and continue chatting.</li>
+      <li><strong>Rename</strong> &mdash; click the title of a conversation to give it a more descriptive name.</li>
+      <li><strong>Delete</strong> &mdash; remove conversations you no longer need. This is permanent.</li>
+      <li><strong>Cost tracking</strong> &mdash; the history view shows total token usage and estimated cost for each conversation.</li>
     </ul>
 
-    <h2>Role-Based Access</h2>
-    <p>Ranger respects Outpost's role system. The tools available to each user depend on their role:</p>
-    <ul>
-      <li><strong>Editors</strong> &mdash; content tools (pages, items, globals, media)</li>
-      <li><strong>Developers</strong> &mdash; content + code tools (themes, files, templates, database queries)</li>
-      <li><strong>Admins</strong> &mdash; all 35 tools including users, settings, backups, and email configuration</li>
-    </ul>
-    <p>Capability enforcement happens server-side on every tool execution &mdash; the AI cannot bypass role restrictions.</p>
+    <h2>What Ranger Can Access</h2>
+    <p>Different admin roles see different capabilities in Ranger. This is enforced by the server &mdash; Ranger cannot bypass your permissions.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Your role</th>
+          <th>What Ranger can do</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Editor</strong></td>
+          <td>Create and edit pages, collection items, global fields, and media. Cannot access settings, users, or theme files.</td>
+        </tr>
+        <tr>
+          <td><strong>Developer</strong></td>
+          <td>Everything an editor can do, plus theme files, templates, and database queries.</td>
+        </tr>
+        <tr>
+          <td><strong>Admin</strong></td>
+          <td>Full access to all 35 tools &mdash; including user management, site settings, backups, and email configuration.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Ranger's permissions match what you can do manually in the admin panel. If you can't access the Settings page, Ranger can't change your settings either.</div>
 
     <h2>Security</h2>
+    <p>Ranger is designed to be safe to use, even with powerful AI models.</p>
+
     <ul>
-      <li><strong>API key encryption</strong> &mdash; stored using AES-256-GCM with a site-specific key</li>
-      <li><strong>SSRF protection</strong> &mdash; outbound requests block private IP ranges and internal hostnames</li>
-      <li><strong>Path traversal prevention</strong> &mdash; file operations are confined to the active theme directory</li>
-      <li><strong>CSRF enforcement</strong> &mdash; all mutation endpoints require a valid token</li>
-      <li><strong>SQL restrictions</strong> &mdash; database queries limited to SELECT statements only</li>
-      <li><strong>XSS prevention</strong> &mdash; all AI output is sanitized before rendering</li>
-      <li><strong>Error sanitization</strong> &mdash; internal errors are logged, never exposed to the client</li>
+      <li><strong>Your API key is encrypted</strong> &mdash; stored using AES-256-GCM encryption. It cannot be read from the database.</li>
+      <li><strong>File access is limited</strong> &mdash; Ranger can only read and write files inside your active theme directory. It cannot access system files or other directories.</li>
+      <li><strong>Database queries are read-only</strong> &mdash; Ranger can look up data but cannot modify, delete, or create database tables directly.</li>
+      <li><strong>External requests are filtered</strong> &mdash; when downloading images from URLs, Ranger blocks requests to private/internal networks.</li>
+      <li><strong>All actions require authentication</strong> &mdash; every request goes through Outpost's normal session and CSRF protection.</li>
     </ul>
 
-    <h2>API Reference</h2>
-    <p>See the <a href="api/admin-api.html#ranger-ai-assistant">Admin API &mdash; Ranger AI Assistant</a> section for full endpoint documentation.</p>
+    <h2>Troubleshooting</h2>
+
+    <h3>Ranger says "No API key configured"</h3>
+    <p>Go to <strong>Settings &gt; Integrations</strong>, select a provider, and paste your API key. Make sure you click Save.</p>
+
+    <h3>Responses are slow</h3>
+    <p>Response speed depends on your AI provider. Complex requests (like building an entire theme) take longer because Ranger is executing multiple steps. If basic responses are consistently slow, try switching to a faster model.</p>
+
+    <h3>Ranger made a mistake</h3>
+    <p>AI is not perfect. If Ranger creates something wrong, you can:</p>
+    <ul>
+      <li>Ask Ranger to fix it: "That's not right, the URL pattern should be /blog/{slug} not /post/{slug}"</li>
+      <li>Undo it manually in the admin panel</li>
+      <li>Use the Stop button mid-response if you see it going off track</li>
+    </ul>
+
+    <h3>I hit my provider's rate limit</h3>
+    <p>AI providers limit how many requests you can make per minute. Wait a moment and try again. If this happens frequently, check your provider's plan limits.</p>
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="api/admin-api.html#ranger-ai-assistant">Admin API &mdash; Ranger Endpoints</a> &mdash; technical API reference for developers</li>
+      <li><a href="features/releases.html">Releases</a> &mdash; bundle and publish changes together (works great with Ranger)</li>
+    </ul>
 
   </div>
 </main>

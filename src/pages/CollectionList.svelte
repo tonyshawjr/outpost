@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { collections as collectionsApi } from '$lib/api.js';
+  import { collections as collectionsApi, workflows as workflowsApi } from '$lib/api.js';
   import { collectionsList, navigate, addToast } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
   import EmptyState from '$components/EmptyState.svelte';
@@ -11,6 +11,7 @@
   let loading = $state(true);
   let showCreate = $state(false);
   let editingColl = $state(null);
+  let availableWorkflows = $state([]);
 
   // Collection form (shared for create + edit)
   let formName = $state('');
@@ -18,6 +19,7 @@
   let formSingularName = $state('');
   let formUrlPattern = $state('');
   let formRequireReview = $state(false);
+  let formWorkflowId = $state(null);
   let formSchema = $state([
     { name: 'title', type: 'text', label: 'Title', required: true, placeholder: '', description: '', defaultValue: '', choices: '' },
     { name: 'body', type: 'richtext', label: 'Body', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }
@@ -41,7 +43,15 @@
 
   onMount(async () => {
     await loadCollections();
+    await loadWorkflows();
   });
+
+  async function loadWorkflows() {
+    try {
+      const data = await workflowsApi.list();
+      availableWorkflows = data.workflows || [];
+    } catch (e) {}
+  }
 
   async function loadCollections() {
     loading = true;
@@ -73,6 +83,7 @@
     formSingularName = '';
     formUrlPattern = '';
     formRequireReview = false;
+    formWorkflowId = null;
     formSchema = [
       { name: 'title', type: 'text', label: 'Title', required: true, placeholder: '', description: '', defaultValue: '', choices: '' },
       { name: 'body', type: 'richtext', label: 'Body', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }
@@ -94,6 +105,7 @@
     formSingularName = coll.singular_name || coll.name;
     formUrlPattern = coll.url_pattern || `/${coll.slug}/{slug}`;
     formRequireReview = !!(coll.require_review);
+    formWorkflowId = coll.workflow_id || null;
     const schema = JSON.parse(coll.schema || '{}');
     formSchema = Object.entries(schema).map(([name, def]) => ({
       name,
@@ -154,6 +166,7 @@
           schema,
           url_pattern: formUrlPattern || `/${formSlug}/{slug}`,
           require_review: formRequireReview ? 1 : 0,
+          workflow_id: formWorkflowId || null,
         });
         addToast('Collection updated', 'success');
       } else {
@@ -293,6 +306,22 @@
         </label>
         <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Editors must submit for review; admins approve or reject.</span>
       </div>
+
+      {#if availableWorkflows.length > 0}
+        <div class="form-group">
+          <label class="form-label" for="coll-workflow">Workflow</label>
+          <select id="coll-workflow" class="input" value={formWorkflowId || ''} onchange={(e) => { formWorkflowId = e.target.value ? Number(e.target.value) : null; }}>
+            <option value="">Default (Simple)</option>
+            {#each availableWorkflows as wf}
+              <option value={wf.id}>{wf.name} ({wf.stages.length} stages)</option>
+            {/each}
+          </select>
+          <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
+            Assign a workflow to define custom approval stages for this collection.
+            <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--accent);">Manage workflows</a>
+          </span>
+        </div>
+      {/if}
 
       <div class="form-group">
         <label class="form-label">Content Fields</label>

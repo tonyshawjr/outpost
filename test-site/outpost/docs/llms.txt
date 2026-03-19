@@ -24,6 +24,7 @@
 - [Forge](/outpost/docs/features/forge.html): Visual tag builder — select HTML, right-click or Cmd+E, wrap in Liquid tags with smart detection
 - [Content Packs](/outpost/docs/themes/content-packs.html): JSON content packs for seeding starter content
 - [Ranger AI Assistant](/outpost/docs/features/ranger.html): AI-powered assistant with 35 tools, multi-provider support, and streaming chat
+- [Releases](/outpost/docs/features/releases.html): Bundle multiple content changes and publish them all at once with one-click rollback
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -2525,18 +2526,123 @@ Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, 
 - `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
 - `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings
 
+## Custom Workflows (v3.2.0)
+
+### What are Workflows?
+Workflows let you define custom approval stages for collections. Instead of just Draft and Published, you can create any stages you need — Draft, Copy Review, Design Review, Legal Review, Approved, Published — and control who can move content to each stage.
+
+### Default Workflows
+Two workflows are created automatically on first run:
+- **Simple** — Draft → Published (the default for all collections)
+- **Editorial** — Draft → Copy Review → Approved → Published
+
+### How Workflows Work
+1. Create a workflow in the **Workflows** admin page with your custom stages
+2. Assign the workflow to a collection in the collection's schema editor
+3. When editing items, the status badge shows workflow-aware stage colors
+4. Click the status badge to see available transitions based on the current stage and your role
+5. Every transition is logged in the History tab with user, timestamp, and optional note
+
+### Stage Configuration
+Each stage has:
+- **Name** — display name (e.g., "Copy Review")
+- **Slug** — machine identifier (e.g., "review")
+- **Color** — hex color for status badges and pipeline visualization
+- **Can move to** — which other stages this stage can transition to
+- **Roles** — which user roles can move content TO this stage
+
+### Required Stages
+Every workflow must include `draft` and `published` stages. These cannot be removed.
+
+### Per-Collection Assignment
+Each collection can be assigned a different workflow. Collections without a workflow use the default "Simple" workflow (Draft → Published).
+
+### Transition Permissions
+Transitions are enforced at two levels:
+1. The current stage's `can_move_to` list determines which transitions are possible
+2. The target stage's `roles` list determines who can perform the transition
+
+### Transition History
+Every stage change creates a `workflow_transitions` record with:
+- Item ID, Collection ID
+- From stage, To stage
+- User ID
+- Optional note
+- Timestamp
+
+### Webhook Events
+The `workflow.transition` webhook event fires on every stage change, including: item_id, collection_id, from_stage, to_stage, user_id, note, and workflow name.
+
+### API Endpoints
+- `GET api.php?action=workflows` — list all workflows
+- `GET api.php?action=workflows&id=X` — get single workflow with stages
+- `POST api.php?action=workflows` — create workflow `{ name, slug, stages[] }`
+- `PUT api.php?action=workflows&id=X` — update workflow `{ name, stages[] }`
+- `DELETE api.php?action=workflows&id=X` — delete workflow (not in use)
+- `POST api.php?action=workflows/transition` — transition item `{ item_id, to_stage, note }`
+- `POST api.php?action=workflows/bulk-transition` — bulk transition `{ item_ids[], to_stage, note }`
+- `GET api.php?action=workflows/history&item_id=X` — transition history for an item
+- `GET api.php?action=workflows/for-collection&collection_id=X` — get workflow for a collection
+
+CRUD endpoints require `settings.*` capability. Transition, history, and for-collection endpoints are available to any authenticated user (stage-level role enforcement is done in the handlers).
+
+### Ranger Integration
+Use the `manage_workflows` tool:
+- "List all workflows"
+- "Create a workflow called Legal Review with stages Draft, Legal, Approved, Published"
+- "Move item 42 to the approved stage"
+- "Show the transition history for item 15"
+
+### Database Tables
+- `workflows` — id, name, slug, stages (JSON), is_default, created_at, updated_at
+- `workflow_transitions` — id, item_id, collection_id, from_stage, to_stage, user_id, note, created_at
+- `collections.workflow_id` — foreign key to assign a workflow to a collection
+
+### Files
+- `php/workflows.php` — all backend handlers, migration, and helpers
+- `src/pages/Workflows.svelte` — admin UI for managing workflows
+- `src/pages/CollectionItems.svelte` — workflow-aware status badges and transitions
+- `src/pages/CollectionList.svelte` — workflow selector in collection editor
+- `src/components/RightSidebar.svelte` — editor transitions and history
+- `src/components/Sidebar.svelte` — workflows nav link
+- `src/lib/api.js` — `workflows` client object
+- `php/ranger.php` — `manage_workflows` Ranger tool
+
 ## Releases (v3.1.0)
 
 ### What are Releases?
 Releases let users bundle multiple content changes and publish them all at once. A release is like a staging area — create a draft release, add changes to it, preview everything as a bundle, then publish atomically in a single database transaction. Published releases can be rolled back to revert all changes.
+
+### Use Cases
+- **Campaign launches** — prepare homepage redesign + blog posts + navigation changes and publish everything at a specific time
+- **Coordinated updates** — avoid a broken-looking site while making related changes across multiple pages
+- **Safe rollback** — undo an entire batch of changes with one click if something goes wrong
+- **Team coordination** — multiple people add changes to the same release, everything goes live together
 
 ### Release Lifecycle
 - **Draft** — Changes can be added, removed, and the release can be edited or deleted
 - **Published** — All changes applied atomically; can be rolled back
 - **Rolled Back** — All changes reverted in reverse order; terminal state
 
+### How to Use
+1. Go to **Releases** in the sidebar
+2. Click **+ New Release** and give it a name (e.g., "Spring Campaign")
+3. Add changes — each content edit captures before/after snapshots
+4. Review all changes in the release detail view
+5. Click **Publish** — everything goes live atomically
+6. If something's wrong, click **Rollback** — all changes revert instantly
+
 ### Entity Types
 Changes can target: `field`, `item`, `page`, `menu`, `collection`
+
+### Access Control
+Releases are admin-only. Editors and developers cannot create, publish, or roll back releases.
+
+### Using with Ranger
+- "Create a release called Monday Launch"
+- "Show me all my releases"
+- "Publish the Spring Campaign release"
+- "Roll back the last release"
 
 ### API Endpoints (admin-only, requires `settings.*` capability)
 - `GET api.php?action=releases` — list all releases with change counts
@@ -2568,8 +2674,35 @@ Configure Ranger at **Settings > Integrations**:
 1. Choose an AI provider: Claude (Anthropic), OpenAI (GPT-4o/GPT-4), or Google (Gemini)
 2. Enter your API key (encrypted at rest with AES-256-GCM)
 3. Optionally select a model and output style (concise, detailed, casual, technical, or custom)
+4. Click Save, then open Ranger via the sparkle icon in the top bar or "Ranger" in the sidebar
 
 No Outpost account or subscription required — bring your own API key.
+
+### Example Requests
+- "Create a blog collection with title, excerpt, featured_image, and body fields"
+- "Build me a restaurant theme with homepage, menu, and contact pages"
+- "Upload this image from Unsplash: [URL]"
+- "Turn on dark mode"
+- "Add a new admin user called Sarah"
+- "Create a backup"
+- "Set up a contact form with name, email, and message fields"
+- "Check my templates for syntax errors"
+- "Create a release called Monday Launch"
+
+### Provider Comparison
+- **Claude (Anthropic)** — Recommended. Best tool use, largest output, prompt caching saves money after the first message.
+- **OpenAI (GPT)** — Solid alternative. Familiar if you use ChatGPT. GPT-4o is fast and capable.
+- **Google Gemini** — Cheapest per token. Good for simple tasks like listing content or updating settings.
+
+### Output Styles
+- Concise — short, direct answers
+- Detailed — thorough explanations with context
+- Casual — friendly, conversational tone
+- Technical — precise, developer-oriented language
+- Custom — provide your own instructions
+
+### Conversation History
+Conversations are saved automatically. Access via the history icon in the Ranger panel. Shows total token usage and estimated cost per conversation. Conversations can be renamed, loaded, or deleted.
 
 ### API Endpoints
 

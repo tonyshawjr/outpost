@@ -26,6 +26,7 @@ require_once __DIR__ . '/customizer.php';
 require_once __DIR__ . '/brand.php';
 require_once __DIR__ . '/ranger.php';
 require_once __DIR__ . '/releases.php';
+require_once __DIR__ . '/workflows.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -138,6 +139,7 @@ cleanup_ghost_collection_pages();
 ensure_setup_completed_setting();
 ensure_ranger_tables();
 ensure_releases_tables();
+ensure_workflow_tables();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -162,8 +164,12 @@ $cap_map = [
     'fonts'      => 'settings.*',
     'components' => 'code.*',
     'releases'   => 'settings.*',
+    'workflows'  => 'settings.*',
 ];
-if (isset($cap_map[$action_prefix])) {
+// Workflow transition/history/for-collection endpoints are accessible to any authenticated user
+// (stage-level role enforcement is done inside the handlers)
+$skip_cap_check = in_array($action, ['workflows/transition', 'workflows/bulk-transition', 'workflows/history', 'workflows/for-collection']);
+if (!$skip_cap_check && isset($cap_map[$action_prefix])) {
     outpost_require_cap($cap_map[$action_prefix]);
 }
 
@@ -468,6 +474,17 @@ match (true) {
     $action === 'releases/rollback' && $method === 'POST'               => handle_release_rollback(),
     $action === 'releases/changes'  && $method === 'POST'               => handle_release_add_change(),
     $action === 'releases/changes'  && $method === 'DELETE' && isset($_GET['id']) => handle_release_remove_change(),
+
+    // Workflows
+    $action === 'workflows' && $method === 'GET' && isset($_GET['id'])         => handle_workflow_get(),
+    $action === 'workflows' && $method === 'GET' && !isset($_GET['id'])        => handle_workflows_list(),
+    $action === 'workflows' && $method === 'POST'                               => handle_workflow_create(),
+    $action === 'workflows' && $method === 'PUT' && isset($_GET['id'])         => handle_workflow_update(),
+    $action === 'workflows' && $method === 'DELETE' && isset($_GET['id'])      => handle_workflow_delete(),
+    $action === 'workflows/transition' && $method === 'POST'                    => handle_workflow_transition(),
+    $action === 'workflows/bulk-transition' && $method === 'POST'               => handle_workflow_bulk_transition(),
+    $action === 'workflows/history' && $method === 'GET'                        => handle_workflow_history(),
+    $action === 'workflows/for-collection' && $method === 'GET'                 => handle_workflow_for_collection(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
@@ -1629,6 +1646,7 @@ function handle_collections_list(): void {
         $c['published_count'] = (int) ($counts['published_count'] ?? 0);
         $c['pending_count'] = (int) ($counts['pending_count'] ?? 0);
         $c['require_review'] = (int) ($c['require_review'] ?? 0);
+        $c['workflow_id'] = $c['workflow_id'] ?? null;
     }
 
     // Filter by grants for scoped editors
@@ -1691,6 +1709,13 @@ function handle_collection_update(): void {
         $role = $_SESSION['outpost_role'] ?? '';
         if (in_array($role, ['super_admin', 'admin', 'developer'])) {
             $update['require_review'] = $data['require_review'] ? 1 : 0;
+        }
+    }
+    // Workflow assignment (admins+ only)
+    if (array_key_exists('workflow_id', $data)) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin', 'developer'])) {
+            $update['workflow_id'] = $data['workflow_id'] ? (int) $data['workflow_id'] : null;
         }
     }
 

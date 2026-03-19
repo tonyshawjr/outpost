@@ -937,6 +937,24 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
             'required_capability' => 'settings.*',
         ],
         [
+            'name' => 'manage_workflows',
+            'description' => 'Create, update, or list content workflows. Workflows define custom approval stages for collections (e.g., Draft → Review → Approved → Published).',
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'action' => ['type' => 'string', 'enum' => ['list', 'create', 'get', 'update', 'delete', 'transition', 'history'], 'description' => 'Action to perform'],
+                    'id' => ['type' => 'integer', 'description' => 'Workflow ID (for get/update/delete)'],
+                    'name' => ['type' => 'string', 'description' => 'Workflow name (for create/update)'],
+                    'stages' => ['type' => 'array', 'description' => 'Array of stage objects: {name, slug, color, roles[], can_move_to[]}'],
+                    'item_id' => ['type' => 'integer', 'description' => 'For transition: the collection item ID'],
+                    'to_stage' => ['type' => 'string', 'description' => 'For transition: target stage slug'],
+                    'note' => ['type' => 'string', 'description' => 'For transition: optional note'],
+                ],
+                'required' => ['action'],
+            ],
+            'required_capability' => 'settings.*',
+        ],
+        [
             'name' => 'update_fields',
             'description' => 'Update page or global fields by page ID.',
             'parameters' => [
@@ -1271,7 +1289,7 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
         $intentTools = [
             'ui' => ['frontend_action', 'get_site_info', 'update_settings'],
             'build' => ['get_site_info', 'list_content', 'search_docs', 'list_themes', 'read_file', 'write_file', 'delete_file', 'clear_cache', 'manage_theme', 'upload_media', 'create_collection', 'create_item', 'manage_menu', 'frontend_action', 'debug_template', 'manage_channel'],
-            'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email', 'manage_releases'],
+            'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email', 'manage_releases', 'manage_workflows'],
         ];
         $allowed = $intentTools[$intent] ?? null;
         if ($allowed !== null) {
@@ -1410,6 +1428,8 @@ function ranger_execute_tool(string $name, mixed $input): array {
                 return ranger_tool_manage_email($input);
             case 'manage_releases':
                 return ranger_tool_manage_releases($input);
+            case 'manage_workflows':
+                return ranger_tool_manage_workflows($input);
             default:
                 return ['error' => "Unknown tool: $name"];
         }
@@ -2461,24 +2481,37 @@ function ranger_tool_query_database(array $input): array {
     $query = trim($input['query'] ?? '');
     if (!$query) return ['error' => 'query is required'];
 
+    // Strip SQL comments that could be used to bypass keyword checks
+    $cleanQuery = preg_replace('/\/\*.*?\*\//s', ' ', $query);  // block comments
+    $cleanQuery = preg_replace('/--[^\n]*/', ' ', $cleanQuery);   // line comments
+
     // Only allow SELECT queries (read-only)
-    if (!preg_match('/^\s*SELECT\b/i', $query)) {
+    if (!preg_match('/^\s*SELECT\b/i', $cleanQuery)) {
         return ['error' => 'Only SELECT queries allowed. Use other tools for INSERT/UPDATE/DELETE.'];
     }
 
-    // Block dangerous patterns
-    if (preg_match('/\b(DROP|ALTER|CREATE|DELETE|INSERT|UPDATE|ATTACH|DETACH)\b/i', $query)) {
+    // Block dangerous patterns (check cleaned query)
+    if (preg_match('/\b(DROP|ALTER|CREATE|DELETE|INSERT|UPDATE|ATTACH|DETACH|REPLACE)\b/i', $cleanQuery)) {
         return ['error' => 'Only read-only SELECT queries allowed.'];
     }
 
-    // Block sensitive system tables
-    if (preg_match('/\b(users|settings|api_keys|ranger_conversations)\b/i', $query)) {
-        return ['error' => 'Access to system tables is restricted. Use dedicated tools instead.'];
+    // Block sensitive system tables (case-insensitive, also check quoted identifiers)
+    $lowerQuery = strtolower($cleanQuery);
+    $blockedTables = ['users', 'settings', 'api_keys', 'ranger_conversations'];
+    foreach ($blockedTables as $table) {
+        if (str_contains($lowerQuery, $table)) {
+            return ['error' => 'Access to system tables is restricted. Use dedicated tools instead.'];
+        }
     }
 
-    // Block PRAGMA and EXPLAIN
-    if (preg_match('/^\s*(PRAGMA|EXPLAIN)\b/i', $query)) {
-        return ['error' => 'Only SELECT queries allowed.'];
+    // Block PRAGMA, EXPLAIN, WITH (CTE can wrap DML)
+    if (preg_match('/^\s*(PRAGMA|EXPLAIN|WITH)\b/i', $cleanQuery)) {
+        return ['error' => 'Only simple SELECT queries allowed.'];
+    }
+
+    // Block semicolons (prevents multi-statement attacks)
+    if (str_contains($cleanQuery, ';')) {
+        return ['error' => 'Only single SELECT statements allowed.'];
     }
 
     // Force LIMIT if not present
@@ -3120,7 +3153,8 @@ function handle_ranger_chat(): void {
     register_shutdown_function(function () {
         $error = error_get_last();
         if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-            echo "data: " . json_encode(['type' => 'error', 'message' => 'Internal error: ' . $error['message']]) . "\n\n";
+            error_log('Ranger fatal error: ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line']);
+            echo "data: " . json_encode(['type' => 'error', 'message' => 'An internal error occurred.']) . "\n\n";
             echo "data: " . json_encode(['type' => 'done']) . "\n\n";
         }
     });
@@ -3261,7 +3295,8 @@ function handle_ranger_chat(): void {
         }
     }
     } catch (\Throwable $e) {
-        ranger_sse_send(['type' => 'error', 'message' => 'Ranger error: ' . $e->getMessage()]);
+        error_log('Ranger chat error: ' . $e->getMessage());
+        ranger_sse_send(['type' => 'error', 'message' => 'An internal error occurred. Check error log for details.']);
     }
 
     // Calculate cost
@@ -3543,5 +3578,119 @@ function ranger_tool_manage_releases(array $input): array {
 
         default:
             return ['error' => "Unknown action: $action. Use list, create, get, publish, rollback, delete, or add_change."];
+    }
+}
+
+function ranger_tool_manage_workflows(array $input): array {
+    $action = $input['action'] ?? '';
+
+    switch ($action) {
+        case 'list':
+            $workflows = OutpostDB::fetchAll('SELECT * FROM workflows ORDER BY is_default DESC, name ASC');
+            foreach ($workflows as &$wf) {
+                $wf['stages'] = json_decode($wf['stages'], true) ?: [];
+                $usage = OutpostDB::fetchOne('SELECT COUNT(*) as c FROM collections WHERE workflow_id = ?', [$wf['id']]);
+                $wf['collection_count'] = (int) ($usage['c'] ?? 0);
+            }
+            return ['workflows' => $workflows];
+
+        case 'get':
+            $id = (int) ($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $wf = OutpostDB::fetchOne('SELECT * FROM workflows WHERE id = ?', [$id]);
+            if (!$wf) return ['error' => 'Workflow not found'];
+            $wf['stages'] = json_decode($wf['stages'], true) ?: [];
+            return $wf;
+
+        case 'create':
+            $name = trim($input['name'] ?? '');
+            if (!$name) return ['error' => 'name is required'];
+            $stages = $input['stages'] ?? [];
+            if (!is_array($stages) || count($stages) < 2) {
+                return ['error' => 'At least two stages are required (draft and published)'];
+            }
+            $slug = preg_replace('/[^a-z0-9-]/', '-', strtolower($name));
+            $slug = preg_replace('/-+/', '-', trim($slug, '-'));
+            $existing = OutpostDB::fetchOne('SELECT id FROM workflows WHERE slug = ?', [$slug]);
+            if ($existing) return ['error' => 'A workflow with this slug already exists'];
+            $id = OutpostDB::insert('workflows', [
+                'name' => $name,
+                'slug' => $slug,
+                'stages' => json_encode($stages),
+            ]);
+            return ['success' => true, 'id' => $id, 'name' => $name];
+
+        case 'update':
+            $id = (int) ($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $update = ['updated_at' => date('Y-m-d H:i:s')];
+            if (isset($input['name'])) $update['name'] = trim($input['name']);
+            if (isset($input['stages'])) $update['stages'] = json_encode($input['stages']);
+            OutpostDB::update('workflows', $update, 'id = ?', [$id]);
+            return ['success' => true];
+
+        case 'delete':
+            $id = (int) ($input['id'] ?? 0);
+            if (!$id) return ['error' => 'id is required'];
+            $wf = OutpostDB::fetchOne('SELECT * FROM workflows WHERE id = ?', [$id]);
+            if (!$wf) return ['error' => 'Workflow not found'];
+            if ((int) ($wf['is_default'] ?? 0) === 1) return ['error' => 'Cannot delete the default workflow'];
+            $usage = OutpostDB::fetchOne('SELECT COUNT(*) as c FROM collections WHERE workflow_id = ?', [$id]);
+            if ((int) ($usage['c'] ?? 0) > 0) return ['error' => 'Workflow is assigned to collections'];
+            OutpostDB::delete('workflows', 'id = ?', [$id]);
+            return ['success' => true];
+
+        case 'transition':
+            $itemId = (int) ($input['item_id'] ?? 0);
+            $toStage = trim($input['to_stage'] ?? '');
+            if (!$itemId || !$toStage) return ['error' => 'item_id and to_stage are required'];
+            $item = OutpostDB::fetchOne('SELECT * FROM collection_items WHERE id = ?', [$itemId]);
+            if (!$item) return ['error' => 'Item not found'];
+            $workflow = get_collection_workflow((int) $item['collection_id']);
+            $currentSlug = $item['status'] ?? 'draft';
+            $currentStage = find_stage($workflow['stages'], $currentSlug);
+            if ($currentStage) {
+                $canMoveTo = $currentStage['can_move_to'] ?? [];
+                if (!in_array($toStage, $canMoveTo)) {
+                    return ['error' => "Cannot transition from '{$currentSlug}' to '{$toStage}'"];
+                }
+            }
+            // Validate target stage exists and user role is allowed
+            $targetStage = find_stage($workflow['stages'], $toStage);
+            if (!$targetStage) {
+                return ['error' => "Target stage '{$toStage}' does not exist in this workflow"];
+            }
+            $role = $_SESSION['outpost_role'] ?? '';
+            $allowedRoles = $targetStage['roles'] ?? [];
+            if (!empty($allowedRoles) && !in_array($role, $allowedRoles)) {
+                return ['error' => 'You do not have permission to move content to this stage'];
+            }
+            $update = ['status' => $toStage, 'updated_at' => date('Y-m-d H:i:s')];
+            if ($toStage === 'published' && empty($item['published_at'])) {
+                $update['published_at'] = date('Y-m-d H:i:s');
+            }
+            OutpostDB::update('collection_items', $update, 'id = ?', [$itemId]);
+            $userId = (int) ($_SESSION['outpost_user_id'] ?? 0);
+            OutpostDB::insert('workflow_transitions', [
+                'item_id' => $itemId,
+                'collection_id' => (int) $item['collection_id'],
+                'from_stage' => $currentSlug,
+                'to_stage' => $toStage,
+                'user_id' => $userId,
+                'note' => trim($input['note'] ?? ''),
+            ]);
+            return ['success' => true, 'from' => $currentSlug, 'to' => $toStage];
+
+        case 'history':
+            $itemId = (int) ($input['item_id'] ?? 0);
+            if (!$itemId) return ['error' => 'item_id is required'];
+            $transitions = OutpostDB::fetchAll(
+                "SELECT wt.*, u.display_name FROM workflow_transitions wt LEFT JOIN users u ON wt.user_id = u.id WHERE wt.item_id = ? ORDER BY wt.created_at DESC LIMIT 50",
+                [$itemId]
+            );
+            return ['transitions' => $transitions];
+
+        default:
+            return ['error' => "Unknown action: $action. Use list, create, get, update, delete, transition, or history."];
     }
 }

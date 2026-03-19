@@ -1,6 +1,6 @@
 <script>
-  import { currentRoute, currentCollectionSlug, editorItem, editorCollection, editorReloadSignal, revisionReloadSignal } from '$lib/stores.js';
-  import { items as itemsApi, media as mediaApi, folders as foldersApi, labels as labelsApi, itemLabels as itemLabelsApi } from '$lib/api.js';
+  import { currentRoute, currentCollectionSlug, editorItem, editorCollection, editorReloadSignal, revisionReloadSignal, user } from '$lib/stores.js';
+  import { items as itemsApi, media as mediaApi, folders as foldersApi, labels as labelsApi, itemLabels as itemLabelsApi, workflows as workflowsApi } from '$lib/api.js';
   import { addToast, navigate } from '$lib/stores.js';
   import SeoScore from '$components/SeoScore.svelte';
   import RevisionList from '$components/RevisionList.svelte';
@@ -11,6 +11,52 @@
   // Editor state from shared stores
   let editItem = $derived($editorItem);
   let editColl = $derived($editorCollection);
+
+  // Workflow state
+  let workflow = $state(null);
+  let workflowStages = $derived(workflow?.stages || []);
+  let transitionHistory = $state([]);
+
+  function getStageBySlug(slug) {
+    return workflowStages.find(s => s.slug === slug) || null;
+  }
+
+  function getAvailableTransitions() {
+    if (!editItem || !workflowStages.length) return [];
+    const stage = getStageBySlug(editItem.status);
+    if (!stage) return [];
+    const role = $user?.role || '';
+    return (stage.can_move_to || [])
+      .map(slug => getStageBySlug(slug))
+      .filter(s => s && (s.roles || []).includes(role));
+  }
+
+  async function transitionTo(toStage) {
+    if (!editItem) return;
+    try {
+      await workflowsApi.transition(editItem.id, toStage);
+      const update = { status: toStage };
+      if (toStage === 'published' && !editItem.published_at) {
+        update.published_at = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      }
+      editorItem.set({ ...editItem, ...update });
+      const stageDef = getStageBySlug(toStage);
+      addToast(`Moved to ${stageDef?.name || toStage}`, 'success');
+      loadTransitionHistory();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  async function loadTransitionHistory() {
+    if (!editItem) return;
+    try {
+      const data = await workflowsApi.history(editItem.id);
+      transitionHistory = data.transitions || [];
+    } catch (e) {
+      transitionHistory = [];
+    }
+  }
 
   // Local slug editing
   let slugValue = $state('');
@@ -174,12 +220,24 @@
   let foldersLoading = $state(false);
   let newLabelName = $state('');
 
-  // Load folders when entering collection-editor
+  // Load folders and workflow when entering collection-editor
   $effect(() => {
     if (route === 'collection-editor' && editColl && editItem) {
       loadFolders();
+      loadWorkflowForCollection();
+      loadTransitionHistory();
     }
   });
+
+  async function loadWorkflowForCollection() {
+    if (!editColl) return;
+    try {
+      const data = await workflowsApi.forCollection(editColl.id);
+      workflow = data.workflow || null;
+    } catch (e) {
+      workflow = null;
+    }
+  }
 
   async function loadFolders() {
     if (!editColl || !editItem) return;
@@ -265,10 +323,28 @@
         <!-- Status -->
         <div class="rs-field">
           <label class="rs-label">Status</label>
-          <div class="rs-status-badge" class:published={editItem.status === 'published'} class:scheduled={editItem.status === 'scheduled'} class:pending-review={editItem.status === 'pending_review'}>
-            <span class="rs-status-dot"></span>
-            {editItem.status === 'published' ? 'Published' : editItem.status === 'scheduled' ? 'Scheduled' : editItem.status === 'pending_review' ? 'In Review' : 'Draft'}
-          </div>
+          {#if getStageBySlug(editItem.status)}
+            <div class="rs-status-badge" style="color: {getStageBySlug(editItem.status).color};">
+              <span class="rs-status-dot" style="background: {getStageBySlug(editItem.status).color};"></span>
+              {getStageBySlug(editItem.status).name}
+            </div>
+          {:else}
+            <div class="rs-status-badge" class:published={editItem.status === 'published'} class:scheduled={editItem.status === 'scheduled'} class:pending-review={editItem.status === 'pending_review'}>
+              <span class="rs-status-dot"></span>
+              {editItem.status === 'published' ? 'Published' : editItem.status === 'scheduled' ? 'Scheduled' : editItem.status === 'pending_review' ? 'In Review' : 'Draft'}
+            </div>
+          {/if}
+          <!-- Workflow transitions -->
+          {#if getAvailableTransitions().length > 0}
+            <div class="rs-transitions">
+              {#each getAvailableTransitions() as target}
+                <button class="rs-transition-btn" onclick={() => transitionTo(target.slug)}>
+                  <span class="rs-transition-dot" style="background: {target.color};"></span>
+                  Move to {target.name}
+                </button>
+              {/each}
+            </div>
+          {/if}
         </div>
 
         <!-- URL / Slug -->
@@ -491,6 +567,41 @@
       </div>
 
     {:else if sidebarTab === 'history'}
+      <!-- Workflow Transition History -->
+      {#if transitionHistory.length > 0}
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">Workflow History</div>
+          <div class="rs-wf-history">
+            {#each transitionHistory as t}
+              <div class="rs-wf-entry">
+                <div class="rs-wf-entry-main">
+                  {#if getStageBySlug(t.from_stage)}
+                    <span class="rs-wf-stage-chip" style="color: {getStageBySlug(t.from_stage).color};">{getStageBySlug(t.from_stage).name}</span>
+                  {:else if t.from_stage}
+                    <span class="rs-wf-stage-chip">{t.from_stage}</span>
+                  {/if}
+                  <svg width="12" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {#if getStageBySlug(t.to_stage)}
+                    <span class="rs-wf-stage-chip" style="color: {getStageBySlug(t.to_stage).color};">{getStageBySlug(t.to_stage).name}</span>
+                  {:else}
+                    <span class="rs-wf-stage-chip">{t.to_stage}</span>
+                  {/if}
+                </div>
+                <div class="rs-wf-entry-meta">
+                  <span>{t.display_name || t.username || 'System'}</span>
+                  <span>&middot;</span>
+                  <span>{formatDate(t.created_at)}</span>
+                </div>
+                {#if t.note}
+                  <div class="rs-wf-entry-note">{t.note}</div>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Revision History -->
       <div class="sidebar-card">
         <RevisionList
           entityType="item"
@@ -827,5 +938,88 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* ─── Workflow transitions ─── */
+  .rs-transitions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .rs-transition-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    font-family: var(--font-sans);
+  }
+
+  .rs-transition-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-secondary, var(--border-primary));
+  }
+
+  .rs-transition-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── Workflow history ─── */
+  .rs-wf-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rs-wf-entry {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .rs-wf-entry:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .rs-wf-entry-main {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .rs-wf-stage-chip {
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .rs-wf-entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .rs-wf-entry-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-style: italic;
   }
 </style>

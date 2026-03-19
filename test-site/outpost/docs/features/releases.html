@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Releases &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Releases</h1>
+    <p class="lead">Bundle multiple content changes together and publish them all at once &mdash; like a staging area for your site updates.</p>
+  </div>
+  <div class="content">
+
+    <h2>What are Releases?</h2>
+    <p>A release is a way to group several changes and push them live all at the same time. Think of it like preparing a batch of updates behind the scenes, then flipping one switch to make everything go live.</p>
+
+    <p>Without releases, every edit you save goes live immediately. That works fine for small tweaks, but sometimes you need to coordinate bigger updates &mdash; a homepage redesign plus new blog posts plus updated navigation, all launching together on Monday morning.</p>
+
+    <p>Releases solve that problem. Create a release, make your changes, review everything as a bundle, then publish when you're ready.</p>
+
+    <h2>Why Use Releases?</h2>
+    <p>Here are some real situations where releases make your life easier:</p>
+
+    <ul>
+      <li><strong>Campaign launches.</strong> You're redesigning your homepage, updating three blog posts, and adding a new navigation link &mdash; all for a Monday campaign launch. With a release, you prepare everything over the week and publish it all at 9 AM Monday.</li>
+      <li><strong>Avoiding a broken-looking site.</strong> If you need to change your homepage headline, update the about page, and swap out a hero image, your site might look inconsistent while you're making those changes one by one. A release lets you make all the edits privately and go live in one step.</li>
+      <li><strong>Easy rollback.</strong> Something went wrong after publishing? Click "Rollback" and every change in the release is undone instantly. No need to remember what you changed or fix things one by one.</li>
+      <li><strong>Team coordination.</strong> Multiple people can add changes to the same release. When the release is published, everyone's work goes live together.</li>
+    </ul>
+
+    <h2>How to Use Releases</h2>
+
+    <h3>Creating a release</h3>
+    <ol class="steps">
+      <li>
+        <strong>Open Releases.</strong> Click <strong>Releases</strong> in the sidebar (under the Content section).
+      </li>
+      <li>
+        <strong>Create a new release.</strong> Click the <strong>+ New Release</strong> button.
+      </li>
+      <li>
+        <strong>Name it.</strong> Give your release a descriptive name, like "Spring Campaign" or "Homepage Redesign." You can also add an optional description to note what this release is about.
+      </li>
+      <li>
+        <strong>Click Create.</strong> Your release is now in Draft status and ready for changes.
+      </li>
+    </ol>
+
+    <h3>Adding changes to a release</h3>
+    <p>Once you have a draft release, changes get added to it as you edit content. Each change captures a "before" and "after" snapshot, so the system knows exactly what changed and can undo it if needed.</p>
+    <p>Changes can include:</p>
+    <ul>
+      <li>Page edits (updating text, images, or settings on any page)</li>
+      <li>Collection item changes (creating, editing, or deleting blog posts, products, etc.)</li>
+      <li>Field updates (changing global fields like site name or tagline)</li>
+      <li>Navigation changes (adding or removing menu items)</li>
+      <li>Collection configuration changes</li>
+    </ul>
+
+    <h3>Reviewing a release</h3>
+    <p>Click on any release to see all the changes it contains. Each change shows:</p>
+    <ul>
+      <li>What was changed (page title, collection item, field name, etc.)</li>
+      <li>What type of change it was (create, update, or delete)</li>
+      <li>When the change was added</li>
+    </ul>
+    <p>You can remove individual changes from a draft release if you decide they shouldn't be part of this batch.</p>
+
+    <h3>Publishing a release</h3>
+    <ol class="steps">
+      <li>
+        <strong>Open the release.</strong> Click on the release you want to publish.
+      </li>
+      <li>
+        <strong>Review the changes.</strong> Make sure everything looks right.
+      </li>
+      <li>
+        <strong>Click Publish.</strong> All changes are applied at once. Your site is updated instantly.
+      </li>
+    </ol>
+    <p>Publishing is atomic &mdash; that means either all changes go live, or none of them do. You won't end up with a half-updated site.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Once a release is published, you can no longer add or remove changes from it. If you need to make more changes, create a new release.</div>
+
+    <h3>Rolling back a release</h3>
+    <p>Made a mistake? Changed your mind? Rollback undoes every change in the release, putting your site back to exactly how it was before.</p>
+
+    <ol class="steps">
+      <li>
+        <strong>Find the published release.</strong> Go to Releases and click on the one you want to undo.
+      </li>
+      <li>
+        <strong>Click Rollback.</strong> All changes are reverted in reverse order.
+      </li>
+    </ol>
+    <p>After rolling back, the release is marked as "Rolled Back." This is a final state &mdash; you can't re-publish or modify it. If you want to try again, create a new release.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> &mdash; Rollback reverts content to its state before the release was published. If someone made additional edits to the same content after the release was published, the rollback may overwrite those changes.</div>
+
+    <h2>Release Statuses</h2>
+    <p>Every release has one of three statuses:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>What it means</th>
+          <th>What you can do</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Draft</strong></td>
+          <td>In progress. Changes are being collected but nothing is live yet.</td>
+          <td>Add changes, remove changes, edit the name, publish, or delete the release entirely.</td>
+        </tr>
+        <tr>
+          <td><strong>Published</strong></td>
+          <td>All changes have been applied and are live on your site.</td>
+          <td>View the changes that were made. Roll back if something went wrong.</td>
+        </tr>
+        <tr>
+          <td><strong>Rolled Back</strong></td>
+          <td>All changes have been undone. The site is back to how it was before.</td>
+          <td>View what happened. This is a final state &mdash; the release cannot be changed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Using Releases with Ranger</h2>
+    <p>If you have <a href="features/ranger.html">Ranger</a> set up, you can manage releases through the chat interface. Here are some things you can ask:</p>
+    <ul>
+      <li>"Create a release called Monday Launch"</li>
+      <li>"Show me all my releases"</li>
+      <li>"What changes are in the Spring Campaign release?"</li>
+      <li>"Publish the Spring Campaign release"</li>
+      <li>"Roll back the last release"</li>
+    </ul>
+
+    <h2>Who Can Use Releases?</h2>
+    <p>Releases are available to <strong>admins</strong> only. Editors and developers cannot create, publish, or roll back releases. This ensures that coordinated site updates are managed by people with full administrative access.</p>
+
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>Can I have multiple draft releases at the same time?</h3>
+    <p>Yes. You can have as many draft releases open as you like. This is useful if you're preparing updates for different campaigns or events on different timelines.</p>
+
+    <h3>What happens if I delete a draft release?</h3>
+    <p>The release and all its recorded changes are deleted. No content on your site is affected &mdash; the changes were never published, so nothing was actually applied.</p>
+
+    <h3>Do releases work with scheduled content?</h3>
+    <p>Releases and <a href="features/scheduling.html">scheduling</a> are separate features. A release publishes its changes immediately when you click Publish. If you need time-based publishing, use the scheduling feature on individual collection items instead.</p>
+
+    <h3>Is there a limit to how many changes a release can contain?</h3>
+    <p>No hard limit. A release can contain as many changes as you need. However, very large releases (hundreds of changes) may take a moment longer to publish or roll back.</p>
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="features/ranger.html">Ranger AI Assistant</a> &mdash; manage releases through natural language</li>
+      <li><a href="features/revisions.html">Revision History</a> &mdash; track changes to individual content items over time</li>
+      <li><a href="features/editorial-workflow.html">Editorial Workflow</a> &mdash; review and approval process for team publishing</li>
+      <li><a href="api/admin-api.html">Admin API</a> &mdash; technical API reference for releases endpoints</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

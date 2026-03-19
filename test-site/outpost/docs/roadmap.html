@@ -25,186 +25,172 @@
     <h2>What&rsquo;s Shipped</h2>
 
     <h3>v1.0 &mdash; Stable Release</h3>
-    <p>Feature-complete across all core subsystems. Everything below was built and shipped during beta:</p>
+    <p>Feature-complete across all core subsystems:</p>
     <ul>
       <li>Content management (pages, collections, globals, folders, menus, navigation)</li>
       <li>Flexible Content, Relationship, and Conditional Logic fields (ACF Pro parity)</li>
       <li>Block editor (TipTap richtext, image, markdown, HTML, divider)</li>
       <li>Media library with search, filter, crop, resize, alt text</li>
       <li>Liquid template engine with partials, conditionals, loops, globals, meta tags</li>
-      <li>Built-in analytics (pageviews, referrers, top pages &mdash; zero external dependencies)</li>
+      <li>Built-in analytics (pageviews, referrers, top pages)</li>
       <li>Member system (registration, login, email verification, paid tiers, visibility gates)</li>
-      <li>Visual form builder with 14 field types and enhanced submissions inbox</li>
+      <li>Visual form builder with submissions and email notifications</li>
       <li>Channels &mdash; connect to REST APIs, RSS feeds, and CSV files</li>
-      <li>On-page editing for text, richtext, textarea, and image fields</li>
-      <li>Code editor (VS Code-style IDE with tabs, file tree, autocomplete, find in files)</li>
-      <li>Revision history with field-level diffs and one-click rollback</li>
-      <li>TOTP two-factor authentication with backup codes</li>
-      <li>API key authentication for headless use</li>
-      <li>Webhooks, scheduled publishing, bulk operations</li>
-      <li>WordPress import</li>
+      <li>On-page editing, code editor, revision history</li>
+      <li>TOTP two-factor authentication, API key auth, webhooks</li>
+      <li>Scheduled publishing, bulk operations, WordPress import</li>
       <li>6 roles with capability-based permissions</li>
       <li>Dark mode, mobile-responsive admin</li>
-      <li>Security hardening (37 findings addressed)</li>
-      <li>53 pages of developer documentation</li>
     </ul>
 
-    <h3>v1.1 &mdash; Channels Phase 2: RSS + CSV</h3>
+    <h3>v1.1&ndash;1.9 &mdash; Core Enhancements</h3>
     <ul>
-      <li>RSS 2.0 and Atom 1.0 feed parsing</li>
-      <li>CSV file parsing with configurable delimiter and header detection</li>
-      <li>Source type selector in channel wizard</li>
+      <li><strong>v1.1</strong> &mdash; Channels Phase 2: RSS + CSV support</li>
+      <li><strong>v1.2</strong> &mdash; Admin Role Refinement: collection-scoped editors, per-page locks</li>
+      <li><strong>v1.3</strong> &mdash; Backup &amp; Restore: one-click backup, auto-schedule, restore</li>
+      <li><strong>v1.4</strong> &mdash; Content Directory: all user data under <code>outpost/content/</code></li>
+      <li><strong>v1.5</strong> &mdash; Editorial Workflow: review &amp; approval, editorial calendar, bulk scheduling</li>
+      <li><strong>v1.6</strong> &mdash; Media Library Pro: WebP conversion, focal points, folders, bulk upload</li>
+      <li><strong>v1.7</strong> &mdash; Media Advanced: multi-folder, gallery tags, role-based folder restrictions</li>
+      <li><strong>v1.8</strong> &mdash; Theme Customizer: visual colors, fonts, logo, live preview</li>
+      <li><strong>v1.9</strong> &mdash; Developer Experience: safe theme updates, error messages, JSON Schema</li>
     </ul>
 
-    <h3>v1.2 &mdash; Admin Role Refinement</h3>
+    <h3>v2.0&ndash;2.5 &mdash; Platform Maturity</h3>
     <ul>
-      <li>Collection-scoped editors with per-user grants</li>
-      <li>Per-page locks to prevent editor edits</li>
-      <li>Sidebar cleanup for editor role</li>
+      <li><strong>v2.0</strong> &mdash; Onboarding &amp; Setup Wizard: 4-step setup, content packs, checklist</li>
+      <li><strong>v2.1</strong> &mdash; Collection Folders: inline label sidebar, drag-to-label, filter by label</li>
+      <li><strong>v2.2</strong> &mdash; Forge: visual HTML-to-theme conversion, right-click context menu, Forge Playground</li>
+      <li><strong>v2.3</strong> &mdash; Deeper Analytics: funnels, search analytics, cohorts, geo enrichment</li>
+      <li><strong>v2.4</strong> &mdash; Content API Polish: menus endpoint, headless recipe docs</li>
+      <li><strong>v2.5</strong> &mdash; Design System: Brand page, CSS framework, 20 HTML components, Template Reference</li>
     </ul>
 
-    <h3>v1.3 &mdash; Backup &amp; Restore</h3>
+    <h3>v3.0 &mdash; Ranger AI Assistant</h3>
+    <p>An AI-powered assistant built into the admin panel. Connect your own API key and get a full site operator.</p>
     <ul>
-      <li>One-click backup of database + uploads + themes</li>
-      <li>Restore from backup (super_admin only)</li>
-      <li>Automatic backups with configurable retention</li>
-      <li>Auto update notification badge on Settings</li>
+      <li><strong>35 tools</strong> covering every CMS operation &mdash; content, themes, files, media upload, channels, forms, users, members, webhooks, backups, database queries, template debugging, email config, navigation, settings</li>
+      <li><strong>3 AI providers</strong> &mdash; Claude (Anthropic), OpenAI (GPT), Google (Gemini). Bring your own API key.</li>
+      <li>Streaming responses with real-time tool execution display</li>
+      <li>Conversation history with persistence and search</li>
+      <li>Token usage tracking with cost-per-conversation display</li>
+      <li>Screenshot paste support for visual context</li>
+      <li>Configurable output style (concise, detailed, casual, technical, custom)</li>
+      <li>Role-scoped tools &mdash; editors get content tools, developers get code tools, admins get everything</li>
+      <li>Security audited: SSRF protection, path traversal prevention, CSRF, capability enforcement, XSS prevention, encrypted API keys</li>
     </ul>
+    <p><a href="features/ranger.html">Full Ranger documentation &rarr;</a></p>
 
-    <h3>v1.4 &mdash; User Content Directory</h3>
+    <h3>v3.1 &mdash; Releases</h3>
+    <p>Bundle multiple content changes and publish them all at once.</p>
     <ul>
-      <li>All user data consolidated under <code>outpost/content/</code></li>
-      <li>Auto-migration for existing sites with symlinks</li>
+      <li>Create named releases (e.g., &ldquo;Spring Campaign Launch&rdquo;)</li>
+      <li>Stage changes &mdash; page edits, new items, menu updates tagged to a release</li>
+      <li>One-click publish &mdash; all changes go live simultaneously</li>
+      <li>One-click rollback &mdash; revert the entire release if something&rsquo;s wrong</li>
+      <li>Release history with status tracking (Draft, Published, Rolled Back)</li>
+      <li>Ranger integration &mdash; manage releases via AI</li>
     </ul>
+    <p><a href="features/releases.html">Full Releases documentation &rarr;</a></p>
 
-    <h3>v1.5 &mdash; Editorial Workflow</h3>
+    <h3>v3.2 &mdash; Custom Workflows</h3>
+    <p>Define any content workflow beyond draft/published. Different content types can have different approval processes.</p>
     <ul>
-      <li>Review &amp; approval gate with pending status</li>
-      <li>Editorial calendar (month-grid view)</li>
-      <li>Bulk scheduling</li>
-    </ul>
-
-    <h3>v1.6 &mdash; Media Library Pro</h3>
-    <ul>
-      <li>WebP auto-conversion</li>
-      <li>Focal point picker with <code>{{ field | focal }}</code> filter</li>
-      <li>Media folder organization (3 levels)</li>
-      <li>Bulk upload with progress bars</li>
-      <li>Bulk media operations (multi-select, shift-click range)</li>
-    </ul>
-
-    <h3>v1.7 &mdash; Media Advanced</h3>
-    <ul>
-      <li>Multi-folder assignment via junction table</li>
-      <li>Gallery from folders template tag</li>
-      <li>Resizable detail sidebar</li>
-      <li>Role-based folder restrictions</li>
-      <li>Bulk folder creation</li>
-    </ul>
-
-    <h3>v1.8 &mdash; Theme Customizer</h3>
-    <ul>
-      <li>Visual editor for theme colors, fonts, logo, and favicon</li>
-      <li>Live preview iframe with real-time CSS variable updates</li>
-      <li>Export/import customization presets as JSON</li>
-      <li>One-click reset to theme defaults</li>
-    </ul>
-
-    <h3>v1.9 &mdash; Developer Experience &amp; Theme Updates</h3>
-    <ul>
-      <li><strong>Theme Update System</strong> &mdash; safe auto-updates for managed themes with hash-based conflict detection</li>
-      <li>Pre-compilation tag validation with line numbers</li>
-      <li>Source line tracking in compiled templates</li>
-      <li>Enhanced error display with friendly messages (admin-only)</li>
-      <li><strong>JSON Schema for theme.json</strong> (v1.9.2) &mdash; IDE autocomplete and validation via <code>$schema</code> reference</li>
-      <li><strong>Skeleton theme</strong> (v1.9.2) &mdash; developer reference theme with commented examples of every template tag</li>
-    </ul>
-
-    <h3>v2.0 &mdash; Onboarding &amp; Setup Wizard</h3>
-    <ul>
-      <li><strong>Setup wizard</strong> &mdash; 4-step guided first-run flow: site name, theme, content pack, done</li>
-      <li><strong>Content packs</strong> &mdash; 8 pre-built packs for all 3 bundled themes</li>
-      <li><strong>Getting Started checklist</strong> &mdash; dashboard card with 5 interactive items and progress bar</li>
-      <li><strong>Contextual tips</strong> &mdash; dismissible hints on 7 admin sections</li>
-      <li><strong>EmptyState component</strong> &mdash; consistent empty states across 11 admin pages</li>
-    </ul>
-
-    <h3>v2.1 &mdash; Collection Folders</h3>
-    <ul>
-      <li><strong>Inline label sidebar</strong> &mdash; folder panel on collection items with per-label counts</li>
-      <li><strong>Drag-to-label</strong> &mdash; drag items onto labels in the sidebar</li>
-      <li><strong>Filter by label</strong> &mdash; click a label to filter; &ldquo;Unfiled&rdquo; shows unassigned items</li>
-      <li><strong>Bulk label assignment</strong> &mdash; select items and assign via bulk action bar</li>
-      <li><strong>Inline label creation</strong> &mdash; create labels directly from the sidebar</li>
+      <li><strong>Custom workflow stages</strong> &mdash; Draft &rarr; Copy Review &rarr; Design Review &rarr; Legal &rarr; Approved &rarr; Published</li>
+      <li><strong>Per-collection workflows</strong> &mdash; assign different workflows to different collections</li>
+      <li><strong>Stage-based permissions</strong> &mdash; control who can move content to each stage</li>
+      <li><strong>Visual workflow builder</strong> &mdash; inline stage editor with color-coded stages</li>
+      <li><strong>Webhook events</strong> &mdash; fire webhooks on every stage transition</li>
+      <li><strong>Audit trail</strong> &mdash; full history of who moved what to which stage and when</li>
+      <li><strong>Bulk transitions</strong> &mdash; move multiple items to the next stage at once</li>
+      <li><strong>Ranger integration</strong> &mdash; manage workflows and transitions via AI</li>
     </ul>
 
     <hr style="margin: 40px 0;">
 
     <h2>What&rsquo;s Next</h2>
 
-    <h3>v2.2 &mdash; Visual Tag Builder</h3>
-    <p>Turn any static HTML into an Outpost theme without writing a single template tag. Import HTML, select content, click &ldquo;Make Editable&rdquo; &mdash; Outpost wraps it in the correct tags for you.</p>
+    <h3>v3.3 &mdash; Collaboration (Comments &amp; Activity)</h3>
+    <p>Team communication directly on content. No more Slack threads about &ldquo;which heading are we talking about?&rdquo;</p>
     <ul>
-      <li>Interactive &ldquo;Make Editable&rdquo; workflow in the code editor</li>
-      <li>Field type and scope selector popover</li>
-      <li>Collection loop, conditional, and partial extraction</li>
-      <li>Autocomplete with inline descriptions</li>
+      <li><strong>Comment threads on any field</strong> &mdash; click a comment icon next to any field to leave a note</li>
+      <li><strong>@mention team members</strong> &mdash; notify specific people</li>
+      <li><strong>Email notifications</strong> &mdash; get notified when mentioned or when a thread gets a reply</li>
+      <li><strong>Resolve/unresolve threads</strong> &mdash; mark discussions as done</li>
+      <li><strong>Comment count badges</strong> &mdash; see which items have active discussions</li>
+      <li><strong>Real-time activity feed</strong> &mdash; &ldquo;Tony updated the hero title 2 min ago&rdquo;</li>
     </ul>
 
-    <h3>v2.3 &mdash; Deeper Analytics</h3>
-    <p>Extend beyond pageviews into audience behavior &mdash; actionable insights without external tools.</p>
+    <h3>v3.4 &mdash; Theme Gallery + New Themes</h3>
+    <p>More starting points, less blank-page anxiety. 4&ndash;5 polished, production-ready themes.</p>
     <ul>
-      <li>Content performance cohorts</li>
-      <li>Goal funnels (visitor &rarr; member &rarr; paid)</li>
-      <li>Search analytics</li>
-      <li>Optional geo enrichment via MaxMind GeoLite2</li>
+      <li><strong>Theme gallery overhaul</strong> &mdash; WordPress-style cards with screenshots and live preview</li>
+      <li><strong>Device preview</strong> &mdash; see themes on desktop, tablet, and mobile</li>
+      <li><strong>Business theme</strong> &mdash; services, team, testimonials, contact form</li>
+      <li><strong>Portfolio theme</strong> &mdash; masonry grid, case studies, filterable categories</li>
+      <li><strong>Blog theme</strong> &mdash; clean reading, categories, author pages, related posts</li>
+      <li><strong>Documentation theme</strong> &mdash; sidebar navigation, search, code blocks</li>
+      <li><strong>Landing page theme</strong> &mdash; hero, features, pricing, CTA blocks, FAQ</li>
     </ul>
 
-    <h3>v2.4 &mdash; Theme Gallery</h3>
-    <p>More starting points, less blank-page anxiety. Ship 4&ndash;5 polished themes with full customizer support.</p>
+    <h3>v3.5 &mdash; Multi-Language (i18n)</h3>
+    <p>Field-level translations for international sites. Manage all languages from one admin panel.</p>
     <ul>
-      <li><strong>Business</strong> &mdash; homepage with services, team, testimonials, contact form</li>
-      <li><strong>Portfolio</strong> &mdash; grid gallery, project case studies, about page</li>
-      <li><strong>Blog</strong> &mdash; clean reading experience, categories, author pages</li>
-      <li><strong>Documentation</strong> &mdash; sidebar navigation, search, code blocks</li>
-      <li><strong>Landing page</strong> &mdash; single-page marketing site with CTA blocks</li>
+      <li><strong>Locale system</strong> &mdash; define languages in Settings</li>
+      <li><strong>Field-level translations</strong> &mdash; every text field gets a language tab</li>
+      <li><strong>Duplicate as locale</strong> &mdash; one-click copy to a new language</li>
+      <li><strong>URL prefix routing</strong> &mdash; <code>/about</code> (English), <code>/es/about</code> (Spanish)</li>
+      <li><strong>Translation status tracking</strong> &mdash; see what&rsquo;s translated, pending, or outdated</li>
+      <li><strong>Ranger integration</strong> &mdash; &ldquo;Translate this page to Spanish&rdquo;</li>
     </ul>
 
-    <h3>v2.5 &mdash; Headless-First</h3>
-    <p>Position Outpost as the zero-config headless CMS alongside the traditional themed approach.</p>
+    <h3>v3.6 &mdash; Headless-First</h3>
+    <p>Position Outpost as the zero-config headless CMS. Runs on a $5/month host.</p>
     <ul>
-      <li>GraphQL API alongside REST</li>
-      <li>Content webhooks v2 with full content diffs</li>
-      <li>Static site preview via webhook triggers</li>
-      <li>Real-time content events (SSE or WebSocket)</li>
+      <li><strong>GraphQL API</strong> &mdash; read-only, auto-generated from collection schemas</li>
+      <li><strong>Content webhooks v2</strong> &mdash; structured payloads with full content diffs</li>
+      <li><strong>Static site preview</strong> &mdash; trigger builds on content change (Astro, Next.js, Hugo)</li>
+      <li><strong>Real-time content events</strong> &mdash; SSE endpoint for live updates</li>
+      <li><strong>Framework integration guides</strong> &mdash; Astro, Next.js, Nuxt, SvelteKit, Remix</li>
     </ul>
 
-    <h3>v2.6 &mdash; Collaborative Editing</h3>
+    <h3>v3.7 &mdash; Collaborative Editing</h3>
+    <p>Real-time multi-user editing. See who&rsquo;s editing what, watch changes appear live.</p>
     <ul>
-      <li>Real-time multi-user editing</li>
-      <li>Presence indicators and live cursors</li>
-      <li>Conflict-free concurrent edits (CRDT)</li>
-      <li>Activity feed</li>
+      <li><strong>Presence indicators</strong> &mdash; avatar badges showing who&rsquo;s online</li>
+      <li><strong>Live cursors</strong> &mdash; see other users&rsquo; cursors in richtext fields</li>
+      <li><strong>Conflict-free edits</strong> &mdash; CRDT ensures two people never lose work</li>
+      <li><strong>Field-level locking</strong> &mdash; &ldquo;being edited by Tony&rdquo; indicator</li>
     </ul>
 
-    <h3>v3.0 &mdash; Commerce</h3>
+    <h3>v4.0 &mdash; Smart Forge + Frontend Drawer</h3>
+    <p>The product reinvention. Drop in HTML, everything is automatically editable, all editing moves to the frontend.</p>
+    <ul>
+      <li><strong>Smart Forge</strong> &mdash; one button scans an entire HTML file and auto-converts ALL content elements to editable fields. What takes 20 right-clicks today takes 1 click.</li>
+      <li><strong>Frontend editing drawer</strong> &mdash; when logged in, the &ldquo;Edit in Outpost&rdquo; button opens a Storyblok-style drawer. Every editable field on the page is listed in the drawer. Edit text, swap images, change buttons &mdash; all from the frontend.</li>
+      <li><strong>Pages section removed</strong> &mdash; no more backend page editing. All content editing moves to the frontend drawer.</li>
+      <li><strong>Drawer design</strong> &mdash; section grouping, repeater fields, rich text editor, image picker, save &amp; instant preview.</li>
+    </ul>
+
+    <h3>v5.0 &mdash; Commerce / Payments</h3>
     <p>Lightweight digital product sales via Stripe.</p>
     <ul>
-      <li>Sell downloads, courses, and one-time purchases</li>
-      <li>Member tiers with Stripe Checkout</li>
-      <li>License key generation</li>
-      <li>Purchase and MRR analytics</li>
+      <li>Stripe Checkout integration for one-click purchases</li>
+      <li>Member tiers with paid subscriptions</li>
+      <li>License key generation for digital products</li>
+      <li>Download protection with signed URLs</li>
+      <li>Revenue dashboard with MRR tracking</li>
     </ul>
 
     <hr style="margin: 40px 0;">
 
-    <h2>Long-Term (v3.x+)</h2>
+    <h2>Long-Term (v5.x+)</h2>
     <ul>
-      <li><strong>Outpost CLI</strong> &mdash; standalone CLI tool (separate repo) for theme scaffolding, local dev server, template validation, and theme packaging</li>
-      <li><strong>VS Code Extension</strong> &mdash; syntax highlighting, autocomplete, and hover docs for Outpost Liquid templates (separate repo)</li>
-      <li><strong>Internationalization</strong> &mdash; multi-language content, locale routing, one-click duplicate-as-locale</li>
+      <li><strong>Outpost CLI</strong> &mdash; standalone CLI tool for theme scaffolding, local dev server, template validation, and theme packaging</li>
+      <li><strong>VS Code Extension</strong> &mdash; syntax highlighting, autocomplete, and hover docs for Outpost Liquid templates</li>
       <li><strong>Theme Marketplace</strong> &mdash; browse, preview, and install themes from within the admin</li>
       <li><strong>Channels Phase 3 &amp; 4</strong> &mdash; inbound webhooks, outbound channels, filtering, channel-to-channel piping</li>
+      <li><strong>A/B Testing &amp; Personalization</strong> &mdash; content variant testing, audience segmentation, conversion tracking</li>
     </ul>
 
     <hr style="margin: 40px 0;">
@@ -214,14 +200,14 @@
     <ol>
       <li><strong>Zero server-side dependencies</strong> &mdash; No Composer, no npm on the server, no build step to deploy</li>
       <li><strong>SQLite only</strong> &mdash; single-file database enables trivial backups and shared hosting compatibility</li>
-      <li><strong>Liquid templates only</strong> &mdash; no PHP in theme files; content/presentation separation is enforced</li>
+      <li><strong>Liquid templates</strong> &mdash; no PHP in theme files; content/presentation separation is enforced (Smart Forge in v4.0 makes Liquid optional for basic content)</li>
       <li><strong>Drop-in install</strong> &mdash; copy files, visit <code>/outpost/</code>, done</li>
     </ol>
 
     <hr style="margin: 40px 0;">
 
     <h2>Not Planned</h2>
-    <p>These are explicitly out of scope. Acknowledging them keeps the codebase focused.</p>
+    <p>These are explicitly out of scope.</p>
     <table>
       <thead>
         <tr><th>Feature</th><th>Why Not</th></tr>
@@ -230,10 +216,9 @@
         <tr><td>Plugin ecosystem</td><td>Requires a package manager &mdash; violates the zero-config promise</td></tr>
         <tr><td>Managed SaaS hosting</td><td>A business model, not a product feature</td></tr>
         <tr><td>Native mobile apps</td><td>Web admin + responsive design is sufficient</td></tr>
-        <tr><td>Visual drag-and-drop page builder</td><td>Theme Customizer handles appearance; on-page editing handles content; structure belongs in templates</td></tr>
-        <tr><td>Built-in AI content generation</td><td>External API dependencies and ongoing costs</td></tr>
         <tr><td>MySQL/Postgres</td><td>SQLite is the constraint that enables &ldquo;backup = one file&rdquo;</td></tr>
         <tr><td>LDAP/SAML SSO</td><td>Out of scope for indie/small-team target market</td></tr>
+        <tr><td>Full multi-tenancy</td><td>Instance isolation is a hosting problem, not a CMS feature</td></tr>
       </tbody>
     </table>
 

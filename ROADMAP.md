@@ -107,18 +107,18 @@ Everything below is already built and released.
 
 ---
 
-## v3.2 — Custom Workflows
+## v3.2 — Custom Workflows **SHIPPED**
 
 **Define any content workflow beyond draft/published.** Different content types can have different approval processes — a blog post might need only editor review, while a legal page needs legal team sign-off.
 
-- **Custom workflow stages** — create any stages you need: Draft → Copy Review → Design Review → Legal → Approved → Published
-- **Per-collection workflows** — assign different workflows to different collections (blog gets a simple 2-step, legal pages get a 5-step)
-- **Stage-based permissions** — control who can move content to each stage (editors can submit for review, only legal can approve legal stage)
-- **Visual workflow builder** — drag-and-drop stage editor in Settings with color-coded stages
-- **Stage transition notifications** — email notifications when content moves to a new stage
-- **Webhook events** — fire webhooks on every stage transition for external integrations (Slack, Discord, project management)
-- **Audit trail** — full history of who moved what to which stage and when
-- **Bulk stage transitions** — select multiple items, move them all to the next stage at once
+- ~~**Custom workflow stages** — create any stages you need: Draft → Copy Review → Design Review → Legal → Approved → Published~~ **Shipped**
+- ~~**Per-collection workflows** — assign different workflows to different collections (blog gets a simple 2-step, legal pages get a 5-step)~~ **Shipped**
+- ~~**Stage-based permissions** — control who can move content to each stage (editors can submit for review, only legal can approve legal stage)~~ **Shipped**
+- ~~**Visual workflow builder** — drag-and-drop stage editor in Settings with color-coded stages~~ **Shipped** (inline builder, not drag-and-drop)
+- **Stage transition notifications** — email notifications when content moves to a new stage (deferred to future release)
+- ~~**Webhook events** — fire webhooks on every stage transition for external integrations (Slack, Discord, project management)~~ **Shipped**
+- ~~**Audit trail** — full history of who moved what to which stage and when~~ **Shipped**
+- ~~**Bulk stage transitions** — select multiple items, move them all to the next stage at once~~ **Shipped**
 
 ---
 
@@ -296,8 +296,8 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~1.1–1.9~~ | Channels, Roles, Backup, Content Dir, Workflow, Media, Customizer, DX | **Shipped** |
 | ~~2.0–2.5~~ | Onboarding, Folders, Forge, Analytics, API, Design System | **Shipped** |
 | ~~3.0~~ | Ranger AI Assistant | **Shipped** |
-| 3.1 | Releases (bundle & publish) | **In Progress** |
-| 3.2 | Custom Workflows | Next |
+| ~~3.1~~ | Releases (bundle & publish) | **Shipped** |
+| ~~3.2~~ | Custom Workflows | **Shipped** |
 | 3.3 | Collaboration (Comments) | Planned |
 | 3.4 | Theme Gallery + 5 Themes | Planned |
 | 3.5 | Multi-Language (i18n) | Planned |

@@ -87,8 +87,10 @@ function handle_release_create(): void {
     $body = get_json_body();
     $name = trim($body['name'] ?? '');
     if (!$name) json_error('Name is required');
+    if (mb_strlen($name) > 200) json_error('Name must be 200 characters or fewer');
 
     $description = trim($body['description'] ?? '');
+    if (mb_strlen($description) > 2000) json_error('Description must be 2000 characters or fewer');
     $userId = OutpostAuth::getUserId();
 
     $id = OutpostDB::insert('releases', [
@@ -160,6 +162,10 @@ function handle_release_add_change(): void {
 
     $snapshotBefore = isset($body['snapshot_before']) ? json_encode($body['snapshot_before']) : null;
     $snapshotAfter = isset($body['snapshot_after']) ? json_encode($body['snapshot_after']) : null;
+
+    // Guard against oversized snapshots (1MB limit each)
+    if ($snapshotBefore !== null && strlen($snapshotBefore) > 1048576) json_error('snapshot_before exceeds 1MB limit');
+    if ($snapshotAfter !== null && strlen($snapshotAfter) > 1048576) json_error('snapshot_after exceeds 1MB limit');
 
     $id = OutpostDB::insert('release_changes', [
         'release_id' => $releaseId,
@@ -235,7 +241,8 @@ function handle_release_publish(): void {
         $db->commit();
     } catch (\Exception $e) {
         $db->rollBack();
-        json_error('Failed to publish release: ' . $e->getMessage());
+        error_log('Release publish error (id=' . $id . '): ' . $e->getMessage());
+        json_error('Failed to publish release. Check error log for details.');
     }
 
     // Clear template cache
@@ -298,7 +305,8 @@ function handle_release_rollback(): void {
         $db->commit();
     } catch (\Exception $e) {
         $db->rollBack();
-        json_error('Failed to rollback release: ' . $e->getMessage());
+        error_log('Release rollback error (id=' . $id . '): ' . $e->getMessage());
+        json_error('Failed to rollback release. Check error log for details.');
     }
 
     // Clear template cache

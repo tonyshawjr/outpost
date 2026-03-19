@@ -43,8 +43,15 @@ if (str_starts_with($path, '/outpost') || $path === '/outpost') {
         return false;
     }
 
-    // Directory request → try index.php
+    // Directory request → try index.html then index.php
     if (is_dir($file)) {
+        $indexHtml = $file . '/index.html';
+        if (file_exists($indexHtml)) {
+            // Serve static HTML (e.g., /outpost/docs/)
+            header('Content-Type: text/html; charset=utf-8');
+            readfile($indexHtml);
+            return true;
+        }
         $index = $file . '/index.php';
         if (file_exists($index)) {
             require $index;

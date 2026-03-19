@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] — 2026-03-19
+
+### Added
+- **Custom Workflows** — Define custom approval stages per collection. Create workflows with arbitrary stages (e.g., Draft → Copy Review → Approved → Published), each with configurable colors, role-based permissions, and allowed transitions.
+- **Two built-in workflows** — "Simple" (Draft → Published) and "Editorial" (Draft → Review → Approved → Published) created automatically on first run. Collections without an assigned workflow use the Simple default.
+- **Workflow transitions** — Click status badges in the item list or editor sidebar to move content through workflow stages. Role-based enforcement ensures only authorized users can advance content.
+- **Transition history** — Every stage change is recorded with user, timestamp, and optional note. Visible in the editor's History tab.
+- **Bulk workflow transitions** — Select multiple items and move them to any stage in one action.
+- **Workflow assignment** — Assign workflows to collections via the collection schema editor. Each collection can have its own approval process.
+- **Workflows admin page** — New page under Content in the sidebar for creating, editing, and deleting custom workflows with a visual stage pipeline builder.
+- **Ranger integration** — `manage_workflows` tool added to Ranger AI assistant for managing workflows via natural language.
+- **Webhook event** — `workflow.transition` event fired on every stage change with full context.
+
+---
+
 ## [3.1.0] — 2026-03-19
 
 ### Added

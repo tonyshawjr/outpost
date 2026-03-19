@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
-  import { items as itemsApi, collections as collectionsApi, folders as foldersApi } from '$lib/api.js';
-  import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin } from '$lib/stores.js';
+  import { items as itemsApi, collections as collectionsApi, folders as foldersApi, workflows as workflowsApi } from '$lib/api.js';
+  import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin, user } from '$lib/stores.js';
   import { formatDateOnly } from '$lib/utils.js';
   import EmptyState from '$components/EmptyState.svelte';
   import LabelSidebar from '$components/LabelSidebar.svelte';
@@ -13,6 +13,11 @@
   let loading = $state(true);
   let search = $state('');
   let statusFilter = $derived($currentStatusFilter);
+
+  // Workflow state
+  let workflow = $state(null);
+  let workflowStages = $derived(workflow?.stages || []);
+  let transitionDropdownId = $state(null);
 
   let creatingItem = $state(false);
   let sortDir = $state('desc'); // 'desc' = newest first
@@ -135,6 +140,26 @@
     }
   }
 
+  async function bulkWorkflowTransition(toStage) {
+    if (selected.size === 0 || bulkBusy) return;
+    bulkBusy = true;
+    try {
+      const ids = [...selected];
+      await workflowsApi.bulkTransition(ids, toStage);
+      items = items.map(i => ids.includes(i.id)
+        ? { ...i, status: toStage, ...(toStage === 'published' && !i.published_at ? { published_at: new Date().toISOString() } : {}) }
+        : i
+      );
+      const stageDef = getStageBySlug(toStage);
+      addToast(`${ids.length} item${ids.length !== 1 ? 's' : ''} moved to ${stageDef?.name || toStage}`, 'success');
+      selected = new Set();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      bulkBusy = false;
+    }
+  }
+
   function getItemDate(item) {
     return item.status === 'published' ? (item.published_at || item.updated_at) : item.updated_at;
   }
@@ -168,11 +193,67 @@
     if (activeSlug) {
       await loadItems(activeSlug, statusFilter, activeLabelId);
       await checkFolders();
+      await loadWorkflow();
     }
   });
 
   $effect(() => {
-    if (activeSlug) loadItems(activeSlug, statusFilter, activeLabelId);
+    if (activeSlug) {
+      loadItems(activeSlug, statusFilter, activeLabelId);
+      loadWorkflow();
+    }
+  });
+
+  async function loadWorkflow() {
+    if (!activeColl) return;
+    try {
+      const data = await workflowsApi.forCollection(activeColl.id);
+      workflow = data.workflow || null;
+    } catch (e) {
+      workflow = null;
+    }
+  }
+
+  function getStageBySlug(slug) {
+    return workflowStages.find(s => s.slug === slug) || null;
+  }
+
+  function getAvailableTransitions(item) {
+    const stage = getStageBySlug(item.status);
+    if (!stage) return [];
+    const role = $user?.role || '';
+    return (stage.can_move_to || [])
+      .map(slug => getStageBySlug(slug))
+      .filter(s => s && (s.roles || []).includes(role));
+  }
+
+  function toggleTransitionDropdown(e, itemId) {
+    e.stopPropagation();
+    transitionDropdownId = transitionDropdownId === itemId ? null : itemId;
+  }
+
+  async function transitionItem(e, item, toStage) {
+    e.stopPropagation();
+    transitionDropdownId = null;
+    try {
+      await workflowsApi.transition(item.id, toStage);
+      items = items.map(i => i.id === item.id
+        ? { ...i, status: toStage, ...(toStage === 'published' && !i.published_at ? { published_at: new Date().toISOString() } : {}) }
+        : i
+      );
+      const stageDef = getStageBySlug(toStage);
+      addToast(`Moved to ${stageDef?.name || toStage}`, 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  // Close dropdown on outside click
+  $effect(() => {
+    if (transitionDropdownId === null) return;
+    function close() { transitionDropdownId = null; }
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
   });
 
   async function checkFolders() {
@@ -382,12 +463,21 @@
             Approve
           </button>
         {/if}
-        <button class="btn btn-secondary btn-sm" onclick={() => bulkSetStatus('published')} disabled={bulkBusy}>
-          Publish
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick={() => bulkSetStatus('draft')} disabled={bulkBusy}>
-          Unpublish
-        </button>
+        {#if workflowStages.length > 2}
+          {#each workflowStages as stage}
+            <button class="btn btn-secondary btn-sm" onclick={() => bulkWorkflowTransition(stage.slug)} disabled={bulkBusy}>
+              <span class="wf-bulk-dot" style="background: {stage.color};"></span>
+              {stage.name}
+            </button>
+          {/each}
+        {:else}
+          <button class="btn btn-secondary btn-sm" onclick={() => bulkSetStatus('published')} disabled={bulkBusy}>
+            Publish
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick={() => bulkSetStatus('draft')} disabled={bulkBusy}>
+            Unpublish
+          </button>
+        {/if}
         <button class="btn btn-secondary btn-sm" onclick={() => { scheduleDate = ''; showScheduleModal = true; }} disabled={bulkBusy}>
           Schedule
         </button>
@@ -516,17 +606,30 @@
                 <div class="list-row-subtitle">{getItemSubtitle(item)}</div>
               </div>
               <div class="list-row-right">
-                <button
-                  class="status-badge"
-                  class:status-published={item.status === 'published'}
-                  class:status-draft={item.status === 'draft'}
-                  class:status-scheduled={item.status === 'scheduled'}
-                  class:status-pending={item.status === 'pending_review'}
-                  onclick={(e) => toggleStatus(e, item)}
-                  aria-label="Toggle status"
-                >
-                  {item.status === 'pending_review' ? 'in review' : item.status}
-                </button>
+                <div class="wf-status-wrap">
+                  <button
+                    class="status-badge wf-status-badge"
+                    style={getStageBySlug(item.status) ? `background: ${getStageBySlug(item.status).color}20; color: ${getStageBySlug(item.status).color};` : ''}
+                    class:status-published={!getStageBySlug(item.status) && item.status === 'published'}
+                    class:status-draft={!getStageBySlug(item.status) && item.status === 'draft'}
+                    class:status-scheduled={!getStageBySlug(item.status) && item.status === 'scheduled'}
+                    class:status-pending={!getStageBySlug(item.status) && item.status === 'pending_review'}
+                    onclick={(e) => getAvailableTransitions(item).length > 0 ? toggleTransitionDropdown(e, item.id) : toggleStatus(e, item)}
+                    aria-label="Change status"
+                  >
+                    {getStageBySlug(item.status) ? getStageBySlug(item.status).name : (item.status === 'pending_review' ? 'in review' : item.status)}
+                  </button>
+                  {#if transitionDropdownId === item.id && getAvailableTransitions(item).length > 0}
+                    <div class="wf-transition-dropdown" onclick={(e) => e.stopPropagation()}>
+                      {#each getAvailableTransitions(item) as target}
+                        <button class="wf-transition-item" onclick={(e) => transitionItem(e, item, target.slug)}>
+                          <span class="wf-transition-dot" style="background: {target.color};"></span>
+                          {target.name}
+                        </button>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
                 <span class="list-row-time">{formatDateOnly(getItemDate(item))}</span>
                 <button
                   class="list-row-delete"
@@ -1012,6 +1115,65 @@
     padding: 8px 14px;
     font-size: 12px;
     color: var(--text-tertiary);
+  }
+
+  /* ── Workflow status & transitions ──────────────────── */
+  .wf-status-wrap {
+    position: relative;
+  }
+
+  .wf-status-badge {
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .wf-transition-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    min-width: 140px;
+    z-index: 100;
+    overflow: hidden;
+  }
+
+  .wf-transition-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 14px;
+    border: none;
+    background: none;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .wf-transition-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .wf-transition-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .wf-bulk-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 2px;
+    vertical-align: middle;
   }
 
   @media (max-width: 768px) {
