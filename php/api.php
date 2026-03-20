@@ -7383,9 +7383,12 @@ function handle_updates_apply(): void {
 
         $updatedFiles = [];
 
-        // Copy PHP files from root of source
-        $phpFiles = glob($sourceDir . '/*.php') ?: [];
-        foreach ($phpFiles as $file) {
+        // Copy core files from root of source (.php and .js)
+        $coreFiles = array_merge(
+            glob($sourceDir . '/*.php') ?: [],
+            glob($sourceDir . '/*.js') ?: []
+        );
+        foreach ($coreFiles as $file) {
             $basename = basename($file);
             copy($file, $outpostDir . $basename);
             $updatedFiles[] = $basename;
