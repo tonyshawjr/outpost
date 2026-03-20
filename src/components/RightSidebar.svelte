@@ -313,7 +313,9 @@
     <div class="rs-tabs">
       <button class="rs-tab" class:active={sidebarTab === 'post'} onclick={() => sidebarTab = 'post'}>Post</button>
       <button class="rs-tab" class:active={sidebarTab === 'seo'} onclick={() => sidebarTab = 'seo'}>SEO</button>
-      <button class="rs-tab" class:active={sidebarTab === 'history'} onclick={() => sidebarTab = 'history'}>History</button>
+      <button class="rs-tab" class:active={sidebarTab === 'history'} onclick={() => sidebarTab = 'history'} title="History">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px"><circle cx="8" cy="8" r="6.5"/><polyline points="8 4.5 8 8 10.5 9.5"/></svg>
+      </button>
       <button class="rs-tab" class:active={sidebarTab === 'comments'} onclick={() => sidebarTab = 'comments'} title="Comments">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px"><path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2z"/></svg>
       </button>
