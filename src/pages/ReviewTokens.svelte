@@ -97,6 +97,18 @@
     return base + path + '?review=' + token.token;
   }
 
+  function getAdminReviewUrl(token, comment) {
+    const base = window.location.origin;
+    const path = comment?.page_path || token.page_path || '/';
+    let url = base + path + '?review=' + token.token + '&admin=1';
+    if (comment?.id) url += '#comment-' + comment.id;
+    return url;
+  }
+
+  function viewOnPage(token, comment) {
+    window.open(getAdminReviewUrl(token, comment), '_blank');
+  }
+
   function copyUrl(token) {
     navigator.clipboard.writeText(getReviewUrl(token));
     addToast('Link copied to clipboard', 'success');
@@ -347,6 +359,10 @@
               </p>
             </div>
           </div>
+          <button class="btn btn-primary btn-sm feedback-view-page" onclick={() => viewOnPage(selectedToken, null)} title="Open site with admin review overlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View on page
+          </button>
           <button class="feedback-close" onclick={closeFeedback} title="Close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
