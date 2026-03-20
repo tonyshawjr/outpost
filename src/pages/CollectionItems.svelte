@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { items as itemsApi, collections as collectionsApi, folders as foldersApi, workflows as workflowsApi } from '$lib/api.js';
+  import { items as itemsApi, collections as collectionsApi, folders as foldersApi, workflows as workflowsApi, comments as commentsApi } from '$lib/api.js';
   import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin, user } from '$lib/stores.js';
   import { formatDateOnly } from '$lib/utils.js';
   import EmptyState from '$components/EmptyState.svelte';
@@ -21,6 +21,9 @@
 
   let creatingItem = $state(false);
   let sortDir = $state('desc'); // 'desc' = newest first
+
+  // ── Comment count badges ──────────────────────────────
+  let commentCounts = $state({});
 
   // ── Label sidebar state ─────────────────────────────────
   let activeLabelId = $state(null);
@@ -194,6 +197,7 @@
       await loadItems(activeSlug, statusFilter, activeLabelId);
       await checkFolders();
       await loadWorkflow();
+      await loadCommentCounts();
     }
   });
 
@@ -201,6 +205,7 @@
     if (activeSlug) {
       loadItems(activeSlug, statusFilter, activeLabelId);
       loadWorkflow();
+      loadCommentCounts();
     }
   });
 
@@ -255,6 +260,16 @@
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   });
+
+  async function loadCommentCounts() {
+    if (!activeColl) return;
+    try {
+      const data = await commentsApi.count({ collection_id: activeColl.id });
+      commentCounts = data.counts || {};
+    } catch (e) {
+      commentCounts = {};
+    }
+  }
 
   async function checkFolders() {
     if (!activeColl) return;
@@ -630,6 +645,14 @@
                     </div>
                   {/if}
                 </div>
+                {#if commentCounts[item.id]}
+                  <span class="comment-badge" title="{commentCounts[item.id]} open comment{commentCounts[item.id] !== 1 ? 's' : ''}">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12">
+                      <path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2z"/>
+                    </svg>
+                    {commentCounts[item.id]}
+                  </span>
+                {/if}
                 <span class="list-row-time">{formatDateOnly(getItemDate(item))}</span>
                 <button
                   class="list-row-delete"
@@ -867,6 +890,23 @@
     gap: var(--space-md);
     flex-shrink: 0;
     margin-left: var(--space-xl);
+  }
+
+  .comment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.1s, background 0.1s;
+  }
+
+  .list-row:hover .comment-badge {
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
   }
 
   .list-row-time {

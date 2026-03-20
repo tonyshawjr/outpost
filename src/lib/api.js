@@ -297,8 +297,8 @@ export const settings = {
 
 // Updates
 export const updates = {
-  check: () =>
-    request('updates/check'),
+  check: (force = false) =>
+    request('updates/check', force ? { params: { force: '1' } } : {}),
   apply: (downloadUrl) =>
     request('updates/apply', { method: 'POST', body: { download_url: downloadUrl } }),
 };
@@ -664,8 +664,8 @@ export const comments = {
     request('comments', { method: 'PUT', params: { id }, body: data }),
   delete: (id) =>
     request('comments', { method: 'DELETE', params: { id } }),
-  count: () =>
-    request('comments/count'),
+  count: (params = {}) =>
+    request('comments/count', { params }),
   activity: (limit = 50) =>
     request('comments/activity', { params: { limit } }),
 };

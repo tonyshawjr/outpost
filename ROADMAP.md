@@ -128,9 +128,9 @@ Everything below is already built and released.
 
 - ~~**Comment threads on collection items** — discuss an entire item in context~~ **Shipped**
 - ~~**@mention team members** — type @tony to reference a specific person~~ **Shipped** (notification delivery deferred)
-- **Email notifications** — get notified when you're mentioned or when a thread you're in gets a reply (deferred to future release)
+- ~~**Email notifications** — get notified when you're mentioned or when a thread you're in gets a reply~~ **Shipped**
 - ~~**Resolve/unresolve threads** — mark a discussion as done without deleting it~~ **Shipped**
-- **Comment count badges** — see at a glance which items have active discussions (deferred to future release)
+- ~~**Comment count badges** — see at a glance which items have active discussions~~ **Shipped**
 - ~~**Activity feed API** — recent comments across all content~~ **Shipped**
 - **Activity dashboard widget** — latest team activity on the main dashboard (deferred to future release)
 - ~~**Client Review Links** — generate shareable URLs for external feedback without admin accounts~~ **Shipped**

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.3] — 2026-03-19
+
+### Added
+- **Comment email notifications** — @mentioned users and reply thread participants receive email notifications. External review comments notify admins. Failures are logged but never block comment creation.
+- **Comment count badges** — Collection item lists show a small comment bubble with count for items with open discussions. Review Links page shows open comment counts per token.
+
+---
+
+## [3.3.2] — 2026-03-19
+
+### Changed
+- **Review overlay rewrite** — Complete rewrite of the client-facing review overlay with dark panel (#3D3530), friendly element descriptions instead of raw CSS selectors, proper pin positioning, element highlighting on hover in comment mode, name/email modal on first use, and namespaced CSS classes to avoid host page conflicts.
+
+### Fixed
+- **Update check "Check again" button** — Now forces a fresh check by clearing the cache, instead of returning stale cached results.
+
+---
+
 ## [3.3.0] — 2026-03-19
 
 ### Added

@@ -13,11 +13,11 @@
     checkForUpdates();
   });
 
-  async function checkForUpdates() {
+  async function checkForUpdates(force = false) {
     checking = true;
     error = '';
     try {
-      updateInfo = await updatesApi.check();
+      updateInfo = await updatesApi.check(force);
     } catch (err) {
       error = err.message;
     } finally {
@@ -59,7 +59,7 @@
   {:else if error}
     <div class="update-status">
       <span class="update-error">{error}</span>
-      <button class="btn btn-secondary" onclick={checkForUpdates}>Retry</button>
+      <button class="btn btn-secondary" onclick={() => checkForUpdates(true)}>Retry</button>
     </div>
   {:else if updateInfo}
     <div class="update-card">
@@ -111,7 +111,7 @@
       {/if}
     </div>
 
-    <button class="btn btn-secondary update-recheck" onclick={checkForUpdates} disabled={checking}>
+    <button class="btn btn-secondary update-recheck" onclick={() => checkForUpdates(true)} disabled={checking}>
       Check again
     </button>
   {/if}

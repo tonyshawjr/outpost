@@ -4,6 +4,21 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Comment Notifications & Count Badges (v3.3.3)
+
+- **Email notifications for comments** — When a user @mentions a team member, the mentioned user receives an email with the comment body and a link to the admin panel. Reply notifications sent to parent comment authors. External review comments trigger admin email notifications. All emails use the configured SMTP/mailer with branded HTML templates. Failures are caught and logged without breaking comment creation.
+- **Comment count badges** — Collection item list rows show a subtle comment bubble icon with the number of open comments, visible at a glance. Badge loads via `GET comments/count?collection_id=X` which returns a per-item count map. Review Links page also shows open comment counts per review token.
+- **Improved comments/count API** — Now accepts an optional `collection_id` parameter to return counts scoped to a specific collection's items, returning a simple `{ entity_id: count }` map.
+
+---
+
+## Review Overlay & Update Check Fixes (v3.3.2)
+
+- **Review overlay v2** — Complete rewrite of `review-overlay.js`. Dark panel (#3D3530) matching admin sidebar. Friendly element descriptions (text content, heading text, aria-label, tag name) instead of raw CSS selectors. Proper numbered pins at element top-right. Comment mode with green highlight on hover. Name/email modal on first interaction. All CSS classes prefixed `outpost-review-` to avoid host page conflicts.
+- **Force update check** — "Check again" and "Retry" buttons in Settings > Updates now pass `?force=1` to bypass the 5-minute cache and fetch fresh results from GitHub.
+
+---
+
 ## Collaboration & Comments (v3.3.0)
 
 - **Team comments** — Threaded comment system on collection items. Comments panel in the editor right sidebar with open/resolved filtering, reply threads, and @mention autocomplete.

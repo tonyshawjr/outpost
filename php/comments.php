@@ -61,6 +61,136 @@ function ensure_comment_tables(): void {
 
 // ── Helpers ──────────────────────────────────────────────
 
+function comment_get_setting(string $key): string {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = ?", [$key]);
+    return $row ? (string) $row['value'] : '';
+}
+
+function comment_get_site_name(): string {
+    return comment_get_setting('site_name') ?: 'Outpost CMS';
+}
+
+function comment_get_admin_url(): string {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return "{$scheme}://{$host}/outpost/";
+}
+
+function comment_build_email_html(string $heading, string $body, string $ctaUrl, string $ctaLabel, string $footer): string {
+    return '<div style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 20px;">'
+        . '<div style="border-bottom: 2px solid #2D5A47; padding-bottom: 12px; margin-bottom: 20px;">'
+        . '<strong style="color: #2D5A47;">' . htmlspecialchars(comment_get_site_name()) . '</strong>'
+        . '</div>'
+        . '<p style="color: #333; font-size: 15px; line-height: 1.6;">' . $heading . '</p>'
+        . '<blockquote style="border-left: 3px solid #E5E1DA; padding: 8px 16px; margin: 16px 0; color: #555; font-size: 14px;">'
+        . htmlspecialchars($body)
+        . '</blockquote>'
+        . '<a href="' . htmlspecialchars($ctaUrl) . '" style="display: inline-block; background: #2D5A47; color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-size: 14px;">'
+        . htmlspecialchars($ctaLabel)
+        . '</a>'
+        . '<p style="color: #999; font-size: 12px; margin-top: 24px;">' . $footer . '</p>'
+        . '</div>';
+}
+
+function comment_send_mention_notifications(int $commentId, array $mentionedUserIds, int $commenterUserId, string $commentBody): void {
+    try {
+        require_once __DIR__ . '/mailer.php';
+        $mailer = OutpostMailer::fromSettings();
+        $siteName = comment_get_site_name();
+        $adminUrl = comment_get_admin_url();
+
+        // Get commenter display name
+        $commenter = OutpostDB::fetchOne('SELECT display_name, username FROM users WHERE id = ?', [$commenterUserId]);
+        $commenterName = $commenter['display_name'] ?: $commenter['username'] ?: 'Someone';
+
+        foreach ($mentionedUserIds as $userId) {
+            // Don't notify yourself
+            if ($userId === $commenterUserId) continue;
+
+            $user = OutpostDB::fetchOne('SELECT email, display_name FROM users WHERE id = ?', [$userId]);
+            if (!$user || !$user['email']) continue;
+
+            $subject = "You were mentioned in a comment on {$siteName}";
+            $heading = '<strong>' . htmlspecialchars($commenterName) . '</strong> mentioned you in a comment:';
+            $html = comment_build_email_html($heading, $commentBody, $adminUrl, 'View in Outpost', 'You received this because you were mentioned in a comment.');
+            $text = "{$commenterName} mentioned you in a comment:\n\n\"{$commentBody}\"\n\nView in Outpost: {$adminUrl}";
+
+            try {
+                $mailer->send($user['email'], $subject, $text, $html);
+                // Mark as notified
+                OutpostDB::connect()->exec(
+                    "UPDATE comment_mentions SET notified = 1 WHERE comment_id = " . (int) $commentId . " AND user_id = " . (int) $userId
+                );
+            } catch (\Throwable $e) {
+                error_log("Comment mention email failed for user {$userId}: " . $e->getMessage());
+            }
+        }
+    } catch (\Throwable $e) {
+        error_log('Comment mention notification error: ' . $e->getMessage());
+    }
+}
+
+function comment_send_reply_notification(int $parentId, int $replierUserId, string $commentBody): void {
+    try {
+        $parent = OutpostDB::fetchOne('SELECT user_id FROM comments WHERE id = ?', [$parentId]);
+        if (!$parent || !$parent['user_id']) return;
+
+        $parentAuthorId = (int) $parent['user_id'];
+        // Don't notify yourself
+        if ($parentAuthorId === $replierUserId) return;
+
+        $parentUser = OutpostDB::fetchOne('SELECT email, display_name FROM users WHERE id = ?', [$parentAuthorId]);
+        if (!$parentUser || !$parentUser['email']) return;
+
+        require_once __DIR__ . '/mailer.php';
+        $mailer = OutpostMailer::fromSettings();
+        $siteName = comment_get_site_name();
+        $adminUrl = comment_get_admin_url();
+
+        // Get replier display name
+        $replier = OutpostDB::fetchOne('SELECT display_name, username FROM users WHERE id = ?', [$replierUserId]);
+        $replierName = $replier['display_name'] ?: $replier['username'] ?: 'Someone';
+
+        $subject = "Someone replied to your comment on {$siteName}";
+        $heading = '<strong>' . htmlspecialchars($replierName) . '</strong> replied to your comment:';
+        $html = comment_build_email_html($heading, $commentBody, $adminUrl, 'View in Outpost', 'You received this because someone replied to your comment.');
+        $text = "{$replierName} replied to your comment:\n\n\"{$commentBody}\"\n\nView in Outpost: {$adminUrl}";
+
+        $mailer->send($parentUser['email'], $subject, $text, $html);
+    } catch (\Throwable $e) {
+        error_log('Comment reply notification error: ' . $e->getMessage());
+    }
+}
+
+function comment_send_review_admin_notification(string $authorName, string $commentBody, string $pagePath): void {
+    try {
+        require_once __DIR__ . '/mailer.php';
+        $mailer = OutpostMailer::fromSettings();
+        $siteName = comment_get_site_name();
+        $adminUrl = comment_get_admin_url();
+
+        // Get all admins
+        $admins = OutpostDB::fetchAll("SELECT email FROM users WHERE role IN ('admin', 'super_admin') AND email IS NOT NULL AND email != ''");
+        if (empty($admins)) return;
+
+        $displayPath = $pagePath ?: '/';
+        $subject = "New client feedback on {$displayPath}";
+        $heading = '<strong>' . htmlspecialchars($authorName ?: 'A reviewer') . '</strong> left feedback on <code>' . htmlspecialchars($displayPath) . '</code>:';
+        $html = comment_build_email_html($heading, $commentBody, $adminUrl . '#review-tokens', 'View Feedback', 'You received this because a client left feedback via a review link.');
+        $text = ($authorName ?: 'A reviewer') . " left feedback on {$displayPath}:\n\n\"{$commentBody}\"\n\nView feedback: {$adminUrl}";
+
+        foreach ($admins as $admin) {
+            try {
+                $mailer->send($admin['email'], $subject, $text, $html);
+            } catch (\Throwable $e) {
+                error_log("Review notification email failed for {$admin['email']}: " . $e->getMessage());
+            }
+        }
+    } catch (\Throwable $e) {
+        error_log('Review admin notification error: ' . $e->getMessage());
+    }
+}
+
 function comment_parse_mentions(string $body): array {
     preg_match_all('/@(\w+)/', $body, $matches);
     if (empty($matches[1])) return [];
@@ -125,6 +255,13 @@ function handle_comments_list(): void {
         $params[] = $status;
     }
 
+    // Filter by review token (admin viewing feedback for a specific link)
+    $reviewTokenId = isset($_GET['review_token_id']) ? (int) $_GET['review_token_id'] : null;
+    if ($reviewTokenId) {
+        $where[]  = 'c.review_token_id = ?';
+        $params[] = $reviewTokenId;
+    }
+
     $where[] = 'c.parent_id IS NULL';
     $whereClause = 'WHERE ' . implode(' AND ', $where);
 
@@ -181,6 +318,19 @@ function handle_comment_create(): void {
         comment_create_mentions($id, $mentions);
     }
 
+    // Send email notifications (don't let failures break comment creation)
+    if ($userId) {
+        // Notify @mentioned users
+        if (!empty($mentions)) {
+            comment_send_mention_notifications($id, $mentions, $userId, $body);
+        }
+
+        // Notify parent comment author on reply
+        if ($parentId) {
+            comment_send_reply_notification($parentId, $userId, $body);
+        }
+    }
+
     $comment = OutpostDB::fetchOne('SELECT * FROM comments WHERE id = ?', [$id]);
     $comment = comment_enrich($comment);
 
@@ -229,7 +379,31 @@ function handle_comment_delete(): void {
 }
 
 function handle_comments_count(): void {
-    // Count open comments grouped by entity type + id
+    $collectionId = isset($_GET['collection_id']) ? (int) $_GET['collection_id'] : null;
+
+    if ($collectionId) {
+        // Return counts for all items in a specific collection
+        $counts = OutpostDB::fetchAll(
+            "SELECT c.entity_id, COUNT(*) as count
+             FROM comments c
+             WHERE c.entity_type = 'item'
+               AND c.status = 'open'
+               AND c.entity_id IN (SELECT id FROM collection_items WHERE collection_id = ?)
+             GROUP BY c.entity_id",
+            [$collectionId]
+        );
+
+        // Convert to a simple map: { entity_id: count }
+        $countMap = [];
+        foreach ($counts as $row) {
+            $countMap[(int) $row['entity_id']] = (int) $row['count'];
+        }
+
+        json_response(['counts' => $countMap]);
+        return;
+    }
+
+    // Default: count open comments grouped by entity type + id
     $counts = OutpostDB::fetchAll(
         "SELECT entity_type, entity_id, page_path, COUNT(*) as count
          FROM comments WHERE status = 'open' AND parent_id IS NULL
@@ -385,6 +559,9 @@ function handle_review_comment_create(): void {
         'status'           => 'open',
         'review_token_id'  => $token['id'],
     ]);
+
+    // Notify admins about new client feedback
+    comment_send_review_admin_notification($authorName, $body, $pagePath);
 
     $comment = OutpostDB::fetchOne('SELECT * FROM comments WHERE id = ?', [$id]);
 

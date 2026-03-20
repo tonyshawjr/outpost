@@ -7197,6 +7197,11 @@ function outpost_check_update_status(): array {
 function handle_updates_check(): void {
     $current = OUTPOST_VERSION;
 
+    // Force refresh: delete cache when ?force=1 is passed (used by "Check again" button)
+    if (isset($_GET['force']) && $_GET['force']) {
+        OutpostDB::query("DELETE FROM settings WHERE key = 'update_check_cache'");
+    }
+
     // Check cache first (avoid hammering GitHub API — 60 req/hr unauthenticated limit)
     $cached = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'update_check_cache'");
     if ($cached) {
