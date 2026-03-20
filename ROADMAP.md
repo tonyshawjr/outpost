@@ -92,50 +92,50 @@ Everything below is already built and released.
 
 ---
 
-## v3.1 — Releases *(in progress)*
+## v3.1 — Releases — SHIPPED (v3.1.0)
 
 **Bundle multiple content changes and publish them all at once.** Like git commits for content — perfect for campaign launches, site redesigns, and coordinated updates.
 
-- **Create a Release** — name it (e.g., "Spring Campaign Launch"), add a description
-- **Tag changes to a Release** — page edits, new collection items, global updates, menu changes — all staged instead of going live
-- **Preview as a bundle** — see the entire site as it WILL look with all Release changes applied
-- **One-click publish** — all changes go live simultaneously. No broken intermediate states.
-- **One-click rollback** — if something's wrong, revert the entire Release. All changes undo at once.
-- **Release history** — track who published what, when, with change counts
-- **Status tracking** — Draft (in progress), Published (live), Rolled Back (reverted)
-- **Ranger integration** — "Create a release called Spring Campaign, add these 5 blog posts, publish Monday at 9am"
+- Create named releases (e.g., "Spring Campaign Launch") with descriptions
+- Stage changes — page edits, new collection items, global updates, menu changes tagged to a release instead of going live
+- One-click publish — all changes go live simultaneously in a database transaction
+- One-click rollback — revert the entire release, all changes undo at once
+- Release history with status tracking (Draft, Published, Rolled Back)
+- Ranger integration — manage releases via AI
 
 ---
 
-## v3.2 — Custom Workflows **SHIPPED**
+## v3.2 — Custom Workflows — SHIPPED (v3.2.0)
 
 **Define any content workflow beyond draft/published.** Different content types can have different approval processes — a blog post might need only editor review, while a legal page needs legal team sign-off.
 
-- ~~**Custom workflow stages** — create any stages you need: Draft → Copy Review → Design Review → Legal → Approved → Published~~ **Shipped**
-- ~~**Per-collection workflows** — assign different workflows to different collections (blog gets a simple 2-step, legal pages get a 5-step)~~ **Shipped**
-- ~~**Stage-based permissions** — control who can move content to each stage (editors can submit for review, only legal can approve legal stage)~~ **Shipped**
-- ~~**Visual workflow builder** — drag-and-drop stage editor in Settings with color-coded stages~~ **Shipped** (inline builder, not drag-and-drop)
-- **Stage transition notifications** — email notifications when content moves to a new stage (deferred to future release)
-- ~~**Webhook events** — fire webhooks on every stage transition for external integrations (Slack, Discord, project management)~~ **Shipped**
-- ~~**Audit trail** — full history of who moved what to which stage and when~~ **Shipped**
-- ~~**Bulk stage transitions** — select multiple items, move them all to the next stage at once~~ **Shipped**
+- Custom workflow stages — create any stages: Draft → Copy Review → Design Review → Legal → Approved → Published
+- Per-collection workflows — assign different workflows to different collections
+- Stage-based permissions — control who can move content to each stage
+- Visual workflow builder — inline stage editor with color-coded stages
+- Webhook events on every stage transition
+- Audit trail — full history of who moved what to which stage and when
+- Bulk stage transitions — move multiple items to the next stage at once
+- Two default workflows: Simple (draft → published) and Editorial (draft → review → approved → published)
+- Ranger integration — manage workflows and transitions via AI
 
 ---
 
-## v3.3 — Collaboration (Comments & Client Review) **SHIPPED**
+## v3.3 — Collaboration & Client Review — SHIPPED (v3.3.0–v3.3.3)
 
-**Team communication directly on content + client feedback on the live site.**
+**Team communication directly on content + client feedback on the live site.** No more Slack threads about "which heading are we talking about?"
 
-- ~~**Comment threads on collection items** — discuss an entire item in context~~ **Shipped**
-- ~~**@mention team members** — type @tony to reference a specific person~~ **Shipped** (notification delivery deferred)
-- ~~**Email notifications** — get notified when you're mentioned or when a thread you're in gets a reply~~ **Shipped**
-- ~~**Resolve/unresolve threads** — mark a discussion as done without deleting it~~ **Shipped**
-- ~~**Comment count badges** — see at a glance which items have active discussions~~ **Shipped**
-- ~~**Activity feed API** — recent comments across all content~~ **Shipped**
-- **Activity dashboard widget** — latest team activity on the main dashboard (deferred to future release)
-- ~~**Client Review Links** — generate shareable URLs for external feedback without admin accounts~~ **Shipped**
-- ~~**Review overlay** — lightweight script injected on frontend for element-pinned feedback~~ **Shipped**
-- ~~**Ranger integration** — manage comments and review links via AI~~ **Shipped**
+- Comment threads on collection items and pages
+- @mention team members with email notifications
+- Email notifications on replies
+- Resolve/unresolve comment threads
+- Comment count badges on collection items and review tokens
+- Activity feed API for recent comments across all content
+- Client Review Links — shareable URLs for external feedback without admin accounts
+- Review overlay — lightweight vanilla JS script on the frontend with element-pinned commenting, dark panel, numbered pins
+- Admin feedback inbox with resolve/delete/filter (All/Open/Resolved)
+- Admin email alerts when clients leave review feedback
+- Ranger integration — manage comments and review links via AI
 
 ---
 

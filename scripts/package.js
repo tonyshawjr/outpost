@@ -28,10 +28,10 @@ if (existsSync(DIST_DIR)) {
 // Create dist directory
 mkdirSync(DIST_DIR, { recursive: true });
 
-// ─── PHP files (all .php in php/ root) ───
-const phpFiles = readdirSync(PHP_DIR).filter(f => f.endsWith('.php'));
+// ─── Core files (all .php and .js in php/ root) ───
+const coreFiles = readdirSync(PHP_DIR).filter(f => f.endsWith('.php') || f.endsWith('.js'));
 
-for (const file of phpFiles) {
+for (const file of coreFiles) {
   const src = resolve(PHP_DIR, file);
   cpSync(src, resolve(DIST_DIR, file));
   console.log(`  Copied ${file}`);

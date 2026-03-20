@@ -84,10 +84,10 @@
     <h3>v3.1 &mdash; Releases</h3>
     <p>Bundle multiple content changes and publish them all at once.</p>
     <ul>
-      <li>Create named releases (e.g., &ldquo;Spring Campaign Launch&rdquo;)</li>
+      <li>Create named releases with descriptions</li>
       <li>Stage changes &mdash; page edits, new items, menu updates tagged to a release</li>
-      <li>One-click publish &mdash; all changes go live simultaneously</li>
-      <li>One-click rollback &mdash; revert the entire release if something&rsquo;s wrong</li>
+      <li>One-click publish &mdash; all changes go live simultaneously in a transaction</li>
+      <li>One-click rollback &mdash; revert the entire release</li>
       <li>Release history with status tracking (Draft, Published, Rolled Back)</li>
       <li>Ranger integration &mdash; manage releases via AI</li>
     </ul>
@@ -96,33 +96,37 @@
     <h3>v3.2 &mdash; Custom Workflows</h3>
     <p>Define any content workflow beyond draft/published. Different content types can have different approval processes.</p>
     <ul>
-      <li><strong>Custom workflow stages</strong> &mdash; Draft &rarr; Copy Review &rarr; Design Review &rarr; Legal &rarr; Approved &rarr; Published</li>
-      <li><strong>Per-collection workflows</strong> &mdash; assign different workflows to different collections</li>
-      <li><strong>Stage-based permissions</strong> &mdash; control who can move content to each stage</li>
-      <li><strong>Visual workflow builder</strong> &mdash; inline stage editor with color-coded stages</li>
-      <li><strong>Webhook events</strong> &mdash; fire webhooks on every stage transition</li>
-      <li><strong>Audit trail</strong> &mdash; full history of who moved what to which stage and when</li>
-      <li><strong>Bulk transitions</strong> &mdash; move multiple items to the next stage at once</li>
-      <li><strong>Ranger integration</strong> &mdash; manage workflows and transitions via AI</li>
+      <li>Custom workflow stages &mdash; Draft &rarr; Copy Review &rarr; Design Review &rarr; Legal &rarr; Approved &rarr; Published</li>
+      <li>Per-collection workflows &mdash; assign different workflows to different collections</li>
+      <li>Stage-based permissions &mdash; control who can move content to each stage</li>
+      <li>Visual workflow builder with color-coded stages</li>
+      <li>Webhook events on every stage transition</li>
+      <li>Audit trail &mdash; full history of who moved what to which stage and when</li>
+      <li>Bulk stage transitions</li>
+      <li>Two default workflows: Simple and Editorial</li>
+      <li>Ranger integration</li>
     </ul>
+
+    <h3>v3.3 &mdash; Collaboration &amp; Client Review</h3>
+    <p>Team communication directly on content + client feedback on the live site.</p>
+    <ul>
+      <li>Comment threads on collection items and pages</li>
+      <li>@mention team members with email notifications</li>
+      <li>Email notifications on replies</li>
+      <li>Resolve/unresolve comment threads</li>
+      <li>Comment count badges on collection items and review tokens</li>
+      <li>Activity feed API</li>
+      <li>Client Review Links &mdash; shareable URLs for external feedback (no login needed)</li>
+      <li>Review overlay &mdash; dark panel, element highlighting, numbered pins</li>
+      <li>Admin feedback inbox with resolve/delete/filter</li>
+      <li>Admin email alerts on client feedback</li>
+      <li>Ranger integration</li>
+    </ul>
+    <p><a href="features/collaboration.html">Full Collaboration documentation &rarr;</a></p>
 
     <hr style="margin: 40px 0;">
 
     <h2>What&rsquo;s Next</h2>
-
-    <h3>v3.3 &mdash; Collaboration &amp; Client Review <span style="color:#22c55e;font-weight:600">SHIPPED</span></h3>
-    <p>Team comments on content + shareable review links for client feedback.</p>
-    <ul>
-      <li><s>Comment threads on collection items</s> &mdash; <strong>Shipped</strong></li>
-      <li><s>@mention team members</s> &mdash; <strong>Shipped</strong> (notification delivery deferred)</li>
-      <li><s>Resolve/unresolve threads</s> &mdash; <strong>Shipped</strong></li>
-      <li><s>Activity feed API</s> &mdash; <strong>Shipped</strong></li>
-      <li><s>Client Review Links</s> &mdash; <strong>Shipped</strong></li>
-      <li><s>Review overlay on live site</s> &mdash; <strong>Shipped</strong></li>
-      <li><s>Ranger AI tool</s> &mdash; <strong>Shipped</strong></li>
-      <li>Email notifications &mdash; deferred to future release</li>
-      <li>Comment count badges &mdash; deferred to future release</li>
-    </ul>
 
     <h3>v3.4 &mdash; Theme Gallery + New Themes</h3>
     <p>More starting points, less blank-page anxiety. 4&ndash;5 polished, production-ready themes.</p>
