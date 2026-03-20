@@ -31,3 +31,14 @@
 [INFO] 2026-03-19T03:52:45.320Z - Attività recuperate con successo: 50 attività 
 [INFO] 2026-03-19T03:52:45.320Z - Trovate 50 attività 
 [INFO] 2026-03-19T03:52:45.321Z - Restituzione di 101 risorse totali 
+[INFO] 2026-03-20T01:23:10.943Z - Initializing server... 
+[INFO] 2026-03-20T01:23:10.945Z - Server started and connected successfully 
+[INFO] 2026-03-20T01:23:10.951Z - Richiesta di elenco tools ricevuta 
+[INFO] 2026-03-20T01:23:10.951Z - Inizio recupero risorse 
+[INFO] 2026-03-20T01:23:10.951Z - Recupero progetti... 
+[INFO] 2026-03-20T01:23:11.578Z - Progetti recuperati con successo: 23 progetti 
+[INFO] 2026-03-20T01:23:11.578Z - Trovati 23 progetti 
+[INFO] 2026-03-20T01:23:11.578Z - Recupero attività... 
+[INFO] 2026-03-20T01:23:12.129Z - Attività recuperate con successo: 50 attività 
+[INFO] 2026-03-20T01:23:12.129Z - Trovate 50 attività 
+[INFO] 2026-03-20T01:23:12.129Z - Restituzione di 101 risorse totali 

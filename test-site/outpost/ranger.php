@@ -574,7 +574,7 @@ class RangerOpenAI extends RangerProvider {
 
 class RangerGemini extends RangerProvider {
     public function stream(string $systemPrompt, array $messages, array $tools, string $model): \Generator {
-        $model = $model ?: 'gemini-2.5-flash';
+        $model = $model ?: 'gemini-2.0-flash';
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':streamGenerateContent?alt=sse&key=' . $this->apiKey;
 
         $contents = [];
@@ -604,6 +604,16 @@ class RangerGemini extends RangerProvider {
             if (is_array($line)) {
                 yield $line;
                 return;
+            }
+
+            // Non-SSE error response (Gemini returns plain JSON on 400s)
+            if (!str_starts_with($line, 'data:') && str_contains($line, '"error"')) {
+                $errJson = json_decode($line, true);
+                if ($errJson) {
+                    $errMsg = $errJson['error']['message'] ?? $errJson['message'] ?? 'Gemini API error';
+                    yield ['type' => 'error', 'message' => $errMsg];
+                    return;
+                }
             }
 
             if (!str_starts_with($line, 'data: ')) continue;
