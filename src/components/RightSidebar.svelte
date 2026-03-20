@@ -311,17 +311,17 @@
   {#if route === 'collection-editor' && editItem}
     <!-- Tab switcher -->
     <div class="rs-tabs">
-      <button class="rs-tab" class:active={sidebarTab === 'post'} onclick={() => sidebarTab = 'post'} title="Post settings">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px"><path d="M13 2.5l.5.5-8 8H3v-2.5l8-8z"/><path d="M2 13.5h12"/></svg>
+      <button class="rs-tab" class:active={sidebarTab === 'post'} onclick={() => sidebarTab = 'post'} title="Post settings" aria-label="Post settings" role="tab" aria-selected={sidebarTab === 'post'}>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px" aria-hidden="true"><path d="M13 2.5l.5.5-8 8H3v-2.5l8-8z"/><path d="M2 13.5h12"/></svg>
       </button>
-      <button class="rs-tab" class:active={sidebarTab === 'seo'} onclick={() => sidebarTab = 'seo'} title="SEO">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px"><circle cx="8" cy="8" r="6.5"/><polygon points="8,3 9.5,6.5 13,8 9.5,9.5 8,13 6.5,9.5 3,8 6.5,6.5" stroke="currentColor" fill="none"/></svg>
+      <button class="rs-tab" class:active={sidebarTab === 'seo'} onclick={() => sidebarTab = 'seo'} title="SEO" aria-label="SEO settings" role="tab" aria-selected={sidebarTab === 'seo'}>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><polygon points="8,3 9.5,6.5 13,8 9.5,9.5 8,13 6.5,9.5 3,8 6.5,6.5" stroke="currentColor" fill="none"/></svg>
       </button>
-      <button class="rs-tab" class:active={sidebarTab === 'history'} onclick={() => sidebarTab = 'history'} title="History">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px"><circle cx="8" cy="8" r="6.5"/><polyline points="8 4.5 8 8 10.5 9.5"/></svg>
+      <button class="rs-tab" class:active={sidebarTab === 'history'} onclick={() => sidebarTab = 'history'} title="Revision history" aria-label="Revision history" role="tab" aria-selected={sidebarTab === 'history'}>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><polyline points="8 4.5 8 8 10.5 9.5"/></svg>
       </button>
-      <button class="rs-tab" class:active={sidebarTab === 'comments'} onclick={() => sidebarTab = 'comments'} title="Comments">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px"><path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2z"/></svg>
+      <button class="rs-tab" class:active={sidebarTab === 'comments'} onclick={() => sidebarTab = 'comments'} title="Comments" aria-label="Comments" role="tab" aria-selected={sidebarTab === 'comments'}>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" style="vertical-align:-2px" aria-hidden="true"><path d="M14 10a2 2 0 01-2 2H5l-3 3V4a2 2 0 012-2h8a2 2 0 012 2z"/></svg>
       </button>
     </div>
 
