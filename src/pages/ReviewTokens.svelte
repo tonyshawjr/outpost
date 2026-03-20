@@ -96,7 +96,7 @@
 
 <div class="review-tokens-page">
   <div class="page-header">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="page-icon"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24" style="flex-shrink:0"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
     <div>
       <h1 class="page-title">Review Links</h1>
       <p class="page-subtitle">Share links with clients to collect feedback on your site</p>
