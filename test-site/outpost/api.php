@@ -515,6 +515,11 @@ match (true) {
     $action === 'review-tokens' && $method === 'DELETE' && isset($_GET['id']) => handle_review_token_delete(),
     $action === 'review-tokens' && $method === 'PUT' && isset($_GET['id'])    => handle_review_token_toggle(),
 
+    // Admin review overlay actions (authenticated admin replying/resolving from live site)
+    $action === 'review/admin-reply' && $method === 'POST'                   => handle_review_admin_reply(),
+    $action === 'review/admin-resolve' && $method === 'POST'                 => handle_review_admin_resolve(),
+    $action === 'review/admin-resolve-all' && $method === 'POST'             => handle_review_admin_resolve_all(),
+
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
     $action === 'ranger/conversations' && $method === 'GET' && isset($_GET['id']) => handle_ranger_conversation_get(),
@@ -7383,9 +7388,12 @@ function handle_updates_apply(): void {
 
         $updatedFiles = [];
 
-        // Copy PHP files from root of source
-        $phpFiles = glob($sourceDir . '/*.php') ?: [];
-        foreach ($phpFiles as $file) {
+        // Copy core files from root of source (.php and .js)
+        $coreFiles = array_merge(
+            glob($sourceDir . '/*.php') ?: [],
+            glob($sourceDir . '/*.js') ?: []
+        );
+        foreach ($coreFiles as $file) {
             $basename = basename($file);
             copy($file, $outpostDir . $basename);
             $updatedFiles[] = $basename;

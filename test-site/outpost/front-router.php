@@ -278,8 +278,22 @@ if ($reviewToken) {
         if ($validExpiry && $validPage) {
             $apiUrl = '/outpost/api.php';
             $jsUrl  = '/outpost/review-overlay.js';
+            // Detect admin mode: logged-in admin visiting with ?admin=1
+            $isAdminReview = isset($_GET['admin']) && function_exists('outpost_is_admin') && outpost_is_admin();
+            $adminFlag = $isAdminReview ? 'true' : 'false';
+            $csrfInject = '';
+            $adminNameInject = '';
+            if ($isAdminReview) {
+                require_once $outpostDir . '/auth.php';
+                $csrf = OutpostAuth::csrfToken();
+                $csrfInject = "window.__OUTPOST_CSRF__=\"{$csrf}\";";
+                // Get admin display name for comment attribution
+                $adminUser = OutpostDB::fetchOne('SELECT display_name, username FROM users WHERE id = ?', [$_SESSION['outpost_user_id']]);
+                $adminDisplayName = addslashes($adminUser['display_name'] ?: $adminUser['username'] ?: 'Admin');
+                $adminNameInject = "window.__OUTPOST_ADMIN_NAME__=\"{$adminDisplayName}\";";
+            }
             $_outpost_review_inject = <<<HTML
-<script>window.__OUTPOST_REVIEW_TOKEN__="{$reviewToken}";window.__OUTPOST_API_URL__="{$apiUrl}";</script>
+<script>window.__OUTPOST_REVIEW_TOKEN__="{$reviewToken}";window.__OUTPOST_API_URL__="{$apiUrl}";window.__OUTPOST_REVIEW_ADMIN__={$adminFlag};{$csrfInject}{$adminNameInject}</script>
 <script src="{$jsUrl}"></script>
 HTML;
         }

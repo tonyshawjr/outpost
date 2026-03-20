@@ -423,6 +423,12 @@
                     <div class="feedback-comment-body">{comment.body}</div>
 
                     <div class="feedback-comment-actions">
+                      {#if comment.element_selector}
+                        <button class="feedback-action-btn feedback-action-view" onclick={() => viewOnPage(selectedToken, comment)} title="View this comment in context on the live site">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          View on page
+                        </button>
+                      {/if}
                       <button class="feedback-action-btn" onclick={() => resolveComment(comment)}>
                         {#if comment.status === 'resolved'}
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 12l2-2m0 0l7 7 7-7M5 10V4a1 1 0 011-1h5"/></svg>
@@ -903,8 +909,25 @@
     background: var(--bg-secondary);
   }
 
+  .feedback-action-view {
+    color: var(--accent, #2D5A47) !important;
+    font-weight: 500;
+  }
+
+  .feedback-action-view:hover {
+    background: rgba(45, 90, 71, 0.06);
+    color: var(--accent, #2D5A47) !important;
+  }
+
   .feedback-action-delete:hover {
     color: #ef4444;
+  }
+
+  .feedback-view-page {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
   }
 
   .feedback-replies {
