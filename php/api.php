@@ -515,6 +515,11 @@ match (true) {
     $action === 'review-tokens' && $method === 'DELETE' && isset($_GET['id']) => handle_review_token_delete(),
     $action === 'review-tokens' && $method === 'PUT' && isset($_GET['id'])    => handle_review_token_toggle(),
 
+    // Admin review overlay actions (authenticated admin replying/resolving from live site)
+    $action === 'review/admin-reply' && $method === 'POST'                   => handle_review_admin_reply(),
+    $action === 'review/admin-resolve' && $method === 'POST'                 => handle_review_admin_resolve(),
+    $action === 'review/admin-resolve-all' && $method === 'POST'             => handle_review_admin_resolve_all(),
+
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
     $action === 'ranger/conversations' && $method === 'GET' && isset($_GET['id']) => handle_ranger_conversation_get(),

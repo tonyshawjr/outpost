@@ -575,7 +575,8 @@ function handle_review_comments_list(): void {
 
     $pagePath = $_GET['page_path'] ?? '';
 
-    $where  = ['c.review_token_id = ?'];
+    // Fetch top-level comments for this review token
+    $where  = ['c.review_token_id = ?', 'c.parent_id IS NULL'];
     $params = [$token['id']];
 
     if ($pagePath) {
@@ -585,29 +586,120 @@ function handle_review_comments_list(): void {
 
     $whereClause = implode(' AND ', $where);
 
-    $comments = OutpostDB::fetchAll(
+    $topLevelComments = OutpostDB::fetchAll(
         "SELECT c.* FROM comments c WHERE {$whereClause} ORDER BY c.created_at ASC LIMIT 500",
         $params
     );
 
-    // Group top-level with replies
-    $topLevel = [];
-    $replies  = [];
-    foreach ($comments as $c) {
-        if ($c['parent_id']) {
-            $replies[$c['parent_id']][] = $c;
-        } else {
-            $c['replies'] = [];
-            $topLevel[$c['id']] = $c;
-        }
-    }
-    foreach ($replies as $parentId => $reps) {
-        if (isset($topLevel[$parentId])) {
-            $topLevel[$parentId]['replies'] = $reps;
-        }
+    // Collect top-level IDs for reply lookup
+    $topLevelIds = array_map(function($c) { return (int) $c['id']; }, $topLevelComments);
+
+    // Build result with replies (including admin replies that have user_id but no review_token_id)
+    $result = [];
+    foreach ($topLevelComments as $c) {
+        // Enrich with user info
+        $c = comment_enrich($c);
+        // Fetch ALL replies to this comment (both review and admin replies)
+        $replies = OutpostDB::fetchAll(
+            'SELECT * FROM comments WHERE parent_id = ? ORDER BY created_at ASC',
+            [$c['id']]
+        );
+        $c['replies'] = array_map('comment_enrich', $replies);
+        $result[] = $c;
     }
 
-    json_response(['comments' => array_values($topLevel)]);
+    json_response(['comments' => $result]);
+}
+
+// ── Admin Review Reply (authenticated admin replying from overlay) ────
+
+function handle_review_admin_reply(): void {
+    $data = get_json_body();
+    $body = trim($data['body'] ?? '');
+    if (!$body) json_error('Comment body is required');
+
+    $parentId = isset($data['parent_id']) ? (int) $data['parent_id'] : null;
+    $pagePath = trim($data['page_path'] ?? '');
+    $selector = trim($data['element_selector'] ?? '');
+    $reviewTokenId = isset($data['review_token_id']) ? (int) $data['review_token_id'] : null;
+
+    $userId = $_SESSION['outpost_user_id'] ?? null;
+    if (!$userId) json_error('Authentication required', 401);
+
+    // Get admin display name
+    $user = OutpostDB::fetchOne('SELECT display_name, username FROM users WHERE id = ?', [$userId]);
+    $authorName = $user['display_name'] ?: $user['username'] ?: 'Admin';
+
+    $id = OutpostDB::insert('comments', [
+        'entity_type'      => 'element',
+        'entity_id'        => null,
+        'element_selector' => $selector,
+        'page_path'        => $pagePath,
+        'parent_id'        => $parentId,
+        'user_id'          => $userId,
+        'author_name'      => $authorName,
+        'author_email'     => '',
+        'body'             => $body,
+        'status'           => 'open',
+        'review_token_id'  => $reviewTokenId,
+    ]);
+
+    $comment = OutpostDB::fetchOne('SELECT * FROM comments WHERE id = ?', [$id]);
+    $comment = comment_enrich($comment);
+
+    json_response(['comment' => $comment], 201);
+}
+
+// ── Admin Resolve from Overlay ───────────────────────────
+
+function handle_review_admin_resolve(): void {
+    $data = get_json_body();
+    $commentId = (int) ($data['comment_id'] ?? 0);
+    if (!$commentId) json_error('Missing comment_id');
+
+    $userId = $_SESSION['outpost_user_id'] ?? null;
+    if (!$userId) json_error('Authentication required', 401);
+
+    $comment = OutpostDB::fetchOne('SELECT * FROM comments WHERE id = ?', [$commentId]);
+    if (!$comment) json_error('Comment not found', 404);
+
+    $newStatus = $comment['status'] === 'resolved' ? 'open' : 'resolved';
+    OutpostDB::update('comments', [
+        'status' => $newStatus,
+        'updated_at' => date('Y-m-d H:i:s'),
+    ], 'id = ?', [$commentId]);
+
+    json_response(['success' => true, 'status' => $newStatus]);
+}
+
+// ── Admin Bulk Resolve ───────────────────────────────────
+
+function handle_review_admin_resolve_all(): void {
+    $data = get_json_body();
+    $reviewTokenId = (int) ($data['review_token_id'] ?? 0);
+    $pagePath = trim($data['page_path'] ?? '');
+
+    $userId = $_SESSION['outpost_user_id'] ?? null;
+    if (!$userId) json_error('Authentication required', 401);
+
+    $where = ["status = 'open'"];
+    $params = [];
+
+    if ($reviewTokenId) {
+        $where[] = 'review_token_id = ?';
+        $params[] = $reviewTokenId;
+    }
+    if ($pagePath) {
+        $where[] = 'page_path = ?';
+        $params[] = $pagePath;
+    }
+
+    $whereClause = implode(' AND ', $where);
+    OutpostDB::connect()->prepare(
+        "UPDATE comments SET status = 'resolved', updated_at = datetime('now') WHERE {$whereClause}"
+    )->execute($params);
+
+    json_response(['success' => true]);
 }
 
 // ── Ranger Tool Handler ──────────────────────────────────

@@ -166,7 +166,40 @@ if ($pageRow) {
     }
 }
 
-OutpostTemplate::render($templateFile, $themeDir);
+// ── Review Mode (client feedback overlay) ────────────
+$reviewToken = $_GET['review'] ?? '';
+$_outpost_review_inject = '';
+if ($reviewToken) {
+    require_once $outpostDir . '/comments.php';
+    ensure_comment_tables();
+    $tokenRow = OutpostDB::fetchOne(
+        'SELECT * FROM review_tokens WHERE token = ? AND active = 1',
+        [$reviewToken]
+    );
+    if ($tokenRow) {
+        $validExpiry = !$tokenRow['expires_at'] || $tokenRow['expires_at'] > date('Y-m-d H:i:s');
+        $validPage   = !$tokenRow['page_path'] || $tokenRow['page_path'] === $reqPath;
+        if ($validExpiry && $validPage) {
+            $apiUrl = '/outpost/api.php';
+            $jsUrl  = '/outpost/review-overlay.js';
+            $isAdmin = function_exists('outpost_is_admin') && outpost_is_admin();
+            $csrfPart = '';
+            if ($isAdmin && isset($_GET['admin'])) {
+                $csrfPart = 'window.__OUTPOST_CSRF_TOKEN__="' . OutpostAuth::csrfToken() . '";';
+            }
+            $_outpost_review_inject = '<script>window.__OUTPOST_REVIEW_TOKEN__="' . $reviewToken . '";window.__OUTPOST_API_URL__="' . $apiUrl . '";window.__OUTPOST_REVIEW_ADMIN__=' . ($isAdmin && isset($_GET['admin']) ? 'true' : 'false') . ';' . $csrfPart . '</script><script src="' . $jsUrl . '"></script>';
+        }
+    }
+}
+
+if ($_outpost_review_inject) {
+    ob_start();
+    OutpostTemplate::render($templateFile, $themeDir);
+    $html = ob_get_clean();
+    echo str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
+} else {
+    OutpostTemplate::render($templateFile, $themeDir);
+}
 
 } catch (\Throwable $e) {
     if (ob_get_level()) ob_end_clean();
