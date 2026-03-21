@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.1] — 2026-03-20
+
+### Added
+- **Lodge admin page** — Dedicated Lodge page in the admin sidebar with pending review queue (approve/reject member submissions) and Lodge-enabled collections overview with config summary.
+
+---
+
 ## [4.6.0] — 2026-03-20
 
 ### Added
