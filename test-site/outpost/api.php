@@ -1836,6 +1836,34 @@ function handle_collections_list(): void {
     json_response(['collections' => $collections]);
 }
 
+/**
+ * Normalize a collection schema to the flat key-value format the admin UI expects.
+ * Accepts both formats:
+ *   {"fields": [{"name": "x", "type": "text", ...}]}  → {"x": {"type": "text", ...}}
+ *   {"x": {"type": "text", ...}}                       → passed through as-is
+ */
+function outpost_normalize_schema(mixed $schema): object|array {
+    if (is_string($schema)) $schema = json_decode($schema, true) ?: [];
+    if (!is_array($schema)) return $schema;
+
+    // Already in correct flat format (keys are field names, not "fields")
+    if (!isset($schema['fields']) || !is_array($schema['fields'])) return $schema;
+
+    // Check if 'fields' is an array of objects with 'name' keys (array format)
+    $first = $schema['fields'][0] ?? null;
+    if (!is_array($first) || !isset($first['name'])) return $schema;
+
+    // Convert: [{name: "x", type: "text"}, ...] → {x: {type: "text"}, ...}
+    $normalized = [];
+    foreach ($schema['fields'] as $field) {
+        $name = $field['name'] ?? null;
+        if (!$name) continue;
+        unset($field['name']);
+        $normalized[$name] = $field;
+    }
+    return $normalized;
+}
+
 function handle_collection_create(): void {
     $data = get_json_body();
 
@@ -1864,7 +1892,7 @@ function handle_collection_create(): void {
         'slug' => $slug,
         'name' => $name,
         'singular_name' => $data['singular_name'] ?? $name,
-        'schema' => json_encode($data['schema'] ?? new \stdClass()),
+        'schema' => json_encode(outpost_normalize_schema($data['schema'] ?? new \stdClass())),
         'url_pattern' => $data['url_pattern'] ?? "/{$slug}/{slug}",
         'template_path' => $data['template_path'] ?? '',
         'sort_field' => $sortField,
@@ -1890,7 +1918,7 @@ function handle_collection_update(): void {
     foreach ($allowed as $key) {
         if (isset($data[$key])) {
             if ($key === 'schema') {
-                $update[$key] = json_encode($data[$key]);
+                $update[$key] = json_encode(outpost_normalize_schema($data[$key]));
             } elseif ($key === 'sort_field') {
                 $update[$key] = in_array($data[$key], $allowedSortFields) ? $data[$key] : 'created_at';
             } elseif ($key === 'sort_direction') {
