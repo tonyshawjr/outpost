@@ -763,9 +763,19 @@ function sync_build_db_snapshot(): array {
         ORDER BY ci.collection_id, ci.sort_order
     ");
 
-    // Taxonomies and terms
-    $taxonomies = OutpostDB::fetchAll("SELECT * FROM taxonomies ORDER BY collection_id, slug");
-    $terms      = OutpostDB::fetchAll("SELECT * FROM terms ORDER BY taxonomy_id, sort_order");
+    // Folders and labels (legacy: taxonomies/terms)
+    try {
+        $taxonomies = OutpostDB::fetchAll("SELECT * FROM taxonomies ORDER BY collection_id, slug");
+    } catch (\Throwable $e) {
+        // Fresh installs use 'folders' table instead of 'taxonomies'
+        try { $taxonomies = OutpostDB::fetchAll("SELECT * FROM folders ORDER BY collection_id, slug"); } catch (\Throwable $e2) { $taxonomies = []; }
+    }
+    try {
+        $terms = OutpostDB::fetchAll("SELECT * FROM terms ORDER BY taxonomy_id, sort_order");
+    } catch (\Throwable $e) {
+        // Fresh installs use 'labels' table instead of 'terms'
+        try { $terms = OutpostDB::fetchAll("SELECT * FROM labels ORDER BY folder_id, sort_order"); } catch (\Throwable $e2) { $terms = []; }
+    }
 
     return [
         'settings'         => $settings,
