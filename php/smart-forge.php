@@ -1900,7 +1900,29 @@ IMPROVE these things:
 5. Remove data-outpost from individual <li> elements — lists should not be tagged
 6. If headings contain <em>, <strong>, <span>, add data-type="richtext"
 
-DO NOT remove any existing data-outpost attributes. DO NOT change the HTML structure. Only improve names, add labels, fix blocks, and combine paragraphs.
+CRITICAL — CONVERT ALL LEGACY LIQUID SYNTAX to v2:
+7. {% include 'name' %} → <outpost-include partial="name" />
+8. {% for item in collection.slug %} → <outpost-each collection="slug"> and </outpost-each>
+9. {% for item in menu.slug %} → <outpost-menu name="slug"> and </outpost-menu>
+10. {% for item in repeater.slug %} → <outpost-each repeat="slug"> and </outpost-each>
+11. {% for label in folder.slug %} → <outpost-each folder="slug"> and </outpost-each>
+12. {% for img in gallery.slug %} → <outpost-each gallery="slug"> and </outpost-each>
+13. {% single var from collection.slug %} → <outpost-single collection="slug"> and </outpost-single>
+14. {% if field %} → <outpost-if field="field" exists> and </outpost-if>
+15. {% if @global %} → <outpost-if field="global" scope="global" exists> and </outpost-if>
+16. {% seo %} → <outpost-seo />
+17. {% pagination %} → <outpost-pagination />
+18. {% form 'slug' %} → <outpost-form slug="slug" />
+19. {{ field }} or {{ field | filter }} → add data-outpost="field" data-type="filter" to the containing element
+20. {{ @global }} or {{ @global | filter }} → add data-outpost="global" data-scope="global" to the containing element
+21. {{ meta.title }}Default{{ /meta.title }} → <outpost-meta title="Default" />
+22. {# comment #} → <!-- comment --> or remove entirely
+23. {{ item.field }} inside loops → add data-outpost="field" to the element
+24. {% else %} after {% for %} → separate <outpost-each ... empty> block
+25. {% else %} after {% single %} → <outpost-single ... else> block
+
+DO NOT leave ANY {{ }}, {% %}, or {# #} syntax in the output. Convert EVERYTHING to v2.
+DO NOT remove any existing data-outpost attributes. Only improve names, add labels, fix blocks, convert Liquid, and combine paragraphs.
 
 Return ONLY the improved HTML. No explanations.
 PROMPT;
