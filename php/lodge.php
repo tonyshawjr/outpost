@@ -21,7 +21,18 @@ function lodge_get_config(int $collectionId): array {
         'max_items_per_member' => 0, // 0 = unlimited
         'editable_fields' => [],     // empty = all schema fields
         'readonly_fields' => [],
+        'required_tiers' => [],      // empty = all tiers allowed
     ], $config);
+}
+
+/**
+ * Check if a member's tier allows access to a Lodge collection.
+ * Returns true if allowed, false if tier-gated.
+ */
+function lodge_check_tier_access(array $member, array $config): bool {
+    if (empty($config['required_tiers'])) return true; // No tier restriction
+    $memberTier = $member['tier'] ?? 'free';
+    return in_array($memberTier, $config['required_tiers']);
 }
 
 /**
@@ -103,6 +114,7 @@ function handle_lodge_items_list(array $member): void {
  * Lodge Item Create — member creates a new item.
  */
 function handle_lodge_item_create(array $member): void {
+    outpost_ip_rate_limit('lodge_create_' . $member['id'], 20, 60); // 20 creates per minute
     $collSlug = $_GET['collection'] ?? '';
     if (!$collSlug) member_error('collection parameter required');
 
@@ -112,15 +124,10 @@ function handle_lodge_item_create(array $member): void {
     $config = lodge_get_config($col['id']);
     if (!$config['allow_create']) member_error('Creating items is not allowed', 403);
 
-    // Check max items per member
-    if ($config['max_items_per_member'] > 0) {
-        $count = OutpostDB::fetchOne(
-            "SELECT COUNT(*) as cnt FROM collection_items WHERE collection_id = ? AND owner_member_id = ?",
-            [$col['id'], $member['id']]
-        );
-        if ((int)($count['cnt'] ?? 0) >= $config['max_items_per_member']) {
-            member_error('Maximum items limit reached (' . $config['max_items_per_member'] . ')');
-        }
+    // Check tier access
+    $fullMember = OutpostDB::fetchOne('SELECT tier FROM users WHERE id = ?', [$member['id']]);
+    if (!lodge_check_tier_access(array_merge($member, ['tier' => $fullMember['tier'] ?? 'free']), $config)) {
+        member_error('Your membership tier does not have access to this feature', 403);
     }
 
     $body = member_json_body();
@@ -159,16 +166,36 @@ function handle_lodge_item_create(array $member): void {
 
     $status = $config['require_approval'] ? 'pending_review' : 'draft';
 
-    OutpostDB::insert('collection_items', [
-        'collection_id' => $col['id'],
-        'slug' => $slug,
-        'status' => $status,
-        'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
-        'owner_member_id' => $member['id'],
-        'sort_order' => 0,
-    ]);
+    // Atomic max_items check + insert to prevent race conditions
+    $db = OutpostDB::connect();
+    $db->exec('BEGIN IMMEDIATE');
+    try {
+        if ($config['max_items_per_member'] > 0) {
+            $count = OutpostDB::fetchOne(
+                "SELECT COUNT(*) as cnt FROM collection_items WHERE collection_id = ? AND owner_member_id = ?",
+                [$col['id'], $member['id']]
+            );
+            if ((int)($count['cnt'] ?? 0) >= $config['max_items_per_member']) {
+                $db->exec('ROLLBACK');
+                member_error('Maximum items limit reached (' . $config['max_items_per_member'] . ')');
+            }
+        }
 
-    $itemId = OutpostDB::connect()->lastInsertId();
+        OutpostDB::insert('collection_items', [
+            'collection_id' => $col['id'],
+            'slug' => $slug,
+            'status' => $status,
+            'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
+            'owner_member_id' => $member['id'],
+            'sort_order' => 0,
+        ]);
+        $db->exec('COMMIT');
+    } catch (\Throwable $e) {
+        $db->exec('ROLLBACK');
+        throw $e;
+    }
+
+    $itemId = $db->lastInsertId();
 
     // Dispatch webhook for new lodge submission
     try {
@@ -197,6 +224,7 @@ function handle_lodge_item_create(array $member): void {
  * Lodge Item Update — member edits their own item.
  */
 function handle_lodge_item_update(array $member): void {
+    outpost_ip_rate_limit('lodge_update_' . $member['id'], 30, 60); // 30 updates per minute
     $itemId = (int) ($_GET['id'] ?? 0);
     if (!$itemId) member_error('Item ID required');
 
@@ -350,15 +378,25 @@ function handle_lodge_profile_update(array $member): void {
  * Lodge Upload — member uploads a file attached to their own item.
  */
 function handle_lodge_upload(array $member): void {
-    $itemId = (int) ($_GET['item_id'] ?? 0);
+    outpost_ip_rate_limit('lodge_upload_' . $member['id'], 10, 60); // 10 uploads per minute
 
-    // Verify ownership if item_id provided
-    if ($itemId) {
-        $item = OutpostDB::fetchOne(
-            "SELECT id FROM collection_items WHERE id = ? AND owner_member_id = ?",
-            [$itemId, $member['id']]
-        );
-        if (!$item) member_error('Item not found or access denied', 404);
+    $itemId = (int) ($_GET['item_id'] ?? 0);
+    if (!$itemId) member_error('item_id required');
+
+    // Verify ownership
+    $item = OutpostDB::fetchOne(
+        "SELECT id FROM collection_items WHERE id = ? AND owner_member_id = ?",
+        [$itemId, $member['id']]
+    );
+    if (!$item) member_error('Item not found or access denied', 404);
+
+    // Per-member upload limit (max 100 files)
+    $memberFileCount = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as cnt FROM media WHERE filename LIKE ?",
+        ['lodge-' . $member['id'] . '-%']
+    );
+    if ((int)($memberFileCount['cnt'] ?? 0) >= 100) {
+        member_error('Maximum file upload limit reached');
     }
 
     if (empty($_FILES['file'])) member_error('No file uploaded');
@@ -375,7 +413,13 @@ function handle_lodge_upload(array $member): void {
     $mimeType = $finfo->file($file['tmp_name']);
     if (!in_array($mimeType, $allowedTypes)) member_error('File type not allowed');
 
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    // Map MIME type to safe extension (never trust user-supplied extension)
+    $mimeToExt = [
+        'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif',
+        'image/webp' => 'webp', 'application/pdf' => 'pdf',
+    ];
+    $ext = $mimeToExt[$mimeType] ?? '';
+    if (!$ext) member_error('File type not allowed');
     $filename = 'lodge-' . $member['id'] . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
 
     $uploadsDir = OUTPOST_UPLOADS_DIR;

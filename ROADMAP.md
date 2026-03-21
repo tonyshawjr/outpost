@@ -247,6 +247,23 @@ Everything below is already built and released.
 
 ---
 
+## v4.6 — Lodge (Member Portal) & Feature Toggles — SHIPPED (v4.6.0)
+
+**Member-owned content from the front-end.** Lodge lets members log in and manage their own collection items — perfect for directories, marketplaces, job boards, and membership platforms. Plus admin-controlled feature toggles and a restructured sidebar.
+
+- **Lodge** — first-class member portal. Enable per-collection with granular config: allow create/edit/delete, require approval, max items per member, editable/readonly field whitelists, tier-based access gating
+- **Lodge API** — 8 JWT-authenticated endpoints: dashboard, items CRUD, profile get/update, file upload. All scoped to `owner_member_id` with rate limiting and atomic max-items enforcement
+- **Lodge Template Tags** — `<outpost-lodge-dashboard>`, `<outpost-lodge-items>`, `<outpost-lodge-form>` custom elements for theme developers
+- **Lodge Routing** — configurable URL slug, auto-redirects to member login, maps to theme templates
+- **Lodge Starter Templates** — 4 templates in Personal theme (dashboard, edit, create, profile)
+- **Lodge Approval Workflow** — pending review queue, webhooks on create/update
+- **Lodge Tier Gating** — `required_tiers` config, `tier` and `meta` columns on members
+- **Feature Toggles** — 14 toggleable sidebar features in Settings > Features (Collections, Channels, Forms, Members, Lodge, Analytics, Media, Code Editor, Navigation, Releases, Workflows, Review Links, Backups, Ranger)
+- **Sidebar Accordion Groups** — 5 collapsible groups (Content, Site, Members, Build, Insights) with localStorage persistence
+- **Security hardened** — atomic transactions for limits, rate limiting on all mutations, MIME-based file extension mapping, lodge slug sanitization, XSS protection on member profile data
+
+---
+
 ## v5.0 — Commerce / Payments
 
 **Lightweight digital product sales via Stripe.** Not a full eCommerce platform — just clean checkout + access gates for digital products, courses, and memberships.

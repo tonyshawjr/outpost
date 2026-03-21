@@ -26,6 +26,7 @@
 - [Ranger AI Assistant](/outpost/docs/features/ranger.html): AI-powered assistant with 35 tools, multi-provider support, and streaming chat
 - [Releases](/outpost/docs/features/releases.html): Bundle multiple content changes and publish them all at once with one-click rollback
 - [Collaboration & Comments](/outpost/docs/features/collaboration.html): Team comments, client review links, @mentions, and feedback overlay
+- [Lodge](/outpost/docs/features/lodge.html): Member-owned content portals — let members create, edit, and manage their own collection items
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -139,6 +140,47 @@ Dynamic routes use collections: create a collection with URL pattern `/event/{sl
 - Multi-segment static routes like `/docs/getting-started` — template files map 1:1 to single-segment paths. Use query params (`/docs?page=getting-started`) or collection URL patterns instead.
 - Custom PHP route handlers — the router is not extensible. For custom server-side logic, create a standalone PHP file (e.g. `/custom-api.php`) outside the theme.
 - Route parameters beyond `{slug}` — collections and channels support only `{slug}` in URL patterns.
+
+### Adding a new route
+
+To add a route for `/services`, create `themes/your-theme/services.html`. No config or PHP needed — the router checks the filesystem on every request.
+
+### Custom PHP routes (standalone scripts)
+
+For pages needing server-side logic, create a standalone PHP file that bootstraps Outpost:
+
+```php
+<?php
+// Minimum bootstrap for a standalone PHP file
+$outpostDir = __DIR__ . '/outpost';
+require_once $outpostDir . '/config.php';     // Constants: OUTPOST_DIR, OUTPOST_DB_PATH, etc.
+require_once $outpostDir . '/db.php';          // OutpostDB (static PDO wrapper)
+require_once $outpostDir . '/engine.php';      // Template helpers + outpost_init()
+
+// Resolve active theme
+$themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
+$activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'starter';
+$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
+
+// Load template engine (auto-detect v1 or v2)
+$useV2 = outpost_detect_engine_version($themeDir);
+require_once $outpostDir . ($useV2 ? '/template-engine-v2.php' : '/template-engine.php');
+
+// Your custom logic here
+$query = trim($_GET['q'] ?? '');
+$results = OutpostDB::fetchAll(
+    "SELECT * FROM collection_items WHERE status = 'published' AND json_extract(data, '$.title') LIKE ? LIMIT 20",
+    ['%' . $query . '%']
+);
+
+// Initialize and render a theme template
+outpost_init();
+outpost_render_template($themeDir . '/search.html', $themeDir);
+```
+
+Bootstrap files: `config.php` (constants), `db.php` (OutpostDB), `engine.php` (template helpers + outpost_init()), `template-engine.php` or `template-engine-v2.php` (compiler), `members.php` (optional, for gated pages).
+
+Route the custom PHP file via Apache rewrite (`RewriteRule ^search$ search.php [L]`), Nginx location block, or by adding a check in `front-router.php`.
 
 ### Asset paths must be absolute
 
@@ -2181,13 +2223,22 @@ INSERT INTO settings (key, value) VALUES ('api_cors_origins', '*')
 
 ## Public Content API
 
-Read-only, unauthenticated. CORS open to all origins. Only published content returned. Members-only and paid pages are excluded.
+Read-only, unauthenticated JSON API. No API key, no session cookie, no Authorization header needed. CORS open to all origins (`Access-Control-Allow-Origin: *`). Only published content returned. Members-only and paid pages excluded.
 
 Base URL: `/outpost/api.php?action=content/ENDPOINT`
 
 Rate limit: 120 requests per 60 seconds per IP. Exceeds → HTTP 429 with `Retry-After` header.
 
-All responses wrap payload in `data`. List endpoints include `meta.total`, `meta.limit`, `meta.offset`. Errors return `{ "error": "message" }`.
+All responses wrap payload in `data`. List endpoints include `meta.total`, `meta.limit`, `meta.offset`. Errors return `{ "error": "message" }` with appropriate HTTP status code.
+
+### Pages vs Items — choosing the right endpoint
+
+This is the most common source of confusion. Outpost has two content types:
+
+- **Pages** (`content/pages`) — standalone pages (Home, About, Contact). Identified by URL **path** (e.g. `/about`). Returns all pages if no `path` param. No pagination (typically <20 pages).
+- **Items** (`content/items`) — entries in a **collection** (blog posts, products, team members). Identified by **collection slug + item slug**. Supports pagination, sorting, and folder filtering.
+
+Rule of thumb: fixed URL like `/about`? Use `content/pages&path=/about`. One of many entries in a list? Use `content/items&collection=blog&slug=my-post`.
 
 ### Schema
 ```
@@ -2275,6 +2326,48 @@ if (!res.ok) {
 ```
 
 **Content API always returns published items only.** Draft, scheduled, and pending_review items are excluded. Members-only pages are excluded from the pages endpoint. Empty collections return `{ "data": [], "meta": { "total": 0 } }` — not an error.
+
+### HTTP status codes
+
+| Status | Meaning | When |
+|---|---|---|
+| `200` | OK | Request succeeded |
+| `400` | Bad Request | Missing required param (e.g. `collection` for items) |
+| `404` | Not Found | Collection/page/item/menu slug doesn't exist |
+| `405` | Method Not Allowed | Used POST/PUT/DELETE instead of GET |
+| `429` | Too Many Requests | Rate limit exceeded; check `Retry-After` header |
+
+Error response: `{ "error": "Human-readable message" }`
+
+### Error handling pattern
+```js
+async function outpost(action, params = {}) {
+  const url = new URL('https://yoursite.com/outpost/api.php');
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 404) return null;
+    if (res.status === 429) throw new Error(`Rate limited — retry after ${res.headers.get('Retry-After')}s`);
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+// Returns null for 404, throws for other errors
+const page = await outpost('content/pages', { path: '/about' });
+```
+
+### Edge cases
+
+- Empty collection → `{ "data": [], "meta": { "total": 0 } }` (not an error)
+- Non-existent folder filter label → empty results (not an error)
+- Members-only/paid pages → silently excluded from `content/pages`
+- Draft/scheduled items → silently excluded from `content/items`
+- `limit` over 100 → silently capped at 100
+- `offset` past total → returns empty `data: []` with correct `meta.total`
+- Globals page (`__global__`) → never in `content/pages`; use `content/globals`
+- No menus defined → `content/menus` returns `{ "data": [], "meta": { "total": 0 } }`
 
 ## Sync API
 
@@ -3178,3 +3271,120 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - **API key encryption** — provider API keys are encrypted with AES-256-GCM using a site-specific key before storage
 - **Error sanitization** — internal PHP errors, stack traces, and file paths are never sent to the client; logged server-side with generic client messages
 - **Role scoping** — editors see ~13 content tools, developers see ~25 content+code tools, admins see all 35 tools
+
+## Lodge — Member-Owned Content (v4.6.0)
+
+### What is Lodge?
+Lodge turns any collection into a member-facing content portal. Members can create, edit, and delete their own collection items from the front end without admin access. Every API request is ownership-scoped — members can only see and modify items they own.
+
+### Use cases
+- User-generated blog posts or articles
+- Member directories and profiles
+- Job boards where employers post listings
+- Community classifieds or marketplace listings
+- Student or employee portfolios
+- Event submissions with admin approval
+
+### Enabling Lodge
+Navigate to Admin > Collections > [Collection] > Lodge tab. Toggle Lodge on and configure the options.
+
+### Configuration options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `allow_create` | boolean | `true` | Members can create new items |
+| `allow_edit` | boolean | `true` | Members can edit their own items |
+| `allow_delete` | boolean | `false` | Members can delete their own items |
+| `require_approval` | boolean | `false` | New items/edits held in `pending` status until admin approves |
+| `max_items_per_member` | integer | `0` (unlimited) | Maximum items per member. 0 = no limit |
+| `editable_fields` | array | `[]` (all) | Whitelist of writable field slugs. Empty = all fields |
+| `readonly_fields` | array | `[]` | Fields visible but not editable by members |
+| `required_tiers` | array | `[]` (any) | Member tiers allowed to use Lodge. Empty = any logged-in member |
+
+### Lodge API endpoints (8 total)
+
+All endpoints at `member-api.php?action=lodge/*`. Require active member session (cookie or JWT).
+
+- `GET lodge/dashboard` — overview of member's Lodge activity across all Lodge-enabled collections (item counts, recent activity)
+- `GET lodge/items?collection=slug` — list member's own items for a collection. Params: `page`, `limit`, `status` (published/pending/draft/all)
+- `POST lodge/items?collection=slug` — create a new item. Body: field data as JSON. Only `editable_fields` accepted. Returns 201 with created item. Status is `pending` when `require_approval` is on.
+- `PUT lodge/items?id=123` — update an owned item. Body: partial field data. Only `editable_fields` accepted.
+- `DELETE lodge/items?id=123` — delete an owned item. Only works when `allow_delete` is enabled.
+- `GET lodge/profile` — member profile including tier and meta JSON fields
+- `PUT lodge/profile` — update display_name and meta fields
+- `POST lodge/upload?item_id=123` — upload a file (multipart/form-data) attached to an owned item. MIME validated.
+
+### Lodge template tags
+
+Three custom elements for theme templates. Require logged-in member session.
+
+**`<outpost-lodge-dashboard>`** — renders member dashboard with item counts and recent activity:
+```html
+<outpost-lodge-dashboard>
+  <h2>Your Dashboard</h2>
+  <span data-outpost="total_items">0</span> items
+  <span data-outpost="pending_items">0</span> pending
+</outpost-lodge-dashboard>
+```
+
+**`<outpost-lodge-items collection="slug">`** — renders list of member's own items:
+```html
+<outpost-lodge-items collection="posts">
+  <article>
+    <h3 data-outpost="title">Post Title</h3>
+    <span data-outpost="status">published</span>
+    <a data-bind="href:edit_url">Edit</a>
+  </article>
+</outpost-lodge-items>
+```
+Attributes: `collection` (required), `limit`, `status`.
+
+**`<outpost-lodge-form collection="slug">`** — renders create/edit form:
+```html
+<outpost-lodge-form collection="posts">
+  <input data-outpost="title" type="text">
+  <textarea data-outpost="body"></textarea>
+  <button type="submit">Submit</button>
+</outpost-lodge-form>
+```
+Attributes: `collection` (required), `item` (optional, for editing — use `query:id` to read from URL).
+
+### Lodge routing
+Lodge pages are standard theme template files. Create routes by adding HTML files:
+- `lodge-dashboard.html` → `/lodge-dashboard`
+- `lodge-posts.html` → `/lodge-posts`
+- `lodge-post-new.html` → `/lodge-post-new`
+- `lodge-post-edit.html` → `/lodge-post-edit?id=123`
+
+### Starter templates
+When enabling Lodge, the setup UI offers to install ready-to-use templates: dashboard, item list, and item form pages.
+
+### Approval workflow
+When `require_approval` is enabled:
+1. Member creates/edits → status set to `pending`
+2. Admin sees pending items in collection list
+3. Admin approves → status changes to `published`
+4. Admin rejects → status changes to `draft` with optional note
+
+Webhook events: `lodge.item.submitted`, `lodge.item.approved`, `lodge.item.rejected`
+
+### Security model
+- **Ownership scoping** — every query filters by `owner_member_id = :current_member`
+- **Field whitelisting** — only `editable_fields` accepted, unlisted fields silently dropped
+- **Rate limiting** — per-member session limits on all Lodge endpoints
+- **Atomic transactions** — create/update/delete wrapped in database transactions
+- **MIME validation** — uploads checked against allowlist, executables/scripts always rejected
+- **Slug sanitization** — special characters, path separators, null bytes stripped
+- **XSS protection** — content sanitized before storage, escaped on output
+- **Tier enforcement** — `required_tiers` checked before any Lodge operation
+
+### Database changes (v4.6.0)
+- `members.tier` — member tier column for granular access control
+- `members.meta` — JSON column for arbitrary member metadata
+- `items.owner_member_id` — links collection items to the creating member
+
+### Feature Toggles (v4.6.0)
+14 sidebar features can be individually toggled on/off via Admin > Settings > Features. Disabled features are hidden from the sidebar and their API endpoints return 403.
+
+### Sidebar Accordion Groups (v4.6.0)
+Admin sidebar organized into 5 collapsible groups: Content, Design, Connect, Members, System. Group state persists across sessions.

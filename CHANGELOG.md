@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.0] — 2026-03-20
+
+### Added
+- **Lodge — Member-Owned Content Portal** — First-class member portal feature. Members log in and manage their own collection items from the front-end. Supports directories, marketplaces, job boards, membership platforms — any site where members create content.
+- **Lodge API** — 8 new endpoints on `member-api.php`: `lodge/dashboard`, `lodge/items` (GET/POST/PUT/DELETE), `lodge/profile` (GET/PUT), `lodge/upload`. All scoped to the authenticated member's own items via `owner_member_id`.
+- **Lodge collection config** — Per-collection Lodge settings: enable/disable, allow create/edit/delete, require approval, max items per member, editable fields whitelist, read-only fields, required tiers.
+- **Lodge template tags** — Three new custom elements for themes: `<outpost-lodge-dashboard>`, `<outpost-lodge-items>`, `<outpost-lodge-form>` (auto-generates form from collection schema).
+- **Lodge routing** — Configurable URL slug (default `/lodge`). Maps to `lodge/dashboard.html`, `lodge/edit.html`, `lodge/create.html`, `lodge/profile.html` in theme. Auto-redirects to login for unauthenticated visitors.
+- **Lodge starter templates** — 4 ready-to-use templates in the Personal theme: dashboard, edit, create, and profile pages.
+- **Lodge approval workflow** — Items created with `require_approval` go to `pending_review`. Admin review queue via `lodge/pending` API endpoint.
+- **Lodge webhooks** — `lodge.item_created` and `lodge.item_updated` webhook events.
+- **Lodge tier gating** — `required_tiers` config restricts Lodge access by member tier (free, paid, custom).
+- **Feature toggles** — Settings > Features tab with toggles for 14 admin sidebar features: Collections, Channels, Forms, Members, Lodge, Analytics, Media, Code Editor, Navigation, Releases, Workflows, Review Links, Backups, Ranger. Disabled features hide from sidebar but data is preserved.
+- **Sidebar accordion groups** — Sidebar restructured into 5 collapsible groups: Content, Site, Members, Build, Insights. Collapsed state persisted to localStorage. Groups with zero visible items auto-hide.
+- **Member tier and meta columns** — `tier` (TEXT, default 'free') and `meta` (JSON) columns on users table for flexible membership tiers and site-specific data.
+- **Item ownership column** — `owner_member_id` on `collection_items` for Lodge item ownership tracking.
+
+---
+
 ## [4.5.0] — 2026-03-20
 
 ### Added

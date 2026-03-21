@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lodge &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Lodge</h1>
+    <p class="lead">Member-owned content portals. Enable Lodge on any collection and your members can create, edit, and delete their own items from the front end &mdash; with optional approval, tier gating, and field whitelisting.</p>
+  </div>
+  <div class="content">
+
+    <h2>What is Lodge?</h2>
+
+    <p>Lodge turns any collection into a member-facing content portal. Instead of requiring admin access to create content, members get their own dashboard where they can manage items they own. Every request is ownership-scoped &mdash; members can only see and modify their own items.</p>
+
+    <p><strong>Use cases:</strong></p>
+    <ul>
+      <li>User-generated blog posts or articles</li>
+      <li>Member directories and profiles</li>
+      <li>Job boards where employers post listings</li>
+      <li>Community classifieds or marketplace listings</li>
+      <li>Student or employee portfolios</li>
+      <li>Event submissions with admin approval</li>
+    </ul>
+
+    <h2>Enabling Lodge on a collection</h2>
+
+    <p>Navigate to <strong>Admin &rarr; Collections &rarr; [Your Collection] &rarr; Lodge tab</strong>. Toggle Lodge on and configure the options below. Once enabled, the Lodge API endpoints become available and template tags render for logged-in members.</p>
+
+    <h2>Lodge configuration options</h2>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>allow_create</code></td><td>boolean</td><td><code>true</code></td><td>Members can create new items.</td></tr>
+        <tr><td><code>allow_edit</code></td><td>boolean</td><td><code>true</code></td><td>Members can edit their own items.</td></tr>
+        <tr><td><code>allow_delete</code></td><td>boolean</td><td><code>false</code></td><td>Members can delete their own items.</td></tr>
+        <tr><td><code>require_approval</code></td><td>boolean</td><td><code>false</code></td><td>New items and edits are held in <code>pending</code> status until an admin approves them.</td></tr>
+        <tr><td><code>max_items_per_member</code></td><td>integer</td><td><code>0</code> (unlimited)</td><td>Maximum number of items a single member can own. <code>0</code> means no limit.</td></tr>
+        <tr><td><code>editable_fields</code></td><td>array</td><td><code>[]</code> (all)</td><td>Whitelist of field slugs the member can write. Empty array means all schema fields are editable.</td></tr>
+        <tr><td><code>readonly_fields</code></td><td>array</td><td><code>[]</code></td><td>Fields visible to the member but not editable (e.g. admin notes, approval status).</td></tr>
+        <tr><td><code>required_tiers</code></td><td>array</td><td><code>[]</code> (any member)</td><td>Member tiers allowed to use Lodge. Empty array means any logged-in member. Example: <code>["paid", "premium"]</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Lodge API endpoints</h2>
+
+    <p>All Lodge endpoints live under <code>member-api.php?action=lodge/*</code>. They require an active member session (cookie or JWT bearer token). CSRF tokens are required for POST, PUT, and DELETE requests when using session auth.</p>
+
+    <h3>GET lodge/dashboard</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=lodge/dashboard</span>
+      </div>
+      <p>Returns an overview of the member&rsquo;s Lodge activity across all Lodge-enabled collections.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "collections": [
+    {
+      "slug": "posts",
+      "name": "Blog Posts",
+      "total_items": 12,
+      "pending_items": 2,
+      "published_items": 10,
+      "max_items": 0,
+      "can_create": true
+    }
+  ],
+  "recent_activity": [
+    {
+      "collection": "posts",
+      "item_id": 45,
+      "title": "My Latest Article",
+      "status": "published",
+      "updated_at": "2026-03-19 14:30:00"
+    }
+  ]
+}</code></pre>
+
+    <h3>GET lodge/items</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;collection=slug</span>
+      </div>
+      <p>Returns the member&rsquo;s own items for the specified collection. Supports pagination.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Param</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>Yes</td><td>Collection slug.</td></tr>
+        <tr><td><code>page</code></td><td>No</td><td>Page number (default 1).</td></tr>
+        <tr><td><code>limit</code></td><td>No</td><td>Items per page (default 20, max 100).</td></tr>
+        <tr><td><code>status</code></td><td>No</td><td>Filter by status: <code>published</code>, <code>pending</code>, <code>draft</code>, or <code>all</code> (default <code>all</code>).</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "items": [
+    {
+      "id": 45,
+      "title": "My Latest Article",
+      "slug": "my-latest-article",
+      "status": "published",
+      "data": { "title": "My Latest Article", "body": "..." },
+      "created_at": "2026-03-18 10:00:00",
+      "updated_at": "2026-03-19 14:30:00"
+    }
+  ],
+  "total": 12,
+  "page": 1,
+  "pages": 1
+}</code></pre>
+
+    <h3>POST lodge/items</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;collection=slug</span>
+      </div>
+      <p>Creates a new item owned by the current member. Only fields in <code>editable_fields</code> are accepted (if configured). Returns the created item.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "title": "My New Post",
+  "body": "&lt;p&gt;Hello world&lt;/p&gt;",
+  "category": "tutorials"
+}</code></pre>
+
+    <p>Success response (HTTP 201):</p>
+    <pre><code>{
+  "success": true,
+  "item": {
+    "id": 46,
+    "slug": "my-new-post",
+    "status": "published",
+    "owner_member_id": 50,
+    "data": { "title": "My New Post", "body": "..." }
+  }
+}</code></pre>
+
+    <p>When <code>require_approval</code> is enabled, <code>status</code> will be <code>"pending"</code> instead of <code>"published"</code>.</p>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Lodge is not enabled for this collection" }     // 403
+{ "error": "You have reached the maximum number of items" }  // 403
+{ "error": "Your membership tier does not have access" }     // 403
+{ "error": "Title is required" }                              // 400</code></pre>
+
+    <h3>PUT lodge/items</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;id=123</span>
+      </div>
+      <p>Updates an item owned by the current member. Only fields in <code>editable_fields</code> are accepted. The member must own the item.</p>
+    </div>
+
+    <p>Request body (partial update &mdash; only changed fields):</p>
+    <pre><code>{
+  "title": "Updated Title",
+  "body": "&lt;p&gt;Revised content&lt;/p&gt;"
+}</code></pre>
+
+    <p>Success response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <p>When <code>require_approval</code> is enabled, the item status reverts to <code>"pending"</code> after an edit.</p>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Item not found or not owned by you" }  // 404
+{ "error": "Editing is not allowed" }               // 403</code></pre>
+
+    <h3>DELETE lodge/items</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;id=123</span>
+      </div>
+      <p>Deletes an item owned by the current member. Only works when <code>allow_delete</code> is enabled.</p>
+    </div>
+
+    <p>Success response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Item not found or not owned by you" }  // 404
+{ "error": "Deleting is not allowed" }              // 403</code></pre>
+
+    <h3>GET lodge/profile</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=lodge/profile</span>
+      </div>
+      <p>Returns the current member&rsquo;s profile including tier and meta fields.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "member": {
+    "id": 50,
+    "username": "janesmith",
+    "email": "jane@example.com",
+    "display_name": "Jane Smith",
+    "tier": "paid",
+    "meta": {
+      "bio": "Writer and developer",
+      "twitter": "@janesmith"
+    },
+    "avatar": "/outpost/uploads/avatar-abc.jpg"
+  }
+}</code></pre>
+
+    <h3>PUT lodge/profile</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">member-api.php?action=lodge/profile</span>
+      </div>
+      <p>Updates the current member&rsquo;s profile metadata.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "display_name": "Jane M. Smith",
+  "meta": {
+    "bio": "Updated bio",
+    "twitter": "@janemsmith"
+  }
+}</code></pre>
+
+    <p>Success response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <h3>POST lodge/upload</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=lodge/upload&amp;item_id=123</span>
+      </div>
+      <p>Uploads a file and attaches it to an item owned by the current member. The item must exist and be owned by the member. Uses <code>multipart/form-data</code>.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>file</code></td><td>Yes</td><td>The file to upload (multipart form field).</td></tr>
+        <tr><td><code>item_id</code></td><td>Yes</td><td>Query param &mdash; the item to attach the file to.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Success response:</p>
+    <pre><code>{
+  "success": true,
+  "url": "/outpost/uploads/my-image.jpg",
+  "filename": "my-image.jpg"
+}</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Item not found or not owned by you" }  // 404
+{ "error": "File type not allowed" }                // 400
+{ "error": "File too large" }                       // 400</code></pre>
+
+    <div class="callout callout-note">
+      <strong>MIME validation</strong> &mdash; Lodge uploads validate file MIME type against an allowlist (images, PDFs, common document types). Executable files and server-side scripts are always rejected.
+    </div>
+
+    <h2>Lodge template tags</h2>
+
+    <p>Three custom elements render Lodge UI in your theme templates. They require a logged-in member session to display content &mdash; unauthenticated visitors see nothing.</p>
+
+    <h3>&lt;outpost-lodge-dashboard&gt;</h3>
+
+    <p>Renders a member dashboard showing item counts and recent activity across all Lodge-enabled collections.</p>
+
+    <pre><code>&lt;outpost-lodge-dashboard&gt;
+  &lt;h2&gt;Your Dashboard&lt;/h2&gt;
+  &lt;div class="lodge-stats"&gt;
+    &lt;span data-outpost="total_items"&gt;0&lt;/span&gt; items
+    &lt;span data-outpost="pending_items"&gt;0&lt;/span&gt; pending
+  &lt;/div&gt;
+  &lt;div class="lodge-recent"&gt;
+    &lt;outpost-each var="activity"&gt;
+      &lt;div&gt;
+        &lt;span data-outpost="title"&gt;Item&lt;/span&gt;
+        &lt;span data-outpost="status"&gt;published&lt;/span&gt;
+        &lt;span data-outpost="updated_at"&gt;date&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/outpost-each&gt;
+  &lt;/div&gt;
+&lt;/outpost-lodge-dashboard&gt;</code></pre>
+
+    <h3>&lt;outpost-lodge-items&gt;</h3>
+
+    <p>Renders a list of the member&rsquo;s own items for a given collection.</p>
+
+    <pre><code>&lt;outpost-lodge-items collection="posts"&gt;
+  &lt;article&gt;
+    &lt;h3 data-outpost="title"&gt;Post Title&lt;/h3&gt;
+    &lt;span data-outpost="status"&gt;published&lt;/span&gt;
+    &lt;a data-bind="href:edit_url"&gt;Edit&lt;/a&gt;
+    &lt;a data-bind="href:delete_url"&gt;Delete&lt;/a&gt;
+  &lt;/article&gt;
+&lt;/outpost-lodge-items&gt;</code></pre>
+
+    <table class="schema-table">
+      <thead><tr><th>Attribute</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>Yes</td><td>Collection slug.</td></tr>
+        <tr><td><code>limit</code></td><td>No</td><td>Items per page (default 20).</td></tr>
+        <tr><td><code>status</code></td><td>No</td><td>Filter: <code>published</code>, <code>pending</code>, <code>draft</code>, or <code>all</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>&lt;outpost-lodge-form&gt;</h3>
+
+    <p>Renders a create or edit form for a Lodge-enabled collection. Respects the <code>editable_fields</code> whitelist.</p>
+
+    <pre><code>&lt;!-- Create new item --&gt;
+&lt;outpost-lodge-form collection="posts"&gt;
+  &lt;label&gt;Title&lt;/label&gt;
+  &lt;input data-outpost="title" type="text"&gt;
+  &lt;label&gt;Body&lt;/label&gt;
+  &lt;textarea data-outpost="body"&gt;&lt;/textarea&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/outpost-lodge-form&gt;
+
+&lt;!-- Edit existing item (pass item ID via query param) --&gt;
+&lt;outpost-lodge-form collection="posts" item="query:id"&gt;
+  &lt;label&gt;Title&lt;/label&gt;
+  &lt;input data-outpost="title" type="text"&gt;
+  &lt;label&gt;Body&lt;/label&gt;
+  &lt;textarea data-outpost="body"&gt;&lt;/textarea&gt;
+  &lt;button type="submit"&gt;Save Changes&lt;/button&gt;
+&lt;/outpost-lodge-form&gt;</code></pre>
+
+    <table class="schema-table">
+      <thead><tr><th>Attribute</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>Yes</td><td>Collection slug.</td></tr>
+        <tr><td><code>item</code></td><td>No</td><td>Item ID for editing. Use <code>query:id</code> to read from the URL query string.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Routing and custom slugs</h2>
+
+    <p>Lodge pages are standard theme template files. You create the routes by adding HTML files to your theme:</p>
+
+    <table class="schema-table">
+      <thead><tr><th>Template file</th><th>URL</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>lodge-dashboard.html</code></td><td><code>/lodge-dashboard</code></td><td>Member dashboard overview</td></tr>
+        <tr><td><code>lodge-posts.html</code></td><td><code>/lodge-posts</code></td><td>List of member&rsquo;s posts</td></tr>
+        <tr><td><code>lodge-post-new.html</code></td><td><code>/lodge-post-new</code></td><td>Create a new post</td></tr>
+        <tr><td><code>lodge-post-edit.html</code></td><td><code>/lodge-post-edit?id=123</code></td><td>Edit an existing post</td></tr>
+      </tbody>
+    </table>
+
+    <p>You have full control over the URL structure &mdash; name the template files whatever you want. Lodge template tags work on any page.</p>
+
+    <h2>Starter templates</h2>
+
+    <p>When you enable Lodge on a collection, the setup UI offers to install starter templates into your active theme. These are fully styled, ready-to-use HTML pages that you can customize:</p>
+
+    <ul>
+      <li><strong>Dashboard</strong> &mdash; item counts, recent activity, quick-create button</li>
+      <li><strong>Item list</strong> &mdash; filterable table with status badges, edit/delete links, pagination</li>
+      <li><strong>Item form</strong> &mdash; create/edit form with all editable fields, file upload, and submit button</li>
+    </ul>
+
+    <h2>Approval workflow</h2>
+
+    <p>When <code>require_approval</code> is enabled on a collection:</p>
+
+    <ol>
+      <li>Member creates or edits an item &rarr; item status is set to <code>pending</code></li>
+      <li>Admin sees pending items in the collection list (filtered by status)</li>
+      <li>Admin approves &rarr; status changes to <code>published</code>, item appears on the public site</li>
+      <li>Admin rejects &rarr; status changes to <code>draft</code> with an optional rejection note</li>
+    </ol>
+
+    <p>Webhook events fire on both submission (<code>lodge.item.submitted</code>) and approval/rejection (<code>lodge.item.approved</code>, <code>lodge.item.rejected</code>).</p>
+
+    <h2>Security model</h2>
+
+    <ul>
+      <li><strong>Ownership scoping</strong> &mdash; every Lodge API query filters by <code>owner_member_id = :current_member</code>. Members cannot access, edit, or delete items they do not own.</li>
+      <li><strong>Field whitelisting</strong> &mdash; only fields listed in <code>editable_fields</code> are accepted by the API. Unlisted fields in the request body are silently dropped. If <code>editable_fields</code> is empty, all schema fields are writable.</li>
+      <li><strong>Rate limiting</strong> &mdash; Lodge endpoints are rate-limited per member session to prevent automated abuse. Create and upload endpoints have stricter limits.</li>
+      <li><strong>Atomic transactions</strong> &mdash; create, update, and delete operations run inside database transactions to prevent partial writes on failure.</li>
+      <li><strong>MIME validation</strong> &mdash; uploaded files are validated against an allowlist of safe MIME types. Executable files and PHP scripts are always rejected.</li>
+      <li><strong>Slug sanitization</strong> &mdash; member-submitted slugs are stripped of special characters, path separators, and null bytes to prevent traversal attacks.</li>
+      <li><strong>XSS protection</strong> &mdash; all member-submitted content is sanitized before storage. Output is escaped by the template engine.</li>
+      <li><strong>Tier enforcement</strong> &mdash; when <code>required_tiers</code> is configured, the API checks the member&rsquo;s tier before allowing any Lodge operation.</li>
+    </ul>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Lodge is designed for member-facing content. For admin-facing content workflows (multi-step approval with custom stages), see <a href="features/collaboration.html">Collaboration &amp; Workflows</a>.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

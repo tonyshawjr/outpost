@@ -212,6 +212,7 @@ $cap_map = [
     'releases'   => 'settings.*',
     'workflows'  => 'settings.*',
     'review-tokens' => 'settings.*',
+    'lodge'      => 'settings.*',
 ];
 // Workflow transition/history/for-collection endpoints are accessible to any authenticated user
 // (stage-level role enforcement is done inside the handlers)
@@ -265,6 +266,9 @@ match (true) {
     $action === 'items/preview-token' && $method === 'POST' => handle_item_preview_token(),
     $action === 'items/labels-with-counts' && $method === 'GET' => handle_items_labels_with_counts(),
     $action === 'items/bulk-labels' && $method === 'POST' => handle_items_bulk_labels(),
+
+    // Lodge (admin review queue)
+    $action === 'lodge/pending' && $method === 'GET' => handle_lodge_pending_list(),
 
     // Media
     $action === 'media' && $method === 'GET' => handle_media_list(),
@@ -2647,6 +2651,37 @@ function handle_items_bulk_schedule(): void {
     json_response(['success' => true, 'count' => $count]);
 }
 
+function handle_lodge_pending_list(): void {
+    $items = OutpostDB::fetchAll(
+        "SELECT ci.id, ci.slug, ci.status, ci.data, ci.created_at, ci.owner_member_id,
+                c.name as collection_name, c.slug as collection_slug,
+                u.display_name as member_name, u.email as member_email, u.username as member_username
+         FROM collection_items ci
+         JOIN collections c ON c.id = ci.collection_id
+         LEFT JOIN users u ON u.id = ci.owner_member_id
+         WHERE ci.status = 'pending_review' AND c.lodge_enabled = 1
+         ORDER BY ci.created_at DESC"
+    );
+
+    $result = [];
+    foreach ($items as $item) {
+        $data = json_decode($item['data'], true) ?: [];
+        $result[] = [
+            'id' => (int) $item['id'],
+            'slug' => $item['slug'],
+            'title' => $data['title'] ?? $data['name'] ?? $item['slug'],
+            'collection_name' => $item['collection_name'],
+            'collection_slug' => $item['collection_slug'],
+            'member_name' => $item['member_name'] ?: $item['member_username'] ?: 'Unknown',
+            'member_email' => $item['member_email'] ?? '',
+            'created_at' => $item['created_at'],
+            'data' => $data,
+        ];
+    }
+
+    json_response(['items' => $result, 'count' => count($result)]);
+}
+
 function handle_items_approve(): void {
     ensure_items_review_columns();
     $role = $_SESSION['outpost_role'] ?? '';
@@ -3330,7 +3365,7 @@ function handle_feature_flags_update(): void {
         json_error('feature_flags must be an object', 400);
     }
     // Whitelist valid feature keys
-    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation', 'releases', 'workflows'];
+    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation', 'releases', 'workflows', 'review_links', 'backups', 'ranger'];
     $clean = [];
     foreach ($valid_keys as $key) {
         if (isset($flags[$key])) {
