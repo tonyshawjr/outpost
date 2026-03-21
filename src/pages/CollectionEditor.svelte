@@ -661,8 +661,17 @@
                     onchange={(items) => handleMetaChange(key, typeof items === 'string' ? JSON.parse(items) : items)}
                   />
                 {:else if fieldDef.type === 'repeater'}
+                  {@const repeaterSchema = (() => {
+                    const f = fieldDef.fields || [];
+                    if (Array.isArray(f)) {
+                      const map = {};
+                      f.forEach(sub => { if (sub.name) { const s = {...sub}; delete s.name; map[sub.name] = s; } });
+                      return map;
+                    }
+                    return f;
+                  })()}
                   <RepeaterField
-                    fields={JSON.stringify(fieldDef.fields || [])}
+                    schema={JSON.stringify(repeaterSchema)}
                     items={JSON.stringify(metaFields[key] || [])}
                     onchange={(items) => handleMetaChange(key, typeof items === 'string' ? JSON.parse(items) : items)}
                   />
