@@ -174,7 +174,7 @@ class OutpostTemplateV2 {
      */
     private static function compileMeta(string $html, bool $editorMode): string {
         return preg_replace_callback(
-            '/<outpost-meta\s+([^>]*?)\/?\s*>/is',
+            '/<outpost-meta\s+([^>]*?)\/?\s*>(?:<\/outpost-meta>)?/is',
             function ($m) use ($editorMode) {
                 $attrs = self::parseAttributes($m[1]);
                 $title = self::phpString($attrs['title'] ?? '');
@@ -193,7 +193,7 @@ class OutpostTemplateV2 {
      */
     private static function compileSeo(string $html): string {
         return preg_replace(
-            '/<outpost-seo\s*\/?\s*>/i',
+            '/<outpost-seo\s*\/?\s*>(?:<\/outpost-seo>)?/i',
             '<?php cms_seo(); ?>',
             $html
         );
@@ -204,7 +204,7 @@ class OutpostTemplateV2 {
      */
     private static function compilePagination(string $html): string {
         return preg_replace(
-            '/<outpost-pagination\s*\/?\s*>/i',
+            '/<outpost-pagination\s*\/?\s*>(?:<\/outpost-pagination>)?/i',
             '<?php cms_pagination(); ?>',
             $html
         );

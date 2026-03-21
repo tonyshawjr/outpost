@@ -202,7 +202,7 @@ try {
 }
 
 // ─── Summary ───
-const totalPhp = phpFiles.length;
+const totalPhp = coreFiles.length;
 const totalDirs = dirs.filter(d => existsSync(resolve(PHP_DIR, d.name))).length;
 console.log(`\nDone! Packaged ${totalPhp} PHP files + ${totalDirs} directories.`);
 console.log(`Distribution ready at: dist/outpost/`);
