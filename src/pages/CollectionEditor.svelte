@@ -5,6 +5,9 @@
   import RichTextEditor from '$components/RichTextEditor.svelte';
   import FlexibleField from '$components/FlexibleField.svelte';
   import RelationshipField from '$components/RelationshipField.svelte';
+  import MediaPicker from '$components/MediaPicker.svelte';
+  import RepeaterField from '$components/RepeaterField.svelte';
+  import GalleryField from '$components/GalleryField.svelte';
 
   let itemId = $derived($currentItemId);
   let collSlug = $derived($currentCollectionSlug);
@@ -20,6 +23,7 @@
   let title = $state('');
   let blocks = $state([]);
   let metaFields = $state({});
+  let mediaPickerKey = $state(null);
 
   // UI state
   let addMenuOpenAt = $state(null);
@@ -614,12 +618,54 @@
                 <label class="ed-meta-label" for="meta-{key}">{fieldDef.label || key}</label>
                 {#if fieldDef.type === 'textarea'}
                   <textarea id="meta-{key}" class="ed-meta-input" rows="3" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)}></textarea>
+                {:else if fieldDef.type === 'richtext'}
+                  <RichTextEditor
+                    content={metaFields[key] || ''}
+                    onupdate={(html) => handleMetaChange(key, html)}
+                  />
                 {:else if fieldDef.type === 'toggle'}
                   <button id="meta-{key}" class="toggle" class:active={metaFields[key] === '1' || metaFields[key] === true} onclick={() => handleMetaChange(key, metaFields[key] === '1' || metaFields[key] === true ? '0' : '1')} type="button" aria-label="Toggle {fieldDef.label || key}"></button>
                 {:else if fieldDef.type === 'number'}
                   <input id="meta-{key}" class="ed-meta-input" type="number" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} />
                 {:else if fieldDef.type === 'date'}
                   <input id="meta-{key}" class="ed-meta-input" type="date" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} />
+                {:else if fieldDef.type === 'color'}
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input id="meta-{key}" type="color" value={metaFields[key] || '#000000'} oninput={(e) => handleMetaChange(key, e.target.value)} style="width: 36px; height: 36px; padding: 0; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer;" />
+                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} style="flex: 1;" />
+                  </div>
+                {:else if fieldDef.type === 'select'}
+                  <select id="meta-{key}" class="ed-meta-input" value={metaFields[key] || ''} onchange={(e) => handleMetaChange(key, e.target.value)}>
+                    <option value="">— Select —</option>
+                    {#each (fieldDef.options || []) as opt}
+                      <option value={typeof opt === 'object' ? opt.value : opt} selected={metaFields[key] === (typeof opt === 'object' ? opt.value : opt)}>{typeof opt === 'object' ? opt.label : opt}</option>
+                    {/each}
+                  </select>
+                {:else if fieldDef.type === 'image'}
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    {#if metaFields[key]}
+                      <img src={metaFields[key]} alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;" />
+                    {/if}
+                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} placeholder="/outpost/uploads/..." style="flex: 1;" />
+                    <button class="ed-btn ed-btn-outline" type="button" onclick={() => { mediaPickerKey = key; }} style="white-space: nowrap;">Browse</button>
+                  </div>
+                  {#if mediaPickerKey === key}
+                    <MediaPicker
+                      onselect={(media) => { handleMetaChange(key, media.path); mediaPickerKey = null; }}
+                      onclose={() => { mediaPickerKey = null; }}
+                    />
+                  {/if}
+                {:else if fieldDef.type === 'gallery'}
+                  <GalleryField
+                    items={JSON.stringify(metaFields[key] || [])}
+                    onchange={(items) => handleMetaChange(key, typeof items === 'string' ? JSON.parse(items) : items)}
+                  />
+                {:else if fieldDef.type === 'repeater'}
+                  <RepeaterField
+                    fields={JSON.stringify(fieldDef.fields || [])}
+                    items={JSON.stringify(metaFields[key] || [])}
+                    onchange={(items) => handleMetaChange(key, typeof items === 'string' ? JSON.parse(items) : items)}
+                  />
                 {:else if fieldDef.type === 'flexible'}
                   <FlexibleField
                     layouts={JSON.stringify(fieldDef.layouts || {})}
