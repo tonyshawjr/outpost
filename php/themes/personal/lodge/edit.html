@@ -1,0 +1,21 @@
+<outpost-include partial="head"></outpost-include>
+<div class="lodge-edit">
+  <div class="lodge-header">
+    <h1>Edit Item</h1>
+    <a href="/lodge" class="lodge-btn lodge-btn-secondary">Back to Dashboard</a>
+  </div>
+
+  <outpost-lodge-form collection="*" item="current">
+    <!-- Auto-generated form fields based on collection schema -->
+  </outpost-lodge-form>
+</div>
+
+<style>
+  .lodge-edit { max-width: 640px; margin: 0 auto; padding: 40px 24px; }
+  .lodge-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+  .lodge-header h1 { font-size: 24px; font-weight: 600; margin: 0; }
+  .lodge-btn { display: inline-block; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; }
+  .lodge-btn-secondary { background: #f5f5f5; color: #333; }
+</style>
+
+<outpost-include partial="footer"></outpost-include>

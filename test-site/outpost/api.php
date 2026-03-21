@@ -181,6 +181,7 @@ ensure_comment_tables();
 ensure_smart_forge_columns();
 ensure_collection_items_owner_column();
 ensure_member_tier_columns();
+ensure_collections_lodge_columns();
 ensure_editor_sessions_table();
 require_once __DIR__ . '/mailer.php';
 
@@ -893,6 +894,17 @@ function ensure_member_tier_columns(): void {
     }
     if (!in_array('meta', $colNames)) {
         OutpostDB::connect()->exec("ALTER TABLE users ADD COLUMN meta TEXT DEFAULT '{}'");
+    }
+}
+
+function ensure_collections_lodge_columns(): void {
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(collections)");
+    $colNames = array_column($cols, 'name');
+    if (!in_array('lodge_enabled', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE collections ADD COLUMN lodge_enabled INTEGER DEFAULT 0");
+    }
+    if (!in_array('lodge_config', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE collections ADD COLUMN lodge_config TEXT DEFAULT '{}'");
     }
 }
 
@@ -1807,6 +1819,8 @@ function handle_collections_list(): void {
         $c['pending_count'] = (int) ($counts['pending_count'] ?? 0);
         $c['require_review'] = (int) ($c['require_review'] ?? 0);
         $c['workflow_id'] = $c['workflow_id'] ?? null;
+        $c['lodge_enabled'] = (int) ($c['lodge_enabled'] ?? 0);
+        $c['lodge_config'] = $c['lodge_config'] ?? '{}';
     }
 
     // Filter by grants for scoped editors
@@ -1857,11 +1871,24 @@ function handle_collection_update(): void {
 
     ensure_collections_require_review_column();
     $allowed = ['name', 'singular_name', 'schema', 'url_pattern', 'template_path',
-                'sort_field', 'sort_direction', 'items_per_page'];
+                'sort_field', 'sort_direction', 'items_per_page', 'lodge_config'];
     $update = [];
     foreach ($allowed as $key) {
         if (isset($data[$key])) {
             $update[$key] = $key === 'schema' ? json_encode($data[$key]) : $data[$key];
+        }
+    }
+    // Lodge settings (admins+ only)
+    if (isset($data['lodge_enabled'])) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin', 'developer'])) {
+            $update['lodge_enabled'] = $data['lodge_enabled'] ? 1 : 0;
+        }
+    }
+    if (isset($data['lodge_config'])) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin', 'developer'])) {
+            $update['lodge_config'] = is_string($data['lodge_config']) ? $data['lodge_config'] : json_encode($data['lodge_config']);
         }
     }
     // Only admins+ can toggle require_review (editors must not bypass their own gate)
@@ -3303,7 +3330,7 @@ function handle_feature_flags_update(): void {
         json_error('feature_flags must be an object', 400);
     }
     // Whitelist valid feature keys
-    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation'];
+    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation', 'releases', 'workflows'];
     $clean = [];
     foreach ($valid_keys as $key) {
         if (isset($flags[$key])) {
@@ -3839,6 +3866,12 @@ function ensure_collections_require_review_column(): void {
     $colNames = array_column($cols, 'name');
     if (!in_array('require_review', $colNames)) {
         $db->exec("ALTER TABLE collections ADD COLUMN require_review INTEGER DEFAULT 0");
+    }
+    if (!in_array('lodge_enabled', $colNames)) {
+        $db->exec("ALTER TABLE collections ADD COLUMN lodge_enabled INTEGER DEFAULT 0");
+    }
+    if (!in_array('lodge_config', $colNames)) {
+        $db->exec("ALTER TABLE collections ADD COLUMN lodge_config TEXT DEFAULT '{}'");
     }
 }
 

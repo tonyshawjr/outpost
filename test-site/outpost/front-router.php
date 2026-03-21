@@ -137,6 +137,81 @@ $reqSlug  = $reqParts[1] ?? '';
 
 $templateFile = null;
 
+// ── Lodge (member portal) routes ────────────────────────
+// Custom slug is stored in settings; default is 'lodge'
+$_lodgeSlug = null;
+try {
+    $_lodgeRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'lodge_slug'");
+    $_lodgeSlug = ($_lodgeRow && $_lodgeRow['value']) ? $_lodgeRow['value'] : 'lodge';
+} catch (\Throwable $e) {
+    $_lodgeSlug = 'lodge';
+}
+
+if ($_lodgeSlug && str_starts_with($reqPath, '/' . $_lodgeSlug)) {
+    // Check if Lodge feature is enabled
+    $ffRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'feature_flags'");
+    $ff = $ffRow ? json_decode($ffRow['value'], true) : [];
+    if (empty($ff) || ($ff['lodge'] ?? false)) {
+        require_once $outpostDir . '/members.php';
+
+        // All lodge routes require member auth
+        if (!OutpostMember::check()) {
+            // Redirect to member login page
+            $loginPage = '/outpost/member-pages/login.php';
+            $returnUrl = urlencode($reqUri);
+            header("Location: {$loginPage}?return={$returnUrl}");
+            exit;
+        }
+
+        $lodgePath = substr($reqPath, strlen('/' . $_lodgeSlug));
+        $lodgePath = '/' . trim($lodgePath, '/');
+
+        // Map lodge routes to theme templates
+        $lodgeTemplate = null;
+        if ($lodgePath === '/' || $lodgePath === '') {
+            // Dashboard
+            $lodgeTemplate = $themeDir . '/' . $_lodgeSlug . '/dashboard.html';
+            if (!file_exists($lodgeTemplate)) {
+                $lodgeTemplate = $themeDir . '/lodge/dashboard.html';
+            }
+        } elseif (preg_match('#^/edit/(\d+)$#', $lodgePath, $m)) {
+            $_GET['item_id'] = $m[1];
+            $lodgeTemplate = $themeDir . '/' . $_lodgeSlug . '/edit.html';
+            if (!file_exists($lodgeTemplate)) {
+                $lodgeTemplate = $themeDir . '/lodge/edit.html';
+            }
+        } elseif (preg_match('#^/create/([a-z0-9_-]+)$#', $lodgePath, $m)) {
+            $_GET['collection'] = $m[1];
+            $lodgeTemplate = $themeDir . '/' . $_lodgeSlug . '/create.html';
+            if (!file_exists($lodgeTemplate)) {
+                $lodgeTemplate = $themeDir . '/lodge/create.html';
+            }
+        } elseif ($lodgePath === '/profile') {
+            $lodgeTemplate = $themeDir . '/' . $_lodgeSlug . '/profile.html';
+            if (!file_exists($lodgeTemplate)) {
+                $lodgeTemplate = $themeDir . '/lodge/profile.html';
+            }
+        }
+
+        if ($lodgeTemplate && file_exists($lodgeTemplate)) {
+            outpost_init();
+            outpost_render_template($lodgeTemplate, $themeDir);
+            return true;
+        }
+
+        // Fallback to 404
+        http_response_code(404);
+        $notFound = $themeDir . '/404.html';
+        if (file_exists($notFound)) {
+            outpost_init();
+            outpost_render_template($notFound, $themeDir);
+        } else {
+            echo '<h1>404 Not Found</h1>';
+        }
+        return true;
+    }
+}
+
 // 1. Direct page match: / → index.html, /blog → blog.html, etc.
 if ($reqPage === '' || $reqPath === '/') {
     $templateFile = $themeDir . '/index.html';

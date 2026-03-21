@@ -11,6 +11,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/members.php';
 require_once __DIR__ . '/http-security.php';
 require_once __DIR__ . '/jwt.php';
+require_once __DIR__ . '/lodge.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -564,6 +565,56 @@ match (true) {
         ], 'id = ?', [$member['id']]);
 
         member_json(['success' => true]);
+    })(),
+
+    // Lodge (member portal)
+    $action === 'lodge/dashboard' && $method === 'GET' => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? $_jwt_member : OutpostMember::currentMember();
+        $full = OutpostDB::fetchOne('SELECT * FROM users WHERE id = ?', [$member['id']]);
+        handle_lodge_dashboard($full);
+    })(),
+
+    $action === 'lodge/items' && $method === 'GET' => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_items_list($member);
+    })(),
+
+    $action === 'lodge/items' && $method === 'POST' => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_item_create($member);
+    })(),
+
+    $action === 'lodge/items' && $method === 'PUT' && isset($_GET['id']) => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_item_update($member);
+    })(),
+
+    $action === 'lodge/items' && $method === 'DELETE' && isset($_GET['id']) => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_item_delete($member);
+    })(),
+
+    $action === 'lodge/profile' && $method === 'GET' => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_profile_get($member);
+    })(),
+
+    $action === 'lodge/profile' && $method === 'PUT' => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_profile_update($member);
+    })(),
+
+    $action === 'lodge/upload' && $method === 'POST' => (function() {
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
+        handle_lodge_upload($member);
     })(),
 
     default => member_error('Not found', 404),

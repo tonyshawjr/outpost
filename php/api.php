@@ -181,6 +181,7 @@ ensure_comment_tables();
 ensure_smart_forge_columns();
 ensure_collection_items_owner_column();
 ensure_member_tier_columns();
+ensure_collections_lodge_columns();
 ensure_editor_sessions_table();
 require_once __DIR__ . '/mailer.php';
 
@@ -211,6 +212,7 @@ $cap_map = [
     'releases'   => 'settings.*',
     'workflows'  => 'settings.*',
     'review-tokens' => 'settings.*',
+    'lodge'      => 'settings.*',
 ];
 // Workflow transition/history/for-collection endpoints are accessible to any authenticated user
 // (stage-level role enforcement is done inside the handlers)
@@ -264,6 +266,9 @@ match (true) {
     $action === 'items/preview-token' && $method === 'POST' => handle_item_preview_token(),
     $action === 'items/labels-with-counts' && $method === 'GET' => handle_items_labels_with_counts(),
     $action === 'items/bulk-labels' && $method === 'POST' => handle_items_bulk_labels(),
+
+    // Lodge (admin review queue)
+    $action === 'lodge/pending' && $method === 'GET' => handle_lodge_pending_list(),
 
     // Media
     $action === 'media' && $method === 'GET' => handle_media_list(),
@@ -893,6 +898,17 @@ function ensure_member_tier_columns(): void {
     }
     if (!in_array('meta', $colNames)) {
         OutpostDB::connect()->exec("ALTER TABLE users ADD COLUMN meta TEXT DEFAULT '{}'");
+    }
+}
+
+function ensure_collections_lodge_columns(): void {
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(collections)");
+    $colNames = array_column($cols, 'name');
+    if (!in_array('lodge_enabled', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE collections ADD COLUMN lodge_enabled INTEGER DEFAULT 0");
+    }
+    if (!in_array('lodge_config', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE collections ADD COLUMN lodge_config TEXT DEFAULT '{}'");
     }
 }
 
@@ -1807,6 +1823,8 @@ function handle_collections_list(): void {
         $c['pending_count'] = (int) ($counts['pending_count'] ?? 0);
         $c['require_review'] = (int) ($c['require_review'] ?? 0);
         $c['workflow_id'] = $c['workflow_id'] ?? null;
+        $c['lodge_enabled'] = (int) ($c['lodge_enabled'] ?? 0);
+        $c['lodge_config'] = $c['lodge_config'] ?? '{}';
     }
 
     // Filter by grants for scoped editors
@@ -1857,11 +1875,24 @@ function handle_collection_update(): void {
 
     ensure_collections_require_review_column();
     $allowed = ['name', 'singular_name', 'schema', 'url_pattern', 'template_path',
-                'sort_field', 'sort_direction', 'items_per_page'];
+                'sort_field', 'sort_direction', 'items_per_page', 'lodge_config'];
     $update = [];
     foreach ($allowed as $key) {
         if (isset($data[$key])) {
             $update[$key] = $key === 'schema' ? json_encode($data[$key]) : $data[$key];
+        }
+    }
+    // Lodge settings (admins+ only)
+    if (isset($data['lodge_enabled'])) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin', 'developer'])) {
+            $update['lodge_enabled'] = $data['lodge_enabled'] ? 1 : 0;
+        }
+    }
+    if (isset($data['lodge_config'])) {
+        $role = $_SESSION['outpost_role'] ?? '';
+        if (in_array($role, ['super_admin', 'admin', 'developer'])) {
+            $update['lodge_config'] = is_string($data['lodge_config']) ? $data['lodge_config'] : json_encode($data['lodge_config']);
         }
     }
     // Only admins+ can toggle require_review (editors must not bypass their own gate)
@@ -2620,6 +2651,37 @@ function handle_items_bulk_schedule(): void {
     json_response(['success' => true, 'count' => $count]);
 }
 
+function handle_lodge_pending_list(): void {
+    $items = OutpostDB::fetchAll(
+        "SELECT ci.id, ci.slug, ci.status, ci.data, ci.created_at, ci.owner_member_id,
+                c.name as collection_name, c.slug as collection_slug,
+                u.display_name as member_name, u.email as member_email, u.username as member_username
+         FROM collection_items ci
+         JOIN collections c ON c.id = ci.collection_id
+         LEFT JOIN users u ON u.id = ci.owner_member_id
+         WHERE ci.status = 'pending_review' AND c.lodge_enabled = 1
+         ORDER BY ci.created_at DESC"
+    );
+
+    $result = [];
+    foreach ($items as $item) {
+        $data = json_decode($item['data'], true) ?: [];
+        $result[] = [
+            'id' => (int) $item['id'],
+            'slug' => $item['slug'],
+            'title' => $data['title'] ?? $data['name'] ?? $item['slug'],
+            'collection_name' => $item['collection_name'],
+            'collection_slug' => $item['collection_slug'],
+            'member_name' => $item['member_name'] ?: $item['member_username'] ?: 'Unknown',
+            'member_email' => $item['member_email'] ?? '',
+            'created_at' => $item['created_at'],
+            'data' => $data,
+        ];
+    }
+
+    json_response(['items' => $result, 'count' => count($result)]);
+}
+
 function handle_items_approve(): void {
     ensure_items_review_columns();
     $role = $_SESSION['outpost_role'] ?? '';
@@ -3303,7 +3365,7 @@ function handle_feature_flags_update(): void {
         json_error('feature_flags must be an object', 400);
     }
     // Whitelist valid feature keys
-    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation'];
+    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation', 'releases', 'workflows', 'review_links', 'backups', 'ranger'];
     $clean = [];
     foreach ($valid_keys as $key) {
         if (isset($flags[$key])) {
@@ -3839,6 +3901,12 @@ function ensure_collections_require_review_column(): void {
     $colNames = array_column($cols, 'name');
     if (!in_array('require_review', $colNames)) {
         $db->exec("ALTER TABLE collections ADD COLUMN require_review INTEGER DEFAULT 0");
+    }
+    if (!in_array('lodge_enabled', $colNames)) {
+        $db->exec("ALTER TABLE collections ADD COLUMN lodge_enabled INTEGER DEFAULT 0");
+    }
+    if (!in_array('lodge_config', $colNames)) {
+        $db->exec("ALTER TABLE collections ADD COLUMN lodge_config TEXT DEFAULT '{}'");
     }
 }
 

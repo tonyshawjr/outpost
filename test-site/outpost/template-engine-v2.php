@@ -102,6 +102,9 @@ class OutpostTemplateV2 {
         // Step 6: Process <outpost-single> elements
         $html = self::compileSingles($html, $editorMode);
 
+        // Step 6b: Process <outpost-lodge-*> elements (member portal)
+        $html = self::compileLodgeTags($html, $editorMode);
+
         // Step 7: Process <outpost-if> elements
         $html = self::compileConditionals($html, $editorMode);
 
@@ -1249,6 +1252,153 @@ class OutpostTemplateV2 {
                 }
 
                 return $newOpen . $valuePart . $closeTag;
+            },
+            $html
+        );
+
+        return $html;
+    }
+
+    // ─── Lodge (Member Portal) Tags ────────────────────────
+
+    /**
+     * Compile <outpost-lodge-items>, <outpost-lodge-form>, and <outpost-lodge-dashboard>.
+     */
+    private static function compileLodgeTags(string $html, bool $editorMode): string {
+        // <outpost-lodge-dashboard>...</outpost-lodge-dashboard>
+        // Wraps content only for authenticated members, injects member data
+        $html = preg_replace_callback(
+            '/<outpost-lodge-dashboard>(.*?)<\/outpost-lodge-dashboard>/is',
+            function ($m) use ($editorMode) {
+                $inner = $m[1];
+                $php = '<?php ';
+                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'if (OutpostMember::check()) { ';
+                $php .= '$_lodge_member = OutpostMember::currentMember(); ';
+                $php .= '$_lodge_full = OutpostDB::fetchOne("SELECT id, username, email, display_name, avatar, bio, tier FROM users WHERE id = ?", [$_lodge_member["id"]]); ';
+                $php .= '$item = $_lodge_full ?: []; ';
+                $php .= '?>';
+                $php .= $inner;
+                $php .= '<?php } ?>';
+                return $php;
+            },
+            $html
+        );
+
+        // <outpost-lodge-items collection="slug">...</outpost-lodge-items>
+        // Loops through the authenticated member's own items in a collection
+        $html = preg_replace_callback(
+            '/<outpost-lodge-items\s+([^>]*?)>(.*?)<\/outpost-lodge-items>/is',
+            function ($m) use ($editorMode) {
+                $attrs = self::parseAttributes($m[1]);
+                $inner = $m[2];
+                $slug = $attrs['collection'] ?? '';
+                if (!$slug) return '<!-- outpost-lodge-items: collection attribute required -->';
+
+                $slugPhp = self::phpString($slug);
+                $compiledInner = self::compileItemFields($inner, $editorMode);
+
+                $php = '<?php ';
+                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'if (OutpostMember::check()) { ';
+                $php .= '$_lodge_member = OutpostMember::currentMember(); ';
+                $php .= '$_lodge_col = OutpostDB::fetchOne("SELECT * FROM collections WHERE slug = ? AND lodge_enabled = 1", [' . $slugPhp . ']); ';
+                $php .= 'if ($_lodge_col) { ';
+                $php .= '$_lodge_items = OutpostDB::fetchAll(';
+                $php .= '"SELECT id, slug, status, data, created_at, updated_at, published_at FROM collection_items WHERE collection_id = ? AND owner_member_id = ? ORDER BY created_at DESC", ';
+                $php .= '[$_lodge_col["id"], $_lodge_member["id"]]); ';
+                $php .= 'foreach ($_lodge_items as $_lodge_raw) { ';
+                $php .= '$item = json_decode($_lodge_raw["data"], true) ?: []; ';
+                $php .= '$item["id"] = $_lodge_raw["id"]; ';
+                $php .= '$item["slug"] = $_lodge_raw["slug"]; ';
+                $php .= '$item["status"] = $_lodge_raw["status"]; ';
+                $php .= '$item["created_at"] = $_lodge_raw["created_at"]; ';
+                $php .= '$item["updated_at"] = $_lodge_raw["updated_at"]; ';
+                $php .= '$item["published_at"] = $_lodge_raw["published_at"]; ';
+                $php .= '?>';
+                $php .= $compiledInner;
+                $php .= '<?php } } } ?>';
+
+                return $php;
+            },
+            $html
+        );
+
+        // <outpost-lodge-form collection="slug" item="current" />
+        // Generates an HTML form from the collection schema + lodge_config editable_fields
+        $html = preg_replace_callback(
+            '/<outpost-lodge-form\s+([^>]*?)\/?>(.*?)(?:<\/outpost-lodge-form>)?/is',
+            function ($m) use ($editorMode) {
+                $attrs = self::parseAttributes($m[1]);
+                $slug = $attrs['collection'] ?? '';
+                if (!$slug) return '<!-- outpost-lodge-form: collection attribute required -->';
+
+                $slugPhp = self::phpString($slug);
+                $itemAttr = $attrs['item'] ?? '';
+                $action = $attrs['action'] ?? '/outpost/member-api.php';
+
+                $php = '<?php ';
+                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'require_once __DIR__ . "/../lodge.php"; ';
+                $php .= 'if (OutpostMember::check()) { ';
+                $php .= '$_lf_col = OutpostDB::fetchOne("SELECT * FROM collections WHERE slug = ? AND lodge_enabled = 1", [' . $slugPhp . ']); ';
+                $php .= 'if ($_lf_col) { ';
+                $php .= '$_lf_config = lodge_get_config($_lf_col["id"]); ';
+                $php .= '$_lf_schema = json_decode($_lf_col["schema"] ?: "[]", true) ?: []; ';
+                // Load existing item data if editing
+                $php .= '$_lf_item_data = []; ';
+                $php .= '$_lf_item_id = $_GET["item_id"] ?? ""; ';
+                $php .= 'if ($_lf_item_id) { ';
+                $php .= '$_lf_member = OutpostMember::currentMember(); ';
+                $php .= '$_lf_existing = OutpostDB::fetchOne("SELECT * FROM collection_items WHERE id = ? AND owner_member_id = ?", [$_lf_item_id, $_lf_member["id"]]); ';
+                $php .= 'if ($_lf_existing) $_lf_item_data = json_decode($_lf_existing["data"], true) ?: []; ';
+                $php .= '} ';
+                // Determine which fields to render
+                $php .= '$_lf_editable = $_lf_config["editable_fields"] ?? []; ';
+                $php .= '$_lf_readonly = $_lf_config["readonly_fields"] ?? []; ';
+                // Build action URL
+                $php .= '$_lf_action_url = ' . self::phpString($action) . '; ';
+                $php .= 'if ($_lf_item_id) { $_lf_action_url .= "?action=lodge/items&id=" . urlencode($_lf_item_id); $_lf_method = "PUT"; } ';
+                $php .= 'else { $_lf_action_url .= "?action=lodge/items&collection=" . urlencode(' . $slugPhp . '); $_lf_method = "POST"; } ';
+                $php .= '?>';
+                $php .= '<form class="outpost-lodge-form" data-action="<?php echo htmlspecialchars($_lf_action_url); ?>" data-method="<?php echo $_lf_method; ?>">';
+                $php .= '<?php foreach ($_lf_schema as $_lf_field) { ';
+                $php .= '$_lf_name = $_lf_field["name"] ?? ""; ';
+                $php .= '$_lf_type = $_lf_field["type"] ?? "text"; ';
+                $php .= '$_lf_label = $_lf_field["label"] ?? ucfirst(str_replace("_", " ", $_lf_name)); ';
+                $php .= 'if (!$_lf_name) continue; ';
+                // Skip if not in editable_fields (when set) or if in readonly_fields
+                $php .= 'if (!empty($_lf_editable) && !in_array($_lf_name, $_lf_editable)) continue; ';
+                $php .= 'if (in_array($_lf_name, $_lf_readonly)) continue; ';
+                $php .= '$_lf_val = htmlspecialchars($_lf_item_data[$_lf_name] ?? "", ENT_QUOTES, "UTF-8"); ';
+                $php .= '$_lf_required = !empty($_lf_field["required"]) ? " required" : ""; ';
+                $php .= '?>';
+                $php .= '<div class="lodge-field lodge-field--<?php echo htmlspecialchars($_lf_type); ?>">';
+                $php .= '<label for="lodge-<?php echo htmlspecialchars($_lf_name); ?>"><?php echo htmlspecialchars($_lf_label); ?></label>';
+                $php .= '<?php if ($_lf_type === "richtext" || $_lf_type === "textarea") { ?>';
+                $php .= '<textarea id="lodge-<?php echo htmlspecialchars($_lf_name); ?>" name="<?php echo htmlspecialchars($_lf_name); ?>"<?php echo $_lf_required; ?>><?php echo $_lf_val; ?></textarea>';
+                $php .= '<?php } elseif ($_lf_type === "image") { ?>';
+                $php .= '<input type="file" id="lodge-<?php echo htmlspecialchars($_lf_name); ?>" name="<?php echo htmlspecialchars($_lf_name); ?>" accept="image/*"<?php echo $_lf_required; ?>>';
+                $php .= '<?php if ($_lf_val) { ?><img src="<?php echo $_lf_val; ?>" class="lodge-field__preview" alt=""><?php } ?>';
+                $php .= '<?php } elseif ($_lf_type === "select" && !empty($_lf_field["options"])) { ?>';
+                $php .= '<select id="lodge-<?php echo htmlspecialchars($_lf_name); ?>" name="<?php echo htmlspecialchars($_lf_name); ?>"<?php echo $_lf_required; ?>>';
+                $php .= '<option value="">Select...</option>';
+                $php .= '<?php foreach ($_lf_field["options"] as $_lf_opt) { ?>';
+                $php .= '<option value="<?php echo htmlspecialchars($_lf_opt); ?>"<?php echo $_lf_val === htmlspecialchars($_lf_opt) ? " selected" : ""; ?>><?php echo htmlspecialchars($_lf_opt); ?></option>';
+                $php .= '<?php } ?>';
+                $php .= '</select>';
+                $php .= '<?php } elseif ($_lf_type === "toggle" || $_lf_type === "boolean") { ?>';
+                $php .= '<input type="checkbox" id="lodge-<?php echo htmlspecialchars($_lf_name); ?>" name="<?php echo htmlspecialchars($_lf_name); ?>" value="1"<?php echo $_lf_val ? " checked" : ""; ?>>';
+                $php .= '<?php } else { ?>';
+                $php .= '<input type="text" id="lodge-<?php echo htmlspecialchars($_lf_name); ?>" name="<?php echo htmlspecialchars($_lf_name); ?>" value="<?php echo $_lf_val; ?>"<?php echo $_lf_required; ?>>';
+                $php .= '<?php } ?>';
+                $php .= '</div>';
+                $php .= '<?php } ?>';
+                $php .= '<button type="submit" class="lodge-form__submit"><?php echo $_lf_item_id ? "Update" : "Create"; ?></button>';
+                $php .= '</form>';
+                $php .= '<?php } } ?>';
+
+                return $php;
             },
             $html
         );

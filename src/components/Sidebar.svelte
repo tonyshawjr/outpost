@@ -373,7 +373,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           Folders
         </button>
-        {#if showSettings}
+        {#if showSettings && featureEnabled('releases')}
           <button
             class="sidebar-item"
             class:active={route === 'releases'}
@@ -382,6 +382,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             Releases
           </button>
+        {/if}
+        {#if showSettings && featureEnabled('workflows')}
           <button
             class="sidebar-item"
             class:active={route === 'workflows'}
@@ -419,7 +421,7 @@
   <!-- ═══ SYSTEM (bottom, always visible) ═══ -->
   <div class="sidebar-divider"></div>
   <div class="sidebar-section sidebar-inner" style="margin-top: auto;">
-    {#if showSettings}
+    {#if showSettings && featureEnabled('review_links')}
       <button
         class="sidebar-item"
         class:active={route === 'review-tokens'}
@@ -428,6 +430,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
         Review Links
       </button>
+    {/if}
+    {#if showSettings && featureEnabled('backups')}
       <button
         class="sidebar-item"
         class:active={route === 'backups'}
@@ -436,6 +440,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
         Backups
       </button>
+    {/if}
       <button
         class="sidebar-item"
         class:active={route === 'settings' || route === 'user-profile'}
@@ -448,18 +453,20 @@
         Settings
       </button>
     {/if}
-    <button
-      class="sidebar-item"
-      class:active={$rangerOpen}
-      onclick={() => rangerOpen.update(v => !v)}
-      title="Ranger AI Assistant"
-    >
-      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-        <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
-        <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
-      </svg>
-      Ranger
-    </button>
+    {#if featureEnabled('ranger')}
+      <button
+        class="sidebar-item"
+        class:active={$rangerOpen}
+        onclick={() => rangerOpen.update(v => !v)}
+        title="Ranger AI Assistant"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
+          <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
+        </svg>
+        Ranger
+      </button>
+    {/if}
     <button class="sidebar-item" onclick={handleLogout}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Log out

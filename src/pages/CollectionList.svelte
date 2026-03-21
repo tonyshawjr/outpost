@@ -27,6 +27,18 @@
   let submitting = $state(false);
   let expandedFields = $state({});
 
+  // Lodge settings
+  let formLodgeEnabled = $state(false);
+  let formLodgeConfig = $state({
+    allow_create: true,
+    allow_edit: true,
+    allow_delete: false,
+    require_approval: false,
+    max_items_per_member: 0,
+    editable_fields: [],
+    readonly_fields: [],
+  });
+
   // Delete confirmation modal
   let deleteTarget = $state(null);
   let deleteConfirmText = $state('');
@@ -96,6 +108,16 @@
     editingColl = null;
     showCreate = false;
     expandedFields = {};
+    formLodgeEnabled = false;
+    formLodgeConfig = {
+      allow_create: true,
+      allow_edit: true,
+      allow_delete: false,
+      require_approval: false,
+      max_items_per_member: 0,
+      editable_fields: [],
+      readonly_fields: [],
+    };
   }
 
   function openCreate() {
@@ -128,6 +150,21 @@
       conditions: def.conditions || [],
     }));
     if (formSchema.length === 0) formSchema = [{ name: '', type: 'text', label: '', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }];
+    formLodgeEnabled = !!(coll.lodge_enabled);
+    try {
+      const lc = typeof coll.lodge_config === 'string' ? JSON.parse(coll.lodge_config || '{}') : (coll.lodge_config || {});
+      formLodgeConfig = {
+        allow_create: lc.allow_create !== false,
+        allow_edit: lc.allow_edit !== false,
+        allow_delete: !!lc.allow_delete,
+        require_approval: !!lc.require_approval,
+        max_items_per_member: lc.max_items_per_member || 0,
+        editable_fields: lc.editable_fields || [],
+        readonly_fields: lc.readonly_fields || [],
+      };
+    } catch {
+      formLodgeConfig = { allow_create: true, allow_edit: true, allow_delete: false, require_approval: false, max_items_per_member: 0, editable_fields: [], readonly_fields: [] };
+    }
     showCreate = true;
   }
 
@@ -172,6 +209,8 @@
           url_pattern: formUrlPattern || `/${formSlug}/{slug}`,
           require_review: formRequireReview ? 1 : 0,
           workflow_id: formWorkflowId || null,
+          lodge_enabled: formLodgeEnabled ? 1 : 0,
+          lodge_config: formLodgeConfig,
         });
         addToast('Collection updated', 'success');
       } else {
@@ -339,6 +378,110 @@
             Assign a workflow to define custom approval stages for this collection.
             <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--accent);">Manage workflows</a>
           </span>
+        </div>
+      {/if}
+
+      <!-- Lodge Settings -->
+      {#if editingColl}
+        <div class="lodge-section">
+          <div class="lodge-section-header">
+            <span class="lodge-section-label">LODGE</span>
+            <button
+              class="toggle"
+              class:active={formLodgeEnabled}
+              onclick={() => { formLodgeEnabled = !formLodgeEnabled; }}
+              type="button"
+            ></button>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 0 0 var(--space-sm);">Allow members to create and manage their own content in this collection.</p>
+
+          {#if formLodgeEnabled}
+            <div class="lodge-options">
+              <div class="lodge-toggle-row">
+                <label class="lodge-toggle-label">
+                  <input type="checkbox" bind:checked={formLodgeConfig.allow_create} style="accent-color: var(--accent);" />
+                  Allow Create
+                </label>
+                <span class="lodge-toggle-desc">Members can create new items</span>
+              </div>
+              <div class="lodge-toggle-row">
+                <label class="lodge-toggle-label">
+                  <input type="checkbox" bind:checked={formLodgeConfig.allow_edit} style="accent-color: var(--accent);" />
+                  Allow Edit
+                </label>
+                <span class="lodge-toggle-desc">Members can edit their own items</span>
+              </div>
+              <div class="lodge-toggle-row">
+                <label class="lodge-toggle-label">
+                  <input type="checkbox" bind:checked={formLodgeConfig.allow_delete} style="accent-color: var(--accent);" />
+                  Allow Delete
+                </label>
+                <span class="lodge-toggle-desc">Members can delete their own items</span>
+              </div>
+              <div class="lodge-toggle-row">
+                <label class="lodge-toggle-label">
+                  <input type="checkbox" bind:checked={formLodgeConfig.require_approval} style="accent-color: var(--accent);" />
+                  Require Approval
+                </label>
+                <span class="lodge-toggle-desc">Submissions require admin approval before publishing</span>
+              </div>
+              <div class="lodge-field-row">
+                <label class="lodge-field-label">Max Items Per Member</label>
+                <input class="input" type="number" min="0" style="width: 100px; height: 30px; font-size: 13px;" bind:value={formLodgeConfig.max_items_per_member} />
+                <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">0 = unlimited</span>
+              </div>
+
+              {#if formSchema.filter(f => f.name || f.label).length > 0}
+                {@const schemaFields = formSchema.filter(f => f.name || f.label).map(f => f.name || slugifyField(f.label))}
+                <div class="lodge-field-row" style="flex-direction: column; align-items: flex-start;">
+                  <label class="lodge-field-label">Editable Fields</label>
+                  <div class="lodge-field-checks">
+                    {#each schemaFields as fieldName}
+                      <label class="lodge-check-label">
+                        <input type="checkbox"
+                          checked={formLodgeConfig.editable_fields.includes(fieldName)}
+                          onchange={(e) => {
+                            if (e.target.checked) {
+                              formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
+                              formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                            } else {
+                              formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                            }
+                          }}
+                          style="accent-color: var(--accent);"
+                        />
+                        {fieldName}
+                      </label>
+                    {/each}
+                  </div>
+                  <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Fields members can edit. Leave empty to allow all fields.</span>
+                </div>
+                <div class="lodge-field-row" style="flex-direction: column; align-items: flex-start;">
+                  <label class="lodge-field-label">Read-only Fields</label>
+                  <div class="lodge-field-checks">
+                    {#each schemaFields as fieldName}
+                      <label class="lodge-check-label">
+                        <input type="checkbox"
+                          checked={formLodgeConfig.readonly_fields.includes(fieldName)}
+                          onchange={(e) => {
+                            if (e.target.checked) {
+                              formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
+                              formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                            } else {
+                              formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                            }
+                          }}
+                          style="accent-color: var(--accent);"
+                        />
+                        {fieldName}
+                      </label>
+                    {/each}
+                  </div>
+                  <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Fields visible to members but not editable.</span>
+                </div>
+              {/if}
+            </div>
+          {/if}
         </div>
       {/if}
 
@@ -651,5 +794,90 @@
     .coll-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  .lodge-section {
+    margin: var(--space-md) 0;
+    padding: var(--space-md);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+  }
+
+  .lodge-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xs);
+  }
+
+  .lodge-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .lodge-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .lodge-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 4px 0;
+  }
+
+  .lodge-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+    min-width: 160px;
+    margin: 0;
+  }
+
+  .lodge-toggle-desc {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+  }
+
+  .lodge-field-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 4px 0;
+  }
+
+  .lodge-field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    min-width: 160px;
+    flex-shrink: 0;
+  }
+
+  .lodge-field-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-md);
+    margin-top: 4px;
+  }
+
+  .lodge-check-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin: 0;
   }
 </style>
