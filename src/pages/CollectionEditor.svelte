@@ -25,6 +25,15 @@
   let metaFields = $state({});
   let mediaPickerKey = $state(null);
 
+  // Convert repeater sub-field array [{name,type}] to flat map {name:{type}}
+  function toRepeaterSchema(fields) {
+    if (!fields) return '{}';
+    const arr = Array.isArray(fields) ? fields : [];
+    const map = {};
+    arr.forEach(f => { if (f.name) { const s = {...f}; delete s.name; map[f.name] = s; }});
+    return JSON.stringify(map);
+  }
+
   // UI state
   let addMenuOpenAt = $state(null);
   let hoveredBlock = $state(null);
@@ -661,17 +670,8 @@
                     onchange={(items) => handleMetaChange(key, typeof items === 'string' ? JSON.parse(items) : items)}
                   />
                 {:else if fieldDef.type === 'repeater'}
-                  {@const repeaterSchema = (() => {
-                    const f = fieldDef.fields || [];
-                    if (Array.isArray(f)) {
-                      const map = {};
-                      f.forEach(sub => { if (sub.name) { const s = {...sub}; delete s.name; map[sub.name] = s; } });
-                      return map;
-                    }
-                    return f;
-                  })()}
                   <RepeaterField
-                    schema={JSON.stringify(repeaterSchema)}
+                    schema={toRepeaterSchema(fieldDef.fields)}
                     items={JSON.stringify(metaFields[key] || [])}
                     onchange={(items) => handleMetaChange(key, typeof items === 'string' ? JSON.parse(items) : items)}
                   />

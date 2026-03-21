@@ -842,6 +842,8 @@
     flex-direction: column;
     gap: 4px;
     margin-bottom: var(--space-sm);
+    max-height: 200px;
+    overflow-y: auto;
   }
 
   .rs-tax-term {
