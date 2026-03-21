@@ -1851,6 +1851,15 @@ function handle_collection_create(): void {
     $existing = OutpostDB::fetchOne('SELECT id FROM collections WHERE slug = ?', [$slug]);
     if ($existing) json_error('A collection with this slug already exists');
 
+    // Validate sort_field — only allow actual database columns
+    $allowedSortFields = ['created_at', 'updated_at', 'published_at', 'slug', 'sort_order'];
+    $sortField = $data['sort_field'] ?? 'created_at';
+    if (!in_array($sortField, $allowedSortFields)) {
+        $sortField = 'created_at';
+    }
+    $sortDir = strtoupper($data['sort_direction'] ?? 'DESC');
+    if (!in_array($sortDir, ['ASC', 'DESC'])) $sortDir = 'DESC';
+
     $id = OutpostDB::insert('collections', [
         'slug' => $slug,
         'name' => $name,
@@ -1858,8 +1867,8 @@ function handle_collection_create(): void {
         'schema' => json_encode($data['schema'] ?? new \stdClass()),
         'url_pattern' => $data['url_pattern'] ?? "/{$slug}/{slug}",
         'template_path' => $data['template_path'] ?? '',
-        'sort_field' => $data['sort_field'] ?? 'created_at',
-        'sort_direction' => $data['sort_direction'] ?? 'DESC',
+        'sort_field' => $sortField,
+        'sort_direction' => $sortDir,
         'items_per_page' => (int) ($data['items_per_page'] ?? 10),
     ]);
 
@@ -1877,9 +1886,18 @@ function handle_collection_update(): void {
     $allowed = ['name', 'singular_name', 'schema', 'url_pattern', 'template_path',
                 'sort_field', 'sort_direction', 'items_per_page', 'lodge_config'];
     $update = [];
+    $allowedSortFields = ['created_at', 'updated_at', 'published_at', 'slug', 'sort_order'];
     foreach ($allowed as $key) {
         if (isset($data[$key])) {
-            $update[$key] = $key === 'schema' ? json_encode($data[$key]) : $data[$key];
+            if ($key === 'schema') {
+                $update[$key] = json_encode($data[$key]);
+            } elseif ($key === 'sort_field') {
+                $update[$key] = in_array($data[$key], $allowedSortFields) ? $data[$key] : 'created_at';
+            } elseif ($key === 'sort_direction') {
+                $update[$key] = in_array(strtoupper($data[$key]), ['ASC', 'DESC']) ? strtoupper($data[$key]) : 'DESC';
+            } else {
+                $update[$key] = $data[$key];
+            }
         }
     }
     // Lodge settings (admins+ only)
@@ -1975,10 +1993,10 @@ function handle_items_list(): void {
         $params[] = $status;
     }
 
-    $order = $collection['sort_field'] . ' ' . $collection['sort_direction'];
-    if (!preg_match('/^[a-z_]+ (?:ASC|DESC)$/i', $order)) {
-        $order = 'created_at DESC';
-    }
+    $validSortCols = ['created_at', 'updated_at', 'published_at', 'slug', 'sort_order'];
+    $sortCol = in_array($collection['sort_field'], $validSortCols) ? $collection['sort_field'] : 'created_at';
+    $sortDir = in_array(strtoupper($collection['sort_direction']), ['ASC', 'DESC']) ? strtoupper($collection['sort_direction']) : 'DESC';
+    $order = $sortCol . ' ' . $sortDir;
 
     if ($labelId === 'unfiled') {
         // Items not assigned to any label in this collection's folders

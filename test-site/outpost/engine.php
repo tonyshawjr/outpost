@@ -877,15 +877,22 @@ function cms_collection_list(string $slug, callable $callback, array $opts = [])
     if (!$collection) return;
 
     $limit       = $opts['limit'] ?? $collection['items_per_page'];
-    $order       = $opts['order'] ?? ($collection['sort_field'] . ' ' . $collection['sort_direction']);
     $relatedId   = (int) ($opts['related_id'] ?? 0);
     $filterParam = $opts['filter_param'] ?? '';
     $filterSlug  = $filterParam ? trim($_GET[$filterParam] ?? '') : '';
     $paginate    = (int) ($opts['paginate'] ?? 0);
 
-    // Sanitize order clause — only allow known patterns
-    if (!preg_match('/^[a-z_]+ (?:ASC|DESC)$/i', $order)) {
-        $order = 'created_at DESC';
+    // Sanitize sort — only allow actual database columns
+    $validSortCols = ['created_at', 'updated_at', 'published_at', 'slug', 'sort_order'];
+    if (isset($opts['order'])) {
+        $order = $opts['order'];
+        if (!preg_match('/^[a-z_]+ (?:ASC|DESC)$/i', $order)) {
+            $order = 'created_at DESC';
+        }
+    } else {
+        $sortCol = in_array($collection['sort_field'], $validSortCols) ? $collection['sort_field'] : 'created_at';
+        $sortDir = in_array(strtoupper($collection['sort_direction']), ['ASC', 'DESC']) ? strtoupper($collection['sort_direction']) : 'DESC';
+        $order = $sortCol . ' ' . $sortDir;
     }
 
     // Pagination: override limit, compute offset, count total
