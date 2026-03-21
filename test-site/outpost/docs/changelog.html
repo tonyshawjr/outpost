@@ -30,6 +30,20 @@
       <li><strong>API: <code>forge/ai-scan</code></strong> &mdash; POST endpoint that sends raw HTML to the configured AI provider with a detailed annotation prompt, returns fully annotated HTML with <code>data-outpost</code> attributes and section comments.</li>
       <li><strong>API: <code>forge/ai-status</code></strong> &mdash; GET endpoint that returns whether AI is available and which provider is configured.</li>
       <li><strong>Automatic fallback</strong> &mdash; If no AI key is configured, Smart Forge falls back to the existing PHP scanner seamlessly. The button label changes between "Smart Forge AI" and "Smart Forge" based on availability.</li>
+      <li><strong>Liquid-to-v2 conversion</strong> &mdash; Smart Forge AI can convert legacy Liquid <code>{{ }}</code> / <code>{% %}</code> templates to v2 <code>data-outpost</code> attribute syntax in a single pass.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Save system overhaul</strong> &mdash; Single unified save path for all content types. <kbd>Cmd+S</kbd> / <kbd>Ctrl+S</kbd> keyboard shortcut works everywhere. <code>beforeunload</code> warns on unsaved changes. Eliminates duplicate save logic and race conditions.</li>
+      <li><strong>Global fields save correctly</strong> &mdash; Global fields now persist reliably through the unified save path, fixing intermittent data loss when saving pages with global field edits.</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>25 audit fixes</strong> &mdash; Comprehensive quality pass across the entire admin SPA and PHP backend covering accessibility, edge cases, and UI consistency.</li>
+      <li><strong>Block settings injection fix</strong> &mdash; Block settings CSS custom properties now inject correctly when multiple blocks define settings on the same page.</li>
+      <li><strong>JWT auth + CORS</strong> &mdash; Fixed token validation edge cases and CORS preflight handling for cross-origin mobile app requests.</li>
     </ul>
 
     <hr style="margin: 40px 0;">
