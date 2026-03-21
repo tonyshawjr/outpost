@@ -96,6 +96,8 @@ class OutpostTemplateV2 {
         }
         // Step 1: Process includes first (recursive, depth-limited)
         $html = self::processIncludes($html, 0);
+        // Clean up any orphaned closing tags from custom elements
+        $html = preg_replace('/<\/outpost-(?:include|meta|seo|pagination|form)>/i', '', $html);
 
         // Step 2: Process <outpost-seo /> and <outpost-meta> tags
         $html = self::compileSeo($html);
@@ -140,7 +142,7 @@ class OutpostTemplateV2 {
         if ($depth > 10) return $html; // prevent infinite recursion
 
         return preg_replace_callback(
-            '/<outpost-include\s+partial="([^"]+)"\s*\/?\s*>/i',
+            '/<outpost-include\s+partial="([^"]+)"\s*\/?\s*>(?:<\/outpost-include>)?/i',
             function ($m) use ($depth) {
                 $name = $m[1];
                 // Security: reject path traversal attempts
