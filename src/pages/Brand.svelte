@@ -364,7 +364,7 @@
         />
       </div>
       <p class="brand-identity-hint">
-        These sync to <code>{'{{ @site_logo | image }}'}</code> and <code>{'{{ @site_favicon | image }}'}</code> global tags.
+        These sync to <code>{'<img data-outpost="site_logo" data-scope="global" data-type="image" />'}</code> and <code>{'<img data-outpost="site_favicon" data-scope="global" data-type="image" />'}</code> global tags.
       </p>
     </section>
   {/if}

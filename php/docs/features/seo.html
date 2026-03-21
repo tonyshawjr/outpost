@@ -1,201 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEO — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>SEO — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>SEO</h1>
-    <p class="lead">Outpost handles SEO automatically. The <code>{% seo %}</code> tag in your theme outputs title, description, Open Graph, Twitter Card, canonical URL, and JSON-LD — all pulled from the values you set in the admin. You just fill in the fields.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>SEO</h1>
+ <p class="lead">Outpost handles SEO automatically. The <code>&lt;outpost-seo /&gt;</code> tag in your theme outputs title, description, Open Graph, Twitter Card, canonical URL, and JSON-LD — all pulled from the values you set in the admin. You just fill in the fields.</p>
+ </div>
+ <div class="content">
 
-    <h2>Where to update SEO in the admin</h2>
-    <p>There are three places to manage SEO, from site-wide defaults down to individual pages and posts.</p>
+ <h2>Where to update SEO in the admin</h2>
+ <p>There are three places to manage SEO, from site-wide defaults down to individual pages and posts.</p>
 
-    <h3>1. Site-wide defaults — Admin → Globals</h3>
-    <p>These apply to every page on your site that doesn't have its own custom values set. Set them once and you're done.</p>
+ <h3>1. Site-wide defaults — Admin → Globals</h3>
+ <p>These apply to every page on your site that doesn't have its own custom values set. Set them once and you're done.</p>
 
-    <table>
-      <thead>
-        <tr><th>Field name</th><th>What it does</th><th>Example</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>site_name</code></td>
-          <td>Appended to every page title: <em>Page Title — Site Name</em></td>
-          <td><code>My Blog</code></td>
-        </tr>
-        <tr>
-          <td><code>site_tagline</code></td>
-          <td>Fallback meta description for pages that have no description set</td>
-          <td><code>Writing about design and code.</code></td>
-        </tr>
-        <tr>
-          <td><code>og_image</code></td>
-          <td>Default social share image (1200×630px). Used when a page or post has no featured image.</td>
-          <td>Upload via the image picker</td>
-        </tr>
-        <tr>
-          <td><code>twitter_handle</code></td>
-          <td>Your Twitter/X handle for Twitter Card attribution. Include the <code>@</code>.</td>
-          <td><code>@myhandle</code></td>
-        </tr>
-      </tbody>
-    </table>
+ <table>
+ <thead>
+ <tr><th>Field name</th><th>What it does</th><th>Example</th></tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><code>site_name</code></td>
+ <td>Appended to every page title: <em>Page Title — Site Name</em></td>
+ <td><code>My Blog</code></td>
+ </tr>
+ <tr>
+ <td><code>site_tagline</code></td>
+ <td>Fallback meta description for pages that have no description set</td>
+ <td><code>Writing about design and code.</code></td>
+ </tr>
+ <tr>
+ <td><code>og_image</code></td>
+ <td>Default social share image (1200×630px). Used when a page or post has no featured image.</td>
+ <td>Upload via the image picker</td>
+ </tr>
+ <tr>
+ <td><code>twitter_handle</code></td>
+ <td>Your Twitter/X handle for Twitter Card attribution. Include the <code>@</code>.</td>
+ <td><code>@myhandle</code></td>
+ </tr>
+ </tbody>
+ </table>
 
-    <div class="callout callout-tip"><strong>Start here.</strong> Fill in <code>site_name</code>, <code>site_tagline</code>, and <code>og_image</code> in Globals first. This gives every page on your site a reasonable title, description, and social image without any per-page work.</div>
+ 
 
-    <h3>2. Per-page SEO — Admin → Pages → click a page → SEO tab</h3>
-    <p>Every page has a <strong>SEO tab</strong> in the page editor. Use this to override the site-wide defaults for that specific page.</p>
+ <h2>Related</h2>
+ <ul>
+ <li><a href="features/sitemap.html">Sitemap</a> — auto-generated <code>/sitemap.xml</code></li>
+ <li><a href="content/global-fields.html">Global Fields</a> — managing <code>og_image</code>, <code>twitter_handle</code>, <code>site_tagline</code></li>
+ <li><a href="members/protecting-pages.html">Protecting Pages</a> — visibility settings and <code>noindex</code> behaviour</li>
+ <li><a href="reference/configuration.html">Configuration</a> — <code>OUTPOST_SITE_URL</code> constant</li>
+ </ul>
 
-    <table>
-      <thead>
-        <tr><th>Field</th><th>What it controls</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Meta Title</td>
-          <td>The <code>&lt;title&gt;</code> tag and <code>og:title</code>. If left blank, falls back to the page title + site name.</td>
-        </tr>
-        <tr>
-          <td>Meta Description</td>
-          <td>The <code>&lt;meta name="description"&gt;</code> and <code>og:description</code>. If blank, falls back to the global tagline.</td>
-        </tr>
-        <tr>
-          <td>Visibility</td>
-          <td>Set to <strong>Members</strong> or <strong>Paid</strong> to add a <code>noindex</code> robots tag and gate access to that page.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>The SEO tab also shows a live search preview so you can see exactly how the page will appear in Google results before you save.</p>
-
-    <h3>3. Per-post SEO — Admin → Collections → open a post → SEO tab</h3>
-    <p>Individual posts and collection items work the same way. Open any item in the collection editor, find the <strong>SEO tab</strong> in the right sidebar, and set:</p>
-
-    <table>
-      <thead>
-        <tr><th>Field</th><th>What it controls</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Meta Title</td>
-          <td>Overrides the post title in <code>&lt;title&gt;</code> and OG tags</td>
-        </tr>
-        <tr>
-          <td>Meta Description</td>
-          <td>Overrides the auto-generated excerpt in description tags</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>Even without setting these, posts get decent SEO automatically: the post <code>title</code> becomes the page title, the <code>excerpt</code> (or the first 40 words of <code>body</code>) becomes the description, and the <code>featured_image</code> becomes the social share image.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — For blog posts, the most important thing to fill in is <strong>Excerpt</strong> (in the main post editor). That becomes your meta description automatically. You only need to touch the SEO tab if you want to write a different title or description than what's already in the post.</div>
-
-    <h2>How values are resolved</h2>
-    <p>Outpost walks down this chain and uses the first non-empty value it finds:</p>
-
-    <table>
-      <thead>
-        <tr><th>Tag</th><th>Priority (highest → lowest)</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>&lt;title&gt;</code></td>
-          <td>Page SEO tab Meta Title → post Meta Title → post <code>title</code> field → <code>site_name</code> global</td>
-        </tr>
-        <tr>
-          <td><code>meta description</code></td>
-          <td>Page SEO tab Meta Description → post Meta Description → post <code>excerpt</code> → first 40 words of <code>body</code> → <code>site_tagline</code> global</td>
-        </tr>
-        <tr>
-          <td><code>og:image</code> / <code>twitter:image</code></td>
-          <td>Post <code>featured_image</code> field → <code>og_image</code> global</td>
-        </tr>
-        <tr>
-          <td><code>og:type</code></td>
-          <td><code>article</code> on individual posts; <code>website</code> on all other pages</td>
-        </tr>
-        <tr>
-          <td><code>twitter:site</code></td>
-          <td><code>twitter_handle</code> global — omitted if not set</td>
-        </tr>
-        <tr>
-          <td><code>canonical</code></td>
-          <td>Built from your site's domain + current URL path, automatically</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>JSON-LD Article schema</h2>
-    <p>On individual post pages, <code>{% seo %}</code> automatically outputs an <code>Article</code> structured data block. This is what Google uses to show article rich results — with date, author, and image in search.</p>
-
-    <p>You don't need to do anything for this to work. As long as a post has a <code>title</code>, <code>published_at</code> date, and optionally <code>featured_image</code> and <code>author</code> fields filled in, the JSON-LD is output automatically.</p>
-
-    <h2>Protected pages</h2>
-    <p>Pages with Visibility set to <strong>Members</strong> or <strong>Paid</strong> automatically get <code>&lt;meta name="robots" content="noindex"&gt;</code>. They are excluded from search engine indexes.</p>
-
-    <h2>For theme developers — the <code>{% seo %}</code> tag</h2>
-    <p>If you're building a theme, all of the above is driven by a single tag in your <code>head.html</code> partial:</p>
-
-    <pre><code>&lt;!-- partials/head.html --&gt;
-&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-
-  {% seo %}
-
-  &lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
-&lt;/head&gt;
-&lt;body&gt;</code></pre>
-
-    <p>No parameters. No manual OG tags. No <code>{{ meta.title }}</code> — that's all replaced by this one tag.</p>
-
-    <div class="callout callout-note"><strong>Note</strong> — <code>{% seo %}</code> replaces the legacy <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code> tags. Don't use both — <code>{% seo %}</code> already outputs <code>&lt;title&gt;</code> and the description meta.</div>
-
-    <h3>Canonical URL domain</h3>
-    <p>Canonical tags use the current request's host by default. In production, set <code>OUTPOST_SITE_URL</code> in <code>config.php</code> to lock in the correct domain:</p>
-    <pre><code>define('OUTPOST_SITE_URL', 'https://example.com'); // no trailing slash</code></pre>
-
-    <h2>Quick checklist</h2>
-    <table>
-      <thead>
-        <tr><th>Task</th><th>Where</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Set <code>site_name</code></td><td>Admin → Globals</td></tr>
-        <tr><td>Set <code>site_tagline</code> (fallback description)</td><td>Admin → Globals</td></tr>
-        <tr><td>Upload <code>og_image</code> (1200×630px)</td><td>Admin → Globals</td></tr>
-        <tr><td>Set <code>twitter_handle</code> (optional)</td><td>Admin → Globals</td></tr>
-        <tr><td>Set Meta Title + Description on your homepage</td><td>Admin → Pages → / → SEO tab</td></tr>
-        <tr><td>Fill in <code>excerpt</code> on blog posts</td><td>Admin → Collections → post editor</td></tr>
-        <tr><td>Submit sitemap to Google Search Console</td><td><code>/sitemap.xml</code></td></tr>
-      </tbody>
-    </table>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Paste any page URL into <a href="https://www.opengraph.xyz" target="_blank" rel="noopener">opengraph.xyz</a> to preview exactly how it will look when shared on social media.</div>
-
-    <h2>Related</h2>
-    <ul>
-      <li><a href="features/sitemap.html">Sitemap</a> — auto-generated <code>/sitemap.xml</code></li>
-      <li><a href="content/global-fields.html">Global Fields</a> — managing <code>og_image</code>, <code>twitter_handle</code>, <code>site_tagline</code></li>
-      <li><a href="members/protecting-pages.html">Protecting Pages</a> — visibility settings and <code>noindex</code> behaviour</li>
-      <li><a href="reference/configuration.html">Configuration</a> — <code>OUTPOST_SITE_URL</code> constant</li>
-    </ul>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

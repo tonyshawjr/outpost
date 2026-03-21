@@ -149,7 +149,7 @@
           />
         </div>
         {#if channelSlug}
-          <div class="create-hint">{`{% for item in channel.${channelSlug} %}`}</div>
+          <div class="create-hint">{`<outpost-each channel="${channelSlug}">`}</div>
         {/if}
       </div>
       <div class="create-actions">

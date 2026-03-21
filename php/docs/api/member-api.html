@@ -507,6 +507,183 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
 loadCsrf();</code></pre>
 
+    <h2>JWT Bearer Token Authentication</h2>
+
+    <p>For mobile apps, native clients, and headless frontends that cannot use cookies, the Member API supports JWT bearer tokens as a stateless alternative to session-based auth.</p>
+
+    <div class="callout callout-tip">
+      <strong>When to use tokens vs sessions</strong>
+      Use session-based auth (<code>login</code> / <code>me</code> / cookies) for server-rendered theme pages and browser-based SPAs. Use JWT tokens (<code>token</code> endpoints) for mobile apps, React Native, Flutter, or any client that cannot maintain PHP session cookies.
+    </div>
+
+    <h3>Get a token</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=token</span>
+      </div>
+      <p>Exchange email/username and password for a JWT bearer token. The token is valid for 30 days.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>email</code></td><td>Yes</td><td>Email address or username.</td></tr>
+        <tr><td><code>password</code></td><td>Yes</td><td>Member password.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Success response:</p>
+    <pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "member": {
+    "id": 50,
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "tier": "free"
+  },
+  "expires_at": "2026-04-19T12:00:00+00:00"
+}</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Invalid credentials" }           // HTTP 401
+{ "error": "Your account has been suspended" } // HTTP 403</code></pre>
+
+    <p>Rate limited: 10 requests per 60 seconds per IP address.</p>
+
+    <p>curl example:</p>
+    <pre><code>curl -X POST https://example.com/outpost/member-api.php?action=token \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jane@example.com","password":"mypassword"}'</code></pre>
+
+    <p>React Native example:</p>
+    <pre><code>const res = await fetch('https://example.com/outpost/member-api.php?action=token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'jane@example.com', password: 'mypassword' }),
+});
+
+const { token, member, expires_at } = await res.json();
+// Store token securely (e.g. SecureStore on iOS/Android)
+await SecureStore.setItemAsync('outpost_token', token);</code></pre>
+
+    <h3>Register with token</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=token/register</span>
+      </div>
+      <p>Create a new member account and receive a JWT token in one step. If email verification is enabled, a token is not returned until the member verifies their email.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>Yes</td><td>Username (also accepts <code>username</code>).</td></tr>
+        <tr><td><code>email</code></td><td>Yes</td><td>Valid email address.</td></tr>
+        <tr><td><code>password</code></td><td>Yes</td><td>Minimum 8 characters.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Success response (HTTP 201):</p>
+    <pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "member": {
+    "id": 51,
+    "name": "janesmith",
+    "email": "jane@example.com",
+    "tier": "free"
+  },
+  "expires_at": "2026-04-19T12:00:00+00:00"
+}</code></pre>
+
+    <p>Verification required response (HTTP 200):</p>
+    <pre><code>{
+  "requires_verification": true,
+  "message": "Please check your email to verify your account."
+}</code></pre>
+
+    <h3>Refresh token</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=token/refresh</span>
+      </div>
+      <p>Exchange a valid (non-expired) bearer token for a new token with a fresh 30-day expiry. Use this to extend sessions without requiring the user to re-enter credentials.</p>
+    </div>
+
+    <p>Requires <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+
+    <p>Success response:</p>
+    <pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...(new)...",
+  "member": { ... },
+  "expires_at": "2026-04-19T12:00:00+00:00"
+}</code></pre>
+
+    <h3>Get profile via token</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=token/me</span>
+      </div>
+      <p>Returns the member profile for the bearer token holder. No CSRF token needed.</p>
+    </div>
+
+    <p>Requires <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+
+    <p>Success response:</p>
+    <pre><code>{
+  "member": {
+    "id": 50,
+    "name": "Jane Smith",
+    "username": "janesmith",
+    "email": "jane@example.com",
+    "tier": "free",
+    "avatar": "/outpost/uploads/avatar-abc.jpg",
+    "member_since": "2024-01-15 09:00:00"
+  }
+}</code></pre>
+
+    <h3>Using bearer tokens with existing endpoints</h3>
+
+    <p>All authenticated member-api endpoints (<code>me</code>, <code>profile</code>, <code>password</code>, <code>logout</code>) also accept bearer tokens as an alternative to session cookies. When using a bearer token, CSRF tokens are not required.</p>
+
+    <pre><code>// Update profile via bearer token — no CSRF needed
+const res = await fetch('https://example.com/outpost/member-api.php?action=profile', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+  body: JSON.stringify({ display_name: 'Jane M. Smith' }),
+});</code></pre>
+
+    <h2>CORS configuration</h2>
+
+    <p>By default, the Member API allows cross-origin requests only from <code>localhost</code> (for development). To allow requests from mobile apps or external frontends, set the <code>api_cors_origins</code> setting:</p>
+
+    <table class="schema-table">
+      <thead><tr><th>Value</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><em>(not set)</em></td><td>Only <code>localhost</code> origins are allowed (development default).</td></tr>
+        <tr><td><code>*</code></td><td>All origins are allowed. Use this for mobile apps that send requests from native code.</td></tr>
+        <tr><td><code>https://app.example.com, https://www.example.com</code></td><td>Only the listed origins are allowed (comma-separated).</td></tr>
+      </tbody>
+    </table>
+
+    <p>Set via the Admin API:</p>
+    <pre><code>PUT api.php?action=settings
+{ "api_cors_origins": "*" }</code></pre>
+
+    <p>Or insert directly into the SQLite database:</p>
+    <pre><code>INSERT INTO settings (key, value) VALUES ('api_cors_origins', '*')
+  ON CONFLICT(key) DO UPDATE SET value = excluded.value;</code></pre>
+
     <h2>Member roles</h2>
 
     <p>Members can have one of two roles:</p>

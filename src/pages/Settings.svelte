@@ -10,6 +10,7 @@
   import IntegrationsSettings from './settings/IntegrationsSettings.svelte';
   import ImportSettings from './settings/ImportSettings.svelte';
   import AdvancedSettings from './settings/AdvancedSettings.svelte';
+  import FeaturesSettings from './settings/FeaturesSettings.svelte';
   import UpdateSettings from './settings/UpdateSettings.svelte';
 
   let settings = $state({});
@@ -27,6 +28,7 @@
     { id: 'integrations', label: 'Integrations' },
     { id: 'import', label: 'Import' },
     { id: 'advanced', label: 'Advanced' },
+    { id: 'features', label: 'Features' },
     { id: 'updates', label: 'Updates' },
   ];
 
@@ -110,6 +112,8 @@
         <ImportSettings />
       {:else if section === 'advanced'}
         <AdvancedSettings {settings} {onSettingChange} />
+      {:else if section === 'features'}
+        <FeaturesSettings />
       {:else if section === 'updates'}
         <UpdateSettings />
       {/if}

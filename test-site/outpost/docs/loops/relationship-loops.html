@@ -1,390 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relationship Loops — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Relationship Loops — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Relationship Loops</h1>
-    <p class="lead">Link collection items together with relationship fields. Editors hand-pick related items from any collection &mdash; the template receives full item data in the order they were selected, making it easy to build curated content connections.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Relationship Loops</h1>
+ <p class="lead">Link collection items together with relationship fields. Editors hand-pick related items from any collection &mdash; the template receives full item data in the order they were selected, making it easy to build curated content connections.</p>
+ </div>
+ <div class="content">
 
-    <h2>What Is a Relationship Field?</h2>
-    <p>A relationship field is a schema field type that stores references to items from another collection (or the same collection). Instead of the editor typing an ID or URL, they select items from a searchable list in the admin. The template receives the full item data for each selected item &mdash; the same shape as what you get inside a regular collection loop.</p>
-    <p>Common uses include related posts, featured products, curated reading lists, cross-linked team members, and any pattern where an editor needs to hand-pick specific items from a collection.</p>
+ <h2>What Is a Relationship Field?</h2>
+ 
 
-    <div class="callout callout-note"><strong>Note</strong> &mdash; Relationship fields are defined per collection schema. Go to Admin &rarr; Collections &rarr; select a collection &rarr; Edit Schema &rarr; Add Field &rarr; choose type <strong>Relationship</strong>, then configure the target collection and selection options.</div>
+ <h3>Syntax</h3>
+ <p>Use <code>&lt;outpost-each relationship="field_name"&gt;</code> to loop over a relationship field. Inside the loop, access item fields with <code>data-outpost</code> attributes.</p>
+ <pre><code>&lt;outpost-each relationship="field_name"&gt;
+ &lt;h3 data-outpost="title"&gt;&lt;/h3&gt;
+ &lt;a data-outpost-href="url"&gt;View&lt;/a&gt;
+&lt;/outpost-each&gt;</code></pre>
 
-    <h2>Basic Syntax</h2>
-    <p>Loop over a relationship field using the <code>relationship.</code> prefix. Each iteration yields a full item object with the same fields as a collection loop item.</p>
-    <pre><code>{% for item in relationship.field_name %}
-  {{ item.title }}
-  {{ item.url }}
-{% endfor %}</code></pre>
+ <h3>Related Posts Example </h3>
+ <pre><code>&lt;section class="related-posts"&gt;
+ &lt;h2&gt;Related Posts&lt;/h2&gt;
+ &lt;div class="related-grid"&gt;
+ &lt;outpost-each relationship="related_posts"&gt;
+ &lt;a class="related-card"&gt;
+ &lt;img data-outpost-src="featured_image" alt=""&gt;
+ &lt;h3 data-outpost="title"&gt;&lt;/h3&gt;
+ &lt;p data-outpost="excerpt"&gt;&lt;/p&gt;
+ &lt;/a&gt;
+ &lt;/outpost-each&gt;
+ &lt;/div&gt;
+&lt;/section&gt;</code></pre>
 
-    <p>Where:</p>
-    <ul>
-      <li><code>relationship.field_name</code> identifies the relationship field by its machine name in the schema</li>
-      <li><code>item</code> is the loop variable representing one related item</li>
-      <li>Each item has the same fields as a regular collection loop item: <code>title</code>, <code>url</code>, <code>slug</code>, <code>published_at</code>, <code>featured_image</code>, <code>excerpt</code>, <code>body</code>, plus all custom fields from the target collection's schema</li>
-    </ul>
+ <h3>Cross-Collection Relationship </h3>
+ <p>Event with featured speakers from a <code>member</code> collection:</p>
+ <pre><code>&lt;section class="speakers"&gt;
+ &lt;h2&gt;Speakers&lt;/h2&gt;
+ &lt;div class="speaker-grid"&gt;
+ &lt;outpost-each relationship="speakers"&gt;
+ &lt;div class="speaker-card"&gt;
+ &lt;img data-outpost-src="photo" alt="" class="speaker-photo"&gt;
+ &lt;h3 data-outpost="title"&gt;&lt;/h3&gt;
+ &lt;p class="speaker-role" data-outpost="role"&gt;&lt;/p&gt;
+ &lt;/div&gt;
+ &lt;/outpost-each&gt;
+ &lt;/div&gt;
+&lt;/section&gt;</code></pre>
 
-    <h2>Available Fields</h2>
-    <p>Related items expose the same fields as items in a <code>{% for x in collection.slug %}</code> loop. All standard and custom fields from the target collection are accessible.</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>title</code></td>
-          <td>string</td>
-          <td>Item title</td>
-        </tr>
-        <tr>
-          <td><code>slug</code></td>
-          <td>string</td>
-          <td>URL slug</td>
-        </tr>
-        <tr>
-          <td><code>url</code></td>
-          <td>string</td>
-          <td>Full URL built from the target collection's url_pattern</td>
-        </tr>
-        <tr>
-          <td><code>featured_image</code></td>
-          <td>string</td>
-          <td>Image URL (empty string if not set)</td>
-        </tr>
-        <tr>
-          <td><code>excerpt</code></td>
-          <td>string</td>
-          <td>Short description</td>
-        </tr>
-        <tr>
-          <td><code>body</code></td>
-          <td>html</td>
-          <td>Rich text body &mdash; use <code>| raw</code> to render</td>
-        </tr>
-        <tr>
-          <td><code>published_at</code></td>
-          <td>string</td>
-          <td>Formatted publish date</td>
-        </tr>
-        <tr>
-          <td><code>{custom_field}</code></td>
-          <td>varies</td>
-          <td>Any field defined in the target collection's schema</td>
-        </tr>
-      </tbody>
-    </table>
+ 
 
-    <h2>Item Order</h2>
-    <p>Items are returned in the order the editor selected them in the admin &mdash; not by publish date or alphabetical order. This makes relationship fields ideal for curated lists where the order matters.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you want an editorially curated "Featured Posts" section, a relationship field gives the editor full control over both which posts appear and in what order &mdash; unlike <code>limit:3</code> which always shows the most recent items.</div>
-
-    <h2>Related Posts Example</h2>
-    <p>A blog post detail page with a "Related Posts" section. The <code>post</code> collection has a <code>related_posts</code> relationship field targeting the same <code>post</code> collection.</p>
-    <pre><code>{% single post from collection.post %}
-  &lt;article&gt;
-    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-    &lt;time&gt;{{ post.published_at }}&lt;/time&gt;
-    &lt;div class="prose"&gt;{{ post.body | raw }}&lt;/div&gt;
-  &lt;/article&gt;
-
-  {% if post.related_posts %}
-    &lt;section class="related-posts"&gt;
-      &lt;h2&gt;Related Posts&lt;/h2&gt;
-      &lt;div class="related-grid"&gt;
-        {% for related in relationship.related_posts %}
-          &lt;a href="{{ related.url }}" class="related-card"&gt;
-            {% if related.featured_image %}
-              &lt;img src="{{ related.featured_image }}" alt="{{ related.title }}"&gt;
-            {% endif %}
-            &lt;h3&gt;{{ related.title }}&lt;/h3&gt;
-            {% if related.excerpt %}
-              &lt;p&gt;{{ related.excerpt }}&lt;/p&gt;
-            {% endif %}
-          &lt;/a&gt;
-        {% endfor %}
-      &lt;/div&gt;
-    &lt;/section&gt;
-  {% endif %}
-{% else %}
-  &lt;p&gt;Post not found.&lt;/p&gt;
-{% endsingle %}</code></pre>
-
-    <h2>Cross-Collection Relationships</h2>
-    <p>Relationship fields can target a different collection than the one they belong to. This enables cross-linking between content types.</p>
-
-    <h3>Product with related case studies</h3>
-    <pre><code>{% single product from collection.product %}
-  &lt;article&gt;
-    &lt;h1&gt;{{ product.title }}&lt;/h1&gt;
-    {{ product.body | raw }}
-
-    {% if product.case_studies %}
-      &lt;section class="case-studies"&gt;
-        &lt;h2&gt;Case Studies&lt;/h2&gt;
-        {% for study in relationship.case_studies %}
-          &lt;div class="case-study-card"&gt;
-            {% if study.featured_image %}
-              &lt;img src="{{ study.featured_image }}" alt="{{ study.title }}"&gt;
-            {% endif %}
-            &lt;h3&gt;&lt;a href="{{ study.url }}"&gt;{{ study.title }}&lt;/a&gt;&lt;/h3&gt;
-            &lt;p&gt;{{ study.excerpt }}&lt;/p&gt;
-            {% if study.client %}
-              &lt;span class="client"&gt;{{ study.client }}&lt;/span&gt;
-            {% endif %}
-          &lt;/div&gt;
-        {% endfor %}
-      &lt;/section&gt;
-    {% endif %}
-  &lt;/article&gt;
-{% endsingle %}</code></pre>
-
-    <h3>Event with featured speakers</h3>
-    <pre><code>{% single event from collection.event %}
-  &lt;article&gt;
-    &lt;h1&gt;{{ event.title }}&lt;/h1&gt;
-    &lt;p class="event-date"&gt;{{ event.date }}&lt;/p&gt;
-    {{ event.body | raw }}
-
-    {% if event.speakers %}
-      &lt;section class="speakers"&gt;
-        &lt;h2&gt;Speakers&lt;/h2&gt;
-        &lt;div class="speaker-grid"&gt;
-          {% for speaker in relationship.speakers %}
-            &lt;div class="speaker-card"&gt;
-              {% if speaker.photo %}
-                &lt;img src="{{ speaker.photo | image }}" alt="{{ speaker.title }}"
-                     class="speaker-photo"&gt;
-              {% endif %}
-              &lt;h3&gt;{{ speaker.title }}&lt;/h3&gt;
-              {% if speaker.role %}
-                &lt;p class="speaker-role"&gt;{{ speaker.role }}&lt;/p&gt;
-              {% endif %}
-            &lt;/div&gt;
-          {% endfor %}
-        &lt;/div&gt;
-      &lt;/section&gt;
-    {% endif %}
-  &lt;/article&gt;
-{% endsingle %}</code></pre>
-
-    <h2>Schema Configuration</h2>
-    <p>When adding a relationship field to a collection schema, you configure the following options:</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Option</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Target collection</strong></td>
-          <td>The collection to select items from (e.g., <code>post</code>, <code>product</code>, <code>member</code>). Can be the same collection or a different one.</td>
-        </tr>
-        <tr>
-          <td><strong>Multiple / Single</strong></td>
-          <td>Whether the editor can select multiple items or just one. Multiple returns a list (use a <code>{% for %}</code> loop); single returns one item.</td>
-        </tr>
-        <tr>
-          <td><strong>Max items</strong></td>
-          <td>Optional cap on the number of items the editor can select. Useful for constrained layouts like a "Top 3 Picks" section.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>Empty Relationship</h2>
-    <p>If the editor has not selected any items, the loop body is silently skipped. Guard the surrounding markup with an <code>{% if %}</code> check to avoid rendering empty containers.</p>
-    <pre><code>{% if post.related_posts %}
-  &lt;section class="related"&gt;
-    &lt;h2&gt;You might also like&lt;/h2&gt;
-    {% for related in relationship.related_posts %}
-      &lt;a href="{{ related.url }}"&gt;{{ related.title }}&lt;/a&gt;
-    {% endfor %}
-  &lt;/section&gt;
-{% endif %}</code></pre>
-
-    <h2>Common Use Cases</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Use case</th>
-          <th>Field name</th>
-          <th>Source collection</th>
-          <th>Target collection</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Related posts</td>
-          <td><code>related_posts</code></td>
-          <td><code>post</code></td>
-          <td><code>post</code> (same)</td>
-        </tr>
-        <tr>
-          <td>Featured products</td>
-          <td><code>featured_products</code></td>
-          <td><code>page</code> (homepage)</td>
-          <td><code>product</code></td>
-        </tr>
-        <tr>
-          <td>Author profile</td>
-          <td><code>author</code></td>
-          <td><code>post</code></td>
-          <td><code>member</code></td>
-        </tr>
-        <tr>
-          <td>Event speakers</td>
-          <td><code>speakers</code></td>
-          <td><code>event</code></td>
-          <td><code>member</code></td>
-        </tr>
-        <tr>
-          <td>Product case studies</td>
-          <td><code>case_studies</code></td>
-          <td><code>product</code></td>
-          <td><code>case-study</code></td>
-        </tr>
-        <tr>
-          <td>Curated reading list</td>
-          <td><code>reading_list</code></td>
-          <td><code>page</code></td>
-          <td><code>post</code></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>Relationship vs. related: Option</h2>
-    <p>The <code>related:</code> loop option and relationship fields both show related content, but they work differently.</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Relationship field</th>
-          <th><code>related:</code> loop option</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Editor hand-picks specific items</td>
-          <td>Automatically finds items sharing folder labels</td>
-        </tr>
-        <tr>
-          <td>Order is controlled by the editor</td>
-          <td>Order is determined by relevance (shared labels)</td>
-        </tr>
-        <tr>
-          <td>Can link across different collections</td>
-          <td>Only works within the same collection</td>
-        </tr>
-        <tr>
-          <td>Always shows exactly what was selected</td>
-          <td>Results vary as folder labels change</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Use a relationship field when the editor needs precise control over which items appear. Use <code>related:</code> when you want an automatic, hands-off "similar items" section based on folder label overlap.</div>
-
-    <h2>Complete Example: Blog Post with Author and Related</h2>
-    <p>A <code>post.html</code> template where the <code>post</code> collection has both an <code>author</code> relationship field (single, targeting <code>member</code>) and a <code>related_posts</code> relationship field (multiple, targeting <code>post</code>).</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-{% single post from collection.post %}
-&lt;main&gt;
-  &lt;article class="post"&gt;
-    {% if post.featured_image %}
-      &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}" class="post-hero"&gt;
-    {% endif %}
-
-    &lt;header class="post-header"&gt;
-      &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-      &lt;div class="post-meta"&gt;
-        &lt;time&gt;{{ post.published_at }}&lt;/time&gt;
-
-        {% for author in relationship.author %}
-          &lt;div class="author-byline"&gt;
-            {% if author.photo %}
-              &lt;img src="{{ author.photo | image }}" alt="{{ author.title }}" class="author-avatar"&gt;
-            {% endif %}
-            &lt;a href="{{ author.url }}"&gt;{{ author.title }}&lt;/a&gt;
-          &lt;/div&gt;
-        {% endfor %}
-      &lt;/div&gt;
-    &lt;/header&gt;
-
-    &lt;div class="prose"&gt;{{ post.body | raw }}&lt;/div&gt;
-  &lt;/article&gt;
-
-  {% if post.related_posts %}
-    &lt;section class="related-posts"&gt;
-      &lt;h2&gt;You might also like&lt;/h2&gt;
-      &lt;div class="related-grid"&gt;
-        {% for related in relationship.related_posts %}
-          &lt;article class="related-card"&gt;
-            {% if related.featured_image %}
-              &lt;img src="{{ related.featured_image }}" alt="{{ related.title }}"&gt;
-            {% endif %}
-            &lt;h3&gt;&lt;a href="{{ related.url }}"&gt;{{ related.title }}&lt;/a&gt;&lt;/h3&gt;
-            &lt;p&gt;{{ related.excerpt | or_body }}&lt;/p&gt;
-            &lt;time&gt;{{ related.published_at }}&lt;/time&gt;
-          &lt;/article&gt;
-        {% endfor %}
-      &lt;/div&gt;
-    &lt;/section&gt;
-  {% endif %}
-&lt;/main&gt;
-{% else %}
-&lt;main&gt;
-  &lt;p&gt;Post not found.&lt;/p&gt;
-&lt;/main&gt;
-{% endsingle %}
-
-{% include 'footer' %}</code></pre>
-
-    <pre><code>.related-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-}
-.related-card img {
-  width: 100%;
-  aspect-ratio: 16/9;
-  object-fit: cover;
-  border-radius: 8px;
-}
-.author-byline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.author-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}</code></pre>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

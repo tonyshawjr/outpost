@@ -295,6 +295,11 @@ export const settings = {
     request('settings', { method: 'PUT', body: data }),
 };
 
+export const featureFlags = {
+  get: () => request('settings/features'),
+  update: (flags) => request('settings/features', { method: 'PUT', body: { feature_flags: flags } }),
+};
+
 // Updates
 export const updates = {
   check: (force = false) =>

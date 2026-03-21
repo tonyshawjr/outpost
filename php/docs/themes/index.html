@@ -1,108 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theme Architecture — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Theme Architecture — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Theme Architecture</h1>
-    <p class="lead">Outpost themes are directories of Liquid-style <code>.html</code> template files. There is no PHP in themes — you write plain HTML with template tags, and Outpost compiles it.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Theme Architecture</h1>
+ <p class="lead">Outpost themes are directories of <code>.html</code> template files. There is no PHP in themes — you write plain HTML with template tags, and Outpost compiles it.</p>
+ </div>
+ <div class="content">
 
-    <h2>How themes work</h2>
-    <p>Outpost's theme system is built around a simple idea: your templates should look like HTML, not PHP. You write <code>.html</code> files with Liquid-style tags (<code>{{ field }}</code>, <code>{% for %}</code>, <code>{% if %}</code>), and Outpost's template engine compiles them into cached PHP at runtime.</p>
-    <p>This separation has a practical benefit for site builders: you can hand a theme to a designer who has never touched PHP, and they can read and edit the templates without confusion. The compiled PHP lives in a cache directory and is never meant to be touched directly.</p>
-    <p>The compile step happens automatically on first request — and again any time you modify a template file. Outpost compares the file modification time of the <code>.html</code> source against the cached <code>.php</code> output, and recompiles if the source is newer. You never need to manually trigger a build.</p>
+ <h2>How themes work</h2>
+ 
 
-    <h2>Template engine pipeline</h2>
-    <p>When a request comes in for a page, the following happens:</p>
-    <ol>
-      <li>The router determines which <code>.html</code> template file corresponds to the URL.</li>
-      <li>The template engine checks whether a compiled cache exists at <code>outpost/cache/templates/{hash}.php</code>.</li>
-      <li>If the cache is stale or missing, the <code>.html</code> source is compiled into PHP and written to the cache directory.</li>
-      <li>The compiled PHP is <code>require</code>d, executing the template with the current page context.</li>
-    </ol>
-    <p>The hash used for the cache filename is an MD5 of the template file's real path, ensuring each template gets a stable, unique cache entry regardless of how the theme is organized.</p>
+ <h3>Why ?</h3>
+ <ul>
+ <li><strong>Valid HTML</strong> — templates are valid HTML that can be opened directly in a browser. Default content is visible, making templates double as design mockups.</li>
+ <li><strong>Familiar to designers</strong> — No new syntax to learn. It is just HTML with data attributes.</li>
+ <li><strong>Tool-friendly</strong> — Standard HTML means full support in every code editor, linter, and browser dev tool without plugins.</li>
+ </ul>
 
-    <div class="callout callout-note"><strong>Note</strong> — Partials are compiled and cached independently. When a template includes a partial, the partial gets its own cache entry. This means changing a partial invalidates only that partial's cache, not every template that uses it.</div>
+ <h3>Auto-Detection</h3>
+ 
+ <p>Partials follow the same rule: a templates can include a partial, and a template can include a partial. Cross-engine partial includes are not supported.</p>
 
-    <h2>Theme directory structure</h2>
-    <p>A theme lives in its own directory under <code>outpost/themes/</code>. The directory name becomes the theme's slug and is used internally to reference the theme. Here is a complete example structure:</p>
-    <pre><code>outpost/themes/my-theme/
-  theme.json            ← required — display name, version, author, description
-  index.html            ← / route (homepage)
-  about.html            ← /about route
-  blog.html             ← /blog route
-  post.html             ← collection single (e.g. /post/{slug})
-  contact.html          ← /contact route
-  404.html              ← optional custom 404 page
-  partials/
-    head.html           ← standard: DOCTYPE through &lt;body&gt; opening tag
-    nav.html            ← standard: site navigation
-    footer.html         ← standard: &lt;/body&gt;&lt;/html&gt; and scripts
-    sidebar.html        ← custom partial example
-  assets/
-    style.css
-    main.js
-    logo.svg</code></pre>
+ <h3>Syntax Quick Reference</h3>
+ <table>
+ <thead>
+ <tr><th>Feature</th><th>Syntax</th></tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>Collection loop</td>
+ <td><code>&lt;outpost-each collection="slug"&gt;</code></td>
+ <td><code>&lt;outpost-each collection="slug"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Single item</td>
+ <td><code>&lt;outpost-single collection="slug"&gt;</code></td>
+ <td><code>&lt;outpost-single collection="slug"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Menu</td>
+ <td><code>&lt;outpost-menu name="main"&gt;</code></td>
+ <td><code>&lt;outpost-menu name="main"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Folder loop</td>
+ <td><code>&lt;outpost-each folder="slug"&gt;</code></td>
+ <td><code>&lt;outpost-each folder="slug"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Gallery loop</td>
+ <td><code>&lt;outpost-each gallery="name"&gt;</code></td>
+ <td><code>&lt;outpost-each gallery="name"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Repeater loop</td>
+ <td><code>&lt;outpost-each repeat="name"&gt;</code></td>
+ <td><code>&lt;outpost-each repeat="name"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Pagination</td>
+ <td><code>&lt;outpost-pagination /&gt;</code></td>
+ <td><code>&lt;outpost-pagination /&gt;</code></td>
+ </tr>
+ <tr>
+ <td>SEO meta</td>
+ <td><code>&lt;outpost-meta title="Default" /&gt;</code></td>
+ <td><code>&lt;outpost-seo /&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Empty fallback</td>
+ <td><code>&lt;outpost-else&gt;</code> inside loop</td>
+ <td><code>&lt;outpost-each collection="slug" empty&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Not-found fallback</td>
+ <td><code>&lt;outpost-else&gt;</code> inside single</td>
+ <td><code>&lt;outpost-single collection="slug" else&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Text field</td>
+ <td><code>data-outpost="title"</code></td>
+ <td><code>&lt;h2 data-outpost="title"&gt;Default&lt;/h2&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Rich text</td>
+ <td><code>data-outpost="body" data-type="raw"</code></td>
+ <td><code>&lt;div data-outpost="body" data-type="raw"&gt;&lt;/div&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Image</td>
+ <td><code>data-outpost="image" data-type="image"</code></td>
+ <td><code>&lt;img data-outpost="image" data-type="image"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Link</td>
+ <td><code>&lt;a data-outpost="url" data-type="link"&gt;</code></td>
+ <td><code>&lt;a data-outpost="url" data-type="link"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Attribute binding</td>
+ <td>N/A</td>
+ <td><code>data-bind="datetime:date"</code></td>
+ </tr>
+ </tbody>
+ </table>
 
-    <h2>URL routing overview</h2>
-    <p>Template files map directly to URL paths. The router converts a URL path into a filename by taking the first path segment and appending <code>.html</code>:</p>
-    <table>
-      <thead>
-        <tr><th>URL</th><th>Template file</th><th>Notes</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/</code></td><td><code>index.html</code></td><td>Homepage</td></tr>
-        <tr><td><code>/about</code></td><td><code>about.html</code></td><td>Static page</td></tr>
-        <tr><td><code>/blog</code></td><td><code>blog.html</code></td><td>Collection list page</td></tr>
-        <tr><td><code>/post/hello-world</code></td><td><code>post.html</code></td><td>Collection single; <code>?slug=hello-world</code> set automatically</td></tr>
-        <tr><td><code>/contact</code></td><td><code>contact.html</code></td><td>Static page</td></tr>
-        <tr><td><em>no match</em></td><td><code>404.html</code></td><td>Falls back to built-in 404 if file missing</td></tr>
-      </tbody>
-    </table>
-    <p>Collection URL patterns (configured in Admin → Collections → URL Pattern) tell the router which two-segment URLs belong to a collection. For example, setting the pattern to <code>/post/{slug}</code> means any request matching <code>/post/*</code> is routed to <code>post.html</code> with the slug passed as a query parameter.</p>
-    <p>See <a href="themes/routing.html">Routing</a> for the full algorithm including draft blocking, visibility, and the difference between the dev server and production.</p>
+ <h3>Compile and Cache Behavior</h3>
+ <p>templates follow the same compile-and-cache pipeline as . The <code>.html</code> source is compiled into cached PHP at <code>outpost/cache/templates/{hash}.php</code> on first request. File modification time is compared on each request, and the cache is rebuilt if the source is newer. Clearing <code>cache/templates/</code> forces a full recompile.</p>
 
-    <h2>Field auto-registration</h2>
-    <p>One of Outpost's most useful features is that you never have to manually define fields in the admin before using them in a template. When a template is compiled for the first time, Outpost scans all the template tags and registers any new fields it finds in the database.</p>
-    <p>This means the workflow is: write your template, activate the theme, load the page once — and the fields appear in the admin ready to be filled in. You do not need to visit a "field settings" screen before the template works.</p>
-    <p>The same auto-registration happens for global fields (<code>{{ @global_name }}</code>), meta tags, and collection fields. The field type is inferred from the filter used — <code>{{ hero_image | image }}</code> registers as an image picker, <code>{{ bio | textarea }}</code> registers as a textarea, and so on.</p>
+ <h3>Field Auto-Registration</h3>
+ <p>templates participate in the same auto-registration system as . When a templates is compiled, Outpost scans all <code>data-outpost</code> attributes and registers any new fields in the database. The <code>data-type</code> attribute determines the field type (image, raw, link, textarea, etc.).</p>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — If you remove a field tag from a template, the field data in the database is not deleted — it simply stops appearing in the admin editor for that page. This is intentional: removing a field from a template is non-destructive. If you add the tag back later, the previously entered content will still be there.</div>
+ 
 
-    <h2>Active theme</h2>
-    <p>Only one theme is active at a time. The active theme is stored in the <code>settings</code> table under the key <code>active_theme</code>. You can change it through Admin → Themes → Activate, or by directly updating that database value.</p>
-    <p>When you activate a theme, Outpost immediately scans all its template files and scaffolds any fields that do not yet exist in the database. This means activating a brand-new theme on an existing site is safe — it creates the new field stubs without touching any existing content.</p>
-
-    <h2>Multiple themes</h2>
-    <p>You can have as many themes installed as you like. Only the active theme is rendered for visitors. The others sit in <code>outpost/themes/</code> untouched. This makes it easy to:</p>
-    <ul>
-      <li>Stage a redesign as a new theme and switch over when ready</li>
-      <li>Keep a backup copy of the previous theme</li>
-      <li>Offer multiple theme options for a multi-site setup</li>
-    </ul>
-
-    <h2>Theme duplication</h2>
-    <p>The admin provides a Duplicate button on each theme card. Duplicating a theme creates a complete copy — all template files, partials, and assets — under a new directory slug. The duplicate gets a new name based on the original (e.g., <code>my-theme-copy</code>).</p>
-    <p>Duplication is the recommended way to start a customization. Duplicate the base theme, activate the copy, and edit freely. The original stays intact as a reference or rollback point.</p>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — Deleting a theme removes its directory from disk. This cannot be undone. Make sure you are not deleting the active theme — Outpost will prevent this, but always double-check before deleting.</div>
-
-    <h2>Legacy PHP themes</h2>
-    <p>If a theme directory contains an <code>index.php</code> file at its root, Outpost treats it as a legacy PHP theme and <code>require</code>s that file directly, bypassing the Liquid compiler entirely. This exists for backward compatibility only. All new themes should use Liquid <code>.html</code> templates.</p>
-    <p>There is no migration tool to convert a PHP theme to Liquid — but in practice the conversion is straightforward: replace PHP <code>echo</code> calls with <code>{{ }}</code> tags and PHP control structures with <code>{% %}</code> blocks.</p>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

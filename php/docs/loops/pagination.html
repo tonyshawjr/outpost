@@ -1,217 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagination — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Pagination — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Pagination</h1>
-    <p class="lead">Split long lists across multiple pages. One option on the loop, one tag after it — pagination handles the rest automatically.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Pagination</h1>
+ <p class="lead">Split long lists across multiple pages. One option on the loop, one tag after it — pagination handles the rest automatically.</p>
+ </div>
+ <div class="content">
 
-    <h2>Setup</h2>
-    <p>Add <code>paginate:N</code> to a collection loop and place <code>{% pagination %}</code> immediately after the closing <code>{% endfor %}</code>. That is all that is required.</p>
-    <pre><code>{% for post in collection.post paginate:10 %}
-  &lt;article&gt;
-    &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-    &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
-  &lt;/article&gt;
-{% endfor %}
+ <h2>Setup</h2>
+ <p>Add <code>paginate:N</code> to a collection loop and place <code>&lt;outpost-pagination /&gt;</code> immediately after the closing <code>&lt;/outpost-each&gt;</code>. That is all that is required.</p>
+ 
 
-{% pagination %}</code></pre>
+ 
 
-    <div class="callout callout-note"><strong>Note</strong> — <code>{% pagination %}</code> must appear after the loop that uses <code>paginate:N</code>. It reads internal state set by the loop and renders nothing if placed before it or on a page with no paginated loop.</div>
-
-    <h2>URL Format</h2>
-    <p>The first page has no query parameter — it is the default URL for the page. Subsequent pages append <code>?page=N</code>:</p>
-    <table>
-      <thead>
-        <tr><th>Page</th><th>URL</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>1 (first)</td><td><code>/blog</code></td></tr>
-        <tr><td>2</td><td><code>/blog?page=2</code></td></tr>
-        <tr><td>3</td><td><code>/blog?page=3</code></td></tr>
-      </tbody>
-    </table>
-
-    <h2>What the Pagination Tag Renders</h2>
-    <p><code>{% pagination %}</code> outputs a <code>&lt;nav&gt;</code> element with numbered page links, Previous and Next buttons, and ellipsis spacers for large page counts. It renders nothing at all when there is only one page.</p>
-    <pre><code>&lt;nav class="pagination"&gt;
-  &lt;a href="/blog" class="page-link"&gt;Previous&lt;/a&gt;
-  &lt;a href="/blog" class="page-link page-current"&gt;1&lt;/a&gt;
-  &lt;a href="/blog?page=2" class="page-link"&gt;2&lt;/a&gt;
-  &lt;a href="/blog?page=3" class="page-link"&gt;3&lt;/a&gt;
-  &lt;span class="page-ellipsis"&gt;...&lt;/span&gt;
-  &lt;a href="/blog?page=9" class="page-link"&gt;9&lt;/a&gt;
-  &lt;a href="/blog?page=2" class="page-link"&gt;Next&lt;/a&gt;
-&lt;/nav&gt;</code></pre>
-
-    <h3>CSS Classes</h3>
-    <table>
-      <thead>
-        <tr><th>Class</th><th>Element</th><th>Description</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>.pagination</code></td><td><code>&lt;nav&gt;</code></td><td>Outer container</td></tr>
-        <tr><td><code>.page-link</code></td><td><code>&lt;a&gt;</code></td><td>Every page link and Prev/Next button</td></tr>
-        <tr><td><code>.page-link.page-current</code></td><td><code>&lt;a&gt;</code></td><td>The currently active page number</td></tr>
-        <tr><td><code>.page-ellipsis</code></td><td><code>&lt;span&gt;</code></td><td>The <code>...</code> gap indicator</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Styling Pagination</h2>
-    <p>Add these rules to your theme's <code>style.css</code> to get clean, functional pagination. Adjust colors to match your design.</p>
-    <pre><code>.pagination {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 40px 0;
-  flex-wrap: wrap;
-}
-
-.page-link {
-  padding: 8px 14px;
-  border: 1px solid #e4e4e7;
-  border-radius: 6px;
-  text-decoration: none;
-  color: #52525b;
-  font-size: 14px;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.page-link:hover {
-  border-color: #a1a1aa;
-  color: #18181b;
-}
-
-.page-link.page-current {
-  background: #14b8a6;
-  color: #fff;
-  border-color: #14b8a6;
-  font-weight: 600;
-}
-
-.page-ellipsis {
-  padding: 8px 6px;
-  color: #a1a1aa;
-  font-size: 14px;
-}</code></pre>
-
-    <h2>Query String Preservation</h2>
-    <p>When a folder filter is active, pagination links automatically carry the filter forward. A visitor browsing <code>/blog?category=technology&amp;page=3</code> gets pagination links that keep <code>category=technology</code> in every URL.</p>
-    <pre><code>?category=technology          ← page 1
-?category=technology&amp;page=2  ← page 2
-?category=technology&amp;page=3  ← page 3</code></pre>
-    <p>This works automatically — no extra configuration needed. Any query parameters present on the current request are preserved in pagination links, except for <code>page</code> itself which is managed by the tag.</p>
-
-    <h2>paginate:N vs limit:N</h2>
-    <p>These two options serve different purposes and cannot be used together.</p>
-    <table>
-      <thead>
-        <tr><th>Option</th><th>Use when</th><th>Pagination nav</th><th>Reads ?page=</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>paginate:N</code></td>
-          <td>Building a browsable archive page</td>
-          <td>Yes — via <code>{% pagination %}</code></td>
-          <td>Yes</td>
-        </tr>
-        <tr>
-          <td><code>limit:N</code></td>
-          <td>Sidebar widgets, homepage previews, "top 5" lists</td>
-          <td>No</td>
-          <td>No</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — Do not use both <code>paginate:N</code> and <code>limit:N</code> on the same loop. The behavior is undefined. Use one or the other.</div>
-
-    <h2>Combining with Filters and Sort</h2>
-    <p>Pagination works alongside all other loop options. The total count respects the active filter, so pagination reflects only the pages within that subset.</p>
-    <pre><code>{% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
-  &lt;article&gt;
-    &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-  &lt;/article&gt;
-{% else %}
-  &lt;p&gt;No posts in this category.&lt;/p&gt;
-{% endfor %}
-
-{% pagination %}</code></pre>
-
-    <h2>Full Blog Archive with Category Tabs</h2>
-    <p>A complete pattern combining folder navigation, filtered pagination, empty states, and styling.</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-&lt;main class="blog-main"&gt;
-
-  &lt;!-- Category filter tabs --&gt;
-  &lt;nav class="category-tabs"&gt;
-    &lt;a href="/blog" class="category-tab"&gt;All&lt;/a&gt;
-    {% for label in folder.categories %}
-      &lt;a href="/blog?category={{ label.slug }}" class="category-tab"&gt;
-        {{ label.name }}
-      &lt;/a&gt;
-    {% endfor %}
-  &lt;/nav&gt;
-
-  &lt;!-- Paginated, filtered posts --&gt;
-  &lt;div class="post-list"&gt;
-    {% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
-      &lt;article class="post-row"&gt;
-        &lt;div class="post-meta"&gt;
-          &lt;time&gt;{{ post.published_at }}&lt;/time&gt;
-        &lt;/div&gt;
-        &lt;div class="post-body"&gt;
-          &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-          &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
-        &lt;/div&gt;
-        {% if post.featured_image %}
-          &lt;a href="{{ post.url }}" class="post-thumb"&gt;
-            &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
-          &lt;/a&gt;
-        {% endif %}
-      &lt;/article&gt;
-    {% else %}
-      &lt;p class="empty-state"&gt;No posts found.&lt;/p&gt;
-    {% endfor %}
-  &lt;/div&gt;
-
-  {% pagination %}
-
-&lt;/main&gt;
-
-{% include 'footer' %}</code></pre>
-
-    <h2>Edge Cases</h2>
-
-    <h3>Fewer Items than the Page Size</h3>
-    <p>If the collection has 7 published items and <code>paginate:10</code> is set, all 7 items show on page 1 and <code>{% pagination %}</code> renders nothing — there is no page 2 to navigate to.</p>
-
-    <h3>Out-of-Range Page Numbers</h3>
-    <p>Requesting <code>?page=999</code> when only 3 pages exist returns an empty loop (the <code>{% else %}</code> branch fires). Pagination still renders, showing the correct page count.</p>
-
-    <h3>Placing {% pagination %} in a Partial</h3>
-    <p>You can include the pagination tag inside a partial, but the partial must be included after the loop closes — not before or inside it.</p>
-    <pre><code>{% for post in collection.post paginate:10 %}
-  ...
-{% endfor %}
-
-{% include 'pagination-bar' %}  {# partials/pagination-bar.html contains {% pagination %} #}</code></pre>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

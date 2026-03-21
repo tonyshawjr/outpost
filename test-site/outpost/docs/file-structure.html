@@ -266,7 +266,7 @@
     <p>Outpost uses two levels of caching:</p>
 
     <h3>cache/templates/</h3>
-    <p>Compiled PHP versions of theme template files. When Outpost renders a template for the first time, it compiles the Liquid-syntax <code>.html</code> file to a plain <code>.php</code> file and saves it here. On subsequent requests, the compiled PHP is loaded directly, skipping the compilation step.</p>
+    <p>Compiled PHP versions of theme template files. When Outpost renders a template for the first time, it compiles the <code>.html</code> template file to a plain <code>.php</code> file and saves it here. On subsequent requests, the compiled PHP is loaded directly, skipping the compilation step.</p>
 
     <p>Outpost checks the modification time of the source <code>.html</code> file against the cached <code>.php</code> file. If the source is newer, the cache is automatically invalidated and recompiled. You never need to manually clear this during development.</p>
 
@@ -284,7 +284,7 @@
     <p>The core CMS functions library. Contains all the functions that theme templates compile down to: <code>cms_text()</code>, <code>cms_richtext()</code>, <code>cms_image()</code>, <code>cms_global()</code>, <code>cms_collection_list()</code>, <code>cms_collection_single()</code>, <code>cms_meta_title()</code>, <code>outpost_init()</code>, and many more. This file is included at the top of every compiled template.</p>
 
     <h3>template-engine.php</h3>
-    <p>The Liquid-to-PHP compiler. Contains the <code>OutpostTemplate</code> class with its <code>render()</code> and <code>compile()</code> methods. When a request comes in, the router calls <code>OutpostTemplate::render($templateFile, $themeDir)</code>, which handles cache checking, compilation, and execution.</p>
+    <p>The template compiler. Contains the <code>OutpostTemplate</code> class with its <code>render()</code> and <code>compile()</code> methods. When a request comes in, the router calls <code>OutpostTemplate::render($templateFile, $themeDir)</code>, which handles cache checking, compilation, and execution.</p>
 
     <h3>front-router.php</h3>
     <p>The PHP built-in server router. When you run <code>php -S localhost:8080 -t . outpost/front-router.php</code>, this file handles every request. It serves static files directly, routes admin requests to the admin SPA, and calls the template engine for all other requests.</p>

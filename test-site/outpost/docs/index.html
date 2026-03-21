@@ -1,244 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Overview — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Overview — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Overview</h1>
-    <p class="lead">Outpost is a developer-first, self-hosted CMS built on PHP 8.x and SQLite. Drop one directory onto any PHP server and you have a fully working content management system — no Composer, no npm on the server, no database server to configure.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Overview</h1>
+ <p class="lead">Outpost is a developer-first, self-hosted CMS built on PHP 8.x and SQLite. Drop one directory onto any PHP server and you have a fully working content management system — no Composer, no npm on the server, no database server to configure.</p>
+ </div>
+ <div class="content">
 
-    <h2>What is Outpost?</h2>
-    <p>Outpost is a self-contained CMS that lives entirely inside a single <code>outpost/</code> directory. Copy it to your server, point your web server at it, and your first HTTP request automatically creates the SQLite database, runs all schema migrations, and seeds default data. There is nothing to install, no package manager to run server-side, and no external services to configure.</p>
+ <h2>What is Outpost?</h2>
+ 
 
-    <p>The admin panel is a Svelte 5 single-page application served from <code>/outpost/</code>. It talks to a REST API at <code>outpost/api.php</code>. The public-facing site is powered by a Liquid-inspired template engine that compiles <code>.html</code> theme files to PHP, caches them on disk, and serves them fast. Editors never touch PHP — they work entirely in the admin panel or in plain <code>.html</code> template files.</p>
+ <table>
+ <thead>
+ <tr>
+ <th>Layer</th>
+ <th>Technology</th>
+ <th>Notes</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>Server runtime</td>
+ <td>PHP 8.x</td>
+ <td>No Composer, no <code>vendor/</code> directory</td>
+ </tr>
+ <tr>
+ <td>Database</td>
+ <td>SQLite via PDO</td>
+ <td>Single file: <code>outpost/data/cms.db</code></td>
+ </tr>
+ <tr>
+ <td>Templates</td>
+ <td>Data-attribute <code>.html</code> files</td>
+ <td>HTML data attributes — compile to PHP, cached per-file on disk</td>
+ </tr>
+ <tr>
+ <td>Admin SPA</td>
+ <td>Svelte 5 (runes syntax)</td>
+ <td>Pre-built artifact in <code>outpost/admin/</code></td>
+ </tr>
+ <tr>
+ <td>Rich text editor</td>
+ <td>TipTap</td>
+ <td>Bundled inside the admin SPA</td>
+ </tr>
+ <tr>
+ <td>Drag-and-drop reorder</td>
+ <td>SortableJS</td>
+ <td>Bundled inside the admin SPA</td>
+ </tr>
+ <tr>
+ <td>Build tool (dev only)</td>
+ <td>Vite 6</td>
+ <td>Only needed when modifying admin source code</td>
+ </tr>
+ </tbody>
+ </table>
 
-    <div class="callout callout-note"><strong>Note</strong> — Outpost is not a hosted service, not a SaaS platform, and not a page builder. It is a directory you copy onto a PHP server you already control. You own everything: the code, the database, the uploads, the templates.</div>
+ <h2>What You Can Build</h2>
+ 
 
-    <h2>Tech Stack</h2>
-    <p>Outpost's entire server-side runtime is vanilla PHP with no third-party dependencies. The admin UI is pre-built — you never need Node.js on the server.</p>
+ <p>Themes are completely standalone. Outpost adds no classes, no JavaScript, and no CSS of its own to the public site output. You have full control over every byte of HTML the site serves.</p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Layer</th>
-          <th>Technology</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Server runtime</td>
-          <td>PHP 8.x</td>
-          <td>No Composer, no <code>vendor/</code> directory</td>
-        </tr>
-        <tr>
-          <td>Database</td>
-          <td>SQLite via PDO</td>
-          <td>Single file: <code>outpost/data/cms.db</code></td>
-        </tr>
-        <tr>
-          <td>Templates</td>
-          <td>Liquid-inspired <code>.html</code> files</td>
-          <td>Compiled to PHP, cached per-file on disk</td>
-        </tr>
-        <tr>
-          <td>Admin SPA</td>
-          <td>Svelte 5 (runes syntax)</td>
-          <td>Pre-built artifact in <code>outpost/admin/</code></td>
-        </tr>
-        <tr>
-          <td>Rich text editor</td>
-          <td>TipTap</td>
-          <td>Bundled inside the admin SPA</td>
-        </tr>
-        <tr>
-          <td>Drag-and-drop reorder</td>
-          <td>SortableJS</td>
-          <td>Bundled inside the admin SPA</td>
-        </tr>
-        <tr>
-          <td>Build tool (dev only)</td>
-          <td>Vite 6</td>
-          <td>Only needed when modifying admin source code</td>
-        </tr>
-      </tbody>
-    </table>
+ <h3>Pages</h3>
+ <p>Pages are CMS-managed content items that map to specific URLs you define in the admin. Unlike collection items, each page is unique. Pages support a rich-text body, custom meta fields, SEO metadata (title, description, Open Graph), and per-page visibility (public, members-only, paid).</p>
 
-    <h2>What You Can Build</h2>
-    <p>Outpost's collection system lets you define any content type, and its template engine gives you full HTML control with no imposed markup, classes, or styles on the public site.</p>
+ <h3>Collections</h3>
+ <p>Collections are repeatable content types. A blog is a collection of posts. A portfolio is a collection of projects. You define the fields for each collection in the admin — text, rich text, image, toggle, select, textarea, repeater, gallery, and more — and Outpost generates the editor UI automatically. In templates, collection items are queried with <code>&lt;outpost-each&gt;</code> loops and individual items with <code>&lt;outpost-single&gt;</code> blocks.</p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Site type</th>
-          <th>How Outpost handles it</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Personal blog</td>
-          <td>One <code>post</code> collection with rich-text body, featured images, author field; single-post template with <code>{% single %}</code></td>
-        </tr>
-        <tr>
-          <td>Portfolio</td>
-          <td>A <code>project</code> collection with gallery fields, case-study body, folders for technology stack</td>
-        </tr>
-        <tr>
-          <td>Magazine / news</td>
-          <td>Multiple collections (<code>article</code>, <code>interview</code>, <code>review</code>), category folders, paginated archive pages</td>
-        </tr>
-        <tr>
-          <td>Membership site</td>
-          <td>Built-in member system with public / members-only / paid visibility tiers on pages and collection items</td>
-        </tr>
-        <tr>
-          <td>Product catalog</td>
-          <td>A <code>product</code> collection with repeater fields for variants, folder for categories, gallery for images</td>
-        </tr>
-        <tr>
-          <td>Documentation site</td>
-          <td>Pages for structure, collections for versioned reference content, global fields for version strings</td>
-        </tr>
-        <tr>
-          <td>Headless API backend</td>
-          <td>Public Content API returns JSON — consume from React, Vue, Next.js, or any other front-end</td>
-        </tr>
-        <tr>
-          <td>Agency multi-site</td>
-          <td>Each client gets an independent <code>outpost/</code> directory on the same server, isolated databases and uploads</td>
-        </tr>
-      </tbody>
-    </table>
+ <h3>Global Fields</h3>
+ <p>Global fields are site-wide variables available in every template. Use them for the site name, tagline, footer copy, social URLs, analytics IDs, or any value that appears on multiple pages. In templates, global fields are accessed with <code>data-outpost="field_name" data-scope="global"</code>.</p>
 
-    <h2>What Outpost Is Not</h2>
-    <p>Understanding Outpost's boundaries helps you choose the right tool.</p>
+ <h3>Members</h3>
+ <p>The member system provides front-end user accounts with email and password authentication. Members are distinct from admin users — they are your site's audience. Pages and collection items can be restricted to logged-in members or a paid-member tier. Built-in member pages handle login, registration, password reset, and profile management without any custom PHP required.</p>
 
-    <p><strong>Not a page builder.</strong> There is no drag-and-drop layout editor. You write HTML templates as a developer. Editors manage content in the admin; developers control presentation in template files.</p>
+ <h3>API</h3>
+ <p>Outpost exposes three APIs. The <strong>Admin API</strong> (used by the admin SPA) requires a session cookie and CSRF token. The <strong>Public Content API</strong> returns collection and page data as JSON without authentication — use it to power a headless front-end or a mobile app. The <strong>Member API</strong> handles member authentication, registration, and profile management from your front-end templates.</p>
 
-    <p><strong>Not a framework.</strong> Outpost does not give you a PHP application routing layer, a dependency injection container, or an ORM. It is a CMS with a defined feature set, not a foundation for arbitrary application code.</p>
+ <h2>How the Template Pipeline Works</h2>
+ <p>When a visitor requests a URL, the following sequence occurs:</p>
 
-    <p><strong>Not a hosted service.</strong> There is no cloud dashboard, no monthly subscription, and no vendor lock-in. You host it on any server you control that runs PHP.</p>
+ <ol>
+ <li><strong>Routing.</strong> The web server forwards all requests to <code>index.php</code> (Apache or Nginx) or <code>front-router.php</code> (PHP built-in dev server). The router maps the URL to a theme template file — for example, <code>/blog</code> maps to <code>themes/active-theme/blog.html</code> and <code>/post/my-first-post</code> maps to <code>post.html</code> with <code>?slug=my-first-post</code>.</li>
+ <li><strong>Cache check.</strong> Outpost checks whether a compiled PHP file exists in <code>outpost/cache/templates/</code> and whether it is newer than the source <code>.html</code> file. If the cache is fresh, it skips compilation.</li>
+ <li><strong>Compilation.</strong> If the cache is stale or missing, the template engine reads the <code>.html</code> source, walks through every data attribute and custom element, and outputs equivalent PHP code. The result is written to disk as a <code>.php</code> file in the template cache directory.</li>
+ <li><strong>Execution.</strong> The compiled PHP file is included. Template output tags resolve to CMS function calls — <code>cms_text()</code>, <code>cms_collection_list()</code>, <code>cms_global()</code> and so on — that query the SQLite database and return content.</li>
+ <li><strong>Output.</strong> The complete HTML response is sent to the browser. Optionally, Outpost can cache the full rendered HTML of each page so that repeat requests skip database queries entirely.</li>
+ </ol>
 
-    <p><strong>Not WordPress.</strong> There is no plugin marketplace, no PHP hooks and filters API, and no theme directory. Outpost is intentionally lean — the entire codebase is readable in an afternoon, and every behaviour is explicit.</p>
+ <p>From a theme developer's perspective this is entirely transparent — you write <code>data-outpost="title"</code> and the page title appears. Compilation and caching happen automatically in the background.</p>
 
-    <h2>Key Concepts</h2>
-    <p>Six systems make up the core of Outpost. A high-level understanding of each will orient you before you dive into the detailed documentation.</p>
+ <div class="callout callout-tip"><strong>Tip</strong> — Because templates are compiled to native PHP, every page load runs at full PHP speed. There is no interpreted template engine executing at request time — just a thin PHP file that calls database functions.</div>
 
-    <h3>Themes</h3>
-    <p>A theme is a directory of <code>.html</code> files that use Outpost's Liquid-inspired template syntax. Each file maps directly to a URL path: <code>index.html</code> handles <code>/</code>, <code>about.html</code> handles <code>/about</code>, <code>post.html</code> handles <code>/post/{slug}</code>, and so on. Templates are compiled to PHP on first request and written to a cache directory — subsequent requests serve the cached version until Outpost detects the source file has been modified.</p>
+ <h2>The Admin Panel</h2>
+ <p>The admin panel lives at <code>/outpost/</code>. This path is reserved — no theme template can conflict with it. The admin is a Svelte 5 SPA that communicates exclusively through the REST API at <code>outpost/api.php</code>. It requires no separate process, no WebSocket server, and no build step on the server.</p>
 
-    <p>Themes are completely standalone. Outpost adds no classes, no JavaScript, and no CSS of its own to the public site output. You have full control over every byte of HTML the site serves.</p>
+ <p>On first visit to <code>/outpost/</code> when no database exists, Outpost bootstraps itself: it creates the SQLite file at <code>outpost/data/cms.db</code>, runs all schema migrations, creates a default admin account, and seeds a starter theme. You are taken directly to the login screen.</p>
 
-    <h3>Pages</h3>
-    <p>Pages are CMS-managed content items that map to specific URLs you define in the admin. Unlike collection items, each page is unique. Pages support a rich-text body, custom meta fields, SEO metadata (title, description, Open Graph), and per-page visibility (public, members-only, paid).</p>
+ <div class="callout callout-warn"><strong>Warning</strong> — The default admin credentials are <code>admin</code> / <code>admin</code>. Change your password immediately after first login via Admin &rarr; Settings &rarr; Account.</div>
 
-    <h3>Collections</h3>
-    <p>Collections are repeatable content types. A blog is a collection of posts. A portfolio is a collection of projects. You define the fields for each collection in the admin — text, rich text, image, toggle, select, textarea, repeater, gallery, and more — and Outpost generates the editor UI automatically. In templates, collection items are queried with <code>{% for %}</code> loops and individual items with <code>{% single %}</code> blocks.</p>
+ <h2>No Server-Side Dependencies</h2>
+ <p>A core design goal of Outpost is that deploying a site requires only copying files. There is no <code>composer install</code> to run, no <code>npm install</code> on the server, no build step, and no cron job required for basic operation. As long as the server runs PHP 8.x with the <code>pdo_sqlite</code> extension enabled, Outpost works.</p>
 
-    <h3>Global Fields</h3>
-    <p>Global fields are site-wide variables available in every template. Use them for the site name, tagline, footer copy, social URLs, analytics IDs, or any value that appears on multiple pages. In templates, global fields are accessed with <code>{{ @field_name }}</code>.</p>
+ <p>The admin SPA is a pre-built artifact — a small set of static JS and CSS files in <code>outpost/admin/</code>. The Svelte source code lives in a separate <code>cms/src/</code> directory and is only relevant when you are modifying the admin UI itself. Most theme developers and all content editors never need to touch it.</p>
 
-    <h3>Members</h3>
-    <p>The member system provides front-end user accounts with email and password authentication. Members are distinct from admin users — they are your site's audience. Pages and collection items can be restricted to logged-in members or a paid-member tier. Built-in member pages handle login, registration, password reset, and profile management without any custom PHP required.</p>
+ <h2>Continue Reading</h2>
+ <table>
+ <thead>
+ <tr>
+ <th>Section</th>
+ <th>What you will learn</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><a href="quick-start.html">Quick Start</a></td>
+ <td>Server requirements, first-boot walkthrough, step-by-step setup</td>
+ </tr>
+ <tr>
+ <td><a href="features/ranger.html">Ranger AI Assistant</a></td>
+ <td>Your built-in AI assistant &mdash; manage your entire site with natural language</td>
+ </tr>
+ <tr>
+ <td><a href="features/releases.html">Releases</a></td>
+ <td>Bundle multiple changes and publish them all at once, with one-click rollback</td>
+ </tr>
+ <tr>
+ <td><a href="file-structure.html">File Structure</a></td>
+ <td>Every file and directory explained; what to preserve on deploy</td>
+ </tr>
+ <tr>
+ <td><a href="deploy.html">Deploy</a></td>
+ <td>Apache and Nginx configuration, file permissions, production checklist</td>
+ </tr>
+ <tr>
+ <td><a href="themes/">Themes</a></td>
+ <td>How to build and activate a theme, URL routing, partials</td>
+ </tr>
+ <tr>
+ <td><a href="template-syntax/">Template Syntax</a></td>
+ <td>All available tags, filters, loops, and conditionals</td>
+ </tr>
+ <tr>
+ <td><a href="content/collections.html">Collections</a></td>
+ <td>Defining content types, field types, querying in templates</td>
+ </tr>
+ <tr>
+ <td><a href="api/">API Reference</a></td>
+ <td>Admin API, Public Content API, and Member API endpoints</td>
+ </tr>
+ <tr>
+ <td><a href="recipes/">Recipes</a></td>
+ <td>Complete worked examples for common site types</td>
+ </tr>
+ <tr>
+ <td><a href="llms.txt">llms.txt</a></td>
+ <td>Full plain-text reference for AI coding assistants and LLMs</td>
+ </tr>
+ </tbody>
+ </table>
 
-    <h3>API</h3>
-    <p>Outpost exposes three APIs. The <strong>Admin API</strong> (used by the admin SPA) requires a session cookie and CSRF token. The <strong>Public Content API</strong> returns collection and page data as JSON without authentication — use it to power a headless front-end or a mobile app. The <strong>Member API</strong> handles member authentication, registration, and profile management from your front-end templates.</p>
-
-    <h2>How the Template Pipeline Works</h2>
-    <p>When a visitor requests a URL, the following sequence occurs:</p>
-
-    <ol>
-      <li><strong>Routing.</strong> The web server forwards all requests to <code>index.php</code> (Apache or Nginx) or <code>front-router.php</code> (PHP built-in dev server). The router maps the URL to a theme template file — for example, <code>/blog</code> maps to <code>themes/active-theme/blog.html</code> and <code>/post/my-first-post</code> maps to <code>post.html</code> with <code>?slug=my-first-post</code>.</li>
-      <li><strong>Cache check.</strong> Outpost checks whether a compiled PHP file exists in <code>outpost/cache/templates/</code> and whether it is newer than the source <code>.html</code> file. If the cache is fresh, it skips compilation.</li>
-      <li><strong>Compilation.</strong> If the cache is stale or missing, the template engine reads the <code>.html</code> source, walks through every Liquid tag, and outputs equivalent PHP code. The result is written to disk as a <code>.php</code> file in the template cache directory.</li>
-      <li><strong>Execution.</strong> The compiled PHP file is included. Template output tags resolve to CMS function calls — <code>cms_text()</code>, <code>cms_collection_list()</code>, <code>cms_global()</code> and so on — that query the SQLite database and return content.</li>
-      <li><strong>Output.</strong> The complete HTML response is sent to the browser. Optionally, Outpost can cache the full rendered HTML of each page so that repeat requests skip database queries entirely.</li>
-    </ol>
-
-    <p>From a theme developer's perspective this is entirely transparent — you write <code>{{ title }}</code> and the page title appears. Compilation and caching happen automatically in the background.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Because templates are compiled to native PHP, every page load runs at full PHP speed. There is no interpreted template engine executing at request time — just a thin PHP file that calls database functions.</div>
-
-    <h2>The Admin Panel</h2>
-    <p>The admin panel lives at <code>/outpost/</code>. This path is reserved — no theme template can conflict with it. The admin is a Svelte 5 SPA that communicates exclusively through the REST API at <code>outpost/api.php</code>. It requires no separate process, no WebSocket server, and no build step on the server.</p>
-
-    <p>On first visit to <code>/outpost/</code> when no database exists, Outpost bootstraps itself: it creates the SQLite file at <code>outpost/data/cms.db</code>, runs all schema migrations, creates a default admin account, and seeds a starter theme. You are taken directly to the login screen.</p>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — The default admin credentials are <code>admin</code> / <code>admin</code>. Change your password immediately after first login via Admin &rarr; Settings &rarr; Account.</div>
-
-    <h2>No Server-Side Dependencies</h2>
-    <p>A core design goal of Outpost is that deploying a site requires only copying files. There is no <code>composer install</code> to run, no <code>npm install</code> on the server, no build step, and no cron job required for basic operation. As long as the server runs PHP 8.x with the <code>pdo_sqlite</code> extension enabled, Outpost works.</p>
-
-    <p>The admin SPA is a pre-built artifact — a small set of static JS and CSS files in <code>outpost/admin/</code>. The Svelte source code lives in a separate <code>cms/src/</code> directory and is only relevant when you are modifying the admin UI itself. Most theme developers and all content editors never need to touch it.</p>
-
-    <h2>Continue Reading</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Section</th>
-          <th>What you will learn</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="quick-start.html">Quick Start</a></td>
-          <td>Server requirements, first-boot walkthrough, step-by-step setup</td>
-        </tr>
-        <tr>
-          <td><a href="features/ranger.html">Ranger AI Assistant</a></td>
-          <td>Your built-in AI assistant &mdash; manage your entire site with natural language</td>
-        </tr>
-        <tr>
-          <td><a href="features/releases.html">Releases</a></td>
-          <td>Bundle multiple changes and publish them all at once, with one-click rollback</td>
-        </tr>
-        <tr>
-          <td><a href="file-structure.html">File Structure</a></td>
-          <td>Every file and directory explained; what to preserve on deploy</td>
-        </tr>
-        <tr>
-          <td><a href="deploy.html">Deploy</a></td>
-          <td>Apache and Nginx configuration, file permissions, production checklist</td>
-        </tr>
-        <tr>
-          <td><a href="themes/">Themes</a></td>
-          <td>How to build and activate a theme, URL routing, partials</td>
-        </tr>
-        <tr>
-          <td><a href="template-syntax/">Template Syntax</a></td>
-          <td>All available tags, filters, loops, and conditionals</td>
-        </tr>
-        <tr>
-          <td><a href="content/collections.html">Collections</a></td>
-          <td>Defining content types, field types, querying in templates</td>
-        </tr>
-        <tr>
-          <td><a href="api/">API Reference</a></td>
-          <td>Admin API, Public Content API, and Member API endpoints</td>
-        </tr>
-        <tr>
-          <td><a href="recipes/">Recipes</a></td>
-          <td>Complete worked examples for common site types</td>
-        </tr>
-        <tr>
-          <td><a href="llms.txt">llms.txt</a></td>
-          <td>Full plain-text reference for AI coding assistants and LLMs</td>
-        </tr>
-      </tbody>
-    </table>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

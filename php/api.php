@@ -28,22 +28,46 @@ require_once __DIR__ . '/ranger.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
+require_once __DIR__ . '/smart-forge.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
 // GitHub repository for auto-updater
 define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');
 
-// ── CORS for dev ─────────────────────────────────────────
+// ── CORS ─────────────────────────────────────────────────
+// Supports configurable origins via Settings → api_cors_origins.
+// Default: localhost only. Set to '*' for wide-open, or comma-separated origins.
+$_api_cors_origins = null;
+try {
+    $_api_cors_row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'api_cors_origins'");
+    if ($_api_cors_row && $_api_cors_row['value']) $_api_cors_origins = $_api_cors_row['value'];
+} catch (\Throwable $e) {}
+
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     $origin = $_SERVER['HTTP_ORIGIN'];
-    if (preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin)) {
+    $isLocalDev = preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin);
+
+    if ($isLocalDev) {
         header("Access-Control-Allow-Origin: {$origin}");
         header('Access-Control-Allow-Credentials: true');
-        header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization');
-        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    } elseif ($_api_cors_origins === '*') {
+        header('Access-Control-Allow-Origin: *');
+    } elseif ($_api_cors_origins) {
+        $allowed = array_map('trim', explode(',', $_api_cors_origins));
+        if (in_array($origin, $allowed, true)) {
+            header("Access-Control-Allow-Origin: {$origin}");
+            header('Access-Control-Allow-Credentials: true');
+        }
     }
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization, X-API-Key');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+} elseif ($_api_cors_origins === '*') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization, X-API-Key');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
@@ -154,6 +178,10 @@ ensure_ranger_tables();
 ensure_releases_tables();
 ensure_workflow_tables();
 ensure_comment_tables();
+ensure_smart_forge_columns();
+ensure_collection_items_owner_column();
+ensure_member_tier_columns();
+ensure_editor_sessions_table();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -177,6 +205,9 @@ $cap_map = [
     'brand'      => 'settings.*',
     'fonts'      => 'settings.*',
     'components' => 'code.*',
+    'forge'      => 'code.*',
+    'theme'      => 'settings.*',
+    'cleanup'    => 'settings.*',
     'releases'   => 'settings.*',
     'workflows'  => 'settings.*',
     'review-tokens' => 'settings.*',
@@ -255,6 +286,8 @@ match (true) {
     // Settings
     $action === 'settings' && $method === 'GET' => handle_settings_get(),
     $action === 'settings' && $method === 'PUT' => handle_settings_update(),
+    $action === 'settings/features' && $method === 'GET' => handle_feature_flags_get(),
+    $action === 'settings/features' && $method === 'PUT' => handle_feature_flags_update(),
 
     // Cache
     $action === 'cache/clear' && $method === 'POST' => handle_cache_clear(),
@@ -299,6 +332,12 @@ match (true) {
     $action === 'themes/upload' && $method === 'POST' => handle_theme_upload(),
     $action === 'themes/export' && $method === 'GET' && isset($_GET['slug']) => handle_theme_export(),
     $action === 'themes' && $method === 'DELETE' && isset($_GET['slug']) => handle_theme_delete(),
+
+    // Theme Manifest
+    $action === 'theme/manifest' && $method === 'GET' => handle_theme_manifest_get(),
+
+    // Cleanup
+    $action === 'cleanup/inactive-themes' && $method === 'POST' => handle_cleanup_inactive_themes(),
 
     // Dashboard
     $action === 'dashboard/stats'    && $method === 'GET' => handle_dashboard_stats(),
@@ -519,6 +558,22 @@ match (true) {
     $action === 'review/admin-reply' && $method === 'POST'                   => handle_review_admin_reply(),
     $action === 'review/admin-resolve' && $method === 'POST'                 => handle_review_admin_resolve(),
     $action === 'review/admin-resolve-all' && $method === 'POST'             => handle_review_admin_resolve_all(),
+
+    // Smart Forge
+    $action === 'forge/scan'      && $method === 'POST' => handle_forge_scan(),
+    $action === 'forge/apply'     && $method === 'POST' => handle_forge_apply(),
+    $action === 'forge/ai-scan'   && $method === 'POST' => handle_forge_ai_scan(),
+    $action === 'forge/ai-status' && $method === 'GET'  => handle_forge_ai_status(),
+
+    // Editor Field Map & Active Users
+    $action === 'editor/field-map'     && $method === 'GET'  => handle_editor_field_map(),
+    $action === 'editor/save-field'    && $method === 'POST' => handle_editor_save_field(),
+    $action === 'editor/active-users'  && $method === 'GET'  => handle_editor_active_users(),
+    $action === 'editor/heartbeat'     && $method === 'POST' => handle_editor_heartbeat(),
+    $action === 'editor/media-lookup'  && $method === 'GET'  => handle_editor_media_lookup(),
+    $action === 'editor/media-alt'     && $method === 'POST' => handle_editor_media_alt_update(),
+    $action === 'editor/block-settings' && $method === 'GET' => handle_editor_block_settings_get(),
+    $action === 'editor/block-settings' && $method === 'PUT' => handle_editor_block_settings_save(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
@@ -802,6 +857,10 @@ function handle_me(): void {
     $setupRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'setup_completed'");
     $response['setup_completed'] = $setupRow ? (bool) $setupRow['value'] : false;
 
+    // Feature flags for sidebar visibility
+    $ffRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'feature_flags'");
+    $response['feature_flags'] = $ffRow ? json_decode($ffRow['value'], true) : null;
+
     json_response($response);
 }
 
@@ -816,6 +875,25 @@ function ensure_user_collection_grants_table(): void {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
     )");
+}
+
+function ensure_collection_items_owner_column(): void {
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(collection_items)");
+    $colNames = array_column($cols, 'name');
+    if (!in_array('owner_member_id', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE collection_items ADD COLUMN owner_member_id INTEGER REFERENCES users(id)");
+    }
+}
+
+function ensure_member_tier_columns(): void {
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(users)");
+    $colNames = array_column($cols, 'name');
+    if (!in_array('tier', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'free'");
+    }
+    if (!in_array('meta', $colNames)) {
+        OutpostDB::connect()->exec("ALTER TABLE users ADD COLUMN meta TEXT DEFAULT '{}'");
+    }
 }
 
 function ensure_user_media_folder_grants_table(): void {
@@ -1640,22 +1718,70 @@ function handle_globals_get(): void {
         [(int) $globalPage['id']]
     );
 
-    // Filter out stale globals not in the registry
-    $activeTheme = get_active_theme();
-    $registryNames = array_column(
-        OutpostDB::fetchAll(
-            "SELECT field_name FROM page_field_registry WHERE theme = ? AND path = '__global__'",
-            [$activeTheme]
-        ),
-        'field_name'
-    );
-    if (!empty($registryNames)) {
+    // Use theme manifest as primary filter for globals
+    require_once __DIR__ . '/theme-manifest.php';
+    $manifest = outpost_get_theme_manifest();
+    $manifestGlobals = $manifest['globals'] ?? [];
+
+    if (!empty($manifestGlobals)) {
+        // Only show globals that the active theme's templates actually use
         $fields = array_values(array_filter($fields, fn($f) =>
-            in_array($f['field_name'], $registryNames)
+            in_array($f['field_name'], $manifestGlobals)
         ));
+    } else {
+        // Fallback to registry-based filtering if no manifest globals
+        $activeTheme = get_active_theme();
+        $registryNames = array_column(
+            OutpostDB::fetchAll(
+                "SELECT field_name FROM page_field_registry WHERE theme = ? AND path = '__global__'",
+                [$activeTheme]
+            ),
+            'field_name'
+        );
+        if (!empty($registryNames)) {
+            $fields = array_values(array_filter($fields, fn($f) =>
+                in_array($f['field_name'], $registryNames)
+            ));
+        }
     }
 
     json_response(['fields' => $fields, 'page_id' => (int) $globalPage['id'], 'updated_at' => $globalPage['updated_at']]);
+}
+
+// ── Theme Manifest Endpoint ──────────────────────────────
+function handle_theme_manifest_get(): void {
+    require_once __DIR__ . '/theme-manifest.php';
+    $manifest = outpost_get_theme_manifest();
+    json_response(['manifest' => $manifest]);
+}
+
+// ── Cleanup Endpoints ────────────────────────────────────
+function handle_cleanup_inactive_themes(): void {
+    outpost_require_cap('settings.*');
+
+    $activeTheme = get_active_theme();
+    $db = OutpostDB::connect();
+
+    // Delete fields from inactive themes (but NOT globals — those have theme='')
+    $stmt = $db->prepare("DELETE FROM fields WHERE theme != '' AND theme != ? AND theme IS NOT NULL");
+    $stmt->execute([$activeTheme]);
+    $fieldsDeleted = $stmt->rowCount();
+
+    // Also clean up page_field_registry for inactive themes
+    $stmt2 = $db->prepare("DELETE FROM page_field_registry WHERE theme != '' AND theme != ? AND theme IS NOT NULL");
+    $stmt2->execute([$activeTheme]);
+    $registryDeleted = $stmt2->rowCount();
+
+    // Clean up orphaned pages
+    OutpostDB::query(
+        "DELETE FROM pages WHERE id NOT IN (SELECT DISTINCT page_id FROM fields WHERE page_id IS NOT NULL) AND path != '__global__'"
+    );
+
+    json_response([
+        'success' => true,
+        'fields_deleted' => $fieldsDeleted,
+        'registry_deleted' => $registryDeleted,
+    ]);
 }
 
 // ── Collection Handlers ──────────────────────────────────
@@ -1776,16 +1902,23 @@ function handle_collection_update(): void {
 function handle_collection_delete(): void {
     $id = (int) $_GET['id'];
 
-    // Purge ghost pages for all items in this collection before deleting
     $collection = OutpostDB::fetchOne('SELECT * FROM collections WHERE id = ?', [$id]);
-    if ($collection) {
-        $pattern = $collection['url_pattern'] ?: ('/' . $collection['slug'] . '/{slug}');
-        $prefix = explode('{slug}', $pattern)[0];
-        purge_ghost_pages_with_prefix($prefix);
-    }
+    if (!$collection) json_error('Collection not found', 404);
+
+    // Count items before deleting (included in response for frontend confirmation)
+    $countRow = OutpostDB::fetchOne(
+        "SELECT COUNT(*) as item_count FROM collection_items WHERE collection_id = ?",
+        [$id]
+    );
+    $itemCount = (int)($countRow['item_count'] ?? 0);
+
+    // Purge ghost pages for all items in this collection before deleting
+    $pattern = $collection['url_pattern'] ?: ('/' . $collection['slug'] . '/{slug}');
+    $prefix = explode('{slug}', $pattern)[0];
+    purge_ghost_pages_with_prefix($prefix);
 
     OutpostDB::delete('collections', 'id = ?', [$id]);
-    json_response(['success' => true]);
+    json_response(['success' => true, 'items_deleted' => $itemCount]);
 }
 
 // ── Collection Item Handlers ─────────────────────────────
@@ -3153,6 +3286,36 @@ function handle_settings_update(): void {
     log_activity('system', 'Site settings updated');
 
     json_response(['success' => true]);
+}
+
+// ── Feature Flags Handlers ───────────────────────────────
+function handle_feature_flags_get(): void {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'feature_flags'");
+    $flags = $row ? json_decode($row['value'], true) : [];
+    if (!is_array($flags)) $flags = [];
+    json_response(['feature_flags' => $flags]);
+}
+
+function handle_feature_flags_update(): void {
+    $data = get_json_body();
+    $flags = $data['feature_flags'] ?? $data;
+    if (!is_array($flags)) {
+        json_error('feature_flags must be an object', 400);
+    }
+    // Whitelist valid feature keys
+    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation'];
+    $clean = [];
+    foreach ($valid_keys as $key) {
+        if (isset($flags[$key])) {
+            $clean[$key] = (bool) $flags[$key];
+        }
+    }
+    OutpostDB::query(
+        'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+        ['feature_flags', json_encode($clean)]
+    );
+    log_activity('system', 'Feature flags updated');
+    json_response(['success' => true, 'feature_flags' => $clean]);
 }
 
 // ── Custom Google Fonts Handlers ─────────────────────────

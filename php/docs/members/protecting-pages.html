@@ -97,7 +97,7 @@ if ($member['member_expires'] &amp;&amp; strtotime($member['member_expires']) &l
     <div class="callout callout-tip"><strong>Tip</strong> — To gate collection items, use a PHP partial inside your template. See the section below on checking member status in PHP.</div>
 
     <h2>Protecting content within a template</h2>
-    <p>For in-page control — showing different content to logged-in vs. anonymous visitors within the same Liquid template — use a PHP partial. Create a file in your theme's <code>partials/</code> directory and call PHP functions there.</p>
+    <p>For in-page control — showing different content to logged-in vs. anonymous visitors within the same template — use a PHP partial. Create a file in your theme's <code>partials/</code> directory and call PHP functions there.</p>
 
     <h3>Blocking access from within a partial</h3>
     <pre><code>&lt;?php
@@ -110,7 +110,7 @@ if (!OutpostMember::check()) {
     exit;
 }
 ?&gt;</code></pre>
-    <p>Then include this partial at the top of the Liquid template:</p>
+    <p>Then include this partial at the top of the template:</p>
     <pre><code>{% include 'member-gate' %}
 
 &lt;!-- rest of template renders only for logged-in members --&gt;
@@ -169,14 +169,14 @@ if ($member && $member['member_expires'] && strtotime($member['member_expires'])
 require_once $_SERVER['DOCUMENT_ROOT'] . '/outpost/members.php';
 $GLOBALS['_outpost_member'] = OutpostMember::current();
 ?&gt;</code></pre>
-    <p>Then in your Liquid template, use a conditional include or render the teaser inline. Because Liquid does not have direct PHP access, the simplest approach is to split the protected section into its own partial and gate it there.</p>
+    <p>Then in your template, use a conditional include or render the teaser inline. Because the template engine does not have direct PHP access, the simplest approach is to split the protected section into its own partial and gate it there.</p>
 
     <h2>Login redirect</h2>
     <p>When a protected page redirects to login, it appends the original URL as a query parameter:</p>
     <pre><code>/outpost/member-pages/login.php?redirect=/resources/advanced-guide</code></pre>
     <p>The login page reads this parameter on successful authentication and sends the member directly to the page they wanted. You do not need to implement this yourself — it is built into the login page.</p>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Never rely solely on Liquid template conditionals to hide sensitive content. A conditional in a template only controls what is rendered in the HTML output; it does not prevent the server from processing the request. Always use PHP-level checks (either via page visibility settings or PHP partials) to truly block access.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Never rely solely on template conditionals to hide sensitive content. A conditional in a template only controls what is rendered in the HTML output; it does not prevent the server from processing the request. Always use PHP-level checks (either via page visibility settings or PHP partials) to truly block access.</div>
 
   </div>
 </main>

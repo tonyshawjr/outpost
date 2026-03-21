@@ -10,22 +10,70 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/members.php';
 require_once __DIR__ . '/http-security.php';
+require_once __DIR__ . '/jwt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ── CORS for dev ─────────────────────────────────────────
+// ── CORS ─────────────────────────────────────────────────
+// Allow configurable origins for mobile/headless clients, fall back to '*'
+$_corsOrigins = null;
+try {
+    $_corsRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'api_cors_origins'");
+    if ($_corsRow && $_corsRow['value']) $_corsOrigins = $_corsRow['value'];
+} catch (\Throwable $e) {}
+
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     $origin = $_SERVER['HTTP_ORIGIN'];
-    if (preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin)) {
+    $isLocalDev = preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin);
+
+    if ($isLocalDev) {
         header("Access-Control-Allow-Origin: {$origin}");
         header('Access-Control-Allow-Credentials: true');
-        header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
-        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    } elseif ($_corsOrigins === '*') {
+        header('Access-Control-Allow-Origin: *');
+    } elseif ($_corsOrigins) {
+        $allowed = array_map('trim', explode(',', $_corsOrigins));
+        if (in_array($origin, $allowed, true)) {
+            header("Access-Control-Allow-Origin: {$origin}");
+            header('Access-Control-Allow-Credentials: true');
+        }
     }
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+} elseif ($_corsOrigins === '*') {
+    // Non-browser client (no Origin header) — still set CORS for preflight caching
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, Authorization');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
+}
+
+// ── JWT bearer token detection ───────────────────────────
+$_jwt_member = null;
+$_jwt_auth = false;
+
+$_authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+if (preg_match('/^Bearer\s+(.+)$/i', $_authHeader, $_m)) {
+    $_tokenStr = $_m[1];
+    // Only process if it looks like a JWT (3 dot-separated parts), not an API key
+    if (substr_count($_tokenStr, '.') === 2) {
+        $payload = outpost_jwt_decode($_tokenStr, outpost_jwt_secret());
+        if ($payload && ($payload['type'] ?? '') === 'member') {
+            $member = OutpostDB::fetchOne(
+                "SELECT id, username, email, role, display_name, avatar, member_since, member_status
+                 FROM users WHERE id = ? AND role IN ('free_member', 'paid_member')",
+                [(int) $payload['sub']]
+            );
+            if ($member && ($member['member_status'] ?? 'active') !== 'suspended') {
+                $_jwt_member = $member;
+                $_jwt_auth = true;
+            }
+        }
+    }
 }
 
 $action = $_GET['action'] ?? '';
@@ -210,6 +258,164 @@ if ($action === 'resend-verify' && $method === 'POST') {
     member_json(['success' => true]);
 }
 
+// ── JWT Token Endpoints ──────────────────────────────────
+
+if ($action === 'token' && $method === 'POST') {
+    outpost_ip_rate_limit('member_token', 10, 60); // 10 per minute
+    $data = member_json_body();
+    $email = trim($data['email'] ?? '');
+    $password = $data['password'] ?? '';
+
+    if (!$email || !$password) {
+        member_error('Email and password required');
+    }
+
+    // Find member by email or username
+    $user = OutpostDB::fetchOne(
+        "SELECT * FROM users WHERE (email = ? OR username = ?) AND role IN ('free_member', 'paid_member')",
+        [$email, $email]
+    );
+
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        member_error('Invalid credentials', 401);
+    }
+
+    if (($user['member_status'] ?? 'active') === 'suspended') {
+        member_error('Your account has been suspended', 403);
+    }
+
+    // Check email verification
+    $verifyRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'require_email_verification'");
+    $requireVerify = $verifyRow && $verifyRow['value'] === '1';
+    if ($requireVerify && empty($user['email_verified']) && !empty($user['verify_token'])) {
+        member_error('Please verify your email address first', 403);
+    }
+
+    $secret = outpost_jwt_secret();
+    $exp = time() + (86400 * 30); // 30 days
+    $token = outpost_jwt_encode([
+        'sub'  => $user['id'],
+        'type' => 'member',
+        'exp'  => $exp,
+    ], $secret);
+
+    // Update last login
+    OutpostDB::update('users', ['last_login' => date('Y-m-d H:i:s')], 'id = ?', [$user['id']]);
+    _member_api_record_event($user['id'], 'login');
+
+    member_json([
+        'token' => $token,
+        'member' => [
+            'id'    => $user['id'],
+            'name'  => $user['display_name'] ?: $user['username'],
+            'email' => $user['email'],
+            'tier'  => $user['role'] === 'paid_member' ? 'paid' : 'free',
+        ],
+        'expires_at' => date('c', $exp),
+    ]);
+}
+
+if ($action === 'token/register' && $method === 'POST') {
+    outpost_ip_rate_limit('member_register', 5, 300); // 5 per 5 minutes
+    $data = member_json_body();
+
+    $result = OutpostMember::register(
+        $data['name'] ?? $data['username'] ?? '',
+        $data['email'] ?? '',
+        $data['password'] ?? ''
+    );
+
+    if (!$result['success']) {
+        member_error($result['error']);
+    }
+
+    // If verification required, no token yet
+    if (!empty($result['requires_verification'])) {
+        member_json([
+            'requires_verification' => true,
+            'message' => 'Please check your email to verify your account.',
+        ]);
+    }
+
+    $member = $result['member'];
+    $secret = outpost_jwt_secret();
+    $exp = time() + (86400 * 30);
+    $token = outpost_jwt_encode([
+        'sub'  => $member['id'],
+        'type' => 'member',
+        'exp'  => $exp,
+    ], $secret);
+
+    _member_api_record_event($member['id'], 'signup');
+    try {
+        require_once __DIR__ . '/webhooks.php';
+        ensure_webhooks_tables();
+        dispatch_webhook('member.created', ['email' => $data['email'] ?? '', 'username' => $data['name'] ?? $data['username'] ?? '']);
+    } catch (\Throwable $e) {}
+
+    member_json([
+        'token' => $token,
+        'member' => [
+            'id'    => $member['id'],
+            'name'  => $member['username'],
+            'email' => $member['email'],
+            'tier'  => 'free',
+        ],
+        'expires_at' => date('c', $exp),
+    ], 201);
+}
+
+if ($action === 'token/refresh' && $method === 'POST') {
+    // Must have a valid bearer token
+    if (!$_jwt_auth || !$_jwt_member) {
+        member_error('Valid bearer token required', 401);
+    }
+
+    $secret = outpost_jwt_secret();
+    $exp = time() + (86400 * 30);
+    $token = outpost_jwt_encode([
+        'sub'  => $_jwt_member['id'],
+        'type' => 'member',
+        'exp'  => $exp,
+    ], $secret);
+
+    member_json([
+        'token' => $token,
+        'member' => [
+            'id'    => (int) $_jwt_member['id'],
+            'name'  => $_jwt_member['display_name'] ?: $_jwt_member['username'],
+            'email' => $_jwt_member['email'],
+            'tier'  => $_jwt_member['role'] === 'paid_member' ? 'paid' : 'free',
+        ],
+        'expires_at' => date('c', $exp),
+    ]);
+}
+
+if ($action === 'token/me' && $method === 'GET') {
+    // Must have a valid bearer token
+    if (!$_jwt_auth || !$_jwt_member) {
+        member_error('Valid bearer token required', 401);
+    }
+
+    $full = OutpostDB::fetchOne(
+        'SELECT id, username, email, role, display_name, avatar, member_since FROM users WHERE id = ?',
+        [$_jwt_member['id']]
+    );
+    if (!$full) member_error('Member not found', 404);
+
+    member_json([
+        'member' => [
+            'id'           => (int) $full['id'],
+            'name'         => $full['display_name'] ?: $full['username'],
+            'username'     => $full['username'],
+            'email'        => $full['email'],
+            'tier'         => $full['role'] === 'paid_member' ? 'paid' : 'free',
+            'avatar'       => $full['avatar'] ?? null,
+            'member_since' => $full['member_since'] ?? null,
+        ],
+    ]);
+}
+
 if ($action === 'register' && $method === 'POST') {
     $data = member_json_body();
     $result = OutpostMember::register(
@@ -266,12 +472,13 @@ if ($action === 'login' && $method === 'POST') {
 }
 
 // ── Auth required from here ──────────────────────────────
-if (!OutpostMember::check()) {
+// Accept either session auth OR JWT bearer token
+if (!$_jwt_auth && !OutpostMember::check()) {
     member_error('Authentication required', 401);
 }
 
-// CSRF on mutations
-if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
+// CSRF on mutations — skip for JWT-authenticated requests (tokens are not CSRF-vulnerable)
+if (in_array($method, ['POST', 'PUT', 'DELETE']) && !$_jwt_auth) {
     OutpostMember::validateCsrf();
 }
 
@@ -282,21 +489,30 @@ match (true) {
     })(),
 
     $action === 'me' && $method === 'GET' => (function () {
-        $member = OutpostMember::currentMember();
+        global $_jwt_auth, $_jwt_member;
+
+        if ($_jwt_auth && $_jwt_member) {
+            $member = ['id' => $_jwt_member['id']];
+        } else {
+            $member = OutpostMember::currentMember();
+        }
         if (!$member) member_error('Not authenticated', 401);
 
         $full = OutpostDB::fetchOne(
             'SELECT id, username, email, role, display_name, avatar, member_since FROM users WHERE id = ?',
             [$member['id']]
         );
-        member_json([
-            'member' => $full,
-            'csrf_token' => OutpostMember::csrfToken(),
-        ]);
+
+        $response = ['member' => $full];
+        if (!$_jwt_auth) {
+            $response['csrf_token'] = OutpostMember::csrfToken();
+        }
+        member_json($response);
     })(),
 
     $action === 'profile' && $method === 'PUT' => (function () {
-        $member = OutpostMember::currentMember();
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
         $data = member_json_body();
 
         $update = [];
@@ -322,7 +538,8 @@ match (true) {
     })(),
 
     $action === 'password' && $method === 'PUT' => (function () {
-        $member = OutpostMember::currentMember();
+        global $_jwt_auth, $_jwt_member;
+        $member = $_jwt_auth ? ['id' => $_jwt_member['id']] : OutpostMember::currentMember();
         $data = member_json_body();
 
         $current = $data['current_password'] ?? '';

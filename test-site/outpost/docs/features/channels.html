@@ -14,12 +14,12 @@
 <main class="main">
   <div class="page-hero">
     <h1>Channels</h1>
-    <p class="lead">Connect to external REST APIs, RSS feeds, and CSV files &mdash; pull data into your templates with the same Liquid syntax you use for collections. If Collections are content you create, Channels are content that flows in from somewhere else.</p>
+    <p class="lead">Connect to external REST APIs, RSS feeds, and CSV files &mdash; pull data into your templates with the same template syntax you use for collections. If Collections are content you create, Channels are content that flows in from somewhere else.</p>
   </div>
   <div class="content">
 
     <h2>What are Channels?</h2>
-    <p>Collections store content you write inside Outpost. Channels do the opposite &mdash; they pull content <em>in</em> from external sources and make it available to your templates with familiar Liquid syntax. No plugins, no Composer dependencies, no build step.</p>
+    <p>Collections store content you write inside Outpost. Channels do the opposite &mdash; they pull content <em>in</em> from external sources and make it available to your templates with familiar data-attribute syntax. No plugins, no Composer dependencies, no build step.</p>
     <p>Connect to any JSON API, RSS feed, or CSV file &mdash; a headless CMS, a product catalog, a job board, a podcast feed, a Google Sheets spreadsheet &mdash; and render the data in your theme templates using the same <code>&#123;% for %&#125;</code> and <code>&#123;% single %&#125;</code> tags you already know from collections. Outpost caches the external data in SQLite so pages render instantly, and re-fetches automatically when the cache expires.</p>
 
     <p>Common use cases:</p>
@@ -295,7 +295,7 @@
     <hr style="margin: 40px 0;">
 
     <h2>Rendering in Templates</h2>
-    <p>Channel data is rendered in your Liquid templates using the same loop syntax as collections, with <code>channel.</code> instead of <code>collection.</code>.</p>
+    <p>Channel data is rendered in your templates using the same loop syntax as collections, with <code>channel.</code> instead of <code>collection.</code>.</p>
 
     <h3>Basic channel loop</h3>
     <pre><code>&#123;% for item in channel.listings %&#125;

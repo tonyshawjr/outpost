@@ -14,6 +14,7 @@
     canBuildForms,
     collectionGrants,
     mediaFolderGrants,
+    featureFlags,
     appVersion,
     updateAvailable,
     latestVersion,
@@ -25,8 +26,6 @@
 
   import Login from '$pages/Login.svelte';
   import Dashboard from '$pages/Dashboard.svelte';
-  import Pages from '$pages/Pages.svelte';
-  import PageEditor from '$pages/PageEditor.svelte';
   import CollectionList from '$pages/CollectionList.svelte';
   import CollectionItems from '$pages/CollectionItems.svelte';
   import CollectionEditor from '$pages/CollectionEditor.svelte';
@@ -92,6 +91,7 @@
         // Setup wizard redirect for fresh installs
         const completed = data.setup_completed !== false;
         setupCompleted.set(completed);
+        if (data.feature_flags) featureFlags.set(data.feature_flags);
         if (!completed) navigate('setup');
       }
     } catch (e) {
@@ -157,7 +157,7 @@
     <Sidebar />
     <div class="app-main">
       <TopBar />
-      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'page-editor' || route === 'theme-customizer'}>
+      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'theme-customizer'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
           {#if hasCodeAccess}
             <Analytics />
@@ -168,10 +168,6 @@
           <Dashboard />
         {:else if route === 'calendar'}
           <Calendar />
-        {:else if route === 'pages'}
-          <Pages />
-        {:else if route === 'page-editor'}
-          <PageEditor />
         {:else if route === 'collections'}
           <CollectionList />
         {:else if route === 'collection-items'}
@@ -282,7 +278,7 @@
           <Dashboard />
         {/if}
 
-        {#if route !== 'collection-editor' && route !== 'template-reference' && route !== 'code-editor' && route !== 'page-editor' && route !== 'theme-customizer'}
+        {#if route !== 'collection-editor' && route !== 'template-reference' && route !== 'code-editor' && route !== 'theme-customizer'}
           <!-- Watermark Footer -->
           <div class="watermark-footer">
             <div class="watermark-text">Handcrafted with 🫀 in Wilmington, NC</div>

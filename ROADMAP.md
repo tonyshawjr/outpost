@@ -176,6 +176,7 @@ Everything below is already built and released.
 
 **Position Outpost as the zero-config headless CMS.** Strapi and Payload own headless but require Node.js and a database server. Outpost's gap is "headless + zero config, runs on a $5/month host."
 
+- ~~**JWT Bearer Token Auth**~~ — SHIPPED (v4.4.0). Stateless HS256 JWT for mobile apps and headless clients. Member token endpoints (`token`, `token/register`, `token/refresh`, `token/me`). Configurable CORS origins via `api_cors_origins` setting.
 - **GraphQL API** — read-only to start, auto-generated from collection schemas. Query collections, items, pages, globals, menus, media — all via GraphQL. Introspection enabled for IDE autocomplete.
 - **Content webhooks v2** — structured payloads with full content diffs (before/after JSON), not just event names. Know exactly what changed.
 - **Static site preview** — trigger a preview build on content change via webhook (for Astro, Next.js, Hugo, Eleventy). One-click "Preview in Vercel/Netlify."
@@ -199,7 +200,7 @@ Everything below is already built and released.
 
 ---
 
-## v4.0 — Smart Forge + Frontend Drawer
+## v4.0 — Smart Forge + Frontend Drawer — SHIPPED (v4.0.0)
 
 **The product reinvention.** Drop in HTML, everything is automatically editable, all editing moves to the frontend. This is what makes Outpost the only CMS where the workflow is: Claude Code builds it → drop it in → done.
 
@@ -209,6 +210,40 @@ Everything below is already built and released.
 - **Drawer design** — Storyblok-level polish. Section grouping (Hero, About, CTA, Footer). Repeater fields expand/collapse inline. Rich text editor in the drawer. Image picker with media library integration.
 - **Right-click context menu stays** — make partials, wrap in loops, manual field control still works in the Code Editor for developers
 - **Ranger integration** — "Make this page editable" triggers Smart Forge. AI + visual editing in one product.
+
+---
+
+## v4.1 — Template Engine v2 — SHIPPED (v4.1.0)
+
+**Data Attribute Architecture.** A new template engine that uses HTML `data-outpost` attributes and custom `<outpost-*>` elements instead of Liquid-style syntax. Zero CMS fingerprints on the live site.
+
+- **Data attribute syntax** — `data-outpost` attributes replace `{{ }}` tags, keeping templates as valid HTML
+- **Custom elements** — `<outpost-each>` for loops, `<outpost-*>` elements for CMS constructs
+- **Block grouping** — HTML comments define editor sections for organized content management
+- **Block settings** — CSS custom properties configure field behavior
+- **Global fields** — `data-scope="global"` attribute for site-wide content
+- **Auto-hide empty fields** — fields with no content are automatically hidden on the live site
+- **`data-bind` attribute** — set HTML attributes from item data dynamically
+- **Gallery loops** — `<outpost-each gallery="name">` for image galleries
+- **Clean public output** — all CMS attributes stripped in production, zero fingerprints
+- **Editor mode** — data attributes preserved for click-to-edit functionality
+- **Auto engine detection** — v1/v2 detection in front router, both engines coexist
+- **v2 field scanner** — automatic field registration from template attributes
+- **Personal theme rewritten** — flagship theme converted to v2 data-attribute syntax
+
+---
+
+## v4.2 — Click-to-Edit Bridge, EditDrawer & Skeleton Theme — SHIPPED (v4.2.0)
+
+**Click any element to edit it, Storyblok-style editing drawer, and a full v2 reference theme.** The visual editor is now complete end-to-end.
+
+- **Click-to-Edit Bridge** — Bridge JS scans the preview iframe for `[data-outpost]` elements, adds hover outlines and field name labels, handles click-to-field mapping via postMessage
+- **Block-level targeting** — click a block background to see all its fields; click an element to jump to that specific field
+- **Editor mode rendering** — v2 engine keeps `data-outpost` attributes in output when loaded with `?_outpost_editor=1`
+- **Block attribute injection** — engine adds `data-outpost-block="name"` to block wrappers in editor mode
+- **Reverse highlighting** — sidebar field hover highlights the corresponding element in the preview
+- **Storyblok-style EditDrawer** — three-level drill-down sidebar (section list → section detail with General/Style tabs → field detail), breadcrumb navigation, bridge click integration jumps to matching section/field
+- **Skeleton theme v2 showcase** — complete theme rewrite demonstrating all v2 features: 7 homepage blocks with outpost-settings (colors, layout variants, ranges, toggles), repeaters (features, testimonials, team, skills), collection loops with pagination and filtering, folder taxonomy loops, single items with related posts, global nav/footer blocks, conditionals, and responsive CSS using `var()` and `[data-layout]` attribute selectors
 
 ---
 
@@ -240,7 +275,7 @@ A standalone CLI tool (separate repo) for theme scaffolding, development server,
 
 ### VS Code Extension
 A VS Code extension (separate repo) for Outpost Liquid template authoring:
-- Syntax highlighting for `{{ }}` and `{% %}` tags inside HTML
+- ~~Syntax highlighting for `{{ }}` and `{% %}` tags inside HTML~~ (shipped in-app v2.7.0; v2 data-attribute highlighting shipped v4.1.1)
 - Autocomplete for template tags, filters, globals, and collection fields
 - Hover documentation for each tag and filter
 - JSON Schema integration for `theme.json` autocomplete
@@ -304,6 +339,8 @@ These define what Outpost is. Breaking them makes it something else.
 | 3.5 | Multi-Language (i18n) | Planned |
 | 3.6 | Headless-First (GraphQL) | Planned |
 | 3.7 | Collaborative Editing | Planned |
-| 4.0 | Smart Forge + Frontend Drawer | Planned |
+| ~~4.0~~ | Smart Forge + Frontend Drawer | **Shipped** |
+| ~~4.1~~ | Template Engine v2 — Data Attribute Architecture | **Shipped** |
+| ~~4.5~~ | Smart Forge AI — AI-powered HTML annotation | **Shipped** |
 | 5.0 | Commerce / Payments (Stripe) | Planned |
 | 5.x+ | CLI, VS Code Extension, Marketplace, Channels 3&4, A/B Testing | Future |

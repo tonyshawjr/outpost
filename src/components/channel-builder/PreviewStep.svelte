@@ -21,22 +21,20 @@
   let visibleFields = $derived(fieldNames.slice(0, 8));
 
   function getLoopTemplate() {
-    const lines = [`{% for item in channel.${slug || 'my_channel'} %}`];
+    const lines = [`<outpost-each channel="${slug || 'my_channel'}">`];
     visibleFields.forEach((f) => {
-      lines.push(`  {{ item.${f} }}`);
+      lines.push(`  <span data-outpost="${f}" />`);
     });
-    lines.push('{% endfor %}');
+    lines.push('</outpost-each>');
     return lines.join('\n');
   }
 
   function getSingleTemplate() {
-    const lines = [`{% single item from channel.${slug || 'my_channel'} %}`];
+    const lines = [`<outpost-single channel="${slug || 'my_channel'}">`];
     visibleFields.forEach((f) => {
-      lines.push(`  {{ item.${f} }}`);
+      lines.push(`  <span data-outpost="${f}" />`);
     });
-    lines.push('{% else %}');
-    lines.push('  <p>Item not found.</p>');
-    lines.push('{% endsingle %}');
+    lines.push('</outpost-single>');
     return lines.join('\n');
   }
 

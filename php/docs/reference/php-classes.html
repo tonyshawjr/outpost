@@ -117,7 +117,7 @@
 
     <h2 id="outposttemplate">OutpostTemplate</h2>
     <p><strong>File:</strong> <code>outpost/template-engine.php</code></p>
-    <p>The Liquid-to-PHP template compiler. Converts <code>.html</code> theme files with <code>{{ }}</code> and <code>{% %}</code> tags into executable PHP, then caches the compiled output. All rendering goes through this class.</p>
+    <p>The template compiler. Converts <code>.html</code> theme files with <code>{{ }}</code> and <code>{% %}</code> tags into executable PHP, then caches the compiled output. All rendering goes through this class.</p>
 
     <h3>Static Methods</h3>
 
@@ -139,7 +139,7 @@
         <tr>
           <td><code>compile(string $source): string</code></td>
           <td>string</td>
-          <td>Compiles a Liquid template source string to PHP source. Applies all tag transformations in the correct order and prepends the engine <code>require_once</code>. Can be called directly for testing or programmatic compilation.</td>
+          <td>Compiles a template source string to PHP source. Applies all tag transformations in the correct order and prepends the engine <code>require_once</code>. Can be called directly for testing or programmatic compilation.</td>
         </tr>
         <tr>
           <td><code>clearCache(): void</code></td>
@@ -307,7 +307,7 @@
     </table>
 
     <div class="callout callout-tip">
-      <strong>Theme development note.</strong> You never call these functions directly in Liquid templates — the template compiler converts tags like <code>{{ title }}</code> into <code>&lt;?php cms_text('title', ''); ?&gt;</code> automatically. The functions are listed here for PHP developers extending the engine or building custom endpoints.
+      <strong>Theme development note.</strong> You never call these functions directly in templates — the template compiler converts tags like <code>{{ title }}</code> into <code>&lt;?php cms_text('title', ''); ?&gt;</code> automatically. The functions are listed here for PHP developers extending the engine or building custom endpoints.
     </div>
 
   </div>

@@ -205,7 +205,7 @@
         {/if}
       </div>
       <div class="forge-nav-hint">
-        Replaces static links with <code>{'{%'} for link in menu.{menuSlug || '...'} {'%}'}</code> so nav items are managed from the admin.
+        Replaces static links with <code>&lt;outpost-menu name="{menuSlug || '...'}"&gt;</code> so nav items are managed from the admin.
       </div>
     {/if}
   {/if}
@@ -226,7 +226,7 @@
 {:else if step === 'apply'}
   <div class="forge-apply-msg">
     Same content found in {matchingFiles.length} other file{matchingFiles.length > 1 ? 's' : ''}.
-    Replace with <code>{'{%'} include '{partialName.trim().replace(/\.html$/, '').replace(/\s+/g, '-').toLowerCase()}' {'%}'}</code>?
+    Replace with <code>&lt;outpost-include partial="{partialName.trim().replace(/\.html$/, '').replace(/\s+/g, '-').toLowerCase()}" /&gt;</code>?
   </div>
 
   <div class="forge-apply-list">

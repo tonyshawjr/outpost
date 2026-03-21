@@ -1,11 +1,11 @@
 # Outpost CMS — Developer Reference
 
-> A developer-first headless CMS built on PHP + SQLite with a Liquid-style template engine, a Svelte 5 admin SPA, and zero Composer dependencies. The admin panel, API, database, uploads, and cache all live inside a single `/outpost/` directory.
+> A developer-first headless CMS built on PHP + SQLite with a data-attribute template engine, a Svelte 5 admin SPA, and zero Composer dependencies. The admin panel, API, database, uploads, and cache all live inside a single `/outpost/` directory.
 
 ## Documentation
 
 - [Full Developer Docs](/outpost/docs/): Complete reference for themes, template syntax, collections, members, API, and deploy
-- [Template Syntax Reference](/outpost/docs/template-syntax/): All Liquid template tags
+- [Template Syntax Reference](/outpost/docs/template-syntax/): All template tags
 - [Collection Loops](/outpost/docs/loops/collection-loops.html): Looping over collection items with options
 - [Flexible Content Loops](/outpost/docs/loops/flexible-content-loops.html): Layout builder loops with named layouts
 - [Relationship Loops](/outpost/docs/loops/relationship-loops.html): Linked content from other collections
@@ -21,7 +21,7 @@
 - [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
 - [Setup Wizard](/outpost/docs/features/setup-wizard.html): First-run setup wizard, content packs, getting started checklist, contextual tips
-- [Forge](/outpost/docs/features/forge.html): Visual tag builder — select HTML, right-click or Cmd+E, wrap in Liquid tags with smart detection
+- [Forge](/outpost/docs/features/forge.html): Visual tag builder — select HTML, right-click or Cmd+E, wrap in template tags with smart detection
 - [Content Packs](/outpost/docs/themes/content-packs.html): JSON content packs for seeding starter content
 - [Ranger AI Assistant](/outpost/docs/features/ranger.html): AI-powered assistant with 35 tools, multi-provider support, and streaming chat
 - [Releases](/outpost/docs/features/releases.html): Bundle multiple content changes and publish them all at once with one-click rollback
@@ -37,7 +37,7 @@
 
 - PHP 8.x + SQLite (PDO) — no Composer, no frameworks
 - Svelte 5 SPA (Vite 6) for the admin UI — built to `php/admin/`
-- Liquid-style template engine that compiles `.html` templates to PHP and caches them
+- data-attribute template engine that compiles `.html` templates to PHP and caches them
 - TipTap for rich text editing, SortableJS for drag-and-drop reorder
 
 ## Admin URL
@@ -74,7 +74,7 @@ your-site/
     front-router.php           # PHP dev server router
     engine.php                 # core CMS functions (cms_text, cms_global, etc.)
     channels.php               # channel engine: sync, fetch, cache, template functions
-    template-engine.php        # Liquid compiler (OutpostTemplate::render)
+    template-engine.php        # Template compiler (OutpostTemplate::render)
     mailer.php                 # SMTP / mail() email
     members.php                # member session helpers (OutpostMember)
     ranger.php                 # Ranger AI assistant: tools, streaming, providers
@@ -118,7 +118,7 @@ Links in templates must use **route paths** (the URL visitors see), never templa
 | `<a href="/about">` | `<a href="about.html">` | `/about.html` is not a valid route — returns 404 |
 | `<a href="/blog">` | `<a href="blog.html">` | The router maps `/blog` to `blog.html` internally |
 
-In collection loops use `{{ post.url }}` — Outpost generates correct URLs automatically. In menu loops use `{{ item.url }}` — already contains the configured route path.
+In collection loops use `<span data-outpost="url"></span>` — Outpost generates correct URLs automatically. In menu loops use `<span data-outpost="url"></span>` — already contains the configured route path.
 
 **When converting static HTML sites to Outpost themes, update every `<a href="page.html">` to `<a href="/page">`.**
 
@@ -133,7 +133,7 @@ Outpost uses file-based routing — there is no route registration function, no 
 | `contact.html` | `/contact` |
 | `docs.html` | `/docs` |
 
-Dynamic routes use collections: create a collection with URL pattern `/event/{slug}` and a template `event.html`. The router matches `/event/my-event`, extracts the slug, and renders the template with `{% single event from collection.event %}`.
+Dynamic routes use collections: create a collection with URL pattern `/event/{slug}` and a template `event.html`. The router matches `/event/my-event`, extracts the slug, and renders the template with `<outpost-single collection="event">`.
 
 **What you cannot do:**
 - Multi-segment static routes like `/docs/getting-started` — template files map 1:1 to single-segment paths. Use query params (`/docs?page=getting-started`) or collection URL patterns instead.
@@ -269,81 +269,81 @@ The scanner runs:
 Auto-rescan uses `filemtime()` comparison against a `last_template_scan_<theme>` setting stored in the `settings` table. Editing templates via the code editor or direct file access triggers an automatic re-scan on the next frontend request — no theme re-activation needed.
 
 The scanner extracts defaults from all syntax forms:
-- Inline: `{{ field "Default" }}`, `{{ field | type "Default" }}`
-- Closing-tag: `{{ field }}Default{{ /field }}`, `{{ field | raw }}Default HTML{{ /field }}`
-- Global closing-tag: `{{ @field }}Default{{ /@field }}`, `{{ @field | type }}Default{{ /@field }}`
+- Inline: `<span data-outpost="field">Default</span>`, `<span data-outpost="field" data-type="type">Default</span>`
+- Closing-tag: `<span data-outpost="field">Default</span>`, `data-outpost="field" data-type="raw"Default HTML</div>`
+- Global closing-tag: `<span data-outpost="field" data-scope="global"></span>Default</span>`, `<span data-outpost="field" data-scope="global" data-type="type"></span>Default</span>`
 
 ## Template Syntax — Complete Reference
 
-### Output Tags `{{ }}`
+### Output Tags
 
 All output tags register the field in the admin page editor automatically.
 
 ```html
-{{ field_name }}              <!-- escaped text (default) -->
-{{ field_name }}Default{{ /field_name }}    <!-- with wrapping default value -->
-{{ field_name | raw }}        <!-- HTML as-is (rich text, TipTap output) -->
-{{ field_name | raw }}<p>Default HTML</p>{{ /field_name }}  <!-- richtext with wrapping default -->
-{{ field_name | image }}      <!-- image URL, opens media picker in admin -->
-{{ field_name | link }}       <!-- URL value, opens link input -->
-{{ field_name | textarea }}   <!-- multi-line text -->
-{{ field_name | select }}     <!-- dropdown selector -->
-{{ field_name | color }}      <!-- color picker -->
-{{ field_name | number }}     <!-- numeric input -->
-{{ field_name | date }}       <!-- date input -->
-{{ field_name | toggle }}     <!-- boolean toggle -->
-{{ field_name | or_body }}    <!-- text/excerpt fallback: uses auto-excerpt from body field if field is empty -->
-{{ field_name | focal }}      <!-- focal point: outputs "X% Y%" for object-position/background-position -->
-{{ field_name | edit }}       <!-- opt-in on-page editing (text field, editable on frontend) -->
-{{ field_name | raw | edit }} <!-- richtext with on-page editing -->
-{{ field_name | image | edit }}  <!-- image with on-page editing -->
-{{ @global_name | edit }}     <!-- global field with on-page editing -->
+<span data-outpost="field_name"></span>              <!-- escaped text (default) -->
+<span data-outpost="field_name"></span>Default    <!-- with wrapping default value -->
+<div data-outpost="field_name" data-type="richtext"></div>        <!-- HTML as-is (rich text, TipTap output) -->
+<div data-outpost="field_name" data-type="richtext"></div><p>Default HTML</p>  <!-- richtext with wrapping default -->
+<img data-outpost="field_name" data-type="image">      <!-- image URL, opens media picker in admin -->
+<a data-outpost="field_name" data-type="link" href="#">Link</a>       <!-- URL value, opens link input -->
+<p data-outpost="field_name" data-type="textarea"></p>   <!-- multi-line text -->
+<span data-outpost="field_name" data-type="select"></span>     <!-- dropdown selector -->
+data-outpost="field_name" data-type="color"      <!-- color picker -->
+data-outpost="field_name" data-type="number"     <!-- numeric input -->
+data-outpost="field_name" data-type="date"       <!-- date input -->
+data-outpost="field_name" data-type="toggle"     <!-- boolean toggle -->
+<p data-outpost="field_name" data-type="or_body"></p>    <!-- text/excerpt fallback: uses auto-excerpt from body field if field is empty -->
+data-outpost="field_name" data-type="focal"      <!-- focal point: outputs "X% Y%" for object-position/background-position -->
+data-outpost="field_name" data-edit       <!-- opt-in on-page editing (text field, editable on frontend) -->
+data-outpost="field_name" data-type="richtext" data-edit <!-- richtext with on-page editing -->
+data-outpost="field_name" data-type="image" data-edit  <!-- image with on-page editing -->
+data-outpost="global_name" data-scope="global" data-edit     <!-- global field with on-page editing -->
 ```
 
-**Filter purpose:** Filters like `| image`, `| link`, `| textarea` do NOT transform the output. They tell the admin page editor which input type to render for that field (media picker, URL input, multiline textarea, etc.). The template output is always the stored value. `{{ hero | image }}` outputs the image URL string — wrap it in `<img src="...">` yourself.
+**Filter purpose:** Filters like `| image`, `| link`, `| textarea` do NOT transform the output. They tell the admin page editor which input type to render for that field (media picker, URL input, multiline textarea, etc.). The template output is always the stored value. `data-outpost="hero" data-type="image"` outputs the image URL string — wrap it in `<img src="...">` yourself.
 
-**On-page editing (`| edit`):** Append `| edit` to any field tag to enable on-page editing for that field. When a logged-in admin views the site, fields with `| edit` become click-to-edit. Fields without `| edit` are only editable in the admin panel. Works with text, textarea, richtext, image, and globals. The field scanner strips `| edit` before type detection, so `{{ hero | image | edit }}` registers as an image field.
+**On-page editing (`data-edit`):** Append `data-edit` to any field tag to enable on-page editing for that field. When a logged-in admin views the site, fields with `data-edit` become click-to-edit. Fields without `data-edit` are only editable in the admin panel. Works with text, textarea, richtext, image, and globals. The field scanner strips `data-edit` before type detection, so `data-outpost="hero" data-type="image" data-edit` registers as an image field.
 
-Both inline (`{{ field "Default" }}`) and closing-tag (`{{ field }}Default{{ /field }}`) default syntax is fully supported. Closing-tag defaults also work with filters: `{{ field | raw }}<p>HTML</p>{{ /field }}`. Defaults are extracted by the template scanner and stored in `page_field_registry.default_value`, so the admin page editor pre-fills fields (including WYSIWYG richtext) with the template default when content is empty.
+Both inline (`<span data-outpost="field">Default</span>`) and closing-tag (`<span data-outpost="field">Default</span>`) default syntax is fully supported. Closing-tag defaults also work with filters: `data-outpost="field" data-type="raw"<p>HTML</p>`. Defaults are extracted by the template scanner and stored in `page_field_registry.default_value`, so the admin page editor pre-fills fields (including WYSIWYG richtext) with the template default when content is empty.
 
-### Global Fields `{{ @field }}`
+### Global Fields `data-outpost="@field"`
 
 Site-wide settings shared across all pages. Appear in Admin → Globals.
 
 ```html
-{{ @site_name }}
-{{ @site_name | raw }}
-{{ @logo | image }}
-{{ @footer_text | textarea }}
+<span data-outpost="site_name" data-scope="global"></span>
+<span data-outpost="site_name" data-scope="global" data-type="raw"></span>
+<img data-outpost="logo" data-scope="global" data-type="image">
+<span data-outpost="footer_text" data-scope="global" data-type="textarea"></span>
 ```
 
 ### Meta Tags
 
 ```html
-{{ meta.title }}Default Site Title{{ /meta.title }}
-{{ meta.description }}Default description.{{ /meta.description }}
+<span data-outpost="title"></span>Default Site Title
+<span data-outpost="description"></span>Default description.
 ```
 
 Outputs `<title>` and `<meta name="description">` tags.
 
-On single item pages (`{% single ... %}`): `meta.title` automatically falls back to the item's `title` field if no page-level meta title is set. `meta.description` auto-generates a 30-word excerpt from the item's `body` field if no page-level meta description is set.
+On single item pages (`<outpost-single>`): `meta.title` automatically falls back to the item's `title` field if no page-level meta title is set. `meta.description` auto-generates a 30-word excerpt from the item's `body` field if no page-level meta description is set.
 
 ### Collection Loops
 
 ```html
-{% for post in collection.post %}
-  {{ post.title }}
-  {{ post.slug }}
-  {{ post.url }}             <!-- built from collection url_pattern -->
-  {{ post.id }}              <!-- integer database ID -->
-  {{ post.published_at }}
-  {{ post.created_at }}
-  {{ post.updated_at }}
-  {{ post.body | raw }}      <!-- rich text -->
-  {{ post.any_field }}       <!-- any custom field -->
-{% else %}
+<outpost-each collection="post">
+  <span data-outpost="title"></span>
+  <span data-outpost="slug"></span>
+  <span data-outpost="url"></span>             <!-- built from collection url_pattern -->
+  <span data-outpost="id"></span>              <!-- integer database ID -->
+  <span data-outpost="published_at"></span>
+  <span data-outpost="created_at"></span>
+  <span data-outpost="updated_at"></span>
+  <div data-outpost="body" data-type="richtext"></div>      <!-- rich text -->
+  <span data-outpost="any_field"></span>       <!-- any custom field -->
+<outpost-else>
   No posts found.
-{% endfor %}
+</outpost-each>
 ```
 
 ### Loop Options (space-separated after collection name)
@@ -352,29 +352,29 @@ On single item pages (`{% single ... %}`): `meta.title` automatically falls back
 |---|---|---|
 | `limit:N` | `limit:5` | Max N items |
 | `orderby:field` | `orderby:published_at` | Order by field — always descending (DESC) |
-| `paginate:N` | `paginate:10` | N items per page, enables `{% pagination %}` |
+| `paginate:N` | `paginate:10` | N items per page, enables `<outpost-pagination />` |
 | `filteredby:param` | `filteredby:category` | Filter by `?param=slug` query string |
 | `related:var` | `related:post` | Items from same collection excluding current single item |
 
 Examples:
 ```html
-{% for post in collection.post limit:3 orderby:published_at %}
-{% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
-{% for item in collection.post limit:3 related:post %}
+<outpost-each collection="post" limit:3 orderby:published_at>
+<outpost-each collection="post" paginate:10 orderby:published_at filteredby:category>
+<outpost-each collection="post" limit:3 related:post>
 ```
 
 `paginate:N` and `limit:N` are mutually exclusive.
 
 ### Pagination
 
-Place `{% pagination %}` after a loop that uses `paginate:N`. Renders `<nav>` with numbered links, Prev/Next, ellipsis. Preserves all query params (e.g. `?category=coding&page=2`).
+Place `<outpost-pagination />` after a loop that uses `paginate:N`. Renders `<nav>` with numbered links, Prev/Next, ellipsis. Preserves all query params (e.g. `?category=coding&page=2`).
 
 ```html
-{% for post in collection.post paginate:10 %}
+<outpost-each collection="post" paginate:10>
   ...
-{% endfor %}
+</outpost-each>
 
-{% pagination %}
+<outpost-pagination />
 ```
 
 CSS classes: `.pagination`, `.page-link`, `.page-link.page-current`, `.page-ellipsis`
@@ -382,80 +382,80 @@ CSS classes: `.pagination`, `.page-link`, `.page-link.page-current`, `.page-elli
 ### Single Items
 
 ```html
-{% single post from collection.post %}
-  {{ post.title }}
-  {{ post.body | raw }}
-{% else %}
+<outpost-single collection="post">
+  <span data-outpost="title"></span>
+  <div data-outpost="body" data-type="richtext"></div>
+<outpost-else>
   Not found.
-{% endsingle %}
+</outpost-single>
 ```
 
 Fetches by `?slug=` (set automatically by router). Related items inside a single:
 
 ```html
-{% single post from collection.post %}
-  {% for item in collection.post limit:3 related:post %}
-    {{ item.title }}
-  {% endfor %}
-{% endsingle %}
+<outpost-single collection="post">
+  <outpost-each collection="post" limit:3 related:post>
+    <span data-outpost="title"></span>
+  </outpost-each>
+</outpost-single>
 ```
 
 ### Channel Loops
 
 ```html
-{% for item in channel.listings %}
-  {{ item.title }}
-  {{ item.description }}
-  {{ item.price }}
-{% else %}
+<outpost-each channel="listings">
+  <span data-outpost="title"></span>
+  <span data-outpost="description"></span>
+  <span data-outpost="price"></span>
+<outpost-else>
   No listings available.
-{% endfor %}
+</outpost-each>
 ```
 
 `listings` is the channel slug. Loop options: `limit:N` (max items), `orderby:field` (sort descending). Items come from cached external data. Syntax is type-agnostic — works the same for API, RSS, and CSV channels.
 
 RSS feed example:
 ```html
-{% for post in channel.blog_feed limit:10 %}
-  <h2><a href="{{ post.link }}">{{ post.title }}</a></h2>
-  <time>{{ post.pubDate }}</time>
-  <p>{{ post.description }}</p>
-{% endfor %}
+<outpost-each channel="blog_feed" limit:10>
+  <h2><a href="<span data-outpost="link"></span>"><span data-outpost="title"></span></a></h2>
+  <time><span data-outpost="pubDate"></span></time>
+  <p><span data-outpost="description"></span></p>
+</outpost-each>
 ```
 
 CSV example:
 ```html
-{% for member in channel.team %}
-  <h3>{{ member.first_name }}</h3>
-  <p>{{ member.role }}</p>
-{% endfor %}
+<outpost-each channel="team">
+  <h3><span data-outpost="first_name"></span></h3>
+  <p><span data-outpost="role"></span></p>
+</outpost-each>
 ```
 
 ### Channel Single Items
 
 ```html
-{% single listing from channel.listings %}
-  {{ listing.title }}
-  {{ listing.description }}
-{% else %}
+<outpost-single channel="listings">
+  <span data-outpost="title"></span>
+  <span data-outpost="description"></span>
+<outpost-else>
   Listing not found.
-{% endsingle %}
+</outpost-single>
 ```
 
-Fetches by `?slug=` (set by channel URL pattern routing). Works identically to collection `{% single %}`.
+Fetches by `?slug=` (set by channel URL pattern routing). Works identically to collection `<outpost-single>`.
 
 ### Navigation Loops
 
 ```html
-{% for item in menu.main %}
-  {{ item.label }}
-  {{ item.url }}
-  {{ item.target }}          <!-- _self or _blank -->
-  {% for child in item.children %}
-    {{ child.label }}
-    {{ child.url }}
-  {% endfor %}
-{% endfor %}
+<outpost-menu name="main">
+  <span data-outpost="label"></span>
+  <span data-outpost="url"></span>
+  <span data-outpost="target"></span>          <!-- _self or _blank -->
+  <outpost-each item="children">
+    <span data-outpost="label"></span>
+    <span data-outpost="url"></span>
+  </outpost-each>
+</outpost-each>
 ```
 
 `main` is the menu slug. Menu items support one level of nesting via `item.children`.
@@ -463,11 +463,11 @@ Fetches by `?slug=` (set by channel URL pattern routing). Works identically to c
 ### Gallery Loops
 
 ```html
-{% for img in gallery.photos %}
-  {{ img.url }}
-  {{ img.alt }}
-  {{ img.caption }}
-{% endfor %}
+<outpost-each gallery="photos">
+  <span data-outpost="url"></span>
+  <span data-outpost="alt"></span>
+  <span data-outpost="caption"></span>
+</outpost-each>
 ```
 
 `photos` is the gallery field name on the current page or item.
@@ -475,11 +475,11 @@ Fetches by `?slug=` (set by channel URL pattern routing). Works identically to c
 ### Repeater Loops
 
 ```html
-{% for row in repeater.team_members %}
-  {{ row.name }}
-  {{ row.role }}
-  {{ row.photo | image }}
-{% endfor %}
+<outpost-each repeater="team_members">
+  <span data-outpost="name"></span>
+  <span data-outpost="role"></span>
+  <span data-outpost="photo" data-type="image"></span>
+</outpost-each>
 ```
 
 `team_members` is the repeater field name. Each row has the sub-fields defined in the repeater schema.
@@ -489,20 +489,20 @@ Fetches by `?slug=` (set by channel URL pattern routing). Works identically to c
 Flexible Content fields are ACF Pro-style layout builders. Define named layouts (e.g. Hero, CTA, Testimonial) each with their own sub-fields. Editors add, remove, and reorder layout blocks.
 
 ```html
-{% for block in flexible.page_sections %}
-  {% if block.layout == "hero" %}
+<outpost-each flexible="page_sections">
+  <outpost-if field="layout" equals="hero">
     <section class="hero">
-      <h1>{{ block.heading }}</h1>
-      <p>{{ block.subheading }}</p>
+      <h1><span data-outpost="heading"></span></h1>
+      <p><span data-outpost="subheading"></span></p>
     </section>
-  {% endif %}
-  {% if block.layout == "cta" %}
+  </outpost-if>
+  <outpost-if field="layout" equals="cta">
     <section class="cta">
-      <h2>{{ block.title }}</h2>
-      <a href="{{ block.button_url }}">{{ block.button_text }}</a>
+      <h2><span data-outpost="title"></span></h2>
+      <a href="<span data-outpost="button_url"></span>"><span data-outpost="button_text"></span></a>
     </section>
-  {% endif %}
-{% endfor %}
+  </outpost-if>
+</outpost-each>
 ```
 
 `page_sections` is the flexible content field name. Each block has a `block.layout` property identifying the layout type, plus all sub-fields defined for that layout. Sub-field values are auto-escaped (except richtext).
@@ -535,13 +535,13 @@ Supported sub-field types: text, textarea, richtext, image, link, select, color,
 Relationship fields link content to items from another collection. Search and select items with reorder support. Stores item IDs, resolves full item data at render time.
 
 ```html
-{% for item in relationship.related_posts %}
-  <a href="{{ item.url }}">
-    <h3>{{ item.title }}</h3>
-    <p>{{ item.excerpt }}</p>
-    <time>{{ item.published_at }}</time>
+<outpost-each relationship="related_posts">
+  <a href="<span data-outpost="url"></span>">
+    <h3><span data-outpost="title"></span></h3>
+    <p><span data-outpost="excerpt"></span></p>
+    <time><span data-outpost="published_at"></span></time>
   </a>
-{% endfor %}
+</outpost-each>
 ```
 
 `related_posts` is the relationship field name. Each item has all standard collection item fields: `id`, `slug`, `url`, `published_at`, `created_at`, `updated_at`, plus all custom fields defined in the related collection's schema.
@@ -558,94 +558,358 @@ Relationship fields link content to items from another collection. Search and se
 ### Folder Loops
 
 ```html
-{% for label in folder.categories %}
-  {{ label.name }}
-  {{ label.slug }}
-  {{ label.description }}
-  {{ label.count }}           <!-- number of published items with this label -->
-{% else %}
+<outpost-each folder="categories">
+  <span data-outpost="name"></span>
+  <span data-outpost="slug"></span>
+  <span data-outpost="description"></span>
+  <span data-outpost="count"></span>           <!-- number of published items with this label -->
+<outpost-else>
   <p>No categories yet.</p>
-{% endfor %}
+</outpost-each>
 ```
 
-### `{% else %}` on All Loops
+### `<outpost-else>` on All Loops
 
-All loop types support `{% else %}` for empty-state fallbacks (v1.9.3). This includes: collection, channel, folder, menu, gallery, media folder, repeater, flexible content, and relationship loops. The `{% else %}` block renders when the loop has zero items.
+All loop types support `<outpost-else>` for empty-state fallbacks (v1.9.3). This includes: collection, channel, folder, menu, gallery, media folder, repeater, flexible content, and relationship loops. The `<outpost-else>` block renders when the loop has zero items.
 
 ### Conditionals
 
 ```html
-{% if field_name %}...{% endif %}
-{% if @global_name %}...{% endif %}
-{% if item.field %}...{% endif %}
-{% if item.field == "value" %}...{% endif %}
-{% if item.field != "value" %}...{% endif %}
-{% if field %}...{% else %}...{% endif %}
-{% if admin %}...{% endif %}   <!-- true only when previewing in the admin editor -->
+<outpost-if field="field_name" exists>...</outpost-if>
+<outpost-if field="@global_name" exists>...</outpost-if>
+<outpost-if field="field" exists>...</outpost-if>
+<outpost-if field="field" equals="value">...</outpost-if>
+<outpost-if field="field" not-equals="value">...</outpost-if>
+<outpost-if field="field" exists>...<outpost-else>...</outpost-if>
+<outpost-if field="admin" exists>...</outpost-if>   <!-- true only when previewing in the admin editor -->
 ```
 
-**Conditional limitations:** Outpost conditionals do not support `&&` (AND), `||` (OR), or `!` (NOT) operators. Each `{% if %}` tests a single expression. For compound logic, nest `{% if %}` blocks. There is no `{% elseif %}` — use nested `{% if %}` inside `{% else %}`.
+**Conditional limitations:** Outpost conditionals do not support `&&` (AND), `||` (OR), or `!` (NOT) operators. Each `<outpost-if>` tests a single expression. For compound logic, nest `<outpost-if>` blocks. There is no `elseif` — use nested `<outpost-if>` inside `<outpost-else>`.
 
 ### Includes
 
 ```html
-{% include 'head' %}     <!-- loads partials/head.html -->
-{% include 'nav' %}
-{% include 'footer' %}
-{% include 'sidebar' %}
-{% include 'components/card' %}  <!-- loads partials/components/card.html -->
+<outpost-include partial="head" />     <!-- loads partials/head.html -->
+<outpost-include partial="nav" />
+<outpost-include partial="footer" />
+<outpost-include partial="sidebar" />
+<outpost-include partial="components/card" />  <!-- loads partials/components/card.html -->
 ```
 
 ### Comments
 
 ```html
-{# This is stripped at compile time — never appears in HTML #}
+<!-- This is stripped at compile time — never appears in HTML -->
 ```
 
 ### Full Tag Reference
 
 | Tag | Description |
 |---|---|
-| `{{ field }}` | Output field value (escaped) |
-| `{{ field | raw }}` | Rich text / HTML unescaped |
-| `{{ field | image }}` | Image picker |
-| `{{ field | link }}` | Link input |
-| `{{ field | textarea }}` | Multiline text |
-| `{{ field | select }}` | Dropdown |
-| `{{ field | color }}` | Color picker |
-| `{{ field | number }}` | Number input |
-| `{{ field | date }}` | Date input |
-| `{{ field | toggle }}` | Boolean toggle |
-| `{{ field | or_body }}` | Text with auto-excerpt fallback from body |
-| `{{ field | focal }}` | Focal point as CSS `X% Y%` for `object-position` |
-| `{{ field | edit }}` | Opt-in on-page editing (append to any type: `{{ field | image | edit }}`) |
-| `{{ @global }}` | Output global field |
-| `{{ meta.title }}Default{{ /meta.title }}` | `<title>` tag (legacy — use `{% seo %}` in new themes) |
-| `{{ meta.description }}Default{{ /meta.description }}` | `<meta name="description">` tag (legacy — use `{% seo %}` in new themes) |
-| `{% seo %}` | Full SEO block: title, description, OG, Twitter Card, canonical, JSON-LD, robots |
-| `{% for x in collection.slug %}` | Collection loop |
-| `{% single x from collection.slug %}` | Single item by slug |
-| `{% for x in folder.slug %}` | Folder label loop |
-| `{% for x in menu.slug %}` | Navigation menu loop |
-| `{% for x in gallery.field %}` | Gallery images loop |
-| `{% for x in repeater.field %}` | Repeater rows loop |
-| `{% for x in flexible.field %}` | Flexible content layout blocks loop |
-| `{% for x in relationship.field %}` | Relationship items loop |
-| `{% pagination %}` | Pagination nav |
-| `{% if expr %}` | Conditional |
-| `{% if admin %}` | True in admin editor preview |
-| `{% else %}` | Else branch |
-| `{% endif %}` / `{% endfor %}` / `{% endsingle %}` | Close blocks |
-| `{% include 'name' %}` | Insert partial |
-| `{# comment #}` | Template comment (stripped) |
+| `data-outpost="field"` | Output field value (escaped) |
+| `data-outpost="field" data-type="raw"` | Rich text / HTML unescaped |
+| `data-outpost="field" data-type="image"` | Image picker |
+| `data-outpost="field" data-type="link"` | Link input |
+| `data-outpost="field" data-type="textarea"` | Multiline text |
+| `data-outpost="field" data-type="select"` | Dropdown |
+| `data-outpost="field" data-type="color"` | Color picker |
+| `data-outpost="field" data-type="number"` | Number input |
+| `data-outpost="field" data-type="date"` | Date input |
+| `data-outpost="field" data-type="toggle"` | Boolean toggle |
+| `data-outpost="field" data-type="or_body"` | Text with auto-excerpt fallback from body |
+| `data-outpost="field" data-type="focal"` | Focal point as CSS `X% Y%` for `object-position` |
+| `data-outpost="field" data-type="edit"` | Opt-in on-page editing (append to any type: `data-outpost="field" data-type="image" data-edit`) |
+| `data-outpost="@global"` | Output global field |
+| `<span data-outpost="title"></span>Default` | `<title>` tag (legacy — use `<outpost-seo />` in new themes) |
+| `<span data-outpost="description"></span>Default` | `<meta name="description">` tag (legacy — use `<outpost-seo />` in new themes) |
+| `<outpost-seo />` | Full SEO block: title, description, OG, Twitter Card, canonical, JSON-LD, robots |
+| `<outpost-each collection="slug">` | Collection loop |
+| `<outpost-single collection="slug">` | Single item by slug |
+| `<outpost-each folder="slug">` | Folder label loop |
+| `<outpost-menu name="slug">` | Navigation menu loop |
+| `<outpost-each gallery="field">` | Gallery images loop |
+| `<outpost-each repeat="field">` | Repeater rows loop |
+| `<outpost-each flexible="field">` | Flexible content layout blocks loop |
+| `<outpost-each relationship="field">` | Relationship items loop |
+| `<outpost-pagination />` | Pagination nav |
+| `<outpost-if field="expr" exists>` | Conditional |
+| `<outpost-if field="admin" exists>` | True in admin editor preview |
+| `<outpost-else>` | Else branch |
+| `</outpost-if>` / `</outpost-each>` / `</outpost-single>` | Close blocks |
+| `<outpost-include partial="name" />` | Insert partial |
+| `<!-- comment -->` | Template comment (stripped) |
+
+## Template Engine v2 — Data Attribute Syntax
+
+### Engine Detection
+
+Themes are automatically detected as v2 if `index.html` contains `data-outpost=` or `<outpost-` patterns. No configuration needed — the engine is selected per-theme at render time.
+
+### Fields
+
+Define editable fields on any HTML element using `data-outpost`:
+
+```html
+<!-- Plain text field -->
+<h1 data-outpost="headline">Default Headline</h1>
+
+<!-- Typed fields -->
+<img data-outpost="hero_image" data-type="image" src="placeholder.jpg" />
+<div data-outpost="body" data-type="richtext">Default body content</div>
+<a data-outpost="cta_link" data-type="link" href="#">Learn More</a>
+<textarea data-outpost="bio" data-type="textarea">About me</textarea>
+<input data-outpost="subscribe" data-type="toggle" />
+<select data-outpost="layout" data-type="select"></select>
+<span data-outpost="price" data-type="number">0</span>
+<time data-outpost="published" data-type="date">2025-01-01</time>
+<div data-outpost="accent" data-type="color">#ff0000</div>
+
+<!-- Global field (shared across all pages) -->
+<span data-outpost="site_name" data-scope="global">My Site</span>
+```
+
+Supported `data-type` values: `image`, `richtext`, `link`, `textarea`, `toggle`, `select`, `number`, `date`, `color`. Omit `data-type` for plain text.
+
+Use `data-scope="global"` to read from global field storage instead of page-scoped fields.
+
+### Block Grouping
+
+Group fields into named sections using HTML comments:
+
+```html
+<!-- outpost:hero -->
+<section class="hero">
+  <h1 data-outpost="title">Welcome</h1>
+  <p data-outpost="subtitle">A brief intro</p>
+</section>
+<!-- /outpost:hero -->
+
+<!-- outpost:about global -->
+<section class="about">
+  <p data-outpost="company_bio" data-type="richtext">About us</p>
+</section>
+<!-- /outpost:about -->
+```
+
+- `<!-- outpost:blockname -->...<!-- /outpost:blockname -->` groups fields into editable sections.
+- `<!-- outpost:blockname global -->` marks the block as global (fields shared across all pages).
+
+### Block Settings
+
+Attach per-block settings using a special comment before the block element:
+
+```html
+<!-- outpost-settings:
+    bg_color: color(#ffffff)
+    layout: select(centered, left-aligned)
+    show_cta: toggle(true)
+-->
+<section class="hero">
+  ...
+</section>
+```
+
+Settings output as CSS custom properties and data attributes on the next sibling element. For example, `bg_color: color(#ffffff)` becomes `style="--bg_color: #ffffff"` and `data-bg_color="#ffffff"` on the `<section>`.
+
+Each settings line must follow the format `field_name: type(args)`. Field names may contain letters, numbers, underscores, and hyphens (e.g. `bg-color: color(#fff)`). Malformed lines that don't match this format are silently ignored by the parser.
+
+### Collection Loops
+
+```html
+<!-- List items from a collection -->
+<outpost-each collection="posts" limit="6" sort="published_at" order="desc">
+  <article>
+    <h2 data-outpost="title">Post Title</h2>
+    <p data-outpost="excerpt">Summary text</p>
+    <img data-outpost="featured_image" data-type="image" />
+  </article>
+</outpost-each>
+
+<!-- Empty state fallback -->
+<outpost-each collection="posts" empty>
+  <p>No posts yet.</p>
+</outpost-each>
+```
+
+### Repeater, Gallery, and Folder Loops
+
+```html
+<!-- Repeater -->
+<outpost-each repeat="skills">
+  <li data-outpost="skill">Skill name</li>
+</outpost-each>
+
+<!-- Gallery -->
+<outpost-each gallery="photos">
+  <img data-outpost="image" data-type="image" />
+</outpost-each>
+
+<!-- Folder / taxonomy -->
+<outpost-each folder="categories">
+  <a data-outpost="label" data-bind="href:url">Category</a>
+</outpost-each>
+```
+
+### Single Item
+
+```html
+<!-- Render a single collection item by URL slug -->
+<outpost-single collection="posts">
+  <article>
+    <h1 data-outpost="title">Post Title</h1>
+    <div data-outpost="body" data-type="richtext">Content here</div>
+  </article>
+</outpost-single>
+
+<!-- Not-found fallback -->
+<outpost-single collection="posts" else>
+  <p>Post not found.</p>
+</outpost-single>
+```
+
+### Conditionals
+
+```html
+<outpost-if field="featured_image" exists>
+  <img data-outpost="featured_image" data-type="image" />
+</outpost-if>
+
+<outpost-if field="status" is="published">
+  <span class="badge">Live</span>
+</outpost-if>
+
+<outpost-if field="site_name" scope="global" exists>
+  <span data-outpost="site_name" data-scope="global">Site</span>
+</outpost-if>
+```
+
+Supported operators: `is`, `equals`, `not`, `exists`, `empty`.
+
+### Includes, Menus, and SEO
+
+```html
+<!-- Include a partial from partials/ directory -->
+<outpost-include partial="nav" />
+
+<!-- Navigation menu -->
+<outpost-menu name="main">
+  <a data-bind="href:url" data-outpost="label">Link</a>
+</outpost-menu>
+```
+
+Menu items expose `label`, `url`, and `target` fields.
+
+```html
+<!-- Full SEO block (title, meta, OG, JSON-LD, etc.) -->
+<outpost-seo />
+
+<!-- Or manual SEO meta -->
+<outpost-meta title="My Page" description="Page description here" />
+```
+
+### Pagination
+
+```html
+<outpost-pagination />
+```
+
+Outputs pagination controls for collection loops.
+
+### Attribute Binding
+
+Inside loops, bind item data to HTML attributes:
+
+```html
+<outpost-each collection="posts">
+  <time data-bind="datetime:published_at" data-outpost="published_at">Jan 1</time>
+  <a data-bind="href:url" data-outpost="title">Post Title</a>
+  <img data-bind="src:featured_image" data-bind="alt:title" />
+</outpost-each>
+```
+
+`data-bind="attr:field"` sets the specified HTML attribute from the item's field value.
+
+### Auto-Hide
+
+Elements with `data-outpost` that resolve to an empty value are automatically removed from output. No explicit conditionals needed for optional fields — if the field has no content, the element is stripped.
+
+### Output Modes
+
+- **Public rendering** — all Outpost syntax (`data-outpost`, `data-type`, `data-scope`, `data-bind`, `<outpost-*>` elements, `<!-- outpost: -->` comments) is stripped from output. The result is clean, semantic HTML.
+- **Editor rendering** — when the page is loaded in the editor iframe with `?_outpost_editor=1`, all `data-outpost` attributes and `data-outpost-block` attributes are preserved in output so the click-to-edit bridge can map elements back to their fields.
+
+### Click-to-Edit Bridge (Editor Mode)
+
+The click-to-edit bridge connects the editor preview iframe to the sidebar field panels. It is automatic and requires no developer action.
+
+- **Activation**: Bridge JS is injected before `</body>` when the page is loaded with `?_outpost_editor=1` query param (editor iframe only; never on the live site).
+- **Hover outlines**: Moving the mouse over any `[data-outpost]` element shows a dotted outline and a small label with the field name.
+- **Click field**: Clicking a `[data-outpost]` element sends a `postMessage` to the parent admin frame, which scrolls the sidebar to that field and highlights it.
+- **Click block background**: Clicking an element with `[data-outpost-block]` (or the background area of a block) opens the block panel in the sidebar showing all fields in that block.
+- **Reverse highlighting**: When hovering over a field in the sidebar, the corresponding element in the preview iframe is highlighted with an outline. The sidebar sends a message to the iframe, and the bridge JS adds a highlight class to the matching element.
+- **Block attribute injection**: In editor mode, the v2 engine adds `data-outpost-block="name"` to the first element after each `<!-- outpost:name -->` block comment, enabling block-level click targeting.
+
+### Storyblok-style EditDrawer
+
+The EditDrawer is the sidebar editing panel in the frontend visual editor. It provides a three-level drill-down UI for editing page content:
+
+1. **Section list** — shows all blocks on the page (hero, features, testimonials, etc.) as clickable rows. Each row shows the block name and a count of editable fields.
+2. **Section detail** — clicking a section opens its detail view with two tabs: **General** (all editable content fields in the block) and **Style** (outpost-settings fields like colors, layout variants, toggles, ranges). Fields are rendered inline with live preview updates.
+3. **Field detail** — clicking a field opens a focused editing view for that specific field (richtext editor, image picker, link editor, etc.).
+
+**Breadcrumb navigation** at the top of the drawer shows the current drill-down path (e.g., "Sections > Hero > Title") and allows clicking any level to navigate back.
+
+**Bridge integration**: When a user clicks an element in the preview iframe, the bridge JS sends a postMessage identifying the block and field. The EditDrawer automatically navigates to the matching section and scrolls to/highlights the corresponding field.
+
+### Skeleton Theme (v2 Reference)
+
+The Skeleton theme is the developer reference theme, rewritten to showcase every v2 template feature:
+
+- **7 homepage blocks** with `<!-- outpost-settings: -->` definitions: colors, layout variants (select), ranges (number), toggles (boolean)
+- **Repeater fields**: features grid, testimonials carousel, team members, skills list — all using `<outpost-each repeat="name">`
+- **Collection loops** with pagination (`<outpost-pagination />`), filtering, and sorting options
+- **Folder/taxonomy loops** using `<outpost-each folder="slug">`
+- **Single item fetch** with `<outpost-single collection="slug">` including related posts
+- **Global blocks** for nav and footer using `<!-- outpost:nav global -->` and `<!-- outpost:footer global -->`
+- **Conditionals** using `<outpost-if field="x" exists>`
+- **Responsive CSS** using `var()` custom properties from outpost-settings and `[data-layout]` attribute selectors for variant-based styling
+
+The Skeleton theme is the recommended starting point for theme development. Duplicate it in Admin → Themes to create a new theme.
+
+### v2 Quick Reference
+
+| Syntax | Purpose |
+|---|---|
+| `data-outpost="name"` | Editable field |
+| `data-type="image\|richtext\|..."` | Field type hint |
+| `data-scope="global"` | Global field |
+| `<!-- outpost:block -->` | Block group open |
+| `<!-- /outpost:block -->` | Block group close |
+| `<!-- outpost:block global -->` | Global block |
+| `<!-- outpost-settings: ... -->` | Block settings |
+| `<outpost-each collection="slug">` | Collection loop |
+| `<outpost-each collection="slug" empty>` | Empty fallback |
+| `<outpost-each repeat="name">` | Repeater loop |
+| `<outpost-each gallery="name">` | Gallery loop |
+| `<outpost-each folder="slug">` | Folder/taxonomy loop |
+| `<outpost-single collection="slug">` | Single item |
+| `<outpost-single collection="slug" else>` | Not-found fallback |
+| `<outpost-if field="x" exists>` | Conditional |
+| `<outpost-if field="x" scope="global">` | Global conditional |
+| `<outpost-include partial="name" />` | Include partial |
+| `<outpost-menu name="slug">` | Menu loop |
+| `<outpost-seo />` | Full SEO output |
+| `<outpost-meta title="..." />` | SEO meta |
+| `<outpost-pagination />` | Pagination controls |
+| `data-bind="attr:field"` | Attribute binding |
 
 ## Partials
 
-Stored in `partials/` inside the theme directory. Included via `{% include 'name' %}`. Subdirectories supported: `{% include 'components/card' %}` maps to `partials/components/card.html`. Each partial inherits the full template context from its parent.
+Stored in `partials/` inside the theme directory. Included via `<outpost-include partial="name" />`. Subdirectories supported: `<outpost-include partial="components/card" />` maps to `partials/components/card.html`. Each partial inherits the full template context from its parent.
 
 Standard partial names: `head` (DOCTYPE through `<body>`), `nav` (navigation), `footer` (closing tags).
 
-**Recommended `head.html`:** Use `{% seo %}` instead of manual `{{ meta.title }}` / `{{ meta.description }}` tags. The `{% seo %}` tag auto-generates `<title>`, meta description, Open Graph, Twitter Card, canonical URL, JSON-LD Article schema, and pagination links with a fallback chain:
+**Recommended `head.html`:** Use `<outpost-seo />` instead of manual `<span data-outpost="title"></span>` / `<span data-outpost="description"></span>` tags. The `<outpost-seo />` tag auto-generates `<title>`, meta description, Open Graph, Twitter Card, canonical URL, JSON-LD Article schema, and pagination links with a fallback chain:
 
 ```html
 <!DOCTYPE html>
@@ -653,7 +917,7 @@ Standard partial names: `head` (DOCTYPE through `<body>`), `nav` (navigation), `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% seo %}
+  <outpost-seo />
   <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
 </head>
 <body>
@@ -686,7 +950,7 @@ Each collection has:
 1. Create the collection in Admin → Collections (set name, slug, URL pattern, add schema fields)
 2. Create the template files — a list page (e.g. `blog.html`) and a single page (e.g. `post.html`). The single template filename **must match the collection slug**: slug `post` → `post.html`, slug `portfolio` → `portfolio.html`.
 
-If the template exists but the collection hasn't been created in admin, `{% for item in collection.post %}` renders nothing (no error). If the collection exists but the template doesn't, visiting an item URL returns 404.
+If the template exists but the collection hasn't been created in admin, `<outpost-each collection="post">` renders nothing (no error). If the collection exists but the template doesn't, visiting an item URL returns 404.
 
 Items have statuses: `published`, `draft`, `scheduled`, `pending_review`. Only `published` items with `published_at` in the past appear in loops and single templates. Items with `pending_review` status are treated as drafts (not visible to visitors).
 
@@ -782,25 +1046,25 @@ Collections can require review before publishing via the `require_review` toggle
 
 ## Folders
 
-> Renamed in v1.0.0-beta.7: "Taxonomies" → **Folders**, "Terms" → **Labels**. Old syntax (`{% for term in taxonomy.slug %}`) and old API endpoints (`action=taxonomies`, `action=terms`) still work for backward compatibility.
+> Renamed in v1.0.0-beta.7: "Taxonomies" → **Folders**, "Terms" → **Labels**. Old syntax (`<outpost-each taxonomy="slug">`) and old API endpoints (`action=taxonomies`, `action=terms`) still work for backward compatibility.
 
 Create in Admin → Folders. Associate with a collection. Add labels. Types: `flat` (peer labels) or `hierarchical` (parent/child).
 
 ```html
-{% for label in folder.categories %}
-  <a href="/blog?category={{ label.slug }}">{{ label.name }}</a>
-{% endfor %}
+<outpost-each folder="categories">
+  <a href="/blog?category=<span data-outpost="slug"></span>"><span data-outpost="name"></span></a>
+</outpost-each>
 
-{% for post in collection.post filteredby:category %}
+<outpost-each collection="post" filteredby:category>
   ...
-{% endfor %}
+</outpost-each>
 ```
 
 Access item's labels inside a loop or single: `item.labels.category` (array).
 
 ## Global Fields
 
-Site-wide. Admin → Globals. Use `{{ @field_name }}` in templates. Auto-scaffolded from templates on first load. Conditional rendering: `{% if @field_name %}`.
+Site-wide. Admin → Globals. Use `data-outpost="@field_name"` in templates. Auto-scaffolded from templates on first load. Conditional rendering: `<outpost-if field="@field_name" exists>`.
 
 Storage: key-value pairs in the `settings` table. Saving globals clears all HTML caches.
 
@@ -830,12 +1094,12 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 - Every image has a focal point (default: 50% 50% center)
 - Set by clicking on the image preview in the media detail panel
 - Stored as `focal_x` and `focal_y` (0–100) in the database
-- Template filter: `{{ field | focal }}` outputs `X% Y%` for CSS
+- Template filter: `data-outpost="field" data-type="focal"` outputs `X% Y%` for CSS
 - Use with `object-position` or `background-position`:
 ```html
-<img src="{{ hero_image | image }}" style="object-fit: cover; object-position: {{ hero_image | focal }};">
+<img src="<img data-outpost="hero_image" data-type="image">" style="object-fit: cover; object-position: data-outpost="hero_image" data-type="focal";">
 ```
-- Works on collection items: `{{ post.featured_image | focal }}`
+- Works on collection items: `<span data-outpost="featured_image" data-type="focal"></span>`
 - Returns `50% 50%` if no custom focal point set
 
 **Media folders:**
@@ -862,10 +1126,10 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 
 **Gallery from media folders (template tag):**
 ```html
-{% for img in media_folder.photos %}
-  <img src="{{ img.url }}" alt="{{ img.alt }}"
-       style="object-position: {{ img.focal_x }}% {{ img.focal_y }}%;">
-{% endfor %}
+<outpost-each media_folder="photos">
+  <img src="<span data-outpost="url"></span>" alt="<span data-outpost="alt"></span>"
+       style="object-position: <span data-outpost="focal_x"></span>% <span data-outpost="focal_y"></span>%;">
+</outpost-each>
 ```
 - `photos` is the folder slug (auto-generated, unique, visible via right-click → Copy template tag)
 - Available fields: `img.url`, `img.alt` (or `img.alt_text`), `img.width`, `img.height`, `img.focal_x`, `img.focal_y`, `img.mime_type`, `img.filename`
@@ -893,10 +1157,10 @@ URL stored in DB (and output by `| image`): `/outpost/uploads/1700000000_hero-ph
 
 **In templates:**
 ```html
-<img src="{{ hero_image | image }}" alt="{{ hero_title }}">
-<img src="{{ hero_image | image }}" style="object-fit: cover; object-position: {{ hero_image | focal }};">
-{{ @logo | image }}
-<a href="{{ brochure_pdf | link }}" download>Download</a>
+<img src="<img data-outpost="hero_image" data-type="image">" alt="<span data-outpost="hero_title"></span>">
+<img src="<img data-outpost="hero_image" data-type="image">" style="object-fit: cover; object-position: data-outpost="hero_image" data-type="focal";">
+<img data-outpost="logo" data-scope="global" data-type="image">
+<a href="<a data-outpost="brochure_pdf" data-type="link" href="#">Link</a>" download>Download</a>
 ```
 
 **Max upload size:** 10 MB default. Override in `config.php`:
@@ -988,9 +1252,9 @@ if (!OutpostMember::check()) {
 ?>
 ```
 
-Include in Liquid template:
+Include in template:
 ```html
-{% include 'member-gate' %}
+<outpost-include partial="member-gate" />
 <!-- rest of template renders only for logged-in members -->
 ```
 
@@ -1078,7 +1342,7 @@ Create forms visually in Admin → Forms. The builder provides 14 field types: t
 Render a builder form in any template:
 
 ```html
-{% form 'contact' %}
+<outpost-form slug="contact" />
 ```
 
 This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required. Outpost injects no default form styles — your theme CSS has full control.
@@ -1153,14 +1417,14 @@ Builder forms use `outpost-form`, `outpost-field`, `outpost-field--{type}`, `out
 
 ## Channels (External Data Sources)
 
-Channels connect Outpost to external data sources — REST APIs, RSS feeds, and CSV files. If Collections are content you create in the admin, Channels are content that flows in from somewhere else. No plugins, no Composer, no build step — connect to any JSON API, RSS/Atom feed, or CSV file, cache data in SQLite, and render it in templates with the same Liquid syntax.
+Channels connect Outpost to external data sources — REST APIs, RSS feeds, and CSV files. If Collections are content you create in the admin, Channels are content that flows in from somewhere else. No plugins, no Composer, no build step — connect to any JSON API, RSS/Atom feed, or CSV file, cache data in SQLite, and render it in templates with the same template syntax.
 
 ### Concept
 
 - **Collections** = content you create and edit in the admin panel
 - **Channels** = content that flows in from external sources (read-only in Outpost)
 - Three source types: **REST API**, **RSS Feed** (RSS 2.0 + Atom 1.0), **CSV** (any URL serving CSV data)
-- All three types use identical template syntax: `{% for item in channel.slug %}` — templates are type-agnostic
+- All three types use identical template syntax: `<outpost-each channel="slug">` — templates are type-agnostic
 - Both collections and channels support URL patterns for single-item pages
 - Channel data is cached in SQLite with configurable TTL
 - Type is chosen at creation and cannot be changed afterward
@@ -1252,13 +1516,13 @@ Dot-notation to target the array in the API response:
 ### Channel Loops
 
 ```html
-{% for item in channel.listings %}
-  <h2>{{ item.title }}</h2>
-  <p>{{ item.description }}</p>
-  <span>{{ item.price }}</span>
-{% else %}
+<outpost-each channel="listings">
+  <h2><span data-outpost="title"></span></h2>
+  <p><span data-outpost="description"></span></p>
+  <span><span data-outpost="price"></span></span>
+<outpost-else>
   <p>No listings available.</p>
-{% endfor %}
+</outpost-each>
 ```
 
 Loop options (space-separated after channel name):
@@ -1268,17 +1532,17 @@ Loop options (space-separated after channel name):
 | `limit:N` | `limit:5` | Show at most N items |
 | `orderby:field` | `orderby:price` | Sort by field (descending) |
 
-Combined: `{% for item in channel.listings limit:6 orderby:updated_at %}`
+Combined: `<outpost-each channel="listings" limit:6 orderby:updated_at>`
 
 ### Single Channel Items
 
 ```html
-{% single listing from channel.listings %}
-  <h1>{{ listing.title }}</h1>
-  <p>{{ listing.description }}</p>
-{% else %}
+<outpost-single channel="listings">
+  <h1><span data-outpost="title"></span></h1>
+  <p><span data-outpost="description"></span></p>
+<outpost-else>
   <p>Listing not found.</p>
-{% endsingle %}
+</outpost-single>
 ```
 
 Fetches by `?slug=` (set automatically by URL pattern routing, same as collections).
@@ -1289,7 +1553,7 @@ Set a URL pattern in the Configure step (e.g. `/listing/{slug}`). The front rout
 1. Queries all active channels with a `url_pattern` set
 2. Matches the request URI against each pattern
 3. Extracts the slug from the URL
-4. Sets `$_GET['slug']` for use by `{% single %}`
+4. Sets `$_GET['slug']` for use by `<outpost-single>`
 5. Renders `{channel-slug}.html` template, falls back to `channel.html`
 
 ### Caching and Sync
@@ -1313,8 +1577,8 @@ REST API channels support two pagination modes for APIs that return paginated da
 | Feature | Collections | Channels |
 |---|---|---|
 | Data source | Admin editor | External REST API, RSS feed, or CSV file |
-| Template loop | `{% for item in collection.slug %}` | `{% for item in channel.slug %}` |
-| Single item | `{% single var from collection.slug %}` | `{% single var from channel.slug %}` |
+| Template loop | `<outpost-each collection="slug">` | `<outpost-each channel="slug">` |
+| Single item | `<outpost-single collection="slug">` | `<outpost-single channel="slug">` |
 | URL patterns | `/post/{slug}` | `/listing/{slug}` |
 | Editable in admin | Yes | No (read-only cache) |
 | Storage | `collection_items` table | `channel_items` table (cache) |
@@ -1323,15 +1587,15 @@ REST API channels support two pagination modes for APIs that return paginated da
 ### Mixing Channels and Collections
 
 ```html
-{# Latest blog posts from your CMS #}
-{% for post in collection.post limit:3 orderby:published_at %}
-  <a href="{{ post.url }}">{{ post.title }}</a>
-{% endfor %}
+<!-- Latest blog posts from your CMS -->
+<outpost-each collection="post" limit:3 orderby:published_at>
+  <a href="<span data-outpost="url"></span>"><span data-outpost="title"></span></a>
+</outpost-each>
 
-{# Latest property listings from external MLS API #}
-{% for listing in channel.mls limit:6 %}
-  <div class="listing-card">{{ listing.address }} — {{ listing.price }}</div>
-{% endfor %}
+<!-- Latest property listings from external MLS API -->
+<outpost-each channel="mls" limit:6>
+  <div class="listing-card"><span data-outpost="address"></span> — <span data-outpost="price"></span></div>
+</outpost-each>
 ```
 
 ### Channel Admin API Endpoints
@@ -1437,20 +1701,20 @@ When enabled, `track.php` looks up visitor IPs against the mmdb file and stores 
 
 GA4 integration (optional):
 ```html
-{% if @ga4_id %}
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"></script>
+<outpost-if field="@ga4_id" exists>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<span data-outpost="ga4_id" data-scope="global"></span>"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', '{{ @ga4_id }}');
+  gtag('config', '<span data-outpost="ga4_id" data-scope="global"></span>');
 </script>
-{% endif %}
+</outpost-if>
 ```
 
-## SEO — `{% seo %}` tag
+## SEO — `<outpost-seo />` tag
 
-Place `{% seo %}` once in `head.html`. It outputs a complete SEO block automatically for every page type. No parameters, no configuration, no manual OG tags needed in templates.
+Place `<outpost-seo />` once in `head.html`. It outputs a complete SEO block automatically for every page type. No parameters, no configuration, no manual OG tags needed in templates.
 
 ```html
 <!-- partials/head.html -->
@@ -1459,7 +1723,7 @@ Place `{% seo %}` once in `head.html`. It outputs a complete SEO block automatic
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% seo %}
+  <outpost-seo />
   <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
 </head>
 <body>
@@ -1509,7 +1773,7 @@ Place `{% seo %}` once in `head.html`. It outputs a complete SEO block automatic
 }
 ```
 
-`{% seo %}` replaces `{{ meta.title }}` and `{{ meta.description }}`. Do not use both — `{% seo %}` already outputs `<title>` and description. Individual meta tags still work in legacy themes.
+`<outpost-seo />` replaces `<span data-outpost="title"></span>` and `<span data-outpost="description"></span>`. Do not use both — `<outpost-seo />` already outputs `<title>` and description. Individual meta tags still work in legacy themes.
 
 ## WordPress Import
 
@@ -1530,7 +1794,21 @@ Images in post content still point to old WordPress domain after import — upda
 
 In-admin theme file editor at Admin → Code. Requires `developer` or higher role.
 
-Features: syntax highlighting (HTML, CSS, JS), tab bar with dirty-state indicator, file tree with create/rename/delete, find-in-files search, Outpost template autocomplete inside `{{ }}` and `{% %}`.
+Features: syntax highlighting (HTML, CSS, JS), tab bar with dirty-state indicator, file tree with create/rename/delete, find-in-files search, Outpost template autocomplete inside `data-outpost` and `<outpost-*>` elements.
+
+v2 syntax highlighting (v4.1.1): High-contrast, colorblind-accessible decorations for all Outpost v2 template patterns:
+- `data-outpost="field"` — bold gold/amber
+- `data-type="richtext"` / `data-bind="attr:field"` — bold cyan/teal
+- `data-scope="global"` — bold magenta/pink
+- `<outpost-each>`, `<outpost-single>`, `<outpost-if>`, etc. — bold green
+- `<!-- outpost:blockname -->` — amber background
+- `<!-- outpost-settings: ... -->` — blue background
+Both dark and light mode variants. Legacy v1 syntax (`{{ }}`, `{% %}`, `{# #}`) highlighting also supported for backwards compatibility.
+
+v2 autocomplete (v4.1.1): Context-aware completions triggered by:
+- Typing `data-` — suggests `data-outpost`, `data-type`, `data-scope`, `data-bind` with all type values
+- Typing `<outpost-` — suggests all custom elements with collection-specific loops
+- Typing `<!-- outpost` — suggests block comment and settings comment patterns
 
 Endpoints added to `code-editor.php`:
 - `code/files` GET — list theme code files
@@ -1548,6 +1826,25 @@ Endpoints added to `code-editor.php`:
 Built into the Code Editor. Select HTML in any `.html`/`.htm` file, right-click to open the Forge context menu, or press Cmd+E / Ctrl+E to jump straight to Make Editable. Right-clicking without a selection shows "Insert Asset" and "Insert Component" options.
 
 Forge uses smart detection — it analyzes the selected HTML and reorders the context menu so the most likely action appears first. It also pre-selects the field type in the Make Editable form.
+
+### Smart Forge AI (v4.5.0)
+
+When an AI API key is configured (Claude, OpenAI, or Gemini via Settings > Ranger), the "Smart Forge" button in the Code Editor toolbar becomes "Smart Forge AI". Instead of the PHP regex-based scanner, it sends the entire HTML file to the AI with a detailed annotation prompt. The AI:
+
+- Wraps distinct sections in `<!-- outpost:sectionname -->` / `<!-- /outpost:sectionname -->` comments
+- Adds `data-outpost="blockname_fieldname"` to every editable element (headings, paragraphs, images, links, buttons, badges, etc.)
+- Adds `data-type="richtext"`, `data-type="image"`, `data-type="link"` as appropriate
+- Adds `<!-- outpost-settings: -->` for visual properties (bg_color, layout, show_section toggle)
+- Wraps nav in `<!-- outpost:nav global -->` and footer in `<!-- outpost:footer global -->`
+- Replaces `<title>` and `<meta name="description">` with `<outpost-meta />`
+
+If no AI key is configured, Smart Forge falls back to the existing PHP scanner seamlessly.
+
+**API endpoints:**
+- `GET api.php?action=forge/ai-status` — Returns `{ "available": true/false, "provider": "claude"|"openai"|"gemini" }`
+- `POST api.php?action=forge/ai-scan` — Body: `{ "html": "..." }`. Returns `{ "template": "annotated HTML", "provider": "claude" }`
+
+**Provider selection:** Uses the default Ranger provider if it has a key configured, otherwise falls back to whichever provider has a key. Models: Claude Sonnet, GPT-4o, Gemini 2.0 Flash.
 
 ### Detection rules (priority order)
 
@@ -1568,19 +1865,19 @@ Forge uses smart detection — it analyzes the selected HTML and reorders the co
 
 ### Seven actions
 
-**Make Editable** — Wraps selection in an output tag. Fields: name (auto-slugified), type (text, richtext, image, link, textarea, select, color, number, date, toggle), scope (page/global), editable on front-end (appends `| edit` for on-page editing), use as default (wrapping default — ON by default for all types including image and link). Output: `{{ field }}`, `{{ field | edit }}`, `{{ field | image | edit }}`, `{{ @global | edit }}`, or `{{ field | edit }}Default{{ /field }}`.
+**Make Editable** — Wraps selection in an output tag. Fields: name (auto-slugified), type (text, richtext, image, link, textarea, select, color, number, date, toggle), scope (page/global), editable on front-end (appends `data-edit` for on-page editing), use as default (wrapping default — ON by default for all types including image and link). Output: `data-outpost="field"`, `data-outpost="field" data-type="edit"`, `data-outpost="field" data-type="image" data-edit`, `data-outpost="global" data-scope="global" data-edit`, or `data-outpost="field" data-editDefault`.
 
-**Collection Loop** — Wraps selection in `{% for item in collection.slug %}...{% endfor %}`. Fields: collection (dropdown), item variable, limit, order by. **Field mapper**: auto-detects images, headings, paragraphs, and links in selected HTML and maps them to collection fields with auto-guessing.
+**Collection Loop** — Wraps selection in `<outpost-each collection="slug">...</outpost-each>`. Fields: collection (dropdown), item variable, limit, order by. **Field mapper**: auto-detects images, headings, paragraphs, and links in selected HTML and maps them to collection fields with auto-guessing.
 
-**Menu Loop** — Wraps navigation links in `{% for link in menu.slug %}...{% endfor %}`. Fields: menu (dropdown of admin menus or free-text slug), link variable. When 2+ links are detected, offers to auto-replace static hrefs and text with `{{ link.url }}` and `{{ link.label }}`.
+**Menu Loop** — Wraps navigation links in `<outpost-each menu="slug">...</outpost-each>`. Fields: menu (dropdown of admin menus or free-text slug), link variable. When 2+ links are detected, offers to auto-replace static hrefs and text with `<span data-outpost="url"></span>` and `<span data-outpost="label"></span>`.
 
-**Conditional** — Wraps selection in `{% if expression %}...{% endif %}`. Fields: expression, operator (truthy/==/!=), value.
+**Conditional** — Wraps selection in `<outpost-if field="expression" exists>...</outpost-if>`. Fields: expression, operator (truthy/==/!=), value.
 
-**Extract Partial** — Creates `partials/{name}.html` with the selected content, replaces selection with `{% include 'name' %}`, refreshes file tree, opens the new file in a tab. **Smart nav detection**: when extracting a `<nav>` with 2+ links, offers "Connect to admin menu" checkbox to wrap links in a menu loop automatically. **Apply to all pages**: after extraction, Forge scans other theme files for the same content and offers to replace it in all matching pages at once. **Use Existing Partial**: if a partial with a matching name already exists (e.g. `partials/nav.html` for a `<nav>` selection), "Use Partial: nav" appears at the top of the context menu for instant replacement.
+**Extract Partial** — Creates `partials/{name}.html` with the selected content, replaces selection with `<outpost-include partial="name" />`, refreshes file tree, opens the new file in a tab. **Smart nav detection**: when extracting a `<nav>` with 2+ links, offers "Connect to admin menu" checkbox to wrap links in a menu loop automatically. **Apply to all pages**: after extraction, Forge scans other theme files for the same content and offers to replace it in all matching pages at once. **Use Existing Partial**: if a partial with a matching name already exists (e.g. `partials/nav.html` for a `<nav>` selection), "Use Partial: nav" appears at the top of the context menu for instant replacement.
 
-**Meta Tag** — Wraps selection in `{{ meta.title }}...{{ /meta.title }}` or `{{ meta.description }}...{{ /meta.description }}`.
+**Meta Tag** — Wraps selection in `<span data-outpost="title"></span>...` or `<span data-outpost="description"></span>...`.
 
-**Form** — Inserts `{% form 'slug' %}`. Three modes: (A) **Auto-create from HTML** — when a `<form>` element is selected, Forge parses the HTML to detect fields (text, email, phone, URL, number, date, time, hidden, textarea, select, radio, checkbox), extracts labels, groups radio/checkbox by name, derives form name, and creates the form in the database. (B) Pick from existing forms dropdown. (C) Manual slug entry.
+**Form** — Inserts `<outpost-form slug="slug" />`. Three modes: (A) **Auto-create from HTML** — when a `<form>` element is selected, Forge parses the HTML to detect fields (text, email, phone, URL, number, date, time, hidden, textarea, select, radio, checkbox), extracts labels, groups radio/checkbox by name, derives form name, and creates the form in the database. (B) Pick from existing forms dropdown. (C) Manual slug entry.
 
 ### Forge Playground
 
@@ -1703,6 +2000,8 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `users` | GET, POST, PUT, DELETE | Admin users CRUD |
 | `users/grants` | GET, PUT | Collection grants for editor users (GET returns granted IDs, PUT replaces all grants) |
 | `users/media-folder-grants` | GET, PUT | Media folder grants for editor users (folder_ids[]) |
+| `editor/media-lookup` | GET | Look up media record by path (?path=), returns alt_text and metadata |
+| `editor/media-alt` | POST | Update media alt_text by path ({path, alt_text}) |
 | `members` | GET, PUT, DELETE | Member management |
 | `menus` | GET, POST, PUT, DELETE | Navigation menus CRUD |
 | `loops` | GET, POST, DELETE | Saved query loops |
@@ -1825,17 +2124,60 @@ if (!res.ok) {
 
 Base URL: `/outpost/member-api.php?action=ENDPOINT`
 
+**Session-based endpoints** (use cookies):
+
 | Action | Method | Description |
 |---|---|---|
-| `login` | POST | Member sign in |
+| `login` | POST | Member sign in (sets session cookie) |
 | `logout` | POST | Member sign out |
-| `register` | POST | New member registration |
+| `register` | POST | New member registration (auto-login via session) |
 | `forgot` | POST | Send reset email (public) |
 | `reset` | POST | Reset password via token (public) |
 | `resend-verify` | POST | Resend verification email (public, 60s rate limit) |
-| `me` | GET | Current member |
-| `profile` | PUT | Update member profile |
-| `password` | PUT | Change member password (requires current password) |
+| `me` | GET | Current member (accepts session or bearer token) |
+| `profile` | PUT | Update member profile (accepts session or bearer token) |
+| `password` | PUT | Change member password (accepts session or bearer token) |
+
+**JWT bearer token endpoints** (for mobile apps / headless clients):
+
+| Action | Method | Auth | Description |
+|---|---|---|---|
+| `token` | POST | None | Exchange email+password for a JWT bearer token. Rate limit: 10/min. |
+| `token/register` | POST | None | Register new member and receive JWT. Rate limit: 5/5min. |
+| `token/refresh` | POST | Bearer | Exchange valid JWT for a fresh one (30-day expiry). |
+| `token/me` | GET | Bearer | Get member profile via bearer token. |
+
+**JWT details:**
+- Algorithm: HS256 (HMAC-SHA256), pure PHP — no external libraries
+- Token lifetime: 30 days for members
+- Secret: derived from database path (unique per installation)
+- Header: `Authorization: Bearer eyJhbGciOiJIUzI1NiIs...`
+- CSRF tokens are NOT required for bearer-authenticated requests
+
+**Token response format:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "member": { "id": 50, "name": "Jane", "email": "jane@example.com", "tier": "free" },
+  "expires_at": "2026-04-19T12:00:00+00:00"
+}
+```
+
+### CORS Configuration
+
+By default, cross-origin requests are only allowed from `localhost`. For mobile apps:
+
+Set the `api_cors_origins` setting in the settings table:
+- `*` — allow all origins (recommended for mobile apps)
+- `https://app.example.com, https://www.example.com` — allow specific origins
+- (not set) — localhost only
+
+This setting applies to `api.php`, `member-api.php`, and `content-api.php`.
+
+```sql
+INSERT INTO settings (key, value) VALUES ('api_cors_origins', '*')
+  ON CONFLICT(key) DO UPDATE SET value = excluded.value;
+```
 
 ## Public Content API
 
@@ -2072,7 +2414,7 @@ After update, the new manifest replaces the old one for future comparisons.
 
 The template engine (v1.9.0+) provides developer-friendly error diagnostics:
 
-**Pre-compilation validation:** `OutpostTemplate::validate()` checks for balanced block tags (`{% if %}`, `{% for %}`, `{% single %}`) before compilation. Reports unclosed tags, mismatched end tags, and unexpected `{% else %}` with exact line numbers and file names.
+**Pre-compilation validation:** `OutpostTemplate::validate()` checks for balanced block tags (`<outpost-if>`, `<outpost-each>`, `<outpost-single>`) before compilation. Reports unclosed tags, mismatched end tags, and unexpected `<outpost-else>` with exact line numbers and file names.
 
 **Source line tracking:** The compiler injects `/* @line:N */` markers into compiled PHP. When a runtime error occurs, `mapCompiledLineToSource()` traces the PHP error line back to the original template source line.
 
@@ -2085,7 +2427,7 @@ The template engine (v1.9.0+) provides developer-friendly error diagnostics:
 Non-admin visitors see a generic "Something went wrong" page with no source details.
 
 **Error translations:** `translateError()` converts common PHP errors:
-- `Undefined variable $x` → "Unknown variable $x. Check that it's defined in a {% for %} or {% single %} block."
+- `Undefined variable $x` → "Unknown variable $x. Check that it's defined in a <outpost-each> or <outpost-single> block."
 - `syntax error` → "Template syntax error. Check for unclosed tags or invalid template expressions."
 - `Undefined array key "x"` → "Field "x" is not defined. Check the field name in your template."
 - `Call to undefined function x()` → "Unknown function x(). This may indicate a missing Outpost feature or a typo."
@@ -2178,11 +2520,11 @@ Cache bypass: `?nocache=1` in URL (development only).
 
 **SQLite WAL mode** is enabled by default for concurrent read performance. Outpost sets `PRAGMA journal_mode=WAL` at connection time. No configuration needed.
 
-**Minimize template-level API calls.** Each `{% for item in collection.slug %}` runs a SQL query. Use `limit:N` to cap results. Avoid multiple loops against the same collection — restructure templates to use a single loop where possible.
+**Minimize template-level API calls.** Each `<outpost-each collection="slug">` runs a SQL query. Use `limit:N` to cap results. Avoid multiple loops against the same collection — restructure templates to use a single loop where possible.
 
 **CDN / reverse proxy:** Place Cloudflare, Fastly, or Nginx caching in front of the site. Outpost's HTML cache headers respect standard cache-control. Static assets in `outpost/themes/slug/assets/` can be served directly by the web server with long cache headers.
 
-**Template warm-up:** After deploying a new theme or clearing the template cache, the first request for each page compiles the Liquid template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
+**Template warm-up:** After deploying a new theme or clearing the template cache, the first request for each page compiles the template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
 
 **SQLite tuning** (optional, in a custom bootstrap):
 ```php
@@ -2193,7 +2535,7 @@ $db->exec("PRAGMA mmap_size = 268435456");  // 256 MB memory-mapped I/O
 
 ## Architecture — Design Philosophy
 
-Outpost is a **zero-dependency, file-based CMS**. It uses PHP 8, SQLite, and Liquid-style HTML templates. There is no Composer, no Node.js runtime, no Redis, no external services.
+Outpost is a **zero-dependency, file-based CMS**. It uses PHP 8, SQLite, and data-attribute HTML templates. There is no Composer, no Node.js runtime, no Redis, no external services.
 
 **Outpost does NOT have:**
 - A middleware pipeline
@@ -2215,7 +2557,7 @@ $items = OutpostDB::fetchAll("SELECT * FROM items WHERE collection_id = ? AND st
 echo json_encode(['items' => $items]);
 ```
 
-2. **PHP partial in a template** — Create a `.php` file in `partials/` and include it via `{% include 'name' %}`. PHP executes server-side before template output.
+2. **PHP partial in a template** — Create a `.php` file in `partials/` and include it via `<outpost-include partial="name" />`. PHP executes server-side before template output.
 
 3. **Cron job** — For periodic tasks, create a PHP script and run it via cron. Use Outpost's database classes (`OutpostDB`).
 
@@ -2227,7 +2569,7 @@ echo json_encode(['items' => $items]);
 |---|---|
 | `api.php` | REST API router |
 | `engine.php` | Template engine runtime — `cms_text()`, `cms_collection_list()`, etc. |
-| `template-engine.php` | Liquid → PHP compiler |
+| `template-engine.php` | Template → PHP compiler |
 | `front-router.php` | URL → template file routing |
 | `db.php` | SQLite wrapper (`OutpostDB` class) |
 | `members.php` | Member authentication (`OutpostMember` class) |
@@ -2365,62 +2707,62 @@ Collections: `post` with fields `title`, `excerpt`, `featured_image`, `body` (ri
 
 ```html
 <!-- blog.html: list all posts -->
-{% include 'head' %}
-{% for post in collection.post paginate:10 orderby:published_at %}
+<outpost-include partial="head" />
+<outpost-each collection="post" paginate:10 orderby:published_at>
   <article>
-    <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-    <p>{{ post.excerpt | or_body }}</p>
-    <time>{{ post.published_at }}</time>
+    <h2><a href="<span data-outpost="url"></span>"><span data-outpost="title"></span></a></h2>
+    <p><p data-outpost="excerpt" data-type="or_body"></p></p>
+    <time><span data-outpost="published_at"></span></time>
   </article>
-{% endfor %}
-{% pagination %}
-{% include 'footer' %}
+</outpost-each>
+<outpost-pagination />
+<outpost-include partial="footer" />
 
 <!-- post.html: single post -->
-{% include 'head' %}
-{% single post from collection.post %}
-  {{ meta.title post.title }}
-  <h1>{{ post.title }}</h1>
-  <div class="body">{{ post.body | raw }}</div>
-{% else %}
+<outpost-include partial="head" />
+<outpost-single collection="post">
+  <outpost-meta title="" />
+  <h1><span data-outpost="title"></span></h1>
+  <div class="body"><div data-outpost="body" data-type="richtext"></div></div>
+<outpost-else>
   <p>Post not found.</p>
-{% endsingle %}
-{% include 'footer' %}
+</outpost-single>
+<outpost-include partial="footer" />
 ```
 
 ### Category Filtering
 
 ```html
 <!-- Folder label list -->
-{% for label in folder.category %}
-  <a href="/blog?category={{ label.slug }}">{{ label.name }} ({{ label.count }})</a>
-{% endfor %}
+<outpost-each folder="category">
+  <a href="/blog?category=<span data-outpost="slug"></span>"><span data-outpost="name"></span> (<span data-outpost="count"></span>)</a>
+</outpost-each>
 
 <!-- Filtered loop -->
-{% for post in collection.post paginate:10 filteredby:category %}
-  {{ post.title }}
-{% endfor %}
-{% pagination %}
+<outpost-each collection="post" paginate:10 filteredby:category>
+  <span data-outpost="title"></span>
+</outpost-each>
+<outpost-pagination />
 ```
 
 ### Dropdown Navigation
 
 ```html
 <nav>
-  {% for item in menu.main %}
-    {% if item.children %}
+  <outpost-menu name="main">
+    <outpost-if field="children" exists>
       <div class="has-dropdown">
-        <a href="{{ item.url }}">{{ item.label }}</a>
+        <a href="<span data-outpost="url"></span>"><span data-outpost="label"></span></a>
         <ul class="dropdown">
-          {% for child in item.children %}
-            <li><a href="{{ child.url }}">{{ child.label }}</a></li>
-          {% endfor %}
+          <outpost-each item="children">
+            <li><a href="<span data-outpost="url"></span>"><span data-outpost="label"></span></a></li>
+          </outpost-each>
         </ul>
       </div>
-    {% else %}
-      <a href="{{ item.url }}">{{ item.label }}</a>
-    {% endif %}
-  {% endfor %}
+    <outpost-else>
+      <a href="<span data-outpost="url"></span>"><span data-outpost="label"></span></a>
+    </outpost-if>
+  </outpost-each>
 </nav>
 ```
 
@@ -2428,12 +2770,12 @@ Collections: `post` with fields `title`, `excerpt`, `featured_image`, `body` (ri
 
 ```html
 <!-- Show teaser to non-members, full content to members -->
-{% include 'member-reveal' %}
+<outpost-include partial="member-reveal" />
 <!-- partials/member-reveal.php sets $GLOBALS['_outpost_member'] -->
 
-{% if @site_name %}
+<outpost-if field="@site_name" exists>
 <!-- Paywall CTA for non-members rendered via conditional in PHP partial -->
-{% endif %}
+</outpost-if>
 ```
 
 Page-level: set visibility to "Members Only" or "Paid Members" in the page editor sidebar. No code required.
@@ -2444,31 +2786,31 @@ Use flexible content to build modular landing pages:
 
 ```html
 <!-- landing.html -->
-{% include 'head' %}
-{% single page from collection.landing %}
-  <h1>{{ page.title }}</h1>
-  {% for block in flexible.sections %}
-    {% if block.layout == "hero" %}
-      <section class="hero" style="background-image: url({{ block.bg_image }})">
-        <h2>{{ block.heading }}</h2>
-        <p>{{ block.text }}</p>
+<outpost-include partial="head" />
+<outpost-single collection="landing">
+  <h1><span data-outpost="title"></span></h1>
+  <outpost-each flexible="sections">
+    <outpost-if field="layout" equals="hero">
+      <section class="hero" style="background-image: url(<span data-outpost="bg_image"></span>)">
+        <h2><span data-outpost="heading"></span></h2>
+        <p><span data-outpost="text"></span></p>
       </section>
-    {% endif %}
-    {% if block.layout == "features" %}
+    </outpost-if>
+    <outpost-if field="layout" equals="features">
       <section class="features">
-        <h2>{{ block.heading }}</h2>
-        <div class="body">{{ block.content | raw }}</div>
+        <h2><span data-outpost="heading"></span></h2>
+        <div class="body"><div data-outpost="content" data-type="richtext"></div></div>
       </section>
-    {% endif %}
-    {% if block.layout == "testimonial" %}
+    </outpost-if>
+    <outpost-if field="layout" equals="testimonial">
       <blockquote>
-        <p>{{ block.quote }}</p>
-        <cite>{{ block.author }}</cite>
+        <p><span data-outpost="quote"></span></p>
+        <cite><span data-outpost="author"></span></cite>
       </blockquote>
-    {% endif %}
-  {% endfor %}
-{% endsingle %}
-{% include 'footer' %}
+    </outpost-if>
+  </outpost-each>
+</outpost-single>
+<outpost-include partial="footer" />
 ```
 
 ### Related Posts
@@ -2476,14 +2818,14 @@ Use flexible content to build modular landing pages:
 Use relationship fields to show hand-picked related content:
 
 ```html
-{% single post from collection.post %}
-  <h1>{{ post.title }}</h1>
-  <div class="body">{{ post.body | raw }}</div>
+<outpost-single collection="post">
+  <h1><span data-outpost="title"></span></h1>
+  <div class="body"><div data-outpost="body" data-type="richtext"></div></div>
 
-  {% for item in relationship.related_posts %}
-    <a href="{{ item.url }}">{{ item.title }}</a>
-  {% endfor %}
-{% endsingle %}
+  <outpost-each relationship="related_posts">
+    <a href="<span data-outpost="url"></span>"><span data-outpost="title"></span></a>
+  </outpost-each>
+</outpost-single>
 ```
 
 ### Headless / API

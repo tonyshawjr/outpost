@@ -112,6 +112,10 @@ function handle_theme_activate(): void {
         "DELETE FROM pages WHERE id NOT IN (SELECT DISTINCT page_id FROM fields) AND path != '__global__'"
     );
 
+    // Build theme manifest for the newly activated theme
+    require_once __DIR__ . '/theme-manifest.php';
+    outpost_build_theme_manifest($slug);
+
     json_response(['success' => true, 'active' => $slug]);
 }
 
@@ -323,10 +327,10 @@ function handle_theme_create(): void {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ meta.title }}</title>
+<outpost-meta title="My Site" />
 </head>
 <body>
-<h1>{{ meta.title }}</h1>
+<h1 data-outpost="heading">Welcome</h1>
 <p>Edit this theme in the Code Editor.</p>
 </body>
 </html>
@@ -403,6 +407,8 @@ function theme_add_to_zip(\ZipArchive $zip, string $dir, string $prefix): void {
     $entries = scandir($dir);
     foreach ($entries as $entry) {
         if ($entry === '.' || $entry === '..') continue;
+        if ($entry === '.forge-snapshot') continue;
+        if ($entry === 'theme_manifest.json') continue;
         $fullPath = $dir . '/' . $entry;
         $zipPath = $prefix . '/' . $entry;
         if (is_dir($fullPath)) {

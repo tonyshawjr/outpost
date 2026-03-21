@@ -1,87 +1,91 @@
 /**
- * Forge — Pure tag wrapping functions for Outpost Liquid templates.
+ * Forge — Pure tag wrapping functions for Outpost v2 data-attribute templates.
  * Each function takes a config object and returns the output string to insert.
  */
 
 /**
- * Wrap selection as an editable field: {{ field }}, {{ field | filter }}, {{ @global }}, or wrapping default.
+ * Make an element editable by adding data-outpost attributes.
+ * For elements with selected text, adds attributes to the wrapping element.
+ * For standalone use, returns a placeholder span with the attributes.
  */
 export function wrapEditable({ fieldName, type = 'text', scope = 'page', useDefault = false, selectedText = '', editable = false }) {
-  const prefix = scope === 'global' ? '@' : '';
-  const filter = getFilter(type);
-  const name = `${prefix}${sanitizeName(fieldName)}`;
-  const editSuffix = editable ? ' | edit' : '';
+  const name = scope === 'global' ? `@${sanitizeName(fieldName)}` : sanitizeName(fieldName);
+  const attrs = buildAttrs(name, type, editable);
 
-  // Wrapping default: {{ field }}Default{{ /field }}
-  if (useDefault && selectedText) {
-    return `{{ ${name}${filter}${editSuffix} }}${selectedText}{{ /${name} }}`;
+  // If we have selected text with a wrapping HTML element, inject attrs into it
+  if (selectedText) {
+    const injected = injectAttrsIntoTag(selectedText, attrs);
+    if (injected) return injected;
   }
 
-  return `{{ ${name}${filter}${editSuffix} }}`;
+  // No wrapping element — return a span with the attributes
+  const inner = useDefault && selectedText ? selectedText : '';
+  return `<span ${attrs}>${inner}</span>`;
 }
 
 /**
- * Wrap selection in a collection loop: {% for item in collection.slug %}...{% endfor %}
+ * Wrap selection in a collection loop: <outpost-each collection="slug">...</outpost-each>
  */
 export function wrapCollectionLoop({ collectionSlug, itemVar = 'item', limit = '', orderby = '', selectedText = '' }) {
   const slug = sanitizeName(collectionSlug);
-  const varName = sanitizeName(itemVar) || 'item';
-  let options = '';
-  if (limit) options += ` limit:${sanitizeName(limit)}`;
-  if (orderby) options += ` orderby:${sanitizeName(orderby)}`;
+  let attrs = `collection="${slug}"`;
+  if (limit) attrs += ` limit="${sanitizeName(limit)}"`;
+  if (orderby) attrs += ` orderby="${sanitizeName(orderby)}"`;
 
-  const inner = selectedText || `  {{ ${varName}.title }}`;
+  const inner = selectedText || '  <!-- collection items -->';
   const indent = detectIndent(selectedText || inner);
 
-  return `{% for ${varName} in collection.${slug}${options} %}\n${indentBlock(inner, indent)}\n${indent}{% endfor %}`;
+  return `<outpost-each ${attrs}>\n${indentBlock(inner, indent)}\n${indent}</outpost-each>`;
 }
 
 /**
- * Wrap selection in a conditional: {% if expression %}...{% endif %}
+ * Wrap selection in a conditional: <outpost-if field="name" exists>...</outpost-if>
  */
 export function wrapConditional({ expression, operator = 'truthy', value = '', selectedText = '' }) {
-  let condition = sanitizeName(expression);
-  const escapedValue = value.replace(/"/g, '\\"');
-  if (operator === '==' && escapedValue) condition += ` == "${escapedValue}"`;
-  if (operator === '!=' && escapedValue) condition += ` != "${escapedValue}"`;
+  const field = sanitizeName(expression);
+  let attrs = `field="${field}"`;
+  if (operator === 'truthy') {
+    attrs += ' exists';
+  } else if (operator === '==' && value) {
+    attrs += ` equals="${value.replace(/"/g, '&quot;')}"`;
+  } else if (operator === '!=' && value) {
+    attrs += ` not="${value.replace(/"/g, '&quot;')}"`;
+  }
 
   const inner = selectedText || '  ';
   const indent = detectIndent(selectedText || inner);
 
-  return `{% if ${condition} %}\n${indentBlock(inner, indent)}\n${indent}{% endif %}`;
+  return `<outpost-if ${attrs}>\n${indentBlock(inner, indent)}\n${indent}</outpost-if>`;
 }
 
 /**
  * Return an include tag for a partial.
  */
 export function wrapPartialInclude(partialName) {
-  return `{% include '${sanitizeName(partialName)}' %}`;
+  return `<outpost-include partial="${sanitizeName(partialName)}" />`;
 }
 
 /**
- * Wrap selection in a meta tag: {{ meta.title }}Default{{ /meta.title }}
+ * Return a meta/SEO tag: <outpost-seo /> (handles both title and description).
  */
 export function wrapMeta({ metaType = 'title', selectedText = '' }) {
-  const tag = metaType === 'description' ? 'meta.description' : 'meta.title';
-  const inner = selectedText || 'Default';
-  return `{{ ${tag} }}${inner}{{ /${tag} }}`;
+  return `<outpost-seo />`;
 }
 
 /**
- * Wrap selection in a menu loop: {% for link in menu.slug %}...{% endfor %}
- * Replaces static <a> links with dynamic {{ link.url }} and {{ link.label }}.
+ * Wrap selection in a menu loop: <outpost-menu name="slug">...</outpost-menu>
+ * Replaces static <a> links with dynamic data-outpost attributes.
  */
 export function wrapMenuLoop({ menuSlug, linkVar = 'link', selectedText = '', applyMapping = false }) {
   const slug = sanitizeName(menuSlug);
-  const varName = sanitizeName(linkVar) || 'link';
-  let inner = selectedText || `  <a href="{{ ${varName}.url }}">{{ ${varName}.label }}</a>`;
+  let inner = selectedText || `  <a data-outpost="url" data-type="link">Menu Item</a>`;
 
   if (applyMapping && selectedText) {
-    inner = applyMenuMappings(selectedText, varName);
+    inner = applyMenuMappings(selectedText, linkVar);
   }
 
   const indent = detectIndent(inner);
-  return `{% for ${varName} in menu.${slug} %}\n${indentBlock(inner, indent)}\n${indent}{% endfor %}`;
+  return `<outpost-menu name="${slug}">\n${indentBlock(inner, indent)}\n${indent}</outpost-menu>`;
 }
 
 /**
@@ -120,27 +124,22 @@ function applyMenuMappings(html, linkVar) {
 }
 
 /**
- * Replace href and inner text of a single link element with menu tags.
+ * Replace href and inner text of a single link element with menu data attributes.
  */
 function mapSingleLink(html, linkVar) {
-  // Replace href value
+  // Add data-outpost attributes to the <a> tag
   let result = html.replace(
-    /(<a\b[^>]*href\s*=\s*["'])[^"']*(["'])/i,
-    `$1{{ ${linkVar}.url }}$2`
-  );
-  // Replace inner text of the <a> tag
-  result = result.replace(
-    /(<a\b[^>]*>)([\s\S]*?)(<\/a>)/i,
-    `$1{{ ${linkVar}.label }}$3`
+    /<a\b([^>]*)\bhref\s*=\s*["'][^"']*["']([^>]*)>([\s\S]*?)<\/a>/i,
+    '<a$1 data-outpost="url" data-type="link"$2>Menu Item</a>'
   );
   return result;
 }
 
 /**
- * Insert a form tag: {% form 'slug' %}
+ * Insert a form tag: <outpost-form slug="name" />
  */
 export function wrapForm({ formSlug }) {
-  return `{% form '${sanitizeName(formSlug)}' %}`;
+  return `<outpost-form slug="${sanitizeName(formSlug)}" />`;
 }
 
 // ── Helpers ─────────────────────────────────────────────────
@@ -154,23 +153,29 @@ function sanitizeName(name) {
 }
 
 /**
- * Map field type to Liquid filter string.
+ * Build data-outpost attribute string from field name and type.
  */
-function getFilter(type) {
-  const filters = {
-    text: '',
-    richtext: ' | raw',
-    image: ' | image',
-    link: ' | link',
-    textarea: ' | textarea',
-    select: ' | select',
-    color: ' | color',
-    number: ' | number',
-    date: ' | date',
-    toggle: ' | toggle',
-    focal: ' | focal',
-  };
-  return filters[type] ?? '';
+function buildAttrs(name, type, editable = false) {
+  let attrs = `data-outpost="${name}"`;
+  if (type && type !== 'text') {
+    attrs += ` data-type="${type}"`;
+  }
+  if (editable) {
+    attrs += ` data-editable`;
+  }
+  return attrs;
+}
+
+/**
+ * Try to inject attributes into the first HTML opening tag of the selected text.
+ * Returns the modified string if successful, or null if no root element found.
+ */
+function injectAttrsIntoTag(html, attrs) {
+  // Match the first opening tag
+  const match = html.match(/^(\s*<[a-zA-Z][a-zA-Z0-9]*)([\s>\/])/);
+  if (!match) return null;
+  const insertPos = match.index + match[1].length;
+  return html.slice(0, insertPos) + ' ' + attrs + html.slice(insertPos);
 }
 
 /**

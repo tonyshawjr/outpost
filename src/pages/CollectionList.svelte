@@ -27,6 +27,11 @@
   let submitting = $state(false);
   let expandedFields = $state({});
 
+  // Delete confirmation modal
+  let deleteTarget = $state(null);
+  let deleteConfirmText = $state('');
+  let deleting = $state(false);
+
   function toggleFieldExpand(i) {
     expandedFields = { ...expandedFields, [i]: !expandedFields[i] };
   }
@@ -188,14 +193,28 @@
     }
   }
 
-  async function deleteCollection(coll) {
-    if (!confirm(`Delete collection "${coll.name}" and all its items?`)) return;
+  function openDeleteConfirm(coll) {
+    deleteTarget = coll;
+    deleteConfirmText = '';
+  }
+
+  function closeDeleteConfirm() {
+    deleteTarget = null;
+    deleteConfirmText = '';
+    deleting = false;
+  }
+
+  async function confirmDeleteCollection() {
+    if (!deleteTarget || deleteConfirmText !== deleteTarget.name) return;
+    deleting = true;
     try {
-      await collectionsApi.delete(coll.id);
+      await collectionsApi.delete(deleteTarget.id);
       await loadCollections();
       addToast('Collection deleted', 'success');
+      closeDeleteConfirm();
     } catch (err) {
       addToast(err.message, 'error');
+      deleting = false;
     }
   }
 
@@ -251,7 +270,7 @@
           </div>
           <div style="display: flex; gap: var(--space-xs);">
             <button class="btn btn-secondary btn-sm" onclick={(e) => { e.stopPropagation(); openEdit(coll); }} style="flex: 1;">Edit Schema</button>
-            <button class="btn btn-danger btn-sm" onclick={(e) => { e.stopPropagation(); deleteCollection(coll); }}>Delete</button>
+            <button class="btn btn-danger btn-sm" onclick={(e) => { e.stopPropagation(); openDeleteConfirm(coll); }}>Delete</button>
           </div>
         </div>
       {/each}
@@ -470,6 +489,55 @@
         <button class="btn btn-secondary" onclick={resetForm}>Cancel</button>
         <button class="btn btn-primary" onclick={saveCollection} disabled={!formName || (!editingColl && !formSlug) || submitting}>
           {submitting ? 'Saving...' : (editingColl ? 'Save Changes' : 'Create Collection')}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Delete Collection Confirmation Modal -->
+{#if deleteTarget}
+  <div class="modal-overlay" onclick={closeDeleteConfirm} role="dialog" tabindex="-1">
+    <div class="modal" onclick={(e) => e.stopPropagation()} role="document">
+      <div class="modal-header">
+        <h2 class="modal-title">Delete Collection</h2>
+        <button class="btn btn-ghost btn-sm" onclick={closeDeleteConfirm} aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div style="padding: 0 var(--space-lg) var(--space-md);">
+        <p style="margin: 0 0 var(--space-md); color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.6;">
+          This will permanently delete <strong>"{deleteTarget.name}"</strong>
+          {#if deleteTarget.item_count > 0}
+            and all <strong>{deleteTarget.item_count}</strong> {deleteTarget.item_count === 1 ? 'item' : 'items'} inside it.
+          {:else}
+            (currently empty).
+          {/if}
+          This action cannot be undone.
+        </p>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="delete-confirm-input">Type <strong>{deleteTarget.name}</strong> to confirm</label>
+          <input
+            id="delete-confirm-input"
+            class="input"
+            type="text"
+            bind:value={deleteConfirmText}
+            placeholder={deleteTarget.name}
+            onkeydown={(e) => { if (e.key === 'Enter') confirmDeleteCollection(); }}
+          />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick={closeDeleteConfirm}>Cancel</button>
+        <button
+          class="btn btn-danger"
+          onclick={confirmDeleteCollection}
+          disabled={deleteConfirmText !== deleteTarget.name || deleting}
+        >
+          {deleting ? 'Deleting...' : 'Delete Collection'}
         </button>
       </div>
     </div>

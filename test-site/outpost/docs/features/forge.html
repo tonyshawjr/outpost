@@ -1,309 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forge — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Forge — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Forge</h1>
-    <p class="lead">A visual tag builder inside the Code Editor. Select HTML, right-click (or press <strong>Cmd+E</strong>), and Forge wraps it in the correct Outpost Liquid template tag — with smart detection that suggests the right tag type based on what you selected.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Forge</h1>
+ <p class="lead">A visual tag builder inside the Code Editor. Select HTML, right-click (or press <strong>Cmd+E</strong>), and Forge wraps it in the correct Outpost template tag — with smart detection that suggests the right tag type based on what you selected.</p>
+ </div>
+ <div class="content">
 
-    <h2>How it works</h2>
-    <ol>
-      <li>Open any <code>.html</code> or <code>.htm</code> file in the Code Editor.</li>
-      <li>Select the HTML you want to tag.</li>
-      <li>Right-click to open the Forge context menu, or press <strong>Cmd+E</strong> (Mac) / <strong>Ctrl+E</strong> (Windows/Linux) to jump straight to Make Editable.</li>
-      <li>Choose an action and fill in the short form.</li>
-      <li>Click confirm — the selected text is replaced with the tagged version.</li>
-    </ol>
-    <p>When you have a selection in an HTML file, the status bar shows a <strong>Cmd+E to tag</strong> hint as a reminder.</p>
+ <h2>How it works</h2>
+ <ol>
+ <li>Open any <code>.html</code> or <code>.htm</code> file in the Code Editor.</li>
+ <li>Select the HTML you want to tag.</li>
+ <li>Right-click to open the Forge context menu, or press <strong>Cmd+E</strong> (Mac) / <strong>Ctrl+E</strong> (Windows/Linux) to jump straight to Make Editable.</li>
+ <li>Choose an action and fill in the short form.</li>
+ <li>Click confirm — the selected text is replaced with the tagged version.</li>
+ </ol>
+ <p>When you have a selection in an HTML file, the status bar shows a <strong>Cmd+E to tag</strong> hint as a reminder.</p>
 
-    <h2>Smart detection</h2>
-    <p>Forge analyzes the selected HTML and reorders the context menu so the most likely action appears first (highlighted in green). It also pre-selects the field type in the Make Editable form.</p>
+ <h2>Smart detection</h2>
+ <p>Forge analyzes the selected HTML and reorders the context menu so the most likely action appears first (highlighted in green). It also pre-selects the field type in the Make Editable form.</p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Selected HTML</th>
-          <th>Suggested action</th>
-          <th>Pre-selected type</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> <em>when matching partial exists</em></td>
-          <td><strong>Use Partial: name</strong></td>
-          <td>&mdash;</td>
-        </tr>
-        <tr>
-          <td><code>&lt;img&gt;</code>, <code>&lt;picture&gt;</code>, <code>&lt;figure&gt;</code>, or <code>src="...jpg"</code></td>
-          <td>Make Editable</td>
-          <td>image</td>
-        </tr>
-        <tr>
-          <td><code>&lt;a href="..."&gt;</code></td>
-          <td>Make Editable</td>
-          <td>link</td>
-        </tr>
-        <tr>
-          <td><code>&lt;h1&gt;</code>&ndash;<code>&lt;h6&gt;</code></td>
-          <td>Make Editable</td>
-          <td>text</td>
-        </tr>
-        <tr>
-          <td>Short plain text (&lt;100 chars)</td>
-          <td>Make Editable</td>
-          <td>text</td>
-        </tr>
-        <tr>
-          <td>Long plain text (&ge;100 chars)</td>
-          <td>Make Editable</td>
-          <td>textarea</td>
-        </tr>
-        <tr>
-          <td>HTML with child elements</td>
-          <td>Make Editable</td>
-          <td>richtext</td>
-        </tr>
-        <tr>
-          <td><code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code> with 2+ links</td>
-          <td>Menu Loop</td>
-          <td>&mdash;</td>
-        </tr>
-        <tr>
-          <td><code>&lt;nav&gt;</code> with links</td>
-          <td>Extract Partial (with menu option)</td>
-          <td>&mdash;</td>
-        </tr>
-        <tr>
-          <td><code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code></td>
-          <td>Extract Partial</td>
-          <td>&mdash;</td>
-        </tr>
-        <tr>
-          <td><code>&lt;title&gt;</code> or <code>&lt;meta name="description"&gt;</code></td>
-          <td>Meta Tag</td>
-          <td>title / description</td>
-        </tr>
-        <tr>
-          <td><code>&lt;form&gt;</code></td>
-          <td>Form</td>
-          <td>&mdash;</td>
-        </tr>
-        <tr>
-          <td>Multiple repeated sibling elements</td>
-          <td>Collection Loop</td>
-          <td>&mdash;</td>
-        </tr>
-        <tr>
-          <td><code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, large <code>&lt;div&gt;</code></td>
-          <td>Conditional</td>
-          <td>&mdash;</td>
-        </tr>
-      </tbody>
-    </table>
+ <table>
+ <thead>
+ <tr>
+ <th>Selected HTML</th>
+ <th>Suggested action</th>
+ <th>Pre-selected type</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> <em>when matching partial exists</em></td>
+ <td><strong>Use Partial: name</strong></td>
+ <td>&mdash;</td>
+ </tr>
+ <tr>
+ <td><code>&lt;img&gt;</code>, <code>&lt;picture&gt;</code>, <code>&lt;figure&gt;</code>, or <code>src="...jpg"</code></td>
+ <td>Make Editable</td>
+ <td>image</td>
+ </tr>
+ <tr>
+ <td><code>&lt;a href="..."&gt;</code></td>
+ <td>Make Editable</td>
+ <td>link</td>
+ </tr>
+ <tr>
+ <td><code>&lt;h1&gt;</code>&ndash;<code>&lt;h6&gt;</code></td>
+ <td>Make Editable</td>
+ <td>text</td>
+ </tr>
+ <tr>
+ <td>Short plain text (&lt;100 chars)</td>
+ <td>Make Editable</td>
+ <td>text</td>
+ </tr>
+ <tr>
+ <td>Long plain text (&ge;100 chars)</td>
+ <td>Make Editable</td>
+ <td>textarea</td>
+ </tr>
+ <tr>
+ <td>HTML with child elements</td>
+ <td>Make Editable</td>
+ <td>richtext</td>
+ </tr>
+ <tr>
+ <td><code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code> with 2+ links</td>
+ <td>Menu Loop</td>
+ <td>&mdash;</td>
+ </tr>
+ <tr>
+ <td><code>&lt;nav&gt;</code> with links</td>
+ <td>Extract Partial (with menu option)</td>
+ <td>&mdash;</td>
+ </tr>
+ <tr>
+ <td><code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code></td>
+ <td>Extract Partial</td>
+ <td>&mdash;</td>
+ </tr>
+ <tr>
+ <td><code>&lt;title&gt;</code> or <code>&lt;meta name="description"&gt;</code></td>
+ <td>Meta Tag</td>
+ <td>title / description</td>
+ </tr>
+ <tr>
+ <td><code>&lt;form&gt;</code></td>
+ <td>Form</td>
+ <td>&mdash;</td>
+ </tr>
+ <tr>
+ <td>Multiple repeated sibling elements</td>
+ <td>Collection Loop</td>
+ <td>&mdash;</td>
+ </tr>
+ <tr>
+ <td><code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, large <code>&lt;div&gt;</code></td>
+ <td>Conditional</td>
+ <td>&mdash;</td>
+ </tr>
+ </tbody>
+ </table>
 
-    <h2>Actions</h2>
-    <p>The Forge menu offers seven actions. Each opens a short form and inserts the correct Liquid syntax.</p>
+ <h2>Actions</h2>
+ <p>The Forge menu offers seven actions. Each opens a short form and inserts the correct template syntax.</p>
 
-    <h3>Make Editable</h3>
-    <p>Wraps the selection in an output tag so the content becomes editable in the admin.</p>
-    <ul>
-      <li><strong>Field name</strong> — auto-generated from the selected text, in <code>snake_case</code></li>
-      <li><strong>Type</strong> — text, richtext, image, link, textarea, select, color, number, date, toggle</li>
-      <li><strong>Scope</strong> — Page field or Global field</li>
-      <li><strong>Editable on front-end</strong> — when checked, appends <code>| edit</code> to the tag, enabling on-page editing for this field when an admin views the live site. Unchecked fields are only editable in the admin panel.</li>
-      <li><strong>Use as default</strong> — wraps the selected text as a fallback value. ON by default when text is selected. Works for all types including images and links.</li>
-    </ul>
+ <h3>Make Editable</h3>
+ <p>Wraps the selection in an output tag so the content becomes editable in the admin.</p>
+ <ul>
+ <li><strong>Field name</strong> — auto-generated from the selected text, in <code>snake_case</code></li>
+ <li><strong>Type</strong> — text, richtext, image, link, textarea, select, color, number, date, toggle</li>
+ <li><strong>Scope</strong> — Page field or Global field</li>
+ <li><strong>Editable on front-end</strong> — when checked, appends <code>| edit</code> to the tag, enabling on-page editing for this field when an admin views the live site. Unchecked fields are only editable in the admin panel.</li>
+ <li><strong>Use as default</strong> — wraps the selected text as a fallback value. ON by default when text is selected. Works for all types including images and links.</li>
+ </ul>
 
-    <p><strong>Examples of output:</strong></p>
-    <pre><code>&lt;!-- Simple text field (admin-only) --&gt;
-{{ headline }}
+ <p><strong>Examples of output:</strong></p>
+ 
 
-&lt;!-- Text field with front-end editing --&gt;
-{{ headline | edit }}
+ <h3>Collection Loop</h3>
+ <p>Wraps the selection in a <code>&lt;outpost-each&gt;</code> loop that iterates over a collection.</p>
+ <ul>
+ <li><strong>Collection</strong> — dropdown of existing collections</li>
+ <li><strong>Item variable</strong> — defaults to <code>item</code></li>
+ <li><strong>Limit</strong> — optional maximum number of items</li>
+ <li><strong>Order by</strong> — optional sort field</li>
+ </ul>
+ 
+ <p><strong>Field mapper:</strong> When you select HTML with images, headings, paragraphs, or links, Forge detects these content elements and shows a field mapper. It auto-guesses which collection fields match each element. You can adjust the mappings before confirming.</p>
 
-&lt;!-- Image with front-end editing --&gt;
-{{ hero_image | image | edit }}
+ <h3>Menu Loop</h3>
+ <p>Wraps navigation links in a <code>&lt;outpost-each&gt;</code> loop that iterates over an admin-managed menu.</p>
+ <ul>
+ <li><strong>Menu</strong> &mdash; dropdown of existing menus (or type a slug)</li>
+ <li><strong>Link variable</strong> &mdash; defaults to <code>link</code></li>
+ <li><strong>Auto-replace links</strong> &mdash; when 2+ links are detected, Forge offers to replace static <code>href</code> and text with <code>data-outpost="url"</code> and <code>data-outpost="label"</code> automatically</li>
+ </ul>
+ 
 
-&lt;!-- Global field with front-end editing --&gt;
-{{ @site_name | edit }}
+ <h3>Conditional</h3>
+ <p>Wraps the selection in an <code>&lt;outpost-if&gt;</code> conditional block.</p>
+ <ul>
+ <li><strong>Expression</strong> — a field name, <code>@global</code>, or <code>item.field</code></li>
+ <li><strong>Operator</strong> — truthy (default), <code>==</code>, or <code>!=</code></li>
+ <li><strong>Value</strong> — comparison value (shown when operator is <code>==</code> or <code>!=</code>)</li>
+ </ul>
+ 
 
-&lt;!-- Wrapping default with front-end editing --&gt;
-{{ headline | edit }}Welcome to our site{{ /headline }}
+ <h3>Extract Partial</h3>
+ <p>Moves the selected HTML into a new partial file and replaces the selection with an <code>&lt;outpost-include /&gt;</code> tag.</p>
+ <ul>
+ <li><strong>Partial name</strong> — the filename (without extension or directory)</li>
+ </ul>
+ <p>What happens when you confirm:</p>
+ <ol>
+ <li>A new file is created at <code>partials/{name}.html</code> containing your selected HTML.</li>
+ <li>The selection is replaced with <code>&lt;outpost-include partial="{name}" /&gt;</code>.</li>
+ <li>The file tree refreshes and the new partial opens in a tab.</li>
+ </ol>
+ 
+ <p><strong>Smart nav detection:</strong> When you extract a <code>&lt;nav&gt;</code> element that contains 2 or more links, Forge offers a &ldquo;Connect to admin menu&rdquo; checkbox. When enabled, it wraps the navigation links in an <code>&lt;outpost-menu&gt;</code> loop before saving the partial, so the nav is immediately dynamic.</p>
 
-&lt;!-- Image with wrapping default (admin-only) --&gt;
-{{ hero_image | image }}https://example.com/photo.jpg{{ /hero_image }}
+ <p><strong>Apply to all pages:</strong> After extracting a partial, Forge scans other HTML files in the same theme for the same content. If found, it offers to replace matching blocks in all pages at once &mdash; so you don&rsquo;t have to manually add <code>&lt;outpost-include /&gt;</code> to each file.</p>
 
-&lt;!-- Link with wrapping default --&gt;
-{{ cta_link | link }}https://example.com{{ /cta_link }}</code></pre>
+ <p><strong>Use Existing Partial:</strong> If you right-click a <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> and a partial with that name already exists (e.g. <code>partials/nav.html</code>), Forge shows &ldquo;Use Partial: nav&rdquo; at the top of the context menu. Clicking it instantly replaces the selection with the include tag &mdash; no form needed.</p>
 
-    <h3>Collection Loop</h3>
-    <p>Wraps the selection in a <code>{% for %}</code> loop that iterates over a collection.</p>
-    <ul>
-      <li><strong>Collection</strong> — dropdown of existing collections</li>
-      <li><strong>Item variable</strong> — defaults to <code>item</code></li>
-      <li><strong>Limit</strong> — optional maximum number of items</li>
-      <li><strong>Order by</strong> — optional sort field</li>
-    </ul>
-    <pre><code>{% for item in collection.post limit:3 %}
-  &lt;h2&gt;{{ item.title }}&lt;/h2&gt;
-  {{ item.body | raw }}
-{% endfor %}</code></pre>
-    <p><strong>Field mapper:</strong> When you select HTML with images, headings, paragraphs, or links, Forge detects these content elements and shows a field mapper. It auto-guesses which collection fields match each element. You can adjust the mappings before confirming.</p>
+ <h3>Meta Tag</h3>
+ <p>Wraps the selection in a meta tag for SEO.</p>
+ <ul>
+ <li><strong>Type</strong> — Title or Description</li>
+ </ul>
+ 
 
-    <h3>Menu Loop</h3>
-    <p>Wraps navigation links in a <code>{% for %}</code> loop that iterates over an admin-managed menu.</p>
-    <ul>
-      <li><strong>Menu</strong> &mdash; dropdown of existing menus (or type a slug)</li>
-      <li><strong>Link variable</strong> &mdash; defaults to <code>link</code></li>
-      <li><strong>Auto-replace links</strong> &mdash; when 2+ links are detected, Forge offers to replace static <code>href</code> and text with <code>{{ link.url }}</code> and <code>{{ link.label }}</code> automatically</li>
-    </ul>
-    <pre><code>{% for link in menu.main %}
-  &lt;li&gt;&lt;a href="{{ link.url }}"&gt;{{ link.label }}&lt;/a&gt;&lt;/li&gt;
-{% endfor %}</code></pre>
+ <h3>Form</h3>
+ <p>Inserts a form tag that renders a form created in the admin. If you select a <code>&lt;form&gt;</code> element, Forge can auto-create the form for you.</p>
 
-    <h3>Conditional</h3>
-    <p>Wraps the selection in an <code>{% if %}</code> block.</p>
-    <ul>
-      <li><strong>Expression</strong> — a field name, <code>@global</code>, or <code>item.field</code></li>
-      <li><strong>Operator</strong> — truthy (default), <code>==</code>, or <code>!=</code></li>
-      <li><strong>Value</strong> — comparison value (shown when operator is <code>==</code> or <code>!=</code>)</li>
-    </ul>
-    <pre><code>&lt;!-- Truthy check --&gt;
-{% if show_cta %}
-  &lt;div class="cta"&gt;...&lt;/div&gt;
-{% endif %}
+ <h4>Auto-create from HTML (v2.7.0)</h4>
+ <p>Select a <code>&lt;form&gt;</code> element in the Code Editor and choose <strong>Form</strong> from the Forge menu. Forge parses the HTML and:</p>
+ <ul>
+ <li>Derives the form name from <code>form.id</code>, <code>form.name</code>, a heading/legend inside the form, or the action URL</li>
+ <li>Detects fields: text, email, phone, URL, number, date, time, hidden, textarea, select, radio, and checkbox</li>
+ <li>Extracts labels from <code>&lt;label for&gt;</code>, wrapping <code>&lt;label&gt;</code>, <code>aria-label</code>, <code>placeholder</code>, or the <code>name</code> attribute</li>
+ <li>Groups radio and checkbox inputs by name into single fields with choices</li>
+ <li>Extracts <code>&lt;option&gt;</code> values from <code>&lt;select&gt;</code> elements</li>
+ <li>Reads the submit button label from <code>&lt;button type="submit"&gt;</code> or <code>&lt;input type="submit"&gt;</code></li>
+ </ul>
+ <p>A preview of detected fields is shown with type icons, labels, and required indicators. Click <strong>Create &amp; Insert</strong> to create the form in the database and replace the selection with the tag.</p>
 
-&lt;!-- String comparison --&gt;
-{% if item.status == "featured" %}
-  &lt;span class="badge"&gt;Featured&lt;/span&gt;
-{% endif %}</code></pre>
+ <h4>Pick existing or manual slug</h4>
+ <p>When no <code>&lt;form&gt;</code> is selected, Forge shows a dropdown of existing forms (if any) or a text input for a slug.</p>
+ 
 
-    <h3>Extract Partial</h3>
-    <p>Moves the selected HTML into a new partial file and replaces the selection with an <code>{% include %}</code> tag.</p>
-    <ul>
-      <li><strong>Partial name</strong> — the filename (without extension or directory)</li>
-    </ul>
-    <p>What happens when you confirm:</p>
-    <ol>
-      <li>A new file is created at <code>partials/{name}.html</code> containing your selected HTML.</li>
-      <li>The selection is replaced with <code>{% include '{name}' %}</code>.</li>
-      <li>The file tree refreshes and the new partial opens in a tab.</li>
-    </ol>
-    <pre><code>&lt;!-- Before: selected HTML --&gt;
-&lt;nav class="main-nav"&gt;...&lt;/nav&gt;
+ <h3>Insert Asset</h3>
+ <p>Opens a searchable modal that lists all files in the theme&rsquo;s <code>assets/</code> directory &mdash; CSS, JavaScript, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position.</p>
+ <p><strong>No selection needed.</strong> Right-click anywhere in an HTML file (even without selecting text) to see &ldquo;Insert Asset&rdquo; in the Forge menu.</p>
 
-&lt;!-- After: replaced with --&gt;
-{% include 'main-nav' %}</code></pre>
-    <p><strong>Smart nav detection:</strong> When you extract a <code>&lt;nav&gt;</code> element that contains 2 or more links, Forge offers a &ldquo;Connect to admin menu&rdquo; checkbox. When enabled, it wraps the navigation links in a menu loop before saving the partial, so the nav is immediately dynamic.</p>
+ <p><strong>What gets inserted:</strong></p>
+ <table>
+ <thead>
+ <tr>
+ <th>File type</th>
+ <th>Inserted tag</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><code>.css</code></td>
+ <td><code>&lt;link rel="stylesheet" href="/outpost/content/themes/{theme}/assets/{file}"&gt;</code></td>
+ </tr>
+ <tr>
+ <td><code>.js</code></td>
+ <td><code>&lt;script src="/outpost/content/themes/{theme}/assets/{file}"&gt;&lt;/script&gt;</code></td>
+ </tr>
+ <tr>
+ <td><code>.png</code>, <code>.jpg</code>, <code>.svg</code>, <code>.webp</code>, etc.</td>
+ <td><code>&lt;img src="/outpost/content/themes/{theme}/assets/{file}" alt=""&gt;</code></td>
+ </tr>
+ </tbody>
+ </table>
 
-    <p><strong>Apply to all pages:</strong> After extracting a partial, Forge scans other HTML files in the same theme for the same content. If found, it offers to replace matching blocks in all pages at once &mdash; so you don&rsquo;t have to manually add <code>{% include %}</code> to each file.</p>
+ <p>Assets are grouped by type (Stylesheets, Scripts, Images) with a search bar to filter. The modal scans the <code>assets/</code> directory recursively, so subdirectories like <code>assets/css/</code>, <code>assets/js/</code>, and <code>assets/images/</code> are all supported.</p>
 
-    <p><strong>Use Existing Partial:</strong> If you right-click a <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> and a partial with that name already exists (e.g. <code>partials/nav.html</code>), Forge shows &ldquo;Use Partial: nav&rdquo; at the top of the context menu. Clicking it instantly replaces the selection with the include tag &mdash; no form needed.</p>
+ <h2>Keyboard shortcut</h2>
+ <p><strong>Cmd+E</strong> (Mac) / <strong>Ctrl+E</strong> (Windows/Linux) opens the Make Editable popover directly — since it's the most common action. The field type is pre-selected by smart detection, so tagging a field is often just: select text → Cmd+E → Enter.</p>
 
-    <h3>Meta Tag</h3>
-    <p>Wraps the selection in a meta tag for SEO.</p>
-    <ul>
-      <li><strong>Type</strong> — Title or Description</li>
-    </ul>
-    <pre><code>{{ meta.title }}My Page Title{{ /meta.title }}
-{{ meta.description }}Page description here{{ /meta.description }}</code></pre>
+ <h2>Requirements</h2>
+ <ul>
+ <li>Forge only activates on <code>.html</code> and <code>.htm</code> files. It does not appear when editing CSS, JS, JSON, or other file types.</li>
+ <li>The Code Editor must be open with a file loaded.</li>
+ <li><strong>With a selection:</strong> the full Forge menu appears (all 7 tagging actions + Insert Asset + Insert Component).</li>
+ <li><strong>Without a selection:</strong> right-click at any cursor position to see a reduced menu with just Insert Asset and Insert Component.</li>
+ </ul>
 
-    <h3>Form</h3>
-    <p>Inserts a form tag that renders a form created in the admin. If you select a <code>&lt;form&gt;</code> element, Forge can auto-create the form for you.</p>
+ <h2>Forge Playground</h2>
+ <p>Outpost ships with a 6-page demo website in <code>themes/forge-playground/</code> — a marketing site for Forge itself, built with pure HTML and CSS. It&rsquo;s designed as a hands-on tutorial:</p>
+ <ul>
+ <li><strong>index.html</strong> &mdash; Hero, feature grid, how-it-works steps, testimonials</li>
+ <li><strong>features.html</strong> &mdash; Deep dive into each Forge action</li>
+ <li><strong>blog.html</strong> &mdash; Blog cards for practicing Collection Loop and field mapping</li>
+ <li><strong>gallery.html</strong> &mdash; Image grid for practicing Make Editable (image type)</li>
+ <li><strong>about.html</strong> &mdash; Team grid, values section</li>
+ <li><strong>contact.html</strong> &mdash; Contact form for practicing Form action</li>
+ </ul>
+ <p>The Playground ships without a <code>theme.json</code> &mdash; it&rsquo;s just flat HTML. When you open it in the Code Editor, a banner prompts you to &ldquo;Forge a Theme&rdquo; which guides you through creating the <code>theme.json</code> file.</p>
+ <p>After you&rsquo;re done experimenting, click <strong>Reset</strong> to restore all files to their pristine state. This removes <code>theme.json</code>, all template tags, and any partials you created.</p>
 
-    <h4>Auto-create from HTML (v2.7.0)</h4>
-    <p>Select a <code>&lt;form&gt;</code> element in the Code Editor and choose <strong>Form</strong> from the Forge menu. Forge parses the HTML and:</p>
-    <ul>
-      <li>Derives the form name from <code>form.id</code>, <code>form.name</code>, a heading/legend inside the form, or the action URL</li>
-      <li>Detects fields: text, email, phone, URL, number, date, time, hidden, textarea, select, radio, and checkbox</li>
-      <li>Extracts labels from <code>&lt;label for&gt;</code>, wrapping <code>&lt;label&gt;</code>, <code>aria-label</code>, <code>placeholder</code>, or the <code>name</code> attribute</li>
-      <li>Groups radio and checkbox inputs by name into single fields with choices</li>
-      <li>Extracts <code>&lt;option&gt;</code> values from <code>&lt;select&gt;</code> elements</li>
-      <li>Reads the submit button label from <code>&lt;button type="submit"&gt;</code> or <code>&lt;input type="submit"&gt;</code></li>
-    </ul>
-    <p>A preview of detected fields is shown with type icons, labels, and required indicators. Click <strong>Create &amp; Insert</strong> to create the form in the database and replace the selection with the tag.</p>
+ <h2>Preview tabs</h2>
+ <p>Single-clicking a file in the file tree opens it as a <strong>preview tab</strong> (shown with italic text). If you click another file without editing, the preview tab is replaced. To keep a tab open permanently:</p>
+ <ul>
+ <li><strong>Double-click</strong> the file in the tree, or</li>
+ <li><strong>Edit</strong> the file contents (any change pins the tab automatically)</li>
+ </ul>
+ <p>Files opened from Find in Files, the command palette, or newly created files are always pinned.</p>
 
-    <h4>Pick existing or manual slug</h4>
-    <p>When no <code>&lt;form&gt;</code> is selected, Forge shows a dropdown of existing forms (if any) or a text input for a slug.</p>
-    <pre><code>{% form 'contact' %}</code></pre>
+ <h2>Template Engine — Forge compatibility</h2>
+ <p>Smart Forge currently produces <strong> template syntax</strong> (<code>data-outpost="field"</code>, <code>&lt;outpost-include /&gt;</code>, <code>&lt;outpost-each&gt;</code>, etc.). Support for generating data-attribute syntax (<code>data-outpost="field"</code>, <code>&lt;outpost-include /&gt;</code>) is planned for a future update.</p>
 
-    <h3>Insert Asset</h3>
-    <p>Opens a searchable modal that lists all files in the theme&rsquo;s <code>assets/</code> directory &mdash; CSS, JavaScript, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position.</p>
-    <p><strong>No selection needed.</strong> Right-click anywhere in an HTML file (even without selecting text) to see &ldquo;Insert Asset&rdquo; in the Forge menu.</p>
+ <p>In the meantime, you can use Forge to tag a theme with syntax and then manually convert the output to syntax. The conversion is straightforward:</p>
+ <table>
+ <thead>
+ <tr><th>Forge output</th><th>Manual conversion </th></tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><code>data-outpost="headline"</code></td>
+ <td><code>&lt;h1 data-outpost="headline"&gt;...&lt;/h1&gt;</code></td>
+ </tr>
+ <tr>
+ <td><code>data-outpost="body" data-type="raw"</code></td>
+ <td><code>&lt;div data-outpost="body" data-type="richtext"&gt;...&lt;/div&gt;</code></td>
+ </tr>
+ <tr>
+ <td><code>data-outpost="hero" data-type="image"</code></td>
+ <td><code>&lt;img data-outpost="hero" data-type="image" /&gt;</code></td>
+ </tr>
+ <tr>
+ <td><code>&lt;outpost-include partial="nav" /&gt;</code></td>
+ <td><code>&lt;outpost-include partial="nav" /&gt;</code></td>
+ </tr>
+ <tr>
+ <td><code>&lt;outpost-seo /&gt;</code></td>
+ <td><code>&lt;outpost-seo /&gt;</code></td>
+ </tr>
+ </tbody>
+ </table>
 
-    <p><strong>What gets inserted:</strong></p>
-    <table>
-      <thead>
-        <tr>
-          <th>File type</th>
-          <th>Inserted tag</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>.css</code></td>
-          <td><code>&lt;link rel="stylesheet" href="/outpost/content/themes/{theme}/assets/{file}"&gt;</code></td>
-        </tr>
-        <tr>
-          <td><code>.js</code></td>
-          <td><code>&lt;script src="/outpost/content/themes/{theme}/assets/{file}"&gt;&lt;/script&gt;</code></td>
-        </tr>
-        <tr>
-          <td><code>.png</code>, <code>.jpg</code>, <code>.svg</code>, <code>.webp</code>, etc.</td>
-          <td><code>&lt;img src="/outpost/content/themes/{theme}/assets/{file}" alt=""&gt;</code></td>
-        </tr>
-      </tbody>
-    </table>
+ 
 
-    <p>Assets are grouped by type (Stylesheets, Scripts, Images) with a search bar to filter. The modal scans the <code>assets/</code> directory recursively, so subdirectories like <code>assets/css/</code>, <code>assets/js/</code>, and <code>assets/images/</code> are all supported.</p>
+ <div class="callout callout-tip"><strong>Tip</strong> — Forge is designed for quick tagging during theme development. For a full reference of all available template tags and filters, see <a href="template-syntax/">Template Syntax</a>.</div>
 
-    <h2>Keyboard shortcut</h2>
-    <p><strong>Cmd+E</strong> (Mac) / <strong>Ctrl+E</strong> (Windows/Linux) opens the Make Editable popover directly — since it's the most common action. The field type is pre-selected by smart detection, so tagging a field is often just: select text → Cmd+E → Enter.</p>
-
-    <h2>Requirements</h2>
-    <ul>
-      <li>Forge only activates on <code>.html</code> and <code>.htm</code> files. It does not appear when editing CSS, JS, JSON, or other file types.</li>
-      <li>The Code Editor must be open with a file loaded.</li>
-      <li><strong>With a selection:</strong> the full Forge menu appears (all 7 tagging actions + Insert Asset + Insert Component).</li>
-      <li><strong>Without a selection:</strong> right-click at any cursor position to see a reduced menu with just Insert Asset and Insert Component.</li>
-    </ul>
-
-    <h2>Forge Playground</h2>
-    <p>Outpost ships with a 6-page demo website in <code>themes/forge-playground/</code> — a marketing site for Forge itself, built with pure HTML and CSS. It&rsquo;s designed as a hands-on tutorial:</p>
-    <ul>
-      <li><strong>index.html</strong> &mdash; Hero, feature grid, how-it-works steps, testimonials</li>
-      <li><strong>features.html</strong> &mdash; Deep dive into each Forge action</li>
-      <li><strong>blog.html</strong> &mdash; Blog cards for practicing Collection Loop and field mapping</li>
-      <li><strong>gallery.html</strong> &mdash; Image grid for practicing Make Editable (image type)</li>
-      <li><strong>about.html</strong> &mdash; Team grid, values section</li>
-      <li><strong>contact.html</strong> &mdash; Contact form for practicing Form action</li>
-    </ul>
-    <p>The Playground ships without a <code>theme.json</code> &mdash; it&rsquo;s just flat HTML. When you open it in the Code Editor, a banner prompts you to &ldquo;Forge a Theme&rdquo; which guides you through creating the <code>theme.json</code> file.</p>
-    <p>After you&rsquo;re done experimenting, click <strong>Reset</strong> to restore all files to their pristine state. This removes <code>theme.json</code>, all template tags, and any partials you created.</p>
-
-    <h2>Preview tabs</h2>
-    <p>Single-clicking a file in the file tree opens it as a <strong>preview tab</strong> (shown with italic text). If you click another file without editing, the preview tab is replaced. To keep a tab open permanently:</p>
-    <ul>
-      <li><strong>Double-click</strong> the file in the tree, or</li>
-      <li><strong>Edit</strong> the file contents (any change pins the tab automatically)</li>
-    </ul>
-    <p>Files opened from Find in Files, the command palette, or newly created files are always pinned.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Forge is designed for quick tagging during theme development. For a full reference of all available template tags and filters, see <a href="template-syntax/">Template Syntax</a>.</div>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

@@ -1,262 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Routing — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Routing — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Routing</h1>
-    <p class="lead">Outpost maps every incoming URL to a template file. Understanding the routing algorithm helps you predict which template renders for any given URL and troubleshoot unexpected 404s or wrong-page results.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Routing</h1>
+ <p class="lead">Outpost maps every incoming URL to a template file. Understanding the routing algorithm helps you predict which template renders for any given URL and troubleshoot unexpected 404s or wrong-page results.</p>
+ </div>
+ <div class="content">
 
-    <h2>The two routers</h2>
-    <p>Outpost has two implementations of the same routing logic, each for a different server environment:</p>
-    <table>
-      <thead>
-        <tr><th>Environment</th><th>File</th><th>How it works</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>PHP built-in server (dev)</td>
-          <td><code>front-router.php</code></td>
-          <td>Passed to <code>php -S</code> as the router script. Called for every request. Returns <code>false</code> for static files to let PHP serve them natively.</td>
-        </tr>
-        <tr>
-          <td>Apache / Nginx (production)</td>
-          <td><code>index.php</code> at document root</td>
-          <td>A <code>.htaccess</code> (or Nginx rewrite rule) forwards all non-static requests to <code>index.php</code>, which runs the same routing logic.</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>Both routers implement identical logic — the difference is only in how PHP receives the request and how static files are handled.</p>
+ <h2>The two routers</h2>
+ 
 
-    <h2>Routing algorithm — step by step</h2>
-    <p>For every incoming request, the router follows these steps in order. The first matching step wins.</p>
+ <h3>Mixing engines</h3>
+ <p>Engine version is determined per-theme, not per-template. All templates within a single theme must use the same syntax. If you need to migrate a theme from to , convert all template files before activating the change.</p>
 
-    <h3>Step 1: Static files</h3>
-    <p>If the request path corresponds to a real file on disk (not a <code>.php</code> file), serve it directly. This covers CSS, JS, images, fonts, and any other static asset. In the dev server router, returning <code>false</code> tells PHP to serve the file natively. In production, this is handled by Apache/Nginx before PHP is invoked.</p>
-    <p>This step is why you can reference <code>/outpost/themes/my-theme/assets/style.css</code> in your templates — the web server handles that request before Outpost's PHP code ever runs.</p>
+ 
 
-    <h3>Step 2: System paths</h3>
-    <p>Paths beginning with <code>/outpost/</code> are reserved for Outpost's admin panel, API, and documentation. These are passed through to their respective PHP handlers:</p>
-    <ul>
-      <li><code>/outpost/admin/</code> → Admin SPA</li>
-      <li><code>/outpost/api.php</code> → REST API</li>
-      <li><code>/outpost/docs/</code> → Developer documentation (this site)</li>
-      <li><code>/outpost/track.php</code> → Analytics tracking endpoint</li>
-    </ul>
+ <h2>Dev server vs. production differences</h2>
+ <p>The PHP built-in server used in development (<code>php -S localhost:8000 -t . front-router.php</code>) and a production Apache/Nginx server both route requests through the same PHP logic, but there are subtle differences to be aware of:</p>
 
-    <h3>Step 3: Sitemap</h3>
-    <p>A request for <code>/sitemap.xml</code> triggers Outpost's automatic sitemap generator. It scans all published pages and collection items and returns a valid XML sitemap. No template file is needed — this is built into the engine.</p>
+ <h3>Static file handling</h3>
+ <p>On the dev server, the router script is called for every request including static files. The router checks whether the request maps to a real file and returns <code>false</code> to tell PHP to serve it natively. On production Apache/Nginx, the server handles static files before PHP is invoked — PHP never sees those requests.</p>
 
-    <h3>Step 4: Load active theme</h3>
-    <p>Outpost reads the <code>active_theme</code> key from the <code>settings</code> table. If no theme is active or the theme directory does not exist, routing stops with a 500 error.</p>
+ <h3>REQUEST_URI reliability</h3>
+ <p>On the PHP built-in server, <code>$_SERVER['SCRIPT_FILENAME']</code> may point to the router script itself for all requests, making it unreliable for detecting whether a request is for a real PHP file. Outpost uses <code>$_SERVER['REQUEST_URI']</code> for path-based decisions instead, which works consistently in both environments.</p>
 
-    <h3>Step 5: Legacy PHP theme check</h3>
-    <p>If the active theme's directory contains an <code>index.php</code> file, Outpost treats it as a legacy PHP theme and <code>require</code>s that file, then exits. No further routing logic runs. This exists for backward compatibility only.</p>
-
-    <h3>Step 6: Liquid theme routing</h3>
-    <p>For Liquid themes (no <code>index.php</code>), the URL path is parsed and matched against templates using the following sub-steps:</p>
-
-    <h4>Homepage</h4>
-    <p>A request for <code>/</code> maps to <code>index.html</code> in the theme root.</p>
-
-    <h4>Static page templates</h4>
-    <p>A single-segment path like <code>/about</code> maps to <code>about.html</code>. The router takes the first path segment, strips any leading slash, and looks for a file with that name plus <code>.html</code> in the theme root.</p>
-    <p>Examples:</p>
-    <table>
-      <thead>
-        <tr><th>URL</th><th>Template</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/about</code></td><td><code>about.html</code></td></tr>
-        <tr><td><code>/contact</code></td><td><code>contact.html</code></td></tr>
-        <tr><td><code>/blog</code></td><td><code>blog.html</code></td></tr>
-        <tr><td><code>/services</code></td><td><code>services.html</code></td></tr>
-      </tbody>
-    </table>
-
-    <h4>Collection URL pattern matching</h4>
-    <p>Before assuming a two-segment URL is a 404, the router checks it against all collection URL patterns. Each collection has a URL pattern configured in Admin → Collections, for example <code>/post/{slug}</code>.</p>
-    <p>The router compares the incoming URL against each collection's pattern. The <code>{slug}</code> placeholder matches one or more non-slash characters. If a match is found:</p>
-    <ol>
-      <li>The captured slug value is written to <code>$_GET['slug']</code></li>
-      <li>The collection's slug is noted (e.g., <code>post</code>)</li>
-      <li>The router looks for a template named <code>{collection-slug}.html</code> (e.g., <code>post.html</code>)</li>
-      <li>If that template exists, it is rendered</li>
-    </ol>
-    <pre><code>Collection: "post"
-URL pattern: /post/{slug}
-
-Request: /post/hello-world
-  → slug = "hello-world" → $_GET['slug'] = 'hello-world'
-  → template: post.html</code></pre>
-    <p>More URL pattern examples:</p>
-    <table>
-      <thead>
-        <tr><th>URL pattern</th><th>Example URL</th><th>Template</th><th><code>$_GET['slug']</code></th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/post/{slug}</code></td><td><code>/post/hello-world</code></td><td><code>post.html</code></td><td><code>hello-world</code></td></tr>
-        <tr><td><code>/articles/{slug}</code></td><td><code>/articles/my-article</code></td><td><code>articles.html</code></td><td><code>my-article</code></td></tr>
-        <tr><td><code>/portfolio/{slug}</code></td><td><code>/portfolio/project-name</code></td><td><code>portfolio.html</code></td><td><code>project-name</code></td></tr>
-        <tr><td><code>/products/{slug}</code></td><td><code>/products/widget-pro</code></td><td><code>products.html</code></td><td><code>widget-pro</code></td></tr>
-        <tr><td><code>/{slug}</code></td><td><code>/hello-world</code></td><td>(collection slug).html</td><td><code>hello-world</code></td></tr>
-      </tbody>
-    </table>
-
-    <div class="callout callout-note"><strong>Note</strong> — Only <code>{slug}</code> is a supported placeholder. It matches one path segment (no slashes). Multi-level patterns like <code>/blog/{year}/{slug}</code> are not supported. Keep URL patterns to two segments: a fixed prefix and <code>{slug}</code>.</div>
-
-    <h4>404 fallback</h4>
-    <p>If no template file and no collection URL pattern match the request, the router checks for a <code>404.html</code> in the theme root. If found, it renders that template with an HTTP 404 status code. If <code>404.html</code> does not exist, Outpost returns a plain 404 text response.</p>
-
-    <h2>Draft blocking &amp; preview</h2>
-    <p>After a template is selected but before rendering begins, Outpost checks the page's status in the database. Pages with <code>status = 'draft'</code> return a 404 to public visitors. Only published pages render.</p>
-
-    <h4>Collection item preview</h4>
-    <p>Draft and scheduled collection items can be previewed on the live site using a secure token. From the admin item editor, clicking <strong>Preview</strong> on an unpublished item generates a one-time token and opens the item's URL with <code>?preview=TOKEN</code> appended.</p>
-    <p>The router validates the token against the item's stored <code>preview_token</code> in the database. If valid, the item renders normally — bypassing the <code>status = 'published'</code> filter. Preview pages are never cached and display a "Preview Mode" banner at the bottom of the page.</p>
-    <p>Tokens are 64-character hex strings, cryptographically random, and regenerated on each preview click. They are only valid for the specific item they were generated for.</p>
-
-    <h2>Page visibility</h2>
-    <p>After draft checking, the router enforces page visibility settings:</p>
-    <table>
-      <thead>
-        <tr><th>Visibility</th><th>Behavior</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>public</code></td>
-          <td>All visitors can access. Default for all pages.</td>
-        </tr>
-        <tr>
-          <td><code>members</code></td>
-          <td>Requires member login. Redirects to login page if not authenticated.</td>
-        </tr>
-        <tr>
-          <td><code>paid</code></td>
-          <td>Requires paid member status. Redirects to upgrade page if authenticated but not paid.</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>Visibility is set per-page in the admin editor under the SEO / Visibility section.</p>
-
-    <h2>Complete routing decision table</h2>
-    <table>
-      <thead>
-        <tr><th>Request</th><th>Match condition</th><th>Result</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/outpost/themes/t/assets/s.css</code></td><td>Real file on disk</td><td>Served directly (static)</td></tr>
-        <tr><td><code>/outpost/admin/</code></td><td>Starts with <code>/outpost/</code></td><td>Admin panel</td></tr>
-        <tr><td><code>/outpost/api.php?action=...</code></td><td>Starts with <code>/outpost/</code></td><td>API handler</td></tr>
-        <tr><td><code>/sitemap.xml</code></td><td>Exact match</td><td>Auto-generated sitemap XML</td></tr>
-        <tr><td><code>/</code></td><td>Root path</td><td><code>index.html</code></td></tr>
-        <tr><td><code>/about</code></td><td><code>about.html</code> exists in theme</td><td><code>about.html</code></td></tr>
-        <tr><td><code>/post/hello-world</code></td><td>Matches collection URL pattern <code>/post/{slug}</code></td><td><code>post.html</code> with slug=hello-world</td></tr>
-        <tr><td><code>/unknown-page</code></td><td>No match</td><td><code>404.html</code> (HTTP 404)</td></tr>
-        <tr><td>Any published page with <code>visibility=members</code></td><td>Visitor not logged in</td><td>Redirect to login</td></tr>
-        <tr><td>Any page with <code>status=draft</code></td><td>Public visitor</td><td>HTTP 404</td></tr>
-        <tr><td><code>/post/my-draft?preview=TOKEN</code></td><td>Valid preview token</td><td>Renders draft with preview banner</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Writing links in templates</h2>
-    <p>Because Outpost maps clean URLs to template files, links in your HTML must use the <strong>route path</strong> (the URL visitors see) — never the template filename.</p>
-
-    <h3>Static page links</h3>
-    <pre><code>&lt;!-- Correct --&gt;
-&lt;a href="/"&gt;Home&lt;/a&gt;
-&lt;a href="/about"&gt;About&lt;/a&gt;
-&lt;a href="/contact"&gt;Contact&lt;/a&gt;
-
-&lt;!-- Wrong — these will 404 --&gt;
-&lt;a href="index.html"&gt;Home&lt;/a&gt;
-&lt;a href="about.html"&gt;About&lt;/a&gt;
-&lt;a href="contact.html"&gt;Contact&lt;/a&gt;</code></pre>
-    <p>The front-router matches <code>/about</code> and serves <code>about.html</code> internally. A request for <code>/about.html</code> does not match any route and returns a 404.</p>
-
-    <h3>Collection item links</h3>
-    <p>Inside collection loops, always use <code>{{ item.url }}</code> — Outpost generates the correct URL from the collection's URL pattern automatically:</p>
-    <pre><code>{&#37; for post in collection.post &#37;}
-  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
-  &lt;!-- outputs: /post/hello-world --&gt;
-{&#37; endfor &#37;}</code></pre>
-
-    <h3>Menu links</h3>
-    <p>Menu loops use <code>{{ item.url }}</code> which stores whatever URL was configured in Admin → Navigation. These are already correct route paths:</p>
-    <pre><code>{&#37; for item in menu.main &#37;}
-  &lt;a href="{{ item.url }}"&gt;{{ item.label }}&lt;/a&gt;
-{&#37; endfor &#37;}</code></pre>
-
-    <div class="callout callout-warn"><strong>Common mistake when converting static sites</strong> — If you are converting an existing HTML website into an Outpost theme, you must update every <code>&lt;a href="page.html"&gt;</code> to <code>&lt;a href="/page"&gt;</code>. This is the #1 cause of broken navigation in new themes. The <a href="features/forge.html">Forge</a> visual tag builder can help with this process.</div>
-
-    <h2>Defining custom routes</h2>
-    <p>Outpost uses <strong>file-based routing</strong>. There is no route configuration file, no route registration function, and no <code>engine.php</code> modification needed. Creating a template file IS defining a route.</p>
-
-    <h3>Static page routes</h3>
-    <p>To add a new route, create an HTML template file in your theme's root directory. The filename (minus <code>.html</code>) becomes the URL:</p>
-    <table>
-      <thead>
-        <tr><th>Create this file</th><th>This URL works</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>events.html</code></td><td><code>/events</code></td></tr>
-        <tr><td><code>pricing.html</code></td><td><code>/pricing</code></td></tr>
-        <tr><td><code>team.html</code></td><td><code>/team</code></td></tr>
-        <tr><td><code>faq.html</code></td><td><code>/faq</code></td></tr>
-      </tbody>
-    </table>
-    <p>No restart, no rebuild, no registration. The next request to that URL will render the template and auto-scaffold any fields it contains.</p>
-
-    <h3>Dynamic routes (collections)</h3>
-    <p>For dynamic content with URL parameters (e.g. <code>/event/summer-gala</code>), create a <strong>collection</strong> in Admin → Collections with a URL pattern like <code>/event/{slug}</code>. The router will automatically match incoming URLs against the pattern and render the corresponding template (<code>event.html</code>).</p>
-
-    <h3>What you cannot do</h3>
-    <p>Outpost's routing is intentionally simple. These features are <strong>not supported</strong>:</p>
-    <ul>
-      <li><strong>Multi-segment static routes</strong> — <code>/blog/categories</code> is not possible as a static page. Only single-segment paths (<code>/categories</code>) map to templates.</li>
-      <li><strong>Custom PHP route handlers</strong> — you cannot register a PHP function to handle a specific URL. Outpost does not have a middleware, hook, or plugin system. All routes render Liquid templates.</li>
-      <li><strong>Route parameters beyond <code>{slug}</code></strong> — patterns like <code>/blog/{year}/{slug}</code> are not supported. Use <code>/blog/{slug}</code> and handle filtering within the template.</li>
-    </ul>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — If you need custom server-side logic for a specific route, create a standalone PHP file at your document root (e.g. <code>custom-endpoint.php</code>) and configure your web server to serve it directly. This bypasses Outpost's router entirely.</div>
-
-    <h2>Dev server vs. production differences</h2>
-    <p>The PHP built-in server used in development (<code>php -S localhost:8000 -t . front-router.php</code>) and a production Apache/Nginx server both route requests through the same PHP logic, but there are subtle differences to be aware of:</p>
-
-    <h3>Static file handling</h3>
-    <p>On the dev server, the router script is called for every request including static files. The router checks whether the request maps to a real file and returns <code>false</code> to tell PHP to serve it natively. On production Apache/Nginx, the server handles static files before PHP is invoked — PHP never sees those requests.</p>
-
-    <h3>REQUEST_URI reliability</h3>
-    <p>On the PHP built-in server, <code>$_SERVER['SCRIPT_FILENAME']</code> may point to the router script itself for all requests, making it unreliable for detecting whether a request is for a real PHP file. Outpost uses <code>$_SERVER['REQUEST_URI']</code> for path-based decisions instead, which works consistently in both environments.</p>
-
-    <h3>Apache .htaccess</h3>
-    <p>On Apache, the following <code>.htaccess</code> at the document root routes all non-static requests to <code>index.php</code>:</p>
-    <pre><code>RewriteEngine On
+ <h3>Apache .htaccess</h3>
+ <p>On Apache, the following <code>.htaccess</code> at the document root routes all non-static requests to <code>index.php</code>:</p>
+ <pre><code>RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [L]</code></pre>
-    <p>Without this rule, direct PHP requests work but pretty URLs like <code>/about</code> return a 404 from Apache before PHP is ever reached.</p>
+ <p>Without this rule, direct PHP requests work but pretty URLs like <code>/about</code> return a 404 from Apache before PHP is ever reached.</p>
 
-    <h3>Nginx configuration</h3>
-    <p>On Nginx, the equivalent configuration in the server block is:</p>
-    <pre><code>location / {
-    try_files $uri $uri/ /index.php?$query_string;
+ <h3>Nginx configuration</h3>
+ <p>On Nginx, the equivalent configuration in the server block is:</p>
+ <pre><code>location / {
+ try_files $uri $uri/ /index.php?$query_string;
 }</code></pre>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — When troubleshooting routing issues on the dev server, check the PHP built-in server output in your terminal. It logs every request and whether it was handled by PHP or served statically. A 404 in the terminal for a file that should exist is usually a path issue in the template.</div>
+ <div class="callout callout-tip"><strong>Tip</strong> — When troubleshooting routing issues on the dev server, check the PHP built-in server output in your terminal. It logs every request and whether it was handled by PHP or served statically. A 404 in the terminal for a file that should exist is usually a path issue in the template.</div>
 
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

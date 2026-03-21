@@ -217,21 +217,38 @@ export function applyLoopMappings(html, mappings, itemVar) {
   for (const { match, context, field, fieldType } of mappings) {
     if (!field) continue; // unmapped — skip
 
-    let replacement;
     if (context === 'src') {
-      replacement = `{{ ${itemVar}.${field} | image }}`;
+      // For images: inject data-outpost into the <img> tag instead of replacing src
+      result = result.replace(
+        new RegExp(`(<img\\b[^>]*?)\\bsrc\\s*=\\s*["']${escapeRegex(match)}["']`, 'i'),
+        `$1 data-outpost="${field}" data-type="image" src="${match}"`
+      );
     } else if (context === 'href') {
-      replacement = `{{ ${itemVar}.url }}`;
+      // For links: inject data-outpost into the <a> tag
+      result = result.replace(
+        new RegExp(`(<a\\b[^>]*?)\\bhref\\s*=\\s*["']${escapeRegex(match)}["']`, 'i'),
+        `$1 data-outpost="url" data-type="link" href="${match}"`
+      );
     } else if (context === 'inner') {
-      const filter = fieldType === 'richtext' ? ' | raw' : '';
-      replacement = `{{ ${itemVar}.${field}${filter} }}`;
-    } else {
-      replacement = `{{ ${itemVar}.${field} }}`;
+      // For inner text: find the parent element and add data-outpost
+      const dataType = fieldType === 'richtext' ? ' data-type="richtext"' : '';
+      // Try to find the tag wrapping this inner text and add the attribute
+      const escapedMatch = escapeRegex(match);
+      const tagRe = new RegExp(`(<[a-zA-Z][a-zA-Z0-9]*\\b)([^>]*>)\\s*${escapedMatch}\\s*(<\\/)`);
+      const tagMatch = result.match(tagRe);
+      if (tagMatch) {
+        result = result.replace(tagRe, `$1 data-outpost="${field}"${dataType}$2${match}$3`);
+      }
     }
-
-    result = result.replace(match, replacement);
   }
   return result;
+}
+
+/**
+ * Escape a string for use in a RegExp.
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**

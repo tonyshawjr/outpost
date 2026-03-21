@@ -1,217 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conditionals — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Conditionals — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Conditionals</h1>
-    <p class="lead">Show or hide template sections based on whether fields have values, what those values are, and whether the visitor is a logged-in admin.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Conditionals</h1>
+ <p class="lead">Show or hide template sections based on whether fields have values, what those values are, and whether the visitor is a logged-in admin.</p>
+ </div>
+ <div class="content">
 
-    <h2>Simple Field Check</h2>
-    <p>The most common conditional — show an element only when a field has been filled in. True when the field is non-empty (not an empty string, not <code>0</code>, not <code>null</code>, not an empty array).</p>
-    <pre><code>{% if field_name %}
-  &lt;!-- rendered when field_name has a value --&gt;
-{% endif %}</code></pre>
-    <pre><code>{% if field_name %}
-  &lt;!-- rendered when field_name has a value --&gt;
-{% else %}
-  &lt;!-- rendered when field_name is empty --&gt;
-{% endif %}</code></pre>
+ <h2>Simple Field Check</h2>
+ <p>The most common conditional — show an element only when a field has been filled in. True when the field is non-empty (not an empty string, not <code>0</code>, not <code>null</code>, not an empty array).</p>
+ 
+ 
 
-    <p>A typical use case: show a featured image only when one has been uploaded, with a CSS placeholder as the fallback.</p>
-    <pre><code>&lt;article class="post-card"&gt;
-  {% if featured_image %}
-    &lt;img src="{{ featured_image | image }}" alt="{{ page_title }}" class="post-thumb"&gt;
-  {% else %}
-    &lt;div class="post-thumb post-thumb--placeholder"&gt;&lt;/div&gt;
-  {% endif %}
-  &lt;h2&gt;{{ page_title }}&lt;/h2&gt;
-  &lt;p&gt;{{ page_excerpt | or_body }}&lt;/p&gt;
-&lt;/article&gt;</code></pre>
+ <p>A typical use case: show a featured image only when one has been uploaded, with a CSS placeholder as the fallback.</p>
+ 
 
-    <h2>Global Field Check</h2>
-    <p>Use the <code>@</code> prefix to check whether a global field has a value. This is especially important for optional global fields like social media links — without the check, an empty <code>&lt;a href=""&gt;</code> tag would be rendered for editors who have not filled in that field.</p>
-    <pre><code>{% if @global_name %}
-  &lt;!-- rendered when the global field has a value --&gt;
-{% endif %}</code></pre>
-    <pre><code>&lt;div class="social-links"&gt;
-  {% if @twitter_url %}
-    &lt;a href="{{ @twitter_url | link }}" target="_blank" rel="noopener"&gt;Twitter&lt;/a&gt;
-  {% endif %}
-  {% if @github_url %}
-    &lt;a href="{{ @github_url | link }}" target="_blank" rel="noopener"&gt;GitHub&lt;/a&gt;
-  {% endif %}
-  {% if @linkedin_url %}
-    &lt;a href="{{ @linkedin_url | link }}" target="_blank" rel="noopener"&gt;LinkedIn&lt;/a&gt;
-  {% endif %}
-  {% if @instagram_url %}
-    &lt;a href="{{ @instagram_url | link }}" target="_blank" rel="noopener"&gt;Instagram&lt;/a&gt;
-  {% endif %}
-&lt;/div&gt;</code></pre>
+ <h2>Global Field Check</h2>
+ <p>Use the <code>@</code> prefix to check whether a global field has a value. This is especially important for optional global fields like social media links — without the check, an empty <code>&lt;a href=""&gt;</code> tag would be rendered for editors who have not filled in that field.</p>
+ 
+ 
 
-    <h2>Loop Variable Check</h2>
-    <p>Inside a <code>{% for %}</code> or <code>{% single %}</code> block, check whether an item's field has a value using dot notation.</p>
-    <pre><code>{% if item.field %}
-  &lt;!-- rendered when the item field has a value --&gt;
-{% endif %}</code></pre>
-    <pre><code>{% for post in collection.post limit:10 %}
-&lt;article class="post-card"&gt;
-  {% if post.featured_image %}
-    &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
-  {% endif %}
-  &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-  {% if post.excerpt %}
-    &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
-  {% endif %}
-&lt;/article&gt;
-{% else %}
-&lt;p class="empty"&gt;No posts published yet.&lt;/p&gt;
-{% endfor %}</code></pre>
+ <h2>Loop Variable Check</h2>
+ <p>Inside a <code>&lt;outpost-each&gt;</code> or <code>&lt;outpost-single&gt;</code> block, check whether an item's field has a value using dot notation.</p>
+ 
+ 
 
-    <h2>String Comparisons</h2>
-    <p>Compare a field's value against a literal string using <code>==</code> (equality) or <code>!=</code> (inequality). Values must be wrapped in double quotes. Comparisons use strict string equality.</p>
-    <pre><code>{% if item.field == "value" %}
-  &lt;!-- rendered when item.field exactly equals "value" --&gt;
-{% endif %}
+ <h2>String Comparisons</h2>
+ <p>Compare a field's value against a literal string using <code>==</code> (equality) or <code>!=</code> (inequality). Values must be wrapped in double quotes. Comparisons use strict string equality.</p>
+ 
 
-{% if item.field != "value" %}
-  &lt;!-- rendered when item.field does not equal "value" --&gt;
-{% endif %}</code></pre>
+ <h3>Equality: Highlighting Featured Posts</h3>
+ 
 
-    <h3>Equality: Highlighting Featured Posts</h3>
-    <pre><code>{% for post in collection.post limit:10 %}
-&lt;article class="post-card{% if post.category == "featured" %} post-card--featured{% endif %}"&gt;
-  {% if post.category == "featured" %}
-    &lt;span class="badge"&gt;Featured&lt;/span&gt;
-  {% endif %}
-  &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-&lt;/article&gt;
-{% endfor %}</code></pre>
+ <h3>Inequality: Excluding Archived Items</h3>
+ 
 
-    <h3>Inequality: Excluding Archived Items</h3>
-    <pre><code>{% for project in collection.portfolio %}
-  {% if project.status != "archived" %}
-    &lt;a href="{{ project.url }}" class="project-thumb"&gt;
-      &lt;img src="{{ project.thumbnail | image }}" alt="{{ project.title }}"&gt;
-      &lt;span&gt;{{ project.title }}&lt;/span&gt;
-    &lt;/a&gt;
-  {% endif %}
-{% endfor %}</code></pre>
+ <h3>Multi-branch Status Display</h3>
+ 
 
-    <h3>Multi-branch Status Display</h3>
-    <pre><code>{% single post from collection.post %}
-&lt;div class="post-status"&gt;
-  {% if post.status == "published" %}
-    &lt;span class="status status--live"&gt;Live&lt;/span&gt;
-  {% else %}
-    {% if post.status == "draft" %}
-      &lt;span class="status status--draft"&gt;Draft&lt;/span&gt;
-    {% else %}
-      &lt;span class="status"&gt;{{ post.status }}&lt;/span&gt;
-    {% endif %}
-  {% endif %}
-&lt;/div&gt;
-{% endsingle %}</code></pre>
+ <h2>Admin Check</h2>
+ <p>The special <code>admin</code> variable is true only when a logged-in admin is previewing the page through the admin panel. Use it to show edit hints, debug information, or admin-only UI elements that should never be visible to public visitors.</p>
+ 
+ 
+ 
 
-    <h2>Admin Check</h2>
-    <p>The special <code>admin</code> variable is true only when a logged-in admin is previewing the page through the admin panel. Use it to show edit hints, debug information, or admin-only UI elements that should never be visible to public visitors.</p>
-    <pre><code>{% if admin %}
-  &lt;!-- only visible to logged-in admins in preview mode --&gt;
-{% endif %}</code></pre>
-    <pre><code>&lt;section class="hero"&gt;
-  &lt;h1&gt;{{ hero_heading "Click to edit this heading" }}&lt;/h1&gt;
-  &lt;p&gt;{{ hero_subheading "Add your tagline here" }}&lt;/p&gt;
+ <h2>Nested Conditionals</h2>
+ <p>Conditionals can be nested to any depth. The indentation is optional but improves readability.</p>
+ 
 
-  {% if admin %}
-    &lt;div class="admin-hint"&gt;
-      &lt;strong&gt;Admin:&lt;/strong&gt; Edit the hero content in the page editor on the right.
-    &lt;/div&gt;
-  {% endif %}
-&lt;/section&gt;</code></pre>
-    <pre><code>&lt;!-- Show collection item count for admin debugging --&gt;
-{% if admin %}
-  &lt;p style="font-size:12px;color:#999;"&gt;
-    Debug: rendering collection.post
-  &lt;/p&gt;
-{% endif %}
-{% for post in collection.post %}
-  ...
-{% endfor %}</code></pre>
+ <h2>Conditionals Inside Single Items</h2>
+ 
 
-    <h2>Nested Conditionals</h2>
-    <p>Conditionals can be nested to any depth. The indentation is optional but improves readability.</p>
-    <pre><code>&lt;!-- Portfolio card with nested checks --&gt;
-{% for project in collection.portfolio limit:6 %}
-&lt;div class="project-card"&gt;
-  {% if project.hero_image %}
-    &lt;a href="{{ project.url }}"&gt;
-      &lt;img src="{{ project.hero_image }}" alt="{{ project.title }}"&gt;
-    &lt;/a&gt;
-  {% else %}
-    {% if project.thumbnail %}
-      &lt;a href="{{ project.url }}"&gt;
-        &lt;img src="{{ project.thumbnail }}" alt="{{ project.title }}"&gt;
-      &lt;/a&gt;
-    {% endif %}
-  {% endif %}
-  &lt;h3&gt;&lt;a href="{{ project.url }}"&gt;{{ project.title }}&lt;/a&gt;&lt;/h3&gt;
-  {% if project.client %}
-    &lt;p class="client"&gt;{{ project.client }}&lt;/p&gt;
-  {% endif %}
-&lt;/div&gt;
-{% endfor %}</code></pre>
+ 
+ <p>In the templates engine, conditionals use the <code>&lt;outpost-if&gt;</code> custom element. The content inside is rendered only when the condition is true. An optional <code>&lt;outpost-else&gt;</code> element provides the fallback.</p>
 
-    <h2>Conditionals Inside Single Items</h2>
-    <pre><code>{% single post from collection.post %}
-&lt;article&gt;
-  &lt;header&gt;
-    {% if post.featured_image %}
-      &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}" class="post-hero"&gt;
-    {% endif %}
-    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-    {% if post.author %}
-      &lt;p class="byline"&gt;By {{ post.author }}&lt;/p&gt;
-    {% endif %}
-    {% if post.published_at %}
-      &lt;time datetime="{{ post.published_at }}"&gt;{{ post.published_at }}&lt;/time&gt;
-    {% endif %}
-  &lt;/header&gt;
+ 
 
-  &lt;div class="prose"&gt;{{ post.body | raw }}&lt;/div&gt;
+ <h3>Field Exists</h3>
+ <pre><code>&lt;outpost-if field="featured_image" exists&gt;
+ &lt;img data-outpost="featured_image" data-type="image" src="" alt=""&gt;
+&lt;/outpost-if&gt;</code></pre>
 
-  {% if post.cta_url %}
-    &lt;div class="post-cta"&gt;
-      &lt;a href="{{ post.cta_url | link }}" class="btn"&gt;
-        {{ post.cta_label "Read more" }}
-      &lt;/a&gt;
-    &lt;/div&gt;
-  {% endif %}
-&lt;/article&gt;
-{% else %}
-&lt;p&gt;Post not found.&lt;/p&gt;
-{% endsingle %}</code></pre>
+ <h3>With Else</h3>
+ <pre><code>&lt;outpost-if field="featured_image" exists&gt;
+ &lt;img data-outpost="featured_image" data-type="image" src="" alt=""&gt;
+&lt;outpost-else&gt;
+ &lt;div class="placeholder"&gt;&lt;/div&gt;
+&lt;/outpost-else&gt;
+&lt;/outpost-if&gt;</code></pre>
 
-    <h2>Limitations</h2>
-    <div class="callout callout-note"><strong>Note</strong> — The template language is intentionally simple. Keep complex logic in PHP helpers or JavaScript rather than template conditionals.</div>
-    <ul>
-      <li>No <code>{% elsif %}</code> / <code>{% elseif %}</code> — use nested <code>{% if %}...{% else %}...{% if %}</code> blocks.</li>
-      <li>No <code>and</code> / <code>or</code> operators — achieve compound checks with nested <code>{% if %}</code> tags.</li>
-      <li>No negation shorthand (<code>{% if !field %}</code>) — use <code>{% if field %}{% else %}...{% endif %}</code> or <code>{% if field != "value" %}</code>.</li>
-      <li>String comparisons only — no numeric or date comparisons with <code>&lt;</code> / <code>&gt;</code>.</li>
-    </ul>
+ <h3>Global Field Check</h3>
+ <pre><code>&lt;outpost-if field="twitter_url" scope="global" exists&gt;
+ &lt;a data-outpost="twitter_url" data-scope="global" data-type="link" href="#" target="_blank"&gt;Twitter&lt;/a&gt;
+&lt;/outpost-if&gt;</code></pre>
 
-  </div>
+ <h3>String Equality</h3>
+ <pre><code>&lt;outpost-if field="category" equals="featured"&gt;
+ &lt;span class="badge"&gt;Featured&lt;/span&gt;
+&lt;/outpost-if&gt;</code></pre>
+
+ <h3>String Inequality</h3>
+ <pre><code>&lt;outpost-if field="status" not-equals="archived"&gt;
+ &lt;a href="" data-outpost="url"&gt;&lt;span data-outpost="title"&gt;&lt;/span&gt;&lt;/a&gt;
+&lt;/outpost-if&gt;</code></pre>
+
+ <h3>Admin Check</h3>
+ <pre><code>&lt;outpost-if admin&gt;
+ &lt;div class="admin-hint"&gt;Edit hint here.&lt;/div&gt;
+&lt;/outpost-if&gt;</code></pre>
+
+ <h3>Example: Post Detail Page</h3>
+ <pre><code>&lt;outpost-single collection="post"&gt;
+ &lt;article&gt;
+ &lt;outpost-if field="featured_image" exists&gt;
+ &lt;img data-outpost="featured_image" data-type="image" src="" alt="" class="post-hero"&gt;
+ &lt;/outpost-if&gt;
+ &lt;h1 data-outpost="title"&gt;&lt;/h1&gt;
+ &lt;outpost-if field="author" exists&gt;
+ &lt;p class="byline"&gt;By &lt;span data-outpost="author"&gt;&lt;/span&gt;&lt;/p&gt;
+ &lt;/outpost-if&gt;
+ &lt;div class="prose" data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;
+ &lt;/article&gt;
+&lt;outpost-else&gt;
+ &lt;p&gt;Post not found.&lt;/p&gt;
+&lt;/outpost-else&gt;
+&lt;/outpost-single&gt;</code></pre>
+
+ <h2>Limitations</h2>
+ <div class="callout callout-note"><strong>Note</strong> — The template language is intentionally simple. Keep complex logic in PHP helpers or JavaScript rather than template conditionals.</div>
+ <ul>
+ <li>No <code>elseif</code> — use nested <code>&lt;outpost-if&gt;...&lt;outpost-else&gt;...&lt;outpost-if&gt;</code> blocks.</li>
+ <li>No <code>and</code> / <code>or</code> operators — achieve compound checks with nested <code>&lt;outpost-if&gt;</code> elements.</li>
+ <li>No negation shorthand — use <code>&lt;outpost-if field="name" exists&gt;...&lt;outpost-else&gt;...&lt;/outpost-if&gt;</code> or <code>&lt;outpost-if field="name" not-equals="value"&gt;</code>.</li>
+ <li>String comparisons only — no numeric or date comparisons with <code>&lt;</code> / <code>&gt;</code>.</li>
+ </ul>
+
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

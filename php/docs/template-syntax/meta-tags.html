@@ -1,149 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meta Tags — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Meta Tags — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Meta Tags</h1>
-    <p class="lead">Two dedicated helpers — <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code> — output SEO-ready values with automatic fallback chains for both regular pages and collection single items.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Meta Tags</h1>
+ <p class="lead">Two dedicated helpers — <code>data-outpost="title"</code> and <code>data-outpost="description"</code> — output SEO-ready values with automatic fallback chains for both regular pages and collection single items.</p>
+ </div>
+ <div class="content">
 
-    <h2><code>{{ meta.title }}Default{{ /meta.title }}</code></h2>
-    <p>Outputs the page title as raw text. You wrap it in the HTML tags yourself — this lets you use the same value in multiple places like <code>&lt;title&gt;</code> and Open Graph tags without duplicating logic.</p>
-    <pre><code>&lt;title&gt;{{ meta.title }}My Blog{{ /meta.title }}&lt;/title&gt;
-&lt;meta property="og:title" content="{{ meta.title }}My Blog{{ /meta.title }}"&gt;</code></pre>
-    <div class="callout callout-note"><strong>Note</strong> — The inline syntax <code>{{ meta.title "Default" }}</code> is also supported for backwards compatibility.</div>
+ <h2><code>&lt;outpost-meta title="Default" /&gt;</code></h2>
+ 
 
-    <h3>Fallback Chain for <code>meta.title</code></h3>
-    <p>The helper walks through the following sources in order, using the first non-empty value it finds:</p>
-    <ol>
-      <li><strong>Item's <code>meta_title</code> field</strong> — on single collection item pages (e.g. a blog post detail page), the custom SEO title set per-item in the admin.</li>
-      <li><strong>Item's <code>title</code> field</strong> — automatic fallback for single item pages when no custom meta title is set.</li>
-      <li><strong>Page's <code>meta_title</code> field</strong> — the SEO title set on the current CMS page.</li>
-      <li><strong>The provided default string</strong> — the quoted value you write in the template tag.</li>
-    </ol>
-    <p>This means a blog post with a custom meta title set in the admin will use that title. A post without one automatically uses the post's main title. A static page uses its page-level meta title. The default string is the ultimate fallback when nothing else has been set.</p>
+ <h3><code>&lt;outpost-meta&gt;</code> — Title and Description</h3>
+ <p>The <code>&lt;outpost-meta&gt;</code> self-closing element replaces both <code>data-outpost="title"</code> and <code>data-outpost="description"</code>. It outputs the <code>&lt;title&gt;</code> tag and <code>&lt;meta name="description"&gt;</code> tag in one declaration. Default values are provided as attributes.</p>
+ <pre><code>&lt;outpost-meta title="My Blog" description="A blog about web development." /&gt;</code></pre>
+ <p>This outputs:</p>
+ <pre><code>&lt;title&gt;My Blog&lt;/title&gt;
+&lt;meta name="description" content="A blog about web development."&gt;</code></pre>
+ <p>The same fallback chains from apply — if the current page or single item has a custom meta title or description set in the admin, those values take priority over the defaults provided in the attributes.</p>
 
-    <h2><code>{{ meta.description }}Default{{ /meta.description }}</code></h2>
-    <p>Outputs the meta description as raw text. Use it in <code>&lt;meta name="description"&gt;</code> and Open Graph tags.</p>
-    <pre><code>&lt;meta name="description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-&lt;meta property="og:description" content="{{ meta.description }}{{ /meta.description }}"&gt;</code></pre>
-    <div class="callout callout-note"><strong>Note</strong> — An empty wrapping tag <code>{{ meta.description }}{{ /meta.description }}</code> means no hardcoded fallback — the tag outputs whatever the CMS provides, or empty if nothing is set. The inline syntax <code>{{ meta.description "" }}</code> is also supported.</div>
+ <h3><code>&lt;outpost-seo&gt;</code> — Full SEO Block</h3>
+ <p>The <code>&lt;outpost-seo /&gt;</code> element replaces the <code>&lt;outpost-seo /&gt;</code> tag. It outputs a complete SEO block including the <code>&lt;title&gt;</code>, meta description, Open Graph tags, and Twitter Card tags — all using the same fallback chains.</p>
+ <pre><code>&lt;head&gt;
+ &lt;meta charset="UTF-8"&gt;
+ &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
 
-    <h3>Fallback Chain for <code>meta.description</code></h3>
-    <ol>
-      <li><strong>Item's <code>meta_description</code> field</strong> — custom description set per-item in the admin SEO sidebar.</li>
-      <li><strong>Auto-excerpt from item's <code>excerpt</code> field</strong> — first 30 words of the item's excerpt, on single item pages.</li>
-      <li><strong>Auto-excerpt from item's <code>body</code> field</strong> — first 30 words of the richtext body, on single item pages when no excerpt exists.</li>
-      <li><strong>Page's <code>meta_description</code> field</strong> — the description set on the current CMS page.</li>
-      <li><strong>The provided default string</strong> — the quoted value in the template tag.</li>
-    </ol>
+ &lt;outpost-seo /&gt;
 
-    <h2>Per-item SEO in the Admin</h2>
-    <p>When a content editor opens a collection item (e.g. a blog post) in the admin, the right sidebar contains a <strong>SEO</strong> tab with:</p>
-    <ul>
-      <li><strong>Meta Title</strong> input — 60 character limit displayed with a live counter and warning when exceeded.</li>
-      <li><strong>Meta Description</strong> textarea — 160 character limit with the same live feedback.</li>
-      <li><strong>Google search preview</strong> — a live preview showing how the result will appear in search results, updating as the editor types.</li>
-    </ul>
-    <p>These fields are stored in the item's JSON data alongside all other field values. No database migration is needed to add SEO fields to an existing collection.</p>
+ &lt;link rel="stylesheet" href="/themes/my-theme/assets/style.css"&gt;
+&lt;/head&gt;</code></pre>
+ <p>This single element outputs <code>&lt;title&gt;</code>, <code>&lt;meta name="description"&gt;</code>, <code>&lt;meta property="og:title"&gt;</code>, <code>&lt;meta property="og:description"&gt;</code>, <code>&lt;meta property="og:type"&gt;</code>, <code>&lt;meta name="twitter:card"&gt;</code>, <code>&lt;meta name="twitter:title"&gt;</code>, and <code>&lt;meta name="twitter:description"&gt;</code> — all populated from the same fallback chain described in above.</p>
 
-    <h2>Character Limits</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Recommended Length</th>
-          <th>Admin Warning at</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Meta title</td>
-          <td>50–60 characters</td>
-          <td>60 characters</td>
-        </tr>
-        <tr>
-          <td>Meta description</td>
-          <td>120–160 characters</td>
-          <td>160 characters</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>Titles longer than 60 characters may be truncated by Google in search results. Descriptions longer than 160 characters are typically truncated. These are guidelines, not hard limits — the CMS does not prevent saving longer values.</p>
-
-    <h2>Complete <code>head.html</code> Example</h2>
-    <p>This is the recommended pattern for a theme's <code>partials/head.html</code> partial, showing both meta helpers used alongside Open Graph and Twitter Card tags.</p>
-    <pre><code>&lt;!DOCTYPE html&gt;
+ <h3><code>head.html</code> Example</h3>
+ <pre><code>&lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
 &lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+ &lt;meta charset="UTF-8"&gt;
+ &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
 
-  &lt;title&gt;{{ meta.title }}{{ @site_name }}{{ /meta.title }}&lt;/title&gt;
-  &lt;meta name="description" content="{{ meta.description }}{{ /meta.description }}"&gt;
+ &lt;outpost-meta title="My Site" description="Welcome to my site." /&gt;
 
-  &lt;!-- Open Graph --&gt;
-  &lt;meta property="og:title" content="{{ meta.title }}{{ @site_name }}{{ /meta.title }}"&gt;
-  &lt;meta property="og:description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-  &lt;meta property="og:type" content="website"&gt;
-  &lt;meta property="og:site_name" content="{{ @site_name }}"&gt;
-
-  &lt;!-- Twitter Card --&gt;
-  &lt;meta name="twitter:card" content="summary_large_image"&gt;
-  &lt;meta name="twitter:title" content="{{ meta.title }}{{ @site_name }}{{ /meta.title }}"&gt;
-  &lt;meta name="twitter:description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-
-  {% if @favicon %}
-    &lt;link rel="icon" href="{{ @favicon | image }}"&gt;
-  {% endif %}
-
-  &lt;link rel="stylesheet" href="/themes/my-theme/assets/style.css"&gt;
-
-  {% if @ga4_id %}
-  &lt;script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"&gt;&lt;/script&gt;
-  &lt;script&gt;
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '{{ @ga4_id }}');
-  &lt;/script&gt;
-  {% endif %}
+ &lt;link rel="stylesheet" href="/themes/my-theme/assets/style.css"&gt;
 &lt;/head&gt;
 &lt;body&gt;</code></pre>
 
-    <h2>Blog Post Page Example</h2>
-    <p>On a single post page, the fallback chain for <code>meta.title</code> means the post's main title is used automatically even if no custom SEO title has been set. A content editor only needs to fill in the SEO fields when they want to customize what appears in search results.</p>
-    <pre><code>&lt;!-- post.html --&gt;
-{% include 'head' %}
-{% include 'nav' %}
+ <p>Or, for the full SEO block including Open Graph and Twitter Card tags:</p>
+ <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+ &lt;meta charset="UTF-8"&gt;
+ &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
 
-{% single post from collection.post %}
-&lt;article&gt;
-  &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-  &lt;!-- The &lt;title&gt; tag in head.html will use post.meta_title if set,
-       or fall back to post.title automatically --&gt;
-  &lt;div class="prose"&gt;{{ post.body | raw }}&lt;/div&gt;
-&lt;/article&gt;
-{% else %}
-&lt;p&gt;Post not found.&lt;/p&gt;
-{% endsingle %}
+ &lt;outpost-seo /&gt;
 
-{% include 'footer' %}</code></pre>
+ &lt;link rel="stylesheet" href="/themes/my-theme/assets/style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;</code></pre>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — Because the fallback chain includes the item's <code>title</code> field, you do not need to tell content editors to fill in the SEO title for every post. Only fill it in when the post title alone isn't sufficient for search — for example, when you want to include the site name or rephrase for search intent.</div>
+ 
 
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

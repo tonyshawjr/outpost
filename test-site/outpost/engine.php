@@ -82,6 +82,9 @@ function outpost_init(): void {
     }
     if ($needsScan) {
         outpost_scan_theme_templates($_outpost_active_theme);
+        // Also rebuild the theme manifest so it stays in sync
+        require_once __DIR__ . '/theme-manifest.php';
+        outpost_build_theme_manifest($_outpost_active_theme);
     }
 
     // Check cache first — skip for logged-in admins, preview mode
@@ -149,9 +152,10 @@ function outpost_discover_page(string $path): int {
 
 function outpost_preload_fields(int $page_id): void {
     global $_outpost_fields_cache, $_outpost_active_theme;
+    // Load theme-scoped fields AND unscoped fields (theme='') — settings and legacy fields use empty theme
     $fields = OutpostDB::fetchAll(
-        'SELECT id, field_name, field_type, content, default_value, options FROM fields WHERE page_id = ? AND theme = ? ORDER BY sort_order ASC',
-        [$page_id, $_outpost_active_theme]
+        'SELECT id, field_name, field_type, content, default_value, options FROM fields WHERE page_id = ? AND (theme = ? OR theme = ?) ORDER BY sort_order ASC',
+        [$page_id, $_outpost_active_theme, '']
     );
     $_outpost_fields_cache = [];
     foreach ($fields as $f) {
@@ -199,51 +203,28 @@ function outpost_esc(string $v): string {
 }
 
 function cms_text(string $name, string $default = '', bool $editable = false): void {
-    global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id;
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
     $val = outpost_esc(outpost_resolve_field($name, 'text', $default));
-    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
-        $fid = (int) $_outpost_fields_cache[$name]['id'];
-        echo '<span data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $_outpost_page_id . '" data-ope-type="text">' . $val . '</span>';
-    } else {
-        echo $val;
-    }
+    echo $val;
 }
 
 function cms_textarea(string $name, string $default = '', bool $editable = false): void {
-    global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id;
-    $val = nl2br(htmlspecialchars(outpost_resolve_field($name, 'textarea', $default), ENT_QUOTES, 'UTF-8'));
-    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
-        $fid = (int) $_outpost_fields_cache[$name]['id'];
-        echo '<span data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $_outpost_page_id . '" data-ope-type="textarea">' . $val . '</span>';
-    } else {
-        echo $val;
-    }
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
+    $val = outpost_resolve_field($name, 'textarea', $default);
+    echo nl2br(outpost_esc($val));
 }
 
 function cms_richtext(string $name, string $default = '', bool $editable = false): void {
-    global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id;
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
     // Richtext content is stored sanitized, output as-is
     $val = outpost_resolve_field($name, 'richtext', $default);
-    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
-        $fid = (int) $_outpost_fields_cache[$name]['id'];
-        echo '<div data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $_outpost_page_id . '" data-ope-type="richtext">' . $val . '</div>';
-    } else {
-        echo $val;
-    }
+    echo $val;
 }
 
 function cms_image(string $name, string $default = '', bool $editable = false): void {
-    global $_outpost_edit_mode, $_outpost_fields_cache, $_outpost_page_id, $_outpost_image_fields;
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
     $val = htmlspecialchars(outpost_resolve_field($name, 'image', $default), ENT_QUOTES, 'UTF-8');
     echo $val;
-    if ($_outpost_edit_mode && $editable && isset($_outpost_fields_cache[$name])) {
-        $_outpost_image_fields[] = [
-            'name' => $name,
-            'id' => (int) $_outpost_fields_cache[$name]['id'],
-            'page' => $_outpost_page_id,
-            'value' => $val,
-        ];
-    }
 }
 
 function cms_focal(string $name): void {
@@ -492,41 +473,18 @@ function cms_date(string $name, string $default = ''): void {
 // Used by compiled templates inside {% single %} blocks to annotate item fields.
 
 function outpost_ope_item_text(array $item, string $field, bool $editable = false): string {
-    global $_outpost_edit_mode, $_outpost_in_single, $_outpost_current_collection;
-    $val = outpost_esc($item[$field] ?? '');
-    if ($_outpost_edit_mode && $editable && $_outpost_in_single && isset($item['id'])) {
-        $itemId = (int) $item['id'];
-        $coll = htmlspecialchars($_outpost_current_collection, ENT_QUOTES);
-        $fn = htmlspecialchars($field, ENT_QUOTES);
-        return '<span data-ope-field="' . $fn . '" data-ope-item="' . $itemId . '" data-ope-collection="' . $coll . '" data-ope-type="text">' . $val . '</span>';
-    }
-    return $val;
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
+    return outpost_esc($item[$field] ?? '');
 }
 
 function outpost_ope_item_raw(array $item, string $field, bool $editable = false): string {
-    global $_outpost_edit_mode, $_outpost_in_single, $_outpost_current_collection;
-    $val = $item[$field] ?? '';
-    if ($_outpost_edit_mode && $editable && $_outpost_in_single && isset($item['id'])) {
-        $itemId = (int) $item['id'];
-        $coll = htmlspecialchars($_outpost_current_collection, ENT_QUOTES);
-        $fn = htmlspecialchars($field, ENT_QUOTES);
-        return '<div data-ope-field="' . $fn . '" data-ope-item="' . $itemId . '" data-ope-collection="' . $coll . '" data-ope-type="richtext">' . $val . '</div>';
-    }
-    return $val;
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
+    return $item[$field] ?? '';
 }
 
 function outpost_ope_item_image(array $item, string $field, bool $editable = false): string {
-    global $_outpost_edit_mode, $_outpost_in_single, $_outpost_current_collection, $_outpost_image_fields;
-    $val = htmlspecialchars($item[$field] ?? '', ENT_QUOTES, 'UTF-8');
-    if ($_outpost_edit_mode && $editable && $_outpost_in_single && isset($item['id'])) {
-        $_outpost_image_fields[] = [
-            'name' => $field,
-            'item' => (int) $item['id'],
-            'collection' => $_outpost_current_collection,
-            'value' => $val,
-        ];
-    }
-    return $val;
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
+    return htmlspecialchars($item[$field] ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 /**
@@ -642,31 +600,13 @@ function cms_global(string $name, string $type = 'text', string $default = '', b
     $globalPageId = $_outpost_globals_cache['_page_id'];
     $fid = (int) ($_outpost_globals_cache[$name]['id'] ?? 0);
 
+    // $editable (| edit) is now a no-op — the v4 overlay handles editing instead
     if ($type === 'image') {
-        $escaped = htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
-        echo $escaped;
-        if ($_outpost_edit_mode && $editable && $fid) {
-            $_outpost_image_fields[] = [
-                'name' => $name,
-                'id' => $fid,
-                'page' => $globalPageId,
-                'value' => $escaped,
-                'global' => true,
-            ];
-        }
+        echo htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
     } elseif ($type === 'richtext') {
-        if ($_outpost_edit_mode && $editable && $fid) {
-            echo '<div data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $globalPageId . '" data-ope-type="richtext" data-ope-global="1">' . $output . '</div>';
-        } else {
-            echo $output;
-        }
+        echo $output;
     } else {
-        $escaped = htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
-        if ($_outpost_edit_mode && $editable && $fid) {
-            echo '<span data-ope-field="' . htmlspecialchars($name, ENT_QUOTES) . '" data-ope-id="' . $fid . '" data-ope-page="' . $globalPageId . '" data-ope-type="text" data-ope-global="1">' . $escaped . '</span>';
-        } else {
-            echo $escaped;
-        }
+        echo htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
     }
 }
 
@@ -1188,20 +1128,27 @@ function outpost_cache_output(string $buffer): string {
         file_put_contents($cache_file, $buffer, LOCK_EX);
     }
 
-    // 3. Inject on-page editor + admin bar before </body> (never cached — admin only, skip in customizer preview)
+    // 3. Inject frontend editor overlay + admin bar before </body> (never cached — admin only, skip in customizer preview)
     if (outpost_is_admin() && !$isCustomizerPreview) {
-        // Inject editor CSS before </head>
+        // Inject editor CSS — only right padding for icon rail (no top bar)
         if (stripos($buffer, '</head>') !== false) {
-            $editorCss = '<link rel="stylesheet" href="/outpost/admin/on-page-editor.css">';
+            $cacheBust = '?v=' . time();
+            $editorCss = '<link rel="stylesheet" href="/outpost/admin/on-page-editor.css' . $cacheBust . '">';
+            $editorCss .= "\n" . '<style id="_ope_body_offset">'
+                . '@media(max-width:640px){body{padding-bottom:56px!important;}}'
+                . '</style>';
             $buffer = preg_replace('/<\/head>/i', $editorCss . "\n</head>", $buffer, 1);
         }
 
         if (stripos($buffer, '</body>') !== false) {
             // Build context JSON for the on-page editor
             $opeContext = outpost_ope_context_json();
-            $bar = outpost_admin_bar_html();
-            $editorJs = '<script src="/outpost/admin/on-page-editor.js"></script>';
-            $buffer = preg_replace('/<\/body>/i', $opeContext . "\n" . $bar . "\n" . $editorJs . "\n</body>", $buffer, 1);
+            $editorJs = '<script src="/outpost/admin/on-page-editor.js' . $cacheBust . '"></script>';
+
+            // Inject bridge JS for click-to-edit (always for admins)
+            $bridgeJs = "\n" . outpost_bridge_script();
+
+            $buffer = preg_replace('/<\/body>/i', $opeContext . "\n" . $editorJs . $bridgeJs . "\n</body>", $buffer, 1);
         }
     }
 
@@ -1625,7 +1572,45 @@ function outpost_ope_context_json(): string {
     }
 
     $json = json_encode($ctx, JSON_HEX_TAG | JSON_HEX_AMP);
-    return '<script>window.__OPE=' . $json . ';</script>';
+
+    // Build the expanded __OUTPOST_EDITOR__ context for the v4.0 frontend overlay
+    global $_outpost_page_path, $_outpost_active_theme;
+
+    $pageName = '';
+    if ($_outpost_page_id) {
+        $pageRow = OutpostDB::fetchOne('SELECT title, path FROM pages WHERE id = ?', [$_outpost_page_id]);
+        $pageName = $pageRow['title'] ?? '';
+    }
+    if ($_outpost_current_item) {
+        $pageName = $_outpost_current_item['title'] ?? $pageName;
+    }
+
+    // Look up user info from the database — always fresh
+    $userId = (int) ($_SESSION['outpost_user_id'] ?? 0);
+    $userName = '';
+    $userAvatar = null;
+    if ($userId) {
+        $userRow = OutpostDB::fetchOne('SELECT display_name, username, avatar FROM users WHERE id = ?', [$userId]);
+        if ($userRow) {
+            $userName = $userRow['display_name'] ?: $userRow['username'];
+            $userAvatar = $userRow['avatar'] ?: null;
+        }
+    }
+
+    $editorCtx = [
+        'pageId'    => $_outpost_page_id,
+        'pagePath'  => $_outpost_page_path ?: '/',
+        'pageName'  => $pageName,
+        'apiUrl'    => '/outpost/api.php',
+        'csrfToken' => $_SESSION['outpost_csrf'] ?? '',
+        'userId'    => $userId,
+        'userName'  => $userName,
+        'userAvatar' => $userAvatar,
+        'themeSlug' => $_outpost_active_theme ?? '',
+    ];
+    $editorJson = json_encode($editorCtx, JSON_HEX_TAG | JSON_HEX_AMP);
+
+    return '<script>window.__OPE=' . $json . ';window.__OUTPOST_EDITOR__=' . $editorJson . ';</script>';
 }
 
 function outpost_clear_cache(?string $page_path = null): void {
@@ -1984,15 +1969,186 @@ function outpost_scan_global_fields(string $source): array {
 }
 
 /**
+ * Scans v2 template source for page-scoped fields (data-outpost without data-scope="global").
+ * Returns field definitions in the same shape as outpost_scan_theme_fields().
+ */
+function outpost_scan_v2_fields(string $source): array {
+    $fields = [];
+    $counter = 0;
+
+    $type_map = [
+        'richtext' => 'richtext', 'image' => 'image', 'link' => 'link',
+        'color' => 'color', 'number' => 'number', 'date' => 'date',
+        'textarea' => 'textarea', 'select' => 'select', 'toggle' => 'toggle',
+    ];
+
+    // Strip content inside <outpost-each>, <outpost-single>, and <outpost-menu> blocks
+    // because fields inside those are item-scoped, not page-scoped
+    // Use iterative stripping to handle nested loops
+    $stripped = $source;
+    $maxPasses = 10;
+    for ($i = 0; $i < $maxPasses; $i++) {
+        $before = $stripped;
+        $stripped = preg_replace('/<outpost-each\s[^>]*>.*?<\/outpost-each>/is', '', $stripped);
+        if ($stripped === $before) break;
+    }
+    for ($i = 0; $i < $maxPasses; $i++) {
+        $before = $stripped;
+        $stripped = preg_replace('/<outpost-single\s[^>]*>.*?<\/outpost-single>/is', '', $stripped);
+        if ($stripped === $before) break;
+    }
+    for ($i = 0; $i < $maxPasses; $i++) {
+        $before = $stripped;
+        $stripped = preg_replace('/<outpost-menu\s[^>]*>.*?<\/outpost-menu>/is', '', $stripped);
+        if ($stripped === $before) break;
+    }
+
+    // Match elements with data-outpost="name" that do NOT have data-scope="global"
+    // Only scans content OUTSIDE loops/singles (page-scoped fields only)
+    preg_match_all('/<(\w+)\s([^>]*?)data-outpost="(\w+)"([^>]*?)>/is', $stripped, $matches, PREG_SET_ORDER);
+    foreach ($matches as $m) {
+        $tag = $m[1];
+        $prefix = $m[2];
+        $name = $m[3];
+        $suffix = $m[4];
+        $allAttrs = $prefix . $suffix;
+
+        // Skip if inside a loop or single context (collection/repeater item fields)
+        // These are scoped to items, not pages
+        // Skip globals
+        if (preg_match('/data-scope="global"/', $allAttrs)) continue;
+
+        // Determine type from data-type attribute
+        $type = 'text';
+        if (preg_match('/data-type="(\w+)"/', $allAttrs, $tm)) {
+            $type = $type_map[$tm[1]] ?? 'text';
+        }
+        if ($tag === 'img' && $type === 'text') $type = 'image';
+
+        // Extract data-label for human-readable display name
+        $label = '';
+        if (preg_match('/data-label="([^"]*)"/', $allAttrs, $lm)) {
+            $label = $lm[1];
+        }
+
+        // Get default value from innerHTML (for elements with closing tags)
+        $default = '';
+        // Look ahead for the closing tag to extract default content
+        $pattern = '/<' . preg_quote($tag) . '\s[^>]*?data-outpost="' . preg_quote($name) . '"[^>]*?>(.*?)<\/' . preg_quote($tag) . '>/is';
+        if (preg_match($pattern, $stripped, $dm)) {
+            $default = trim($dm[1]); // Keep HTML for richtext
+            if ($type !== 'richtext') {
+                $default = strip_tags($default);
+            }
+        }
+
+        if (!isset($fields[$name])) {
+            $entry = [
+                'field_name' => $name,
+                'field_type' => $type,
+                'default_value' => $default,
+                'sort_order' => ++$counter,
+            ];
+            if ($label) {
+                $entry['label'] = $label;
+            }
+            $fields[$name] = $entry;
+        }
+    }
+
+    // Scan <outpost-each repeat="name"> for repeater fields
+    preg_match_all('/<outpost-each\s+[^>]*?repeat="(\w+)"[^>]*?>/is', $source, $matches, PREG_SET_ORDER);
+    foreach ($matches as $m) {
+        $name = $m[1];
+        if (!isset($fields[$name])) {
+            $fields[$name] = [
+                'field_name' => $name,
+                'field_type' => 'repeater',
+                'default_value' => '[]',
+                'sort_order' => ++$counter,
+                'options' => '{}',
+            ];
+        }
+    }
+
+    // Scan <outpost-each gallery="name"> for gallery fields
+    preg_match_all('/<outpost-each\s+[^>]*?gallery="(\w+)"[^>]*?>/is', $source, $matches, PREG_SET_ORDER);
+    foreach ($matches as $m) {
+        $name = $m[1];
+        if (!isset($fields[$name])) {
+            $fields[$name] = [
+                'field_name' => $name,
+                'field_type' => 'gallery',
+                'default_value' => '[]',
+                'sort_order' => ++$counter,
+                'options' => '[]',
+            ];
+        }
+    }
+
+    return array_values($fields);
+}
+
+/**
+ * Scans v2 template source for global fields (data-outpost with data-scope="global").
+ * Returns field definitions in the same shape as outpost_scan_global_fields().
+ */
+function outpost_scan_v2_global_fields(string $source): array {
+    $fields = [];
+
+    $type_map = [
+        'richtext' => 'richtext', 'image' => 'image', 'link' => 'link',
+        'color' => 'color', 'number' => 'number', 'date' => 'date',
+        'textarea' => 'textarea', 'select' => 'select', 'toggle' => 'toggle',
+    ];
+
+    // Match elements with data-outpost="name" AND data-scope="global"
+    preg_match_all('/<(\w+)\s([^>]*?)data-outpost="(\w+)"([^>]*?)data-scope="global"([^>]*?)>/is', $source, $m1, PREG_SET_ORDER);
+    preg_match_all('/<(\w+)\s([^>]*?)data-scope="global"([^>]*?)data-outpost="(\w+)"([^>]*?)>/is', $source, $m2, PREG_SET_ORDER);
+
+    // Process both orderings (data-outpost before/after data-scope)
+    $all = [];
+    foreach ($m1 as $m) {
+        $all[] = ['tag' => $m[1], 'attrs' => $m[2] . $m[4] . $m[5], 'name' => $m[3]];
+    }
+    foreach ($m2 as $m) {
+        $all[] = ['tag' => $m[1], 'attrs' => $m[2] . $m[3] . $m[5], 'name' => $m[4]];
+    }
+
+    // Also scan <outpost-if field="x" scope="global"> for global fields used in conditionals
+    preg_match_all('/<outpost-if\s+[^>]*?field="(\w+)"[^>]*?scope="global"[^>]*?>/is', $source, $ifMatches, PREG_SET_ORDER);
+    preg_match_all('/<outpost-if\s+[^>]*?scope="global"[^>]*?field="(\w+)"[^>]*?>/is', $source, $ifMatches2, PREG_SET_ORDER);
+    foreach (array_merge($ifMatches, $ifMatches2) as $m) {
+        $all[] = ['tag' => 'outpost-if', 'attrs' => '', 'name' => $m[1]];
+    }
+
+    foreach ($all as $item) {
+        $name = $item['name'];
+        $attrs = $item['attrs'];
+        $tag = $item['tag'];
+
+        $type = 'text';
+        if (preg_match('/data-type="(\w+)"/', $attrs, $tm)) {
+            $type = $type_map[$tm[1]] ?? 'text';
+        }
+        if ($tag === 'img' && $type === 'text') $type = 'image';
+
+        if (!isset($fields[$name])) {
+            $fields[$name] = ['field_name' => $name, 'field_type' => $type, 'default_value' => ''];
+        }
+    }
+
+    return array_values($fields);
+}
+
+/**
  * Scans all top-level .html files in a theme and:
  * 1. Creates page stubs in the pages table (if not already present)
  * 2. Creates field stubs — page fields for page-specific content, globals for shared
  * 3. Upserts into page_field_registry for the admin field schema
  *
- * Smart @field routing:
- *   - @field in a partial (nav/footer/head)  → global (shown in every page)
- *   - @field in 2+ page templates             → global (shared)
- *   - @field in exactly 1 page template       → page field for that page (not global)
+ * Automatically detects v1 (Liquid) vs v2 (data-attribute) templates and uses
+ * the appropriate scanner.
  *
  * Called on theme activation and on the first frontend request for a theme with no fields yet.
  */
@@ -2006,15 +2162,22 @@ function outpost_scan_theme_templates(string $slug): void {
     $pageFiles = glob($themeDir . '*.html') ?: [];
     if (empty($pageFiles)) return;
 
+    // Detect v2 (data-attribute) vs v1 (Liquid) templates
+    $isV2 = outpost_detect_engine_version($themeDir);
+
+    // Choose scanner functions based on engine version
+    $scanFields = $isV2 ? 'outpost_scan_v2_fields' : 'outpost_scan_theme_fields';
+    $scanGlobals = $isV2 ? 'outpost_scan_v2_global_fields' : 'outpost_scan_global_fields';
+
     $knownPartials = ['head', 'nav', 'footer', 'header', 'sidebar'];
 
-    // Collect all @fields from every file (partials + page templates) — @prefix = always global
+    // Collect all global fields from every file (partials + page templates)
     $allAtFields = []; // name => field def
 
     $partialDir = $themeDir . 'partials/';
     $partialFiles = is_dir($partialDir) ? (glob($partialDir . '*.html') ?: []) : [];
     foreach ($partialFiles as $file) {
-        foreach (outpost_scan_global_fields(file_get_contents($file)) as $g) {
+        foreach ($scanGlobals(file_get_contents($file)) as $g) {
             $allAtFields[$g['field_name']] ??= $g;
         }
     }
@@ -2027,7 +2190,7 @@ function outpost_scan_theme_templates(string $slug): void {
 
         // Root-level partials
         if (in_array($filename, $knownPartials)) {
-            foreach (outpost_scan_global_fields($content) as $g) {
+            foreach ($scanGlobals($content) as $g) {
                 $allAtFields[$g['field_name']] ??= $g;
             }
             continue;
@@ -2043,11 +2206,11 @@ function outpost_scan_theme_templates(string $slug): void {
             $pageId = OutpostDB::insert('pages', ['path' => $path, 'title' => $title]);
         }
 
-        foreach (outpost_scan_global_fields($content) as $g) {
+        foreach ($scanGlobals($content) as $g) {
             $allAtFields[$g['field_name']] ??= $g;
         }
 
-        $pageInfos[$path] = ['id' => $pageId, 'fields' => outpost_scan_theme_fields($content)];
+        $pageInfos[$path] = ['id' => $pageId, 'fields' => $scanFields($content)];
     }
 
     // Insert page fields (regular {{ field }} only)
@@ -2185,6 +2348,197 @@ function outpost_scan_theme_templates(string $slug): void {
     );
 }
 
+// ── Click-to-Edit Bridge Script ──────────────────────────
+/**
+ * Returns the inline bridge script for click-to-edit in editor mode.
+ * Injected before </body> when ?_outpost_editor=1 is set and user is admin.
+ *
+ * The bridge:
+ * 1. Scans for [data-outpost] elements and adds hover outlines
+ * 2. On click, sends postMessage with field/block info to parent window
+ * 3. Prevents default navigation on links
+ */
+function outpost_bridge_script(): string {
+    return <<<'BRIDGE'
+<script id="outpost-bridge">
+(function() {
+  'use strict';
+
+  var HOVER_CLASS = 'outpost-bridge-hover';
+  var ACTIVE_CLASS = 'outpost-bridge-active';
+
+  // Inject bridge hover/active styles
+  var style = document.createElement('style');
+  style.id = 'outpost-bridge-styles';
+  style.textContent = [
+    '[data-outpost] { cursor: pointer; }',
+    '[data-outpost].' + HOVER_CLASS + ' { outline: 1px solid rgba(45, 90, 71, 0.25); outline-offset: 2px; }',
+    '[data-outpost].' + ACTIVE_CLASS + ' { outline: 2px solid rgba(45, 90, 71, 0.5); outline-offset: 2px; }',
+    '[data-outpost-block] { position: relative; }',
+    '.outpost-bridge-label { position: fixed; z-index: 2147483647; pointer-events: none;',
+    '  background: #1F2937; color: #fff; font: 500 11px/1 -apple-system, system-ui, sans-serif;',
+    '  padding: 5px 10px; border-radius: 5px; white-space: nowrap;',
+    '  opacity: 0; transition: opacity 0.15s ease; }',
+    '.outpost-bridge-label.visible { opacity: 1; }',
+  ].join('\n');
+  document.head.appendChild(style);
+
+  // Create floating label element
+  var labelEl = document.createElement('div');
+  labelEl.className = 'outpost-bridge-label';
+  document.body.appendChild(labelEl);
+
+  var currentActive = null;
+
+  // Position the label above an element
+  function positionLabel(el, text) {
+    var rect = el.getBoundingClientRect();
+    labelEl.textContent = text;
+    labelEl.classList.add('visible');
+    var lw = labelEl.offsetWidth;
+    var left = rect.left;
+    var top = rect.top - 28;
+    if (top < 4) top = rect.bottom + 4;
+    if (left + lw > window.innerWidth - 8) left = window.innerWidth - lw - 8;
+    if (left < 4) left = 4;
+    labelEl.style.left = left + 'px';
+    labelEl.style.top = top + 'px';
+  }
+
+  function hideLabel() {
+    labelEl.classList.remove('visible');
+  }
+
+  // Find the closest block name for an element
+  function getBlockName(el) {
+    var node = el;
+    while (node && node !== document.body) {
+      if (node.dataset && node.dataset.outpostBlock) {
+        return node.dataset.outpostBlock;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  // Clear active highlight
+  function clearActive() {
+    if (currentActive) {
+      currentActive.classList.remove(ACTIVE_CLASS);
+      currentActive = null;
+    }
+  }
+
+  // Set up event listeners using delegation for efficiency
+  document.addEventListener('mouseover', function(e) {
+    var target = e.target.closest('[data-outpost]') || e.target.closest('[data-outpost-block]');
+    if (!target) return;
+
+    target.classList.add(HOVER_CLASS);
+
+    // Humanize: "latest-posts" → "Latest Posts", "hero_heading" → "Hero Heading"
+    function humanize(s) {
+      return s.replace(/[-_]/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    }
+
+    // Build label text
+    var field = target.dataset.outpost;
+    var block = target.dataset.outpostBlock || getBlockName(target);
+    var labelParts = [];
+    if (block) labelParts.push(humanize(block));
+    if (field) labelParts.push(humanize(field));
+    var labelText = labelParts.join(' → ') || 'Section';
+
+    positionLabel(target, labelText);
+  }, true);
+
+  document.addEventListener('mouseout', function(e) {
+    var target = e.target.closest('[data-outpost]') || e.target.closest('[data-outpost-block]');
+    if (!target) return;
+    target.classList.remove(HOVER_CLASS);
+    hideLabel();
+  }, true);
+
+  document.addEventListener('click', function(e) {
+    var fieldEl = e.target.closest('[data-outpost]');
+    var blockEl = e.target.closest('[data-outpost-block]');
+
+    if (!fieldEl && !blockEl) return;
+
+    // Prevent default link navigation
+    e.preventDefault();
+    e.stopPropagation();
+
+    clearActive();
+
+    if (fieldEl) {
+      // Field click — send field info
+      var field = fieldEl.dataset.outpost;
+      var block = getBlockName(fieldEl);
+      var type = fieldEl.dataset.type || 'text';
+      var scope = fieldEl.dataset.scope || 'page';
+
+      fieldEl.classList.add(ACTIVE_CLASS);
+      currentActive = fieldEl;
+
+      window.postMessage({
+        type: 'outpost-field-click',
+        field: field,
+        block: block,
+        fieldType: type,
+        scope: scope,
+      }, '*');
+    } else if (blockEl) {
+      // Block click (no specific field) — send block info
+      var blockName = blockEl.dataset.outpostBlock;
+
+      blockEl.classList.add(ACTIVE_CLASS);
+      currentActive = blockEl;
+
+      window.postMessage({
+        type: 'outpost-block-click',
+        block: blockName,
+      }, '*');
+    }
+  }, true);
+
+  // Listen for highlight requests from the editor sidebar
+  window.addEventListener('message', function(e) {
+    if (!e.data || typeof e.data !== 'object') return;
+
+    if (e.data.type === 'outpost-highlight-field') {
+      clearActive();
+      var selector = '[data-outpost="' + CSS.escape(e.data.field) + '"]';
+      var el = document.querySelector(selector);
+      if (el) {
+        el.classList.add(ACTIVE_CLASS);
+        currentActive = el;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    if (e.data.type === 'outpost-highlight-block') {
+      clearActive();
+      var selector = '[data-outpost-block="' + CSS.escape(e.data.block) + '"]';
+      var el = document.querySelector(selector);
+      if (el) {
+        el.classList.add(ACTIVE_CLASS);
+        currentActive = el;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    if (e.data.type === 'outpost-clear-highlight') {
+      clearActive();
+    }
+  });
+
+  console.log('[Outpost Bridge] Click-to-edit bridge initialized');
+})();
+</script>
+BRIDGE;
+}
+
 // ── Admin detection ──────────────────────────────────────
 /**
  * Returns true if the current visitor is a logged-in Outpost admin.
@@ -2198,6 +2552,50 @@ function outpost_is_admin(): bool {
     }
     return isset($_SESSION['outpost_user_id']) &&
            (time() - ($_SESSION['outpost_login_time'] ?? 0)) < OUTPOST_SESSION_LIFETIME;
+}
+
+// ── Template Engine Version Detection ─────────────────────
+
+/**
+ * Detect whether a theme uses v2 (data attribute) or v1 (Liquid) templates.
+ * Checks index.html for data-outpost attributes or <outpost-* elements.
+ * Result is cached per theme directory in a static variable.
+ */
+function outpost_detect_engine_version(string $themeDir): bool {
+    static $cache = [];
+    if (isset($cache[$themeDir])) return $cache[$themeDir];
+
+    $indexFile = rtrim($themeDir, '/') . '/index.html';
+    if (!file_exists($indexFile)) {
+        $cache[$themeDir] = false;
+        return false;
+    }
+
+    $content = file_get_contents($indexFile);
+    // v2 indicators: data-outpost= attribute or <outpost- custom elements
+    $isV2 = (bool) preg_match('/data-outpost="|<outpost-/i', $content);
+    $cache[$themeDir] = $isV2;
+    return $isV2;
+}
+
+/**
+ * Render a template file using the appropriate engine version.
+ * Automatically detects v2 vs v1 from the theme's index.html.
+ */
+function outpost_render_template(string $templateFile, string $themeDir, bool $editorMode = false): void {
+    $useV2 = outpost_detect_engine_version($themeDir);
+
+    if ($useV2) {
+        if (!class_exists('OutpostTemplateV2')) {
+            require_once __DIR__ . '/template-engine-v2.php';
+        }
+        OutpostTemplateV2::render($templateFile, $themeDir, $editorMode);
+    } else {
+        if (!class_exists('OutpostTemplate')) {
+            require_once __DIR__ . '/template-engine.php';
+        }
+        OutpostTemplate::render($templateFile, $themeDir);
+    }
 }
 
 // ── Auto-init ────────────────────────────────────────────

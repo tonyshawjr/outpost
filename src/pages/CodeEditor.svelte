@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, untrack } from 'svelte';
-  import { code as codeApi } from '$lib/api.js';
+  import { code as codeApi, getCsrfToken, getApiBase } from '$lib/api.js';
   import { addToast, darkMode } from '$lib/stores.js';
   import { setOutpostContext, outpostCompletionSource } from '$lib/outpost-completions.js';
   import { outpostHighlight } from '$lib/outpost-highlight.js';
@@ -69,6 +69,123 @@
   let forgePopover    = $state(null);  // { type, x, y, from, to, text, detection }
   let forgeContext    = $state(null);  // { globals, collections, forms, menus, folders }
   let forgeThemeWizard = $state(null); // { folder } or null
+  let smartForging    = $state(false);
+  let smartForgeResult = $state(null);
+  let forgeAiAvailable = $state(false);
+  let forgeAiProvider  = $state(null);
+
+  async function checkForgeAiStatus() {
+    try {
+      const base = getApiBase();
+      const url = new URL(base, window.location.origin);
+      url.searchParams.set('action', 'forge/ai-status');
+      const res = await fetch(url.toString(), { credentials: 'include' });
+      const data = await res.json();
+      forgeAiAvailable = data.available === true;
+      forgeAiProvider = data.provider || null;
+    } catch {
+      forgeAiAvailable = false;
+      forgeAiProvider = null;
+    }
+  }
+
+  async function smartForgeRequest(action, body) {
+    const base = getApiBase();
+    const url = new URL(base, window.location.origin);
+    url.searchParams.set('action', action);
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Request failed: ${res.status}`);
+    return data;
+  }
+
+  let smartForgeModal = $state(null); // { fields, sections, repeaters, result }
+
+  async function runSmartForge() {
+    if (!activeTab || smartForging) return;
+    if (!activeTab.path.endsWith('.html')) {
+      addToast('Smart Forge only works on HTML files', 'error');
+      return;
+    }
+    smartForging = true;
+    try {
+      if (forgeAiAvailable) {
+        // AI-powered scan — sends current editor content to AI
+        const currentContent = editorView ? editorView.state.doc.toString() : activeTab.content;
+        console.log('[Smart Forge AI] Starting. Content length:', currentContent?.length);
+        if (!currentContent || currentContent.trim().length < 10) {
+          addToast('File is empty or too short for Smart Forge', 'info');
+          return;
+        }
+        console.log('[Smart Forge AI] Calling API...');
+        const result = await smartForgeRequest('forge/ai-scan', { html: currentContent });
+        console.log('[Smart Forge AI] Got result:', result ? Object.keys(result) : 'null');
+        console.log('[Smart Forge AI] Template length:', result?.template?.length);
+        if (result && result.template && editorView) {
+          const newContent = result.template;
+          editorView.dispatch({ changes: { from: 0, to: editorView.state.doc.length, insert: newContent } });
+          // Update tab content
+          const tabIndex = tabs.findIndex(t => t.path === activeTab.path);
+          if (tabIndex >= 0) {
+            tabs[tabIndex] = { ...tabs[tabIndex], content: newContent };
+            tabs = [...tabs];
+          }
+          addToast(`Smart Forge AI complete (${result.provider})`, 'success');
+          console.log('[Smart Forge AI] Applied to editor');
+        } else {
+          addToast('AI returned empty result — check console', 'info');
+          console.error('[Smart Forge AI] Empty result:', result);
+        }
+      } else {
+        // Fallback: PHP scanner
+        const fileData = await codeApi.read(activeTab.path);
+        const result = await smartForgeRequest('forge/scan', { html: fileData.content, path: activeTab.path });
+        smartForgeResult = result;
+        const fieldCount = result.fields?.length || 0;
+        if (fieldCount === 0) {
+          addToast('No editable content detected in this file', 'info');
+          return;
+        }
+        smartForgeModal = {
+          fields: result.fields || [],
+          sections: result.sections || [],
+          repeaters: result.repeaters || [],
+          result,
+        };
+      }
+    } catch (err) {
+      addToast('Smart Forge error: ' + err.message, 'error');
+    } finally {
+      smartForging = false;
+    }
+  }
+
+  async function applySmartForge() {
+    if (!smartForgeModal || !activeTab) return;
+    smartForging = true;
+    try {
+      await smartForgeRequest('forge/apply', {
+        path: activeTab.path,
+        template: smartForgeModal.result.template,
+        fields: smartForgeModal.result.fields,
+      });
+      const updated = await codeApi.read(activeTab.path);
+      if (activeTab && editorView) {
+        editorView.dispatch({ changes: { from: 0, to: editorView.state.doc.length, insert: updated.content } });
+      }
+      addToast(`Smart Forge complete! ${smartForgeModal.fields.length} fields created`, 'success');
+      smartForgeModal = null;
+    } catch (err) {
+      addToast('Smart Forge apply error: ' + err.message, 'error');
+    } finally {
+      smartForging = false;
+    }
+  }
 
   // Detect if the active file's theme folder is missing theme.json
   let activeThemeFolder = $derived.by(() => {
@@ -134,6 +251,7 @@
     loadTree();
     loadCM();
     loadOutpostContext();
+    checkForgeAiStatus();
   });
 
   onDestroy(() => {
@@ -610,7 +728,7 @@
   function handleUsePartial(partialName) {
     if (!editorView || !forgeMenu) return;
     const { from, to } = forgeMenu;
-    editorView.dispatch({ changes: { from, to, insert: `{% include '${partialName}' %}` } });
+    editorView.dispatch({ changes: { from, to, insert: `<outpost-include partial="${partialName}" />` } });
     forgeMenu = null;
     editorView.focus();
   }
@@ -762,6 +880,24 @@
         <button class="ce-tool-btn" onclick={() => { showComponentBrowser = true; }} title="Insert Component">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         </button>
+        {#if activeTab && activeTab.path.endsWith('.html')}
+          <button
+            class="ce-tool-btn ce-smart-forge-btn"
+            onclick={runSmartForge}
+            disabled={smartForging}
+            title={forgeAiAvailable ? 'Smart Forge AI — AI-powered content detection' : 'Smart Forge — Auto-detect all editable content in this file'}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
+              <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
+            </svg>
+            {#if smartForging}
+              {forgeAiAvailable ? 'Analyzing with AI...' : 'Scanning...'}
+            {:else}
+              {forgeAiAvailable ? 'Smart Forge AI' : 'Smart Forge'}
+            {/if}
+          </button>
+        {/if}
         {#if activeTab}
           <div class="ce-tool-sep"></div>
           {#if langLabel}
@@ -923,6 +1059,38 @@
   onClose={() => { showAssetBrowser = false; }}
 />
 
+<!-- Smart Forge Modal -->
+{#if smartForgeModal}
+  <div class="sf-overlay" onclick={() => { smartForgeModal = null; }}>
+    <div class="sf-modal" onclick={(e) => e.stopPropagation()}>
+      <div class="sf-header">
+        <div>
+          <h3 class="sf-title">Ready to make this page editable</h3>
+          <p class="sf-subtitle">Smart Forge found <strong>{smartForgeModal.fields.length} fields</strong> across <strong>{smartForgeModal.sections.length} sections</strong></p>
+        </div>
+        <button class="sf-close" onclick={() => { smartForgeModal = null; }} aria-label="Close">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><line x1="5" y1="5" x2="15" y2="15"/><line x1="15" y1="5" x2="5" y2="15"/></svg>
+        </button>
+      </div>
+      <div class="sf-body">
+        {#each smartForgeModal.sections as section}
+          {@const sectionFields = smartForgeModal.fields.filter(f => f.section === section)}
+          <div class="sf-section-row">
+            <span class="sf-section-name">{section}</span>
+            <span class="sf-section-count">{sectionFields.length} {sectionFields.length === 1 ? 'field' : 'fields'}</span>
+          </div>
+        {/each}
+      </div>
+      <div class="sf-footer">
+        <button class="btn btn-secondary" onclick={() => { smartForgeModal = null; }}>Cancel</button>
+        <button class="btn btn-primary" onclick={applySmartForge} disabled={smartForging}>
+          {smartForging ? 'Applying...' : 'Apply Smart Forge'}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
 <!-- Command Palette overlay -->
 {#if showCmdPalette}
   <div class="cp-overlay" onclick={closeCmdPalette}>
@@ -966,6 +1134,82 @@
 {/if}
 
 <style>
+  /* Smart Forge Modal */
+  .sf-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sf-modal {
+    background: var(--bg-primary, #fff);
+    border-radius: 12px;
+    width: 520px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .sf-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 12px;
+  }
+  .sf-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  .sf-subtitle {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin: 4px 0 0;
+  }
+  .sf-close {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+  }
+  .sf-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 16px;
+  }
+  .sf-section-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-secondary, #f3f4f6);
+  }
+  .sf-section-row:last-child {
+    border-bottom: none;
+  }
+  .sf-section-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .sf-section-count {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+  .sf-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 24px 20px;
+    border-top: 1px solid var(--border-secondary, #eee);
+  }
+
   .ce-root {
     display: flex;
     height: calc(100vh - 60px);
@@ -1117,16 +1361,33 @@
     color: var(--ce-text);
   }
 
-  /* Outpost template tag highlighting — colorblind-safe palette */
-  /* Dark: teal + blue + gray — all distinct from one-dark's red/orange/green HTML colors */
+  /* Outpost template tag highlighting — HIGH CONTRAST colorblind-safe palette */
+
+  /* === v1 Liquid syntax (dark mode) === */
   .ce-editor-wrap :global(.cm-outpost-output)  { color: #56d4c8; background: rgba(86,212,200,.08); border-radius: 2px; }
   .ce-editor-wrap :global(.cm-outpost-block)   { color: #6cb6ff; background: rgba(108,182,255,.08); border-radius: 2px; }
   .ce-editor-wrap :global(.cm-outpost-comment) { color: #7a7e85; background: rgba(122,126,133,.06); border-radius: 2px; font-style: italic; }
 
-  /* Light mode */
+  /* === v2 Data-attribute syntax (dark mode) — bold, high-contrast === */
+  .ce-editor-wrap :global(.cm-outpost-v2-field)   { color: #F59E0B; font-weight: 700; background: rgba(245,158,11,.1); border-radius: 2px; }
+  .ce-editor-wrap :global(.cm-outpost-v2-type)    { color: #06B6D4; font-weight: 700; background: rgba(6,182,212,.1); border-radius: 2px; }
+  .ce-editor-wrap :global(.cm-outpost-v2-scope)   { color: #EC4899; font-weight: 700; background: rgba(236,72,153,.1); border-radius: 2px; }
+  .ce-editor-wrap :global(.cm-outpost-v2-elem)    { color: #10B981; font-weight: 700; background: rgba(16,185,129,.1); border-radius: 2px; }
+  .ce-editor-wrap :global(.cm-outpost-v2-block-comment)    { color: #FBBF24; font-weight: 600; background: rgba(251,191,36,.12); border-radius: 2px; }
+  .ce-editor-wrap :global(.cm-outpost-v2-settings-comment) { color: #60A5FA; font-weight: 600; background: rgba(96,165,250,.12); border-radius: 2px; }
+
+  /* === v1 Liquid syntax (light mode) === */
   .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-output)  { color: #0e7c6b; background: rgba(14,124,107,.06); border-radius: 2px; }
   .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-block)   { color: #1a56db; background: rgba(26,86,219,.06); border-radius: 2px; }
   .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-comment) { color: #9ca3af; background: rgba(156,163,175,.06); border-radius: 2px; font-style: italic; }
+
+  /* === v2 Data-attribute syntax (light mode) — bold, high-contrast === */
+  .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-v2-field)   { color: #B45309; font-weight: 700; background: rgba(180,83,9,.08); border-radius: 2px; }
+  .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-v2-type)    { color: #0E7490; font-weight: 700; background: rgba(14,116,144,.08); border-radius: 2px; }
+  .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-v2-scope)   { color: #BE185D; font-weight: 700; background: rgba(190,24,93,.08); border-radius: 2px; }
+  .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-v2-elem)    { color: #047857; font-weight: 700; background: rgba(4,120,87,.08); border-radius: 2px; }
+  .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-v2-block-comment)    { color: #92400E; font-weight: 600; background: rgba(146,64,14,.08); border-radius: 2px; }
+  .ce-col2:not(.dark) .ce-editor-wrap :global(.cm-outpost-v2-settings-comment) { color: #1E40AF; font-weight: 600; background: rgba(30,64,175,.08); border-radius: 2px; }
 
   /* Forge banner */
   .forge-banner {

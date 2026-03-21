@@ -110,7 +110,7 @@ if (file_exists($themeDir . '/index.php')) {
     return true;
 }
 
-// ── Liquid theme (.html files via template engine) ────────
+// ── HTML theme (.html files via template engine) ─────────
 if (!file_exists($themeDir . '/index.html')) {
     http_response_code(503);
     echo '<h1>Theme not found</h1>';
@@ -119,7 +119,14 @@ if (!file_exists($themeDir . '/index.html')) {
 }
 
 require_once $outpostDir . '/engine.php';
-require_once $outpostDir . '/template-engine.php';
+
+// Detect template engine version: v2 (data attributes) or v1 (Liquid syntax)
+$_outpost_use_v2 = outpost_detect_engine_version($themeDir);
+if ($_outpost_use_v2) {
+    require_once $outpostDir . '/template-engine-v2.php';
+} else {
+    require_once $outpostDir . '/template-engine.php';
+}
 
 // Parse request path
 $reqUri   = $_SERVER['REQUEST_URI'];
@@ -148,10 +155,8 @@ if ($templateFile) {
         http_response_code(404);
         $notFound = $themeDir . '/404.html';
         if (file_exists($notFound)) {
-            require_once $outpostDir . '/engine.php';
-            require_once $outpostDir . '/template-engine.php';
             outpost_init();
-            OutpostTemplate::render($notFound, $themeDir);
+            outpost_render_template($notFound, $themeDir);
         } else {
             echo '<h1>404 Not Found</h1>';
         }
@@ -242,7 +247,7 @@ if (!$templateFile || !file_exists($templateFile)) {
     $notFound = $themeDir . '/404.html';
     if (file_exists($notFound)) {
         outpost_init();
-        OutpostTemplate::render($notFound, $themeDir);
+        outpost_render_template($notFound, $themeDir);
     } else {
         echo '<h1>404 Not Found</h1>';
     }
@@ -251,6 +256,9 @@ if (!$templateFile || !file_exists($templateFile)) {
 
 outpost_init();
 outpost_maybe_auto_publish();
+
+// Editor mode — logged-in admins always get data-outpost attributes preserved for click-to-edit bridge
+$_outpost_editor_mode = outpost_is_admin();
 
 // Check page visibility (members-only / paid-only gating)
 $currentPath = '/' . trim(parse_url($reqUri, PHP_URL_PATH), '/');
@@ -303,13 +311,13 @@ HTML;
 // Inject review overlay after render if active
 if ($_outpost_review_inject) {
     ob_start();
-    OutpostTemplate::render($templateFile, $themeDir);
+    outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
     $html = ob_get_clean();
     // Inject before </body>
     $html = str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
     echo $html;
 } else {
-    OutpostTemplate::render($templateFile, $themeDir);
+    outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
 }
 
 } catch (\Throwable $e) {

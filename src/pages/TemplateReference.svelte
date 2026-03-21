@@ -79,22 +79,28 @@
   });
 
   // Page fields: always use schema-derived fields (parsed from theme templates)
-  // Page fields use {{ field_name }} directly — no page.path prefix
+  // Page fields use data-outpost attributes
   let col2PageFields = $derived.by(() => {
     if (activeType !== 'pages' || !selectedItem) return [];
     return (selectedItem.fields || []).map(f => {
       const key = fieldKey(f);
-      return { key, type: f.type, snip: f.type === 'richtext' ? `{{ ${key} | raw }}` : `{{ ${key} }}` };
+      const typeAttr = f.type === 'richtext' ? ' data-type="richtext"' : f.type === 'image' ? ' data-type="image"' : '';
+      const tag = f.type === 'image' ? 'img' : (f.type === 'richtext' ? 'div' : 'span');
+      return { key, type: f.type, snip: `<${tag} data-outpost="${key}"${typeAttr} />` };
     });
   });
 
   // Page globals: from schema endpoint (extractAllTemplateReferences)
   let col2PageGlobals = $derived.by(() => {
     if (activeType !== 'pages' || !selectedItem) return [];
-    return (selectedItem.globals || []).map(g => ({
-      key: g.name, type: g.type,
-      snip: g.type === 'image' ? `{{ @${g.name} | image }}` : g.type === 'richtext' ? `{{ @${g.name} | raw }}` : `{{ @${g.name} }}`,
-    }));
+    return (selectedItem.globals || []).map(g => {
+      const typeAttr = g.type === 'richtext' ? ' data-type="richtext"' : g.type === 'image' ? ' data-type="image"' : '';
+      const tag = g.type === 'image' ? 'img' : (g.type === 'richtext' ? 'div' : 'span');
+      return {
+        key: g.name, type: g.type,
+        snip: `<${tag} data-outpost="${g.name}" data-scope="global"${typeAttr} />`,
+      };
+    });
   });
 
   // Page collections: from schema endpoint
@@ -106,12 +112,12 @@
   let col2PageFolders = $derived(selectedItem?.taxonomies ?? []);
 
   // Page built-in props: top-level dataShape keys (not fields) when loaded
-  // Page built-ins also use {{ field_name }} — no prefix needed
+  // Page built-ins also use data-outpost attributes
   let col2PageBuiltIns = $derived.by(() => {
     if (activeType !== 'pages' || !selectedItem || !dataShape) return [];
     return Object.entries(dataShape)
       .filter(([k]) => k !== 'fields')
-      .map(([key, val]) => ({ key, type: val === null ? 'null' : typeof val, snip: `{{ ${key} }}` }));
+      .map(([key, val]) => ({ key, type: val === null ? 'null' : typeof val, snip: `<span data-outpost="${key}" />` }));
   });
 
   // Label property keys for a folder: from actual label data, else fallback
@@ -122,9 +128,9 @@
 
   // Snippet for a collection item field
   function itemFieldSnippet(key, type) {
-    if (type === 'richtext') return `{{ item.${key} | raw }}`;
-    if (type === 'image') return `{{ item.${key} }}`;
-    return `{{ item.${key} }}`;
+    const typeAttr = type === 'richtext' ? ' data-type="richtext"' : type === 'image' ? ' data-type="image"' : '';
+    const tag = type === 'image' ? 'img' : (type === 'richtext' ? 'div' : 'span');
+    return `<${tag} data-outpost="${key}"${typeAttr} />`;
   }
 
   // ── Lifecycle ─────────────────────────────────────────────
@@ -194,92 +200,98 @@
 
   function fieldSnippet(field) {
     const key = fieldKey(field);
-    if (field.type === 'richtext') return `{{ item.${key} | raw }}`;
-    if (field.type === 'image') return `{{ item.${key} }}`;
-    return `{{ item.${key} }}`;
+    const typeAttr = field.type === 'richtext' ? ' data-type="richtext"' : field.type === 'image' ? ' data-type="image"' : '';
+    const tag = field.type === 'image' ? 'img' : (field.type === 'richtext' ? 'div' : 'span');
+    return `<${tag} data-outpost="${key}"${typeAttr} />`;
   }
 
   function generateTemplate(item) {
     if (activeType === 'collections') {
       const slug = item.slug;
       const fields = item.fields.slice(0, 3);
-      const lines = [`{% for item in collection.${slug} %}`];
+      const lines = [`<outpost-each collection="${slug}">`];
       if (fields.length > 0) {
         for (const f of fields) lines.push('  ' + fieldSnippet(f));
       } else {
-        lines.push('  {{ item.title }}');
-        lines.push('  <a href="{{ item.url }}">{{ item.title }}</a>');
+        lines.push('  <span data-outpost="title" />');
+        lines.push('  <a data-outpost="url"><span data-outpost="title" /></a>');
       }
-      lines.push('{% endfor %}');
+      lines.push('</outpost-each>');
       return lines.join('\n');
     }
     if (activeType === 'pages') {
-      const lines = [`{# Template references for ${item.path || '/'} #}`];
+      const lines = [`<!-- Template references for ${item.path || '/'} -->`];
       // Fields
       for (const f of (item.fields || []).slice(0, 3)) {
         const key = fieldKey(f);
-        lines.push(f.type === 'richtext' ? `{{ ${key} | raw }}` : `{{ ${key} }}`);
+        const typeAttr = f.type === 'richtext' ? ' data-type="richtext"' : f.type === 'image' ? ' data-type="image"' : '';
+        const tag = f.type === 'image' ? 'img' : (f.type === 'richtext' ? 'div' : 'span');
+        lines.push(`<${tag} data-outpost="${key}"${typeAttr} />`);
       }
       // Globals sample
       const gl = item.globals || [];
       if (gl.length > 0) {
         lines.push('');
-        lines.push('{# Globals #}');
+        lines.push('<!-- Globals -->');
         for (const g of gl.slice(0, 3)) {
-          lines.push(g.type === 'image' ? `{{ @${g.name} | image }}` : `{{ @${g.name} }}`);
+          const typeAttr = g.type === 'image' ? ' data-type="image"' : g.type === 'richtext' ? ' data-type="richtext"' : '';
+          const tag = g.type === 'image' ? 'img' : (g.type === 'richtext' ? 'div' : 'span');
+          lines.push(`<${tag} data-outpost="${g.name}" data-scope="global"${typeAttr} />`);
         }
-        if (gl.length > 3) lines.push(`{# ... and ${gl.length - 3} more globals #}`);
+        if (gl.length > 3) lines.push(`<!-- ... and ${gl.length - 3} more globals -->`);
       }
       // Collections
       for (const c of (item.collections || [])) {
         lines.push('');
-        lines.push(`{% for item in collection.${c.slug}${c.options ? ' ' + c.options : ''} %}`);
-        lines.push(`  {{ item.title }}`);
-        lines.push('{% endfor %}');
+        lines.push(`<outpost-each collection="${c.slug}"${c.options ? ' ' + c.options : ''}>`);
+        lines.push('  <span data-outpost="title" />');
+        lines.push('</outpost-each>');
       }
       // Singles
       for (const s of (item.singles || [])) {
         lines.push('');
-        lines.push(`{% single post from collection.${s.slug} %}`);
-        lines.push(`  {{ post.title }}`);
-        lines.push('{% endsingle %}');
+        lines.push(`<outpost-single collection="${s.slug}">`);
+        lines.push('  <span data-outpost="title" />');
+        lines.push('</outpost-single>');
       }
       // Galleries
       for (const g of (item.galleries || [])) {
         lines.push('');
-        lines.push(`{% for img in gallery.${g} %}`);
-        lines.push(`  {{ img.url }}`);
-        lines.push('{% endfor %}');
+        lines.push(`<outpost-each gallery="${g}">`);
+        lines.push('  <img data-outpost="url" data-type="image" />');
+        lines.push('</outpost-each>');
       }
       // Repeaters
       for (const r of (item.repeaters || [])) {
         lines.push('');
-        lines.push(`{% for row in repeater.${r} %}`);
-        lines.push(`  {{ row.field }}`);
-        lines.push('{% endfor %}');
+        lines.push(`<outpost-each repeater="${r}">`);
+        lines.push('  <span data-outpost="field" />');
+        lines.push('</outpost-each>');
       }
       // Menus
       for (const m of (item.menus || [])) {
         lines.push('');
-        lines.push(`{% for item in menu.${m} %}`);
-        lines.push(`  {{ item.label }}`);
-        lines.push('{% endfor %}');
+        lines.push(`<outpost-menu name="${m}">`);
+        lines.push('  <a data-outpost="url"><span data-outpost="label" /></a>');
+        lines.push('</outpost-menu>');
       }
       // Folders
       for (const t of (item.folders || item.taxonomies || [])) {
         lines.push('');
-        lines.push(`{% for label in folder.${t} %}`);
-        lines.push(`  {{ label.name }}`);
-        lines.push('{% endfor %}');
+        lines.push(`<outpost-each folder="${t}">`);
+        lines.push('  <span data-outpost="name" />');
+        lines.push('</outpost-each>');
       }
       return lines.join('\n');
     }
     if (activeType === 'globals') {
-      const lines = ['{# Available in every template #}'];
+      const lines = ['<!-- Available in every template -->'];
       for (const g of globals) {
-        lines.push(g.type === 'richtext' ? `{{ @${g.name} | raw }}` : `{{ @${g.name} }}`);
+        const typeAttr = g.type === 'richtext' ? ' data-type="richtext"' : g.type === 'image' ? ' data-type="image"' : '';
+        const tag = g.type === 'image' ? 'img' : (g.type === 'richtext' ? 'div' : 'span');
+        lines.push(`<${tag} data-outpost="${g.name}" data-scope="global"${typeAttr} />`);
       }
-      if (lines.length === 1) lines.push('{{ @field_name }}');
+      if (lines.length === 1) lines.push('<span data-outpost="field_name" data-scope="global" />');
       return lines.join('\n');
     }
     return '';
@@ -517,13 +529,13 @@
         {#if col2BuiltIns.length > 0}
           <div class="tr-sep-label">BUILT-IN</div>
           {#each col2BuiltIns as {key, type}}
-            {@const snip = '{{ item.' + key + ' }}'}
+            {@const snip = `<span data-outpost="${key}" />`}
             <button class="tr-field-row" onclick={() => copy(snip, 'b-' + key)} title={type}>
               <div class="tr-field-info">
                 <span class="tr-field-name">{key}</span>
                 <span class="tr-field-type">{type}</span>
               </div>
-              <code class="tr-field-snip">item.{key}</code>
+              <code class="tr-field-snip">data-outpost="{key}"</code>
             </button>
           {/each}
         {/if}
@@ -531,22 +543,22 @@
         {#if coll.taxonomies?.length > 0}
           <div class="tr-sep-label">FOLDERS</div>
           {#each coll.taxonomies as tax}
-            {@const folderSnip = '{% for label in folder.' + tax.slug + ' %}\n  {{ label.name }}\n{% endfor %}'}
+            {@const folderSnip = `<outpost-each folder="${tax.slug}">\n  <span data-outpost="name" />\n</outpost-each>`}
             <button class="tr-field-row" onclick={() => copy(folderSnip, 't-' + tax.slug)} title="Copy folder loop">
               <div class="tr-field-info">
                 <span class="tr-field-name">{tax.name}</span>
                 <span class="tr-field-type">folder</span>
               </div>
-              <code class="tr-field-snip">folder.{tax.slug}</code>
+              <code class="tr-field-snip">folder="{tax.slug}"</code>
             </button>
             <div class="tr-term-props">
               {#each getLabelProps(tax.slug) as prop}
-                <button class="tr-field-row tr-term-prop-row" onclick={() => copy('{{ label.' + prop + ' }}', 'lp-' + prop)} title="Copy label.{prop}">
+                <button class="tr-field-row tr-term-prop-row" onclick={() => copy(`<span data-outpost="${prop}" />`, 'lp-' + prop)} title="Copy data-outpost={prop}">
                   <div class="tr-field-info">
-                    <span class="tr-field-name">label.{prop}</span>
-                    <span class="tr-field-type">—</span>
+                    <span class="tr-field-name">{prop}</span>
+                    <span class="tr-field-type">--</span>
                   </div>
-                  <code class="tr-field-snip">{'{{ label.' + prop + ' }}'}</code>
+                  <code class="tr-field-snip">data-outpost="{prop}"</code>
                 </button>
               {/each}
             </div>
@@ -591,13 +603,13 @@
         {#if col2PageCollections.length > 0}
           <div class="tr-sep-label">COLLECTIONS</div>
           {#each col2PageCollections as c}
-            {@const snip = `{% for item in collection.${c.slug}${c.options ? ' ' + c.options : ''} %}`}
+            {@const snip = `<outpost-each collection="${c.slug}"${c.options ? ' ' + c.options : ''}>`}
             <button class="tr-field-row" onclick={() => copy(snip, 'pc-' + c.slug)} title="Copy collection loop">
               <div class="tr-field-info">
                 <span class="tr-field-name">{c.slug}</span>
                 <span class="tr-field-type">{c.options || 'collection'}</span>
               </div>
-              <code class="tr-field-snip">collection.{c.slug}</code>
+              <code class="tr-field-snip">collection="{c.slug}"</code>
             </button>
           {/each}
         {/if}
@@ -605,13 +617,13 @@
         {#if col2PageSingles.length > 0}
           <div class="tr-sep-label">SINGLES</div>
           {#each col2PageSingles as s}
-            {@const snip = `{% single var from collection.${s.slug} %}`}
+            {@const snip = `<outpost-single collection="${s.slug}">`}
             <button class="tr-field-row" onclick={() => copy(snip, 'ps-' + s.slug)} title="Copy single block">
               <div class="tr-field-info">
                 <span class="tr-field-name">{s.slug}</span>
                 <span class="tr-field-type">single</span>
               </div>
-              <code class="tr-field-snip">single from .{s.slug}</code>
+              <code class="tr-field-snip">collection="{s.slug}"</code>
             </button>
           {/each}
         {/if}
@@ -619,13 +631,13 @@
         {#if col2PageGalleries.length > 0}
           <div class="tr-sep-label">GALLERIES</div>
           {#each col2PageGalleries as g}
-            {@const snip = `{% for img in gallery.${g} %}`}
+            {@const snip = `<outpost-each gallery="${g}">`}
             <button class="tr-field-row" onclick={() => copy(snip, 'pgal-' + g)} title="Copy gallery loop">
               <div class="tr-field-info">
                 <span class="tr-field-name">{g}</span>
                 <span class="tr-field-type">gallery</span>
               </div>
-              <code class="tr-field-snip">gallery.{g}</code>
+              <code class="tr-field-snip">gallery="{g}"</code>
             </button>
           {/each}
         {/if}
@@ -633,13 +645,13 @@
         {#if col2PageRepeaters.length > 0}
           <div class="tr-sep-label">REPEATERS</div>
           {#each col2PageRepeaters as r}
-            {@const snip = `{% for row in repeater.${r} %}`}
+            {@const snip = `<outpost-each repeater="${r}">`}
             <button class="tr-field-row" onclick={() => copy(snip, 'pr-' + r)} title="Copy repeater loop">
               <div class="tr-field-info">
                 <span class="tr-field-name">{r}</span>
                 <span class="tr-field-type">repeater</span>
               </div>
-              <code class="tr-field-snip">repeater.{r}</code>
+              <code class="tr-field-snip">repeater="{r}"</code>
             </button>
           {/each}
         {/if}
@@ -647,13 +659,13 @@
         {#if col2PageMenus.length > 0}
           <div class="tr-sep-label">MENUS</div>
           {#each col2PageMenus as m}
-            {@const snip = `{% for item in menu.${m} %}`}
+            {@const snip = `<outpost-menu name="${m}">`}
             <button class="tr-field-row" onclick={() => copy(snip, 'pm-' + m)} title="Copy menu loop">
               <div class="tr-field-info">
                 <span class="tr-field-name">{m}</span>
                 <span class="tr-field-type">menu</span>
               </div>
-              <code class="tr-field-snip">menu.{m}</code>
+              <code class="tr-field-snip">menu name="{m}"</code>
             </button>
           {/each}
         {/if}
@@ -661,13 +673,13 @@
         {#if col2PageFolders.length > 0}
           <div class="tr-sep-label">FOLDERS</div>
           {#each col2PageFolders as t}
-            {@const snip = `{% for label in folder.${t} %}`}
+            {@const snip = `<outpost-each folder="${t}">`}
             <button class="tr-field-row" onclick={() => copy(snip, 'pt-' + t)} title="Copy folder loop">
               <div class="tr-field-info">
                 <span class="tr-field-name">{t}</span>
                 <span class="tr-field-type">folder</span>
               </div>
-              <code class="tr-field-snip">folder.{t}</code>
+              <code class="tr-field-snip">folder="{t}"</code>
             </button>
           {/each}
         {/if}
@@ -698,7 +710,9 @@
       <div class="tr-fields-list">
         {#if globals.length > 0}
           {#each globals as g}
-            {@const snip = g.type === 'richtext' ? '{{ @' + g.name + ' | raw }}' : '{{ @' + g.name + ' }}'}
+            {@const typeAttr = g.type === 'richtext' ? ' data-type="richtext"' : g.type === 'image' ? ' data-type="image"' : ''}
+            {@const tag = g.type === 'image' ? 'img' : (g.type === 'richtext' ? 'div' : 'span')}
+            {@const snip = `<${tag} data-outpost="${g.name}" data-scope="global"${typeAttr} />`}
             <button class="tr-field-row" onclick={() => copy(snip, 'g-' + g.name)} title="Copy snippet">
               <div class="tr-field-info">
                 <span class="tr-field-name">@{g.name}</span>
@@ -712,8 +726,8 @@
         {/if}
         <div class="tr-sep-label">META</div>
         {#each [
-          { name: 'meta.title', snip: '{{ meta.title "Default" }}' },
-          { name: 'meta.description', snip: '{{ meta.description "Default" }}' },
+          { name: 'meta.title', snip: '<outpost-meta title="Default" />' },
+          { name: 'meta.description', snip: '<outpost-meta description="Default" />' },
         ] as m}
           <button class="tr-field-row" onclick={() => copy(m.snip, 'g-' + m.name)}>
             <div class="tr-field-info">
@@ -725,7 +739,7 @@
         {/each}
         <div class="tr-sep-label">HOW IT WORKS</div>
         <p class="tr-globals-note">
-          Add fields to the <code>__global__</code> page in Pages. Any field added there is available in every template via <code>@field_name</code>.
+          Add fields to the <code>__global__</code> page in Pages. Any field added there is available in every template via <code>data-outpost="field_name" data-scope="global"</code>.
         </p>
       </div>
 

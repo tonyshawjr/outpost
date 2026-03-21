@@ -2736,6 +2736,24 @@ data: {"conversation_id": "abc123"}</code></pre>
       <p>Returns a field-level diff between a revision and the current content. Shows which fields changed, with before/after values.</p>
     </div>
 
+    <h2>Editor (on-page)</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">api.php?action=editor/media-lookup&amp;path=/outpost/uploads/photo.jpg</span>
+      </div>
+      <p>Looks up a media library record by its file path. Returns the media record including <code>alt_text</code>, <code>id</code>, <code>original_name</code>, and <code>thumb_path</code>. Returns <code>null</code> if no media record matches the path.</p>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=editor/media-alt</span>
+      </div>
+      <p>Updates the <code>alt_text</code> of a media record identified by file path. Body: <code>{"path": "/outpost/uploads/photo.jpg", "alt_text": "A sunset"}</code>.</p>
+    </div>
+
   </div>
 </main>
 

@@ -1,177 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Partials — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Partials — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Partials</h1>
-    <p class="lead">Partials are reusable template fragments. They let you define your header, navigation, and footer once and include them on every page — keeping your templates DRY and easy to maintain.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Partials</h1>
+ <p class="lead">Partials are reusable template fragments. They let you define your header, navigation, and footer once and include them on every page — keeping your templates DRY and easy to maintain.</p>
+ </div>
+ <div class="content">
 
-    <h2>What partials are</h2>
-    <p>A partial is an <code>.html</code> template file in the <code>partials/</code> subdirectory of your theme. You include it in any other template using the <code>{% include 'name' %}</code> tag. The included content is compiled and rendered inline, exactly as if you had written it directly in the parent template.</p>
-    <p>Partials are ideal for any HTML structure that appears on multiple pages: the site header, the navigation bar, the footer, a sidebar, a card component, or a cookie banner. Instead of copying the same markup into every template, you put it in a partial once and include it wherever needed.</p>
+ <h2>What partials are</h2>
+ <p>A partial is an <code>.html</code> template file in the <code>partials/</code> subdirectory of your theme. You include it in any other template using the <code>&lt;outpost-include partial="name" /&gt;</code> tag. The included content is compiled and rendered inline, exactly as if you had written it directly in the parent template.</p>
+ <p>Partials are ideal for any HTML structure that appears on multiple pages: the site header, the navigation bar, the footer, a sidebar, a card component, or a cookie banner. Instead of copying the same markup into every template, you put it in a partial once and include it wherever needed.</p>
 
-    <h2>Include syntax</h2>
-    <p>Reference partials by name, without the <code>.html</code> extension and without the <code>partials/</code> path prefix:</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-{% include 'footer' %}</code></pre>
-    <p>These three lines correspond to the files:</p>
-    <pre><code>partials/head.html
+ <h2>Include syntax</h2>
+ <p>Reference partials by name, without the <code>.html</code> extension and without the <code>partials/</code> path prefix:</p>
+ 
+ <p>These three lines correspond to the files:</p>
+ <pre><code>partials/head.html
 partials/nav.html
 partials/footer.html</code></pre>
 
-    <h3>Subdirectory partials</h3>
-    <p>You can organize partials into subdirectories. Use a forward slash in the include name to reference them:</p>
-    <pre><code>{% include 'components/card' %}
-{% include 'components/hero' %}
-{% include 'sections/testimonials' %}</code></pre>
-    <p>These resolve to:</p>
-    <pre><code>partials/components/card.html
+ <h3>Subdirectory partials</h3>
+ <p>You can organize partials into subdirectories. Use a forward slash in the include name to reference them:</p>
+ 
+ <p>These resolve to:</p>
+ <pre><code>partials/components/card.html
 partials/components/hero.html
 partials/sections/testimonials.html</code></pre>
 
-    <div class="callout callout-note"><strong>Note</strong> — Partial names are case-sensitive on Linux/Unix servers. <code>{% include 'Nav' %}</code> will not find <code>partials/nav.html</code>. Use lowercase filenames and matching include names to avoid cross-platform issues.</div>
-
-    <h2>The standard three partials</h2>
-    <p>By convention, most Outpost themes use three core partials. These names are not enforced — you can call them anything — but they are used consistently across the Outpost ecosystem and all official themes.</p>
-
-    <h3>head.html</h3>
-    <p>Responsibility: everything from <code>&lt;!DOCTYPE html&gt;</code> through the opening <code>&lt;body&gt;</code> tag. This includes the <code>&lt;html&gt;</code> element, all <code>&lt;head&gt;</code> content (charset, viewport, title, meta description, OG tags, CSS links, font imports, analytics snippets), and the <code>&lt;body&gt;</code> opening tag.</p>
-    <p>Why put it in a partial? The <code>&lt;title&gt;</code> and meta description use <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code> tags, which pull per-page SEO data. By putting these in a shared partial, every page automatically gets correct meta tags with a single include.</p>
-    <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-  &lt;title&gt;{{ meta.title }}My Site{{ /meta.title }}&lt;/title&gt;
-  &lt;meta name="description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-  &lt;meta property="og:title" content="{{ meta.title }}My Site{{ /meta.title }}"&gt;
-  &lt;meta property="og:description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-  {% if @og_image %}
-  &lt;meta property="og:image" content="{{ @og_image | image }}"&gt;
-  {% endif %}
-  &lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;
-  &lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"&gt;
-  &lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
-  {% if @ga4_id %}
-  &lt;script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"&gt;&lt;/script&gt;
-  &lt;script&gt;
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date()); gtag('config', '{{ @ga4_id }}');
-  &lt;/script&gt;
-  {% endif %}
-&lt;/head&gt;
-&lt;body&gt;</code></pre>
-
-    <h3>nav.html</h3>
-    <p>Responsibility: the site navigation — logo, menu links, and any mobile menu controls. The navigation partial typically uses a <code>{% for item in menu.main %}</code> loop to render menu items from the navigation menu configured in Admin → Navigation.</p>
-    <pre><code>&lt;header class="site-header"&gt;
-  &lt;div class="header-inner"&gt;
-    &lt;a href="/" class="site-logo"&gt;
-      &lt;img src="/outpost/themes/my-theme/assets/logo.svg" alt="{{ @site_name }}"&gt;
-    &lt;/a&gt;
-    &lt;nav class="site-nav"&gt;
-      &lt;ul&gt;
-      {% for item in menu.main %}
-        &lt;li&gt;&lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;&lt;/li&gt;
-      {% endfor %}
-      &lt;/ul&gt;
-    &lt;/nav&gt;
-    &lt;button class="nav-toggle" aria-label="Toggle menu"&gt;Menu&lt;/button&gt;
-  &lt;/div&gt;
-&lt;/header&gt;</code></pre>
-
-    <h3>footer.html</h3>
-    <p>Responsibility: the site footer content plus the closing <code>&lt;/body&gt;</code> and <code>&lt;/html&gt;</code> tags. Any JavaScript that should load after the page content (deferred scripts, analytics, etc.) goes here immediately before <code>&lt;/body&gt;</code>.</p>
-    <pre><code>&lt;footer class="site-footer"&gt;
-  &lt;div class="footer-inner"&gt;
-    &lt;p&gt;{{ @footer_text }}&lt;/p&gt;
-    &lt;nav class="footer-nav"&gt;
-      {% for item in menu.footer %}
-        &lt;a href="{{ item.url }}"&gt;{{ item.label }}&lt;/a&gt;
-      {% endfor %}
-    &lt;/nav&gt;
-  &lt;/div&gt;
-&lt;/footer&gt;
-&lt;script src="/outpost/themes/my-theme/assets/main.js"&gt;&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
-
-    <h2>Partials share full template context</h2>
-    <p>A partial has access to everything the parent template has access to. This means:</p>
-    <ul>
-      <li>All CMS output functions: <code>{{ field }}</code>, <code>{{ @global }}</code>, <code>{{ meta.title }}</code></li>
-      <li>All conditional and loop tags: <code>{% if %}</code>, <code>{% for %}</code></li>
-      <li>Loop variables: if a partial is included inside a <code>{% for post in collection.post %}</code> loop, <code>{{ post.title }}</code> is accessible inside the partial</li>
-    </ul>
-    <p>This last point is especially powerful for building reusable card components. You can define a <code>partials/post-card.html</code> partial that uses <code>{{ post.title }}</code>, <code>{{ post.excerpt }}</code>, and <code>{{ post.url }}</code> — and include it inside any collection loop.</p>
-    <pre><code>{# In blog.html #}
-{% for post in collection.post %}
-  {% include 'post-card' %}
-{% endfor %}</code></pre>
-    <pre><code>{# In partials/post-card.html #}
-&lt;article class="post-card"&gt;
-  {% if post.featured_image %}
-  &lt;a href="{{ post.url }}"&gt;
-    &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
-  &lt;/a&gt;
-  {% endif %}
-  &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-  &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
-&lt;/article&gt;</code></pre>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Component partials (cards, list items, etc.) keep your page templates lean and readable. Instead of 30 lines of card markup repeated in three different templates, you have one partial and three one-line includes.</div>
-
-    <h2>Nested partials</h2>
-    <p>Partials can include other partials. There is no depth limit, but be mindful of circular includes — if partial A includes partial B which includes partial A, you will get infinite recursion and a PHP stack overflow. Outpost does not detect circular includes at compile time.</p>
-    <pre><code>{# partials/head.html can include a meta partial #}
-{% include 'meta-tags' %}
-
-{# partials/meta-tags.html #}
-&lt;meta name="description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-&lt;meta property="og:title" content="{{ meta.title }}My Site{{ /meta.title }}"&gt;</code></pre>
-
-    <h2>Caching behavior</h2>
-    <p>Each partial is compiled and cached independently. The cache key is an MD5 of the partial's real file path. This means:</p>
-    <ul>
-      <li>Modifying <code>partials/nav.html</code> invalidates only the nav partial's cache — all page template caches remain valid.</li>
-      <li>On the next request, only the nav partial is recompiled. The rest of the page assembles from existing cache.</li>
-      <li>This makes partial-only changes fast to deploy — change the file, load the page, done.</li>
-    </ul>
-    <p>See <a href="themes/caching.html">Template Cache</a> for details on how compilation and caching works.</p>
-
-    <h2>Scope of the single-item context</h2>
-    <p>When a collection single page is rendered (e.g., a blog post at <code>/post/hello-world</code>), Outpost sets two PHP globals before the template executes: <code>$_outpost_current_item</code> (the post's field data) and <code>$_outpost_current_collection</code> (the collection slug). These are used internally by <code>{{ meta.title }}</code> to fall back to the item's title when no explicit SEO title has been set.</p>
-    <p>This context is available in partials too. So if your <code>head.html</code> partial contains <code>{{ meta.title }}My Site{{ /meta.title }}</code>, on a single post page the title will automatically be the post's title — even though the partial is shared across all pages.</p>
-
-    <h2>Using partials for page sections</h2>
-    <p>Beyond the standard three, partials work well for any repeating section:</p>
-    <pre><code>{# index.html #}
-{% include 'head' %}
-{% include 'nav' %}
-{% include 'sections/hero' %}
-{% include 'sections/features' %}
-{% include 'sections/testimonials' %}
-{% include 'sections/cta' %}
-{% include 'footer' %}</code></pre>
-    <p>This makes the index template an outline of the page structure, with all the implementation detail inside the section partials. Editing the hero section only touches <code>partials/sections/hero.html</code>.</p>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — Partials that contain page-specific fields (like <code>{{ hero_title }}</code>) are associated with the page template that includes them, not with the partial file itself. All fields found in included partials are registered under the parent page's field set. This is usually what you want, but be aware that the same partial used in two different pages will cause the same field name to appear on both pages' admin editor — and both will share the same stored value.</div>
-
-  </div>
+ 
 </main>
 
 <script src="assets/docs.js"></script>

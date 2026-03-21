@@ -1,231 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Folder Loops — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Folder Loops — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Folder Loops</h1>
-    <p class="lead">Iterate over the labels in a folder — categories, tags, topics, or any classification system you define. Use folder loops to build filter navigation, tag clouds, and category index pages.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Folder Loops</h1>
+ <p class="lead">Iterate over the labels in a folder — categories, tags, topics, or any classification system you define. Use folder loops to build filter navigation, tag clouds, and category index pages.</p>
+ </div>
+ <div class="content">
 
-    <div class="callout callout-note"><strong>Renamed in v1.0.0-beta.7</strong> — "Taxonomies" are now called <strong>Folders</strong> and "Terms" are now called <strong>Labels</strong>. The old syntax <code>{% for term in taxonomy.slug %}</code> still works for backward compatibility, but <code>{% for label in folder.slug %}</code> is the recommended form going forward.</div>
+ 
 
-    <h2>Basic Syntax</h2>
-    <p>The folder slug (e.g., <code>categories</code>, <code>tags</code>) is set when you create the folder in Admin → Folders. Use it after <code>folder.</code>.</p>
-    <pre><code>{% for label in folder.categories %}
-  {{ label.name }}
-  {{ label.slug }}
-  {{ label.count }}
-  {{ label.description }}
-{% endfor %}</code></pre>
+ <h2>Basic Syntax</h2>
+ <p>The folder slug (e.g., <code>categories</code>, <code>tags</code>) is set when you create the folder in Admin → Folders. Use it after <code>folder.</code>.</p>
+ 
 
-    <div class="callout callout-warning">
-      <strong>Slug must match exactly</strong>
-      The slug you use in <code>folder.<em>slug</em></code> must be an exact, case-sensitive match to the slug defined in Admin → Folders. There is no error if the slug does not exist — the loop simply produces no output. For example, if your folder was created with slug <code>categories</code>, then <code>folder.categories</code> works and <code>folder.category</code> (singular) silently returns nothing.
-    </div>
+ 
 
-    <h2>Available Label Fields</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>label.name</code></td>
-          <td>Display name — e.g., "Technology", "Design"</td>
-        </tr>
-        <tr>
-          <td><code>label.slug</code></td>
-          <td>URL-safe identifier — e.g., "technology", "design"</td>
-        </tr>
-        <tr>
-          <td><code>label.count</code></td>
-          <td>Number of published collection items assigned this label</td>
-        </tr>
-        <tr>
-          <td><code>label.description</code></td>
-          <td>Optional description text set in the admin. Empty string if not provided.</td>
-        </tr>
-        <tr>
-          <td><code>label.parent_id</code></td>
-          <td>Parent label's database ID for hierarchical folders. <code>0</code> or <code>null</code> if this is a root-level label.</td>
-        </tr>
-      </tbody>
-    </table>
+ <h3>Combining Folder Nav with a Filtered Loop </h3>
+ <pre><code>&lt;div class="blog-layout"&gt;
 
-    <div class="callout callout-note"><strong>Note</strong> — <code>label.count</code> reflects only <strong>published</strong> items. Labels that exist in the admin but have no published items assigned will show a count of <code>0</code>. You can hide zero-count labels using a conditional.</div>
+ &lt;aside class="sidebar"&gt;
+ &lt;h3&gt;Categories&lt;/h3&gt;
+ &lt;outpost-each folder="categories"&gt;
+ &lt;a data-outpost="slug" data-type="link"&gt;
+ &lt;span data-outpost="name"&gt;Category&lt;/span&gt;
+ (&lt;span data-outpost="count"&gt;0&lt;/span&gt;)
+ &lt;/a&gt;
+ &lt;/outpost-each&gt;
+ &lt;/aside&gt;
 
-    <h2>Category Filter Navigation</h2>
-    <p>The most common use: a row of links that filter a collection loop. Each link passes a <code>?category=slug</code> parameter, which <code>filteredby:category</code> on the loop reads.</p>
-    <pre><code>&lt;nav class="category-nav"&gt;
-  &lt;a href="/blog" class="category-link"&gt;All&lt;/a&gt;
-  {% for label in folder.categories %}
-    &lt;a href="/blog?category={{ label.slug }}" class="category-link"&gt;
-      {{ label.name }}
-      &lt;span class="count"&gt;{{ label.count }}&lt;/span&gt;
-    &lt;/a&gt;
-  {% endfor %}
-&lt;/nav&gt;</code></pre>
+ &lt;main class="main-col"&gt;
+ &lt;outpost-each collection="post" paginate="10" sort="published_at" filteredby="category"&gt;
+ &lt;article&gt;
+ &lt;h2&gt;&lt;a data-outpost="url" data-type="link"&gt;&lt;span data-outpost="title"&gt;Title&lt;/span&gt;&lt;/a&gt;&lt;/h2&gt;
+ &lt;p data-outpost="excerpt" data-type="or_body"&gt;Excerpt&lt;/p&gt;
+ &lt;/article&gt;
+ &lt;/outpost-each&gt;
 
-    <h3>Hiding Empty Categories</h3>
-    <p>Use a conditional to skip labels that have no published items.</p>
-    <pre><code>&lt;nav class="category-nav"&gt;
-  {% for label in folder.categories %}
-    {% if label.count %}
-      &lt;a href="/blog?category={{ label.slug }}"&gt;
-        {{ label.name }} ({{ label.count }})
-      &lt;/a&gt;
-    {% endif %}
-  {% endfor %}
-&lt;/nav&gt;</code></pre>
+ &lt;outpost-each collection="post" empty&gt;
+ &lt;p&gt;No posts in this category.&lt;/p&gt;
+ &lt;/outpost-each&gt;
 
-    <h2>Tag Cloud</h2>
-    <p>Render all tags as linked labels. Use <code>data-count</code> to drive CSS font-size scaling if desired.</p>
-    <pre><code>&lt;div class="tag-cloud"&gt;
-  {% for tag in folder.tags %}
-    &lt;a href="/blog?tag={{ tag.slug }}" class="tag" data-count="{{ tag.count }}"&gt;
-      {{ tag.name }}
-    &lt;/a&gt;
-  {% endfor %}
-&lt;/div&gt;</code></pre>
-    <pre><code>/* CSS: scale tags by count using a data attribute */
-.tag[data-count="1"] { font-size: 13px; }
-.tag[data-count="2"] { font-size: 14px; }
-.tag[data-count="3"] { font-size: 16px; }
-.tag { font-size: 18px; }</code></pre>
+ &lt;outpost-pagination /&gt;
+ &lt;/main&gt;
 
-    <h2>Sidebar Folder Widget</h2>
-    <p>A compact list of categories with counts, ideal for a sidebar or aside panel.</p>
-    <pre><code>&lt;aside class="sidebar-widget"&gt;
-  &lt;h3&gt;Categories&lt;/h3&gt;
-  &lt;ul class="category-list"&gt;
-    {% for label in folder.categories %}
-      &lt;li&gt;
-        &lt;a href="/blog?category={{ label.slug }}"&gt;
-          {{ label.name }}
-        &lt;/a&gt;
-        &lt;span class="count"&gt;{{ label.count }}&lt;/span&gt;
-      &lt;/li&gt;
-    {% else %}
-      &lt;li&gt;No categories yet.&lt;/li&gt;
-    {% endfor %}
-  &lt;/ul&gt;
-&lt;/aside&gt;</code></pre>
-
-    <h2>Hierarchical Folders</h2>
-    <p>When a folder is configured to allow parent–child relationships, top-level labels have <code>label.parent_id</code> equal to <code>0</code> or null. Child labels have the ID of their parent. Use a conditional to separate root labels from children.</p>
-    <pre><code>&lt;!-- Flat list showing only root labels --&gt;
-{% for label in folder.categories %}
-  {% if label.parent_id %}
-    {# child label — skip at the top level #}
-  {% else %}
-    &lt;li class="parent-label"&gt;
-      &lt;a href="/blog?category={{ label.slug }}"&gt;{{ label.name }}&lt;/a&gt;
-    &lt;/li&gt;
-  {% endif %}
-{% endfor %}</code></pre>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Outpost does not currently support automatic nested rendering of hierarchical folder trees in a single loop pass. To render a parent-with-children structure, use two passes: one for root labels and a filtered inner loop, or build the hierarchy with JavaScript from a folder API endpoint.</div>
-
-    <h2>Combining Folder Nav with a Filtered Loop</h2>
-    <p>This is the standard two-column blog layout: folder labels on the left for navigation, filtered posts on the right.</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-&lt;div class="blog-layout"&gt;
-
-  &lt;aside class="sidebar"&gt;
-    &lt;h3&gt;Categories&lt;/h3&gt;
-    {% for label in folder.categories %}
-      &lt;a href="/blog?category={{ label.slug }}"&gt;
-        {{ label.name }} ({{ label.count }})
-      &lt;/a&gt;
-    {% endfor %}
-
-    &lt;h3&gt;Tags&lt;/h3&gt;
-    {% for tag in folder.tags %}
-      &lt;a href="/blog?tag={{ tag.slug }}" class="tag"&gt;
-        {{ tag.name }}
-      &lt;/a&gt;
-    {% endfor %}
-  &lt;/aside&gt;
-
-  &lt;main class="main-col"&gt;
-    {% for post in collection.post paginate:10 orderby:published_at filteredby:category %}
-      &lt;article&gt;
-        &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-        &lt;p&gt;{{ post.excerpt | or_body }}&lt;/p&gt;
-      &lt;/article&gt;
-    {% else %}
-      &lt;p&gt;No posts in this category.&lt;/p&gt;
-    {% endfor %}
-    {% pagination %}
-  &lt;/main&gt;
-
-&lt;/div&gt;
-
-{% include 'footer' %}</code></pre>
-
-    <h2>Multiple Folders on One Collection</h2>
-    <p>A collection can have more than one folder attached. Filter by any of them independently using different query parameter names.</p>
-    <pre><code>&lt;!-- Category filter --&gt;
-&lt;div class="filter-row"&gt;
-  &lt;strong&gt;Category:&lt;/strong&gt;
-  &lt;a href="/blog"&gt;All&lt;/a&gt;
-  {% for label in folder.categories %}
-    &lt;a href="/blog?category={{ label.slug }}"&gt;{{ label.name }}&lt;/a&gt;
-  {% endfor %}
-&lt;/div&gt;
-
-&lt;!-- Tag filter --&gt;
-&lt;div class="filter-row"&gt;
-  &lt;strong&gt;Tag:&lt;/strong&gt;
-  {% for tag in folder.tags %}
-    &lt;a href="/blog?tag={{ tag.slug }}"&gt;{{ tag.name }}&lt;/a&gt;
-  {% endfor %}
-&lt;/div&gt;
-
-&lt;!-- Posts filtered by category --&gt;
-{% for post in collection.post paginate:10 filteredby:category %}
-  &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
-{% endfor %}
-{% pagination %}</code></pre>
-
-    <div class="callout callout-note"><strong>Note</strong> — You can only filter a single loop by one folder parameter at a time. To filter by both category and tag simultaneously, you would need a custom approach. The <code>filteredby</code> option reads a single query string key.</div>
-
-    <h2>Using Label Description</h2>
-    <p>If editors have added descriptions to folder labels, display them on category index pages or in tooltip-style hover cards.</p>
-    <pre><code>&lt;div class="category-grid"&gt;
-  {% for label in folder.categories %}
-    &lt;div class="category-card"&gt;
-      &lt;h3&gt;&lt;a href="/blog?category={{ label.slug }}"&gt;{{ label.name }}&lt;/a&gt;&lt;/h3&gt;
-      {% if label.description %}
-        &lt;p&gt;{{ label.description }}&lt;/p&gt;
-      {% endif %}
-      &lt;span class="count"&gt;{{ label.count }} posts&lt;/span&gt;
-    &lt;/div&gt;
-  {% endfor %}
 &lt;/div&gt;</code></pre>
 
-    <h2>Folder Labels in the Head Partial</h2>
-    <p>Folder loops work anywhere in a template, including inside partials. Here is an example using a category name as a keyword meta tag — useful if a filtered page is the active view.</p>
-    <pre><code>{# In head.html — list all category names as keywords #}
-&lt;meta name="keywords" content="{% for label in folder.categories %}{{ label.name }}, {% endfor %}"&gt;</code></pre>
+ <h3>Tag Cloud </h3>
+ <pre><code>&lt;div class="tag-cloud"&gt;
+ &lt;outpost-each folder="tags"&gt;
+ &lt;a data-outpost="slug" data-type="link" class="tag" data-bind="data-count:count"&gt;
+ &lt;span data-outpost="name"&gt;Tag&lt;/span&gt;
+ &lt;/a&gt;
+ &lt;/outpost-each&gt;
+&lt;/div&gt;</code></pre>
 
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

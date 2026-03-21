@@ -14,7 +14,7 @@
 <main class="main">
   <div class="page-hero">
     <h1>Caching</h1>
-    <p class="lead">Outpost has two independent caching layers — a template compile cache that turns Liquid templates into PHP, and an HTML page cache that stores fully rendered pages on disk.</p>
+    <p class="lead">Outpost has two independent caching layers — a template compile cache that turns templates into PHP, and an HTML page cache that stores fully rendered pages on disk.</p>
   </div>
   <div class="content">
 
@@ -28,7 +28,7 @@
       <tbody>
         <tr>
           <td>Template cache</td>
-          <td>Compiled PHP from Liquid <code>.html</code> templates</td>
+          <td>Compiled PHP from <code>.html</code> templates</td>
           <td><code>cache/templates/</code></td>
           <td>Auto — mtime comparison on source file</td>
         </tr>
@@ -44,7 +44,7 @@
     <hr>
 
     <h2 id="template-cache">Template Cache (Compile Cache)</h2>
-    <p>Every Liquid theme template (<code>.html</code> file) is compiled to PHP the first time it is rendered. The compiled PHP is stored in <code>cache/templates/</code> and reused on all subsequent requests until the source file changes.</p>
+    <p>Every theme template (<code>.html</code> file) is compiled to PHP the first time it is rendered. The compiled PHP is stored in <code>cache/templates/</code> and reused on all subsequent requests until the source file changes.</p>
 
     <h3>How It Works</h3>
     <ol>
@@ -256,7 +256,7 @@ chown www-data:www-data outpost/cache outpost/cache/templates</code></pre>
     <p>You can verify WAL mode is active by checking for a <code>cms.db-wal</code> file alongside your database. If it exists, WAL is working.</p>
 
     <h3>3. Minimize API calls from the front end</h3>
-    <p>The Public Content API is designed for headless use cases. If you are building a traditional server-rendered site, use Liquid template tags instead of client-side API calls — template tags resolve data server-side in a single PHP process, avoiding HTTP overhead.</p>
+    <p>The Public Content API is designed for headless use cases. If you are building a traditional server-rendered site, use template tags instead of client-side API calls — template tags resolve data server-side in a single PHP process, avoiding HTTP overhead.</p>
     <p>If you must use the API, apply these optimizations:</p>
     <ul>
       <li>Use <code>limit</code> and <code>offset</code> to paginate — never fetch all items at once</li>

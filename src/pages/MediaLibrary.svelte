@@ -1121,7 +1121,7 @@
   <div class="context-menu" style="left: {folderContextMenu.x}px; top: {folderContextMenu.y}px;">
     <button class="context-menu-item" onclick={() => startRenameFolder(folderContextMenu.folder)}>Rename</button>
     <button class="context-menu-item" onclick={() => createSubfolder(folderContextMenu.folder.id)}>New subfolder</button>
-    <button class="context-menu-item" onclick={() => { navigator.clipboard.writeText(`{%- for img in media_folder.${folderContextMenu.folder.slug || folderContextMenu.folder.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')} -%}{{ img.url }}{%- endfor -%}`); addToast('Template tag copied', 'success'); folderContextMenu = null; }}>Copy template tag</button>
+    <button class="context-menu-item" onclick={() => { navigator.clipboard.writeText(`<outpost-each media-folder="${folderContextMenu.folder.slug || folderContextMenu.folder.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}"><img data-outpost="url" data-type="image" /></outpost-each>`); addToast('Template tag copied', 'success'); folderContextMenu = null; }}>Copy template tag</button>
     <button class="context-menu-item danger" onclick={() => deleteFolder(folderContextMenu.folder)}>Delete</button>
   </div>
 {/if}

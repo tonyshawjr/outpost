@@ -137,7 +137,7 @@
           />
         </div>
         {#if formSlug}
-          <div class="create-hint">{`{% form '${formSlug}' %}`}</div>
+          <div class="create-hint">{`<outpost-form slug="${formSlug}" />`}</div>
         {/if}
       </div>
       <div class="create-actions">

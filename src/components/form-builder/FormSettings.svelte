@@ -61,7 +61,7 @@
   <div class="settings-section">
     <div class="settings-section-title">Template Usage</div>
     <div class="settings-code">
-      <code>{`{% form '${formSlug}' %}`}</code>
+      <code>{`<outpost-form slug="${formSlug}" />`}</code>
     </div>
     <p class="settings-hint">Add this tag to any theme template to render this form.</p>
   </div>

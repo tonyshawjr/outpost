@@ -61,7 +61,7 @@
     </table>
 
     <h2>Linking to member pages from templates</h2>
-    <p>Hard-code the paths in your Liquid theme partials — typically in <code>nav.html</code> or <code>footer.html</code>:</p>
+    <p>Hard-code the paths in your theme partials — typically in <code>nav.html</code> or <code>footer.html</code>:</p>
 
     <pre><code><span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"member-nav"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
@@ -173,7 +173,7 @@ define('OUTPOST_LOGIN_REDIRECT', '/dashboard');</code></pre>
     </div>
 
     <h2>Checking login state in templates</h2>
-    <p>Liquid templates have two built-in variables for checking member status:</p>
+    <p>Templates have two built-in variables for checking member status:</p>
 
     <pre><code><span class="t-comment">{# Check if any member is logged in #}</span>
 <span class="t-kw">{% if</span> <span class="t-out">member</span> <span class="t-kw">%}</span>

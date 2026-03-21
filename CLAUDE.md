@@ -1,6 +1,8 @@
 # Outpost CMS — Agent Instructions
 
 ## After Every Feature
+**CRITICAL: The front-end developer documentation (`php/docs/*.html`) is what users see. These HTML files MUST be updated every time functionality changes. The markdown files (CHANGELOG.md, ROADMAP.md, FEATURES.md) are secondary — the HTML docs at `/outpost/docs/` are the source of truth for users. Always deploy updated docs to `test-site/outpost/docs/` as well.**
+
 When you complete a new feature, fix, or significant change:
 
 1. **Update `FEATURES.md`** (root directory — this is the only FEATURES.md, do not create one in `php/`). Add a concise entry under the appropriate section.

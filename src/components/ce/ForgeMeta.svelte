@@ -20,11 +20,7 @@
 </div>
 
 <div style="font-size:11px;color:var(--text-muted)">
-  {#if metaType === 'title'}
-    Wraps in <code>{'{{ meta.title }}...{{ /meta.title }}'}</code>
-  {:else}
-    Wraps in <code>{'{{ meta.description }}...{{ /meta.description }}'}</code>
-  {/if}
+  Inserts <code>&lt;outpost-seo /&gt;</code> tag for automatic meta tags
 </div>
 
 <div class="forge-actions">

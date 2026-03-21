@@ -24,6 +24,7 @@ export const canManageChannels = derived(user, ($user) => ['super_admin', 'admin
 export const canBuildForms = derived(user, ($user) => ['super_admin', 'admin'].includes($user?.role));
 export const collectionGrants = writable(null); // null = all, array = restricted IDs
 export const mediaFolderGrants = writable(null); // null = all, array = restricted folder IDs
+export const featureFlags = writable(null); // null = all features visible (default)
 
 // Navigation — parse initial state from URL hash
 function parseHash() {

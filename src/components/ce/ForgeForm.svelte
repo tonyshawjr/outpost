@@ -170,7 +170,7 @@
   </div>
 
   <div style="font-size:11px;color:var(--text-muted)">
-    Creates form and inserts <code>{`{% form '${formSlug || '...'}' %}`}</code>
+    Creates form and inserts <code>{`<outpost-form slug="${formSlug || '...'}" />`}</code>
   </div>
 
   <div class="forge-actions">
@@ -192,7 +192,7 @@
   </div>
 
   <div style="font-size:11px;color:var(--text-muted)">
-    Inserts <code>{`{% form '${pickSlug || '...'}' %}`}</code>
+    Inserts <code>{`<outpost-form slug="${pickSlug || '...'}" />`}</code>
   </div>
 
   <div class="forge-actions">
@@ -216,7 +216,7 @@
   </div>
 
   <div style="font-size:11px;color:var(--text-muted)">
-    Inserts <code>{`{% form '${manualSlug || '...'}' %}`}</code>
+    Inserts <code>{`<outpost-form slug="${manualSlug || '...'}" />`}</code>
   </div>
 
   <div class="forge-actions">

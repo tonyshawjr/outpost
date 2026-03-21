@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.5.0] — 2026-03-20
+
+### Added
+- **Smart Forge AI** — When an AI API key is configured (Claude, OpenAI, or Gemini via Ranger settings), Smart Forge uses AI instead of the PHP scanner for dramatically better HTML annotation results. AI understands semantic context, names fields intelligently, and detects section boundaries more accurately.
+- **API: `forge/ai-scan`** — POST endpoint that sends raw HTML to the configured AI provider with a detailed annotation prompt, returns fully annotated HTML with data-outpost attributes and section comments.
+- **API: `forge/ai-status`** — GET endpoint that returns whether AI is available and which provider is configured.
+- **Automatic fallback** — If no AI key is configured, Smart Forge falls back to the existing PHP scanner seamlessly. The button label changes between "Smart Forge AI" and "Smart Forge" based on availability.
+
+---
+
+## [4.4.0] — 2026-03-20
+
+### Added
+- **JWT Bearer Token Auth** — Stateless HS256 JWT authentication for mobile apps and headless clients. New `php/jwt.php` with pure-PHP implementation (no external libraries). Tokens include user ID, type, issued-at, and expiry claims.
+- **Member Token API** — Four new endpoints on `member-api.php`: `POST token` (exchange credentials for JWT), `POST token/register` (register and get JWT), `POST token/refresh` (refresh expiring token), `GET token/me` (get profile via bearer token).
+- **CORS Configuration** — `api_cors_origins` setting in the settings table controls allowed origins for cross-origin requests. Supports `*` (wide open), comma-separated origin list, or unset (localhost only). Applied to both `api.php` and `member-api.php`.
+- **Bearer Auth on Member API** — All authenticated `member-api.php` endpoints now accept `Authorization: Bearer <jwt>` as an alternative to session cookies. CSRF checks are skipped for token-authenticated requests.
+
+---
+
+## [4.3.0] — 2026-03-20
+
+### Added
+- **Gallery Field Editor** — EditDrawer now supports `gallery` type fields with a 2-column thumbnail grid, add/remove/reorder controls, and an inline media picker modal.
+- **Image Alt Text from Media Library** — Image fields in the EditDrawer now show an "Alt text" input below the image that reads/writes the media record's `alt_text` column directly, with debounced auto-save.
+- **Editor Media Picker** — Shared media picker modal for the on-page editor, with image grid, upload support, and selection — used by both gallery and image fields.
+- **API: `editor/media-lookup`** — GET endpoint to look up a media record by file path, returning alt_text and metadata.
+- **API: `editor/media-alt`** — POST endpoint to update a media record's alt_text by file path.
+
+---
+
+## [4.2.0] — 2026-03-20
+
+### Added
+- **Click-to-Edit Bridge** — Click any element in the editor preview to jump to its field in the sidebar. Hover shows dotted outlines and field name labels. Click a block background to see all fields in that block.
+- **Editor mode rendering** — v2 engine keeps `data-outpost` attributes in output when page is loaded in editor iframe (`?_outpost_editor=1`), enabling bridge JS communication.
+- **Block attribute injection** — Engine adds `data-outpost-block="name"` to block wrapper elements in editor mode for block-level click targeting.
+- **Reverse highlighting** — Sidebar can highlight elements on the preview page when hovering over fields.
+- **Storyblok-style EditDrawer** — Three-level drill-down sidebar: section list → section detail with General/Style tabs → field detail. Breadcrumb navigation. Bridge click integration jumps to matching section/field.
+- **Skeleton theme v2 showcase** — Complete theme rewrite demonstrating all v2 features: 7 homepage blocks with outpost-settings (colors, layout variants, ranges, toggles), repeaters (features, testimonials, team, skills), collection loops with pagination and filtering, folder taxonomy loops, single items with related posts, global nav/footer blocks, conditionals, and complete responsive CSS using var() and [data-layout] attribute selectors.
+
+---
+
+## [4.1.1] — 2026-03-20
+
+### Added
+- **Code Editor: v2 syntax highlighting** — High-contrast, colorblind-accessible highlighting for Outpost v2 template syntax in the code editor. `data-outpost` attributes (gold), `data-type`/`data-bind` (cyan), `data-scope` (magenta), `<outpost-*>` custom elements (green), `<!-- outpost: -->` block comments (amber background), `<!-- outpost-settings: -->` (blue background). All bold weight for maximum visibility.
+- **Code Editor: v2 autocomplete** — Typing `data-` suggests `data-outpost`, `data-type`, `data-scope`, `data-bind` with type values. Typing `<outpost-` suggests all custom elements. Typing `<!-- outpost` suggests block comment patterns.
+
+---
+
+## [4.1.0] — 2026-03-20
+
+### Added
+- **Template Engine v2 (Data Attribute Architecture)** — New template engine that uses HTML data attributes (`data-outpost="field"`) and custom elements (`<outpost-each>`, `<outpost-single>`, `<outpost-if>`, `<outpost-menu>`, `<outpost-include>`, `<outpost-meta>`, `<outpost-seo>`, `<outpost-pagination>`) instead of Liquid-style `{{ }}` / `{% %}` syntax.
+- **Block grouping** via HTML comments (`<!-- outpost:hero -->...<!-- /outpost:hero -->`) for editor section navigation.
+- **Block settings** via `<!-- outpost-settings: -->` comments that output CSS custom properties and data attributes.
+- **Global field support** via `data-scope="global"` attribute on any element.
+- **Auto-hide** — elements with empty field values are automatically removed from output (no explicit conditionals needed).
+- **`data-bind` attribute** for setting HTML attributes from item data in loops (e.g., `data-bind="datetime:published_at"`).
+- **Gallery loop** support via `<outpost-each gallery="name">`.
+- **Clean public output** — all Outpost syntax stripped from live site HTML; zero CMS fingerprints.
+- **Editor mode** — data attributes preserved in editor preview for click-to-edit bridge.
+- **Automatic engine detection** — themes using `data-outpost` attributes are auto-detected and compiled with v2 engine; v1 Liquid themes continue working unchanged.
+- **v2 field scanner** — template scanner detects `data-outpost` fields and `data-scope="global"` globals for automatic field registration.
+
+### Changed
+- **Personal theme** rewritten to use v2 data-attribute syntax across all 9 template files (index, blog, post, about, contact, 404, head, nav, footer partials).
+- **Front router** updated to auto-detect engine version and load appropriate template engine.
+
+---
+
+## [4.0.0] — 2026-03-20
+
+### Added
+- Frontend visual editor with top bar, icon rail, and drawer panels
+- Smart Forge HTML scanner for auto-detecting editable fields
+- Theme manifest system for field/global/collection discovery per template
+- Editor overlay with page scaling and live preview
+
+---
+
 ## [3.3.3] — 2026-03-19
 
 ### Added

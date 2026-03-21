@@ -1,262 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create a Theme — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Create a Theme — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Create a Theme</h1>
-    <p class="lead">A complete walkthrough for building an Outpost theme from scratch — from an empty directory to a fully functioning site with pages, a blog, and custom content fields.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Create a Theme</h1>
+ <p class="lead">A complete walkthrough for building an Outpost theme from scratch — from an empty directory to a fully functioning site with pages, a blog, and custom content fields.</p>
+ </div>
+ <div class="content">
 
-    <h2>Before you start</h2>
-    <p>Make sure Outpost is running and you can access the admin panel. You will be creating files in the <code>outpost/themes/</code> directory on your server (or local environment). You do not need to restart PHP or rebuild anything — Outpost picks up new theme files automatically on the next request.</p>
+ <h2>Before you start</h2>
+ <p>Make sure Outpost is running and you can access the admin panel. You will be creating files in the <code>outpost/themes/</code> directory on your server (or local environment). You do not need to restart PHP or rebuild anything — Outpost picks up new theme files automatically on the next request.</p>
 
-    <h2>Step 1: Create the directory structure</h2>
-    <p>Choose a short, lowercase, hyphenated slug for your theme. This becomes the directory name and is used internally everywhere. Create the required subdirectories:</p>
-    <pre><code>mkdir -p outpost/themes/my-theme/partials
+ <h2>Step 1: Create the directory structure</h2>
+ <p>Choose a short, lowercase, hyphenated slug for your theme. This becomes the directory name and is used internally everywhere. Create the required subdirectories:</p>
+ <pre><code>mkdir -p outpost/themes/my-theme/partials
 mkdir outpost/themes/my-theme/assets</code></pre>
-    <p>At this point your theme directory looks like:</p>
-    <pre><code>outpost/themes/my-theme/
-  partials/
-  assets/</code></pre>
+ <p>At this point your theme directory looks like:</p>
+ <pre><code>outpost/themes/my-theme/
+ partials/
+ assets/</code></pre>
 
-    <h2>Step 2: Create theme.json</h2>
-    <p>Every theme requires a <code>theme.json</code> at its root. Without it, Outpost will not recognize the directory as a theme.</p>
-    <pre><code>{
-  "name": "My Theme",
-  "version": "1.0.0",
-  "author": "Your Name",
-  "description": "Clean and minimal."
+ <h2>Step 2: Create theme.json</h2>
+ <p>Every theme requires a <code>theme.json</code> at its root. Without it, Outpost will not recognize the directory as a theme.</p>
+ <pre><code>{
+ "name": "My Theme",
+ "version": "1.0.0",
+ "author": "Your Name",
+ "description": "Clean and minimal."
 }</code></pre>
-    <p>See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
+ <p>See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
 
-    <h2>Step 3: Create partials/head.html</h2>
-    <p>The <code>head.html</code> partial is the standard place for the HTML document opening — <code>DOCTYPE</code>, <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>, meta tags, CSS links, and the opening <code>&lt;body&gt;</code> tag. It is included at the top of every page template.</p>
-    <p>Note the use of <code>{{ meta.title }}My Site{{ /meta.title }}</code> and <code>{{ meta.description }}{{ /meta.description }}</code> — these read per-page SEO values set in the admin. The content between the opening and closing tags is the default fallback used when no value has been entered. The GA4 block is conditional — it only renders the tracking snippet if the <code>ga4_id</code> global field has been filled in.</p>
-    <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-  &lt;title&gt;{{ meta.title }}My Site{{ /meta.title }}&lt;/title&gt;
-  &lt;meta name="description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-  &lt;meta property="og:title" content="{{ meta.title }}My Site{{ /meta.title }}"&gt;
-  &lt;meta property="og:description" content="{{ meta.description }}{{ /meta.description }}"&gt;
-  {% if @og_image %}&lt;meta property="og:image" content="{{ @og_image | image }}"&gt;{% endif %}
-  &lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
-  {% if @ga4_id %}
-  &lt;script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"&gt;&lt;/script&gt;
-  &lt;script&gt;
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date()); gtag('config', '{{ @ga4_id }}');
-  &lt;/script&gt;
-  {% endif %}
-&lt;/head&gt;
-&lt;body&gt;</code></pre>
+ <h2>Step 3: Create partials/head.html</h2>
+ <p>The <code>head.html</code> partial is the standard place for the HTML document opening — <code>DOCTYPE</code>, <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>, meta tags, CSS links, and the opening <code>&lt;body&gt;</code> tag. It is included at the top of every page template.</p>
+ <p>Note the use of <code>&lt;outpost-meta title="Default" /&gt;</code> and <code>&lt;outpost-meta description="Default" /&gt;</code> — these read per-page SEO values set in the admin. The content between the opening and closing tags is the default fallback used when no value has been entered. The GA4 block is conditional — it only renders the tracking snippet if the <code>ga4_id</code> global field has been filled in.</p>
+ 
 
-    <div class="callout callout-warn"><strong>Important — absolute paths only</strong><br>Asset paths like <code>/outpost/themes/my-theme/assets/style.css</code> must start with <code>/</code>. Relative paths (<code>assets/style.css</code>) will work on the homepage but break on every other URL (<code>/about</code>, <code>/post/hello-world</code>, etc.) because the browser resolves them relative to the current path. Always use absolute paths for CSS, JS, images, and fonts.</div>
+ 
 
-    <div class="callout callout-note"><strong>Note</strong> — The theme slug in asset paths is the directory name, not the <code>name</code> field in <code>theme.json</code>. When you rename or duplicate a theme, update these paths in your partials.</div>
-
-    <div class="callout callout-tip"><strong>Tip — use {% seo %} instead of manual meta tags</strong><br>The <code>head.html</code> above uses manual <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code> tags. For most sites, the <code>{&#37; seo &#37;}</code> tag is a better choice — it generates <code>&lt;title&gt;</code>, <code>&lt;meta description&gt;</code>, Open Graph, Twitter Card, canonical URL, JSON-LD, and pagination links automatically with a built-in fallback chain. Replace the manual meta tags with a single line:
-    <pre><code>&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
-  {&#37; seo &#37;}
-  &lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
-&lt;/head&gt;</code></pre>
-    See <a href="features/seo.html">SEO</a> for the full list of tags <code>{&#37; seo &#37;}</code> generates.</div>
-
-    <h2>Step 4: Create partials/nav.html</h2>
-    <p>The navigation partial renders the site's main menu. The <code>{% for item in menu.main %}</code> loop iterates over items in the navigation menu named <code>main</code>, which you configure in Admin → Navigation. Each item exposes <code>item.url</code>, <code>item.label</code>, and <code>item.target</code>.</p>
-    <pre><code>&lt;nav class="site-nav"&gt;
-  &lt;a href="/" class="nav-logo"&gt;{{ @site_name }}&lt;/a&gt;
-  &lt;ul class="nav-links"&gt;
-  {% for item in menu.main %}
-    &lt;li&gt;&lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;&lt;/li&gt;
-  {% endfor %}
-  &lt;/ul&gt;
-&lt;/nav&gt;</code></pre>
-    <p>The <code>{{ @site_name }}</code> tag reads the <code>site_name</code> global field. Global fields are set in Admin → Global Fields and are available on every page.</p>
-
-    <h2>Step 5: Create partials/footer.html</h2>
-    <p>The footer partial closes the page. It must include the closing <code>&lt;/body&gt;</code> and <code>&lt;/html&gt;</code> tags. This is also where you put any deferred JavaScript includes.</p>
-    <pre><code>&lt;footer class="site-footer"&gt;
-  &lt;p&gt;{{ @footer_text }}&lt;/p&gt;
-  &lt;p&gt;&amp;copy; {{ @site_name }}&lt;/p&gt;
-&lt;/footer&gt;
-&lt;script src="/outpost/themes/my-theme/assets/main.js"&gt;&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
-
-    <h2>Step 6: Create index.html</h2>
-    <p>The homepage template. It includes the three standard partials and defines the page's own content fields. Here we use <code>{{ hero_title }}Welcome{{ /hero_title }}</code> with a fallback default, and <code>{{ hero_subtitle | textarea }}</code> to register the field as a multi-line text area in the admin.</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-&lt;main class="page-home"&gt;
-  &lt;section class="hero"&gt;
-    &lt;h1&gt;{{ hero_title }}Welcome{{ /hero_title }}&lt;/h1&gt;
-    &lt;p&gt;{{ hero_subtitle | textarea }}&lt;/p&gt;
-    {% if hero_button_label %}
-    &lt;a href="{{ hero_button_url | link }}" class="btn"&gt;{{ hero_button_label }}&lt;/a&gt;
-    {% endif %}
-  &lt;/section&gt;
-
-  &lt;section class="intro"&gt;
-    {{ intro_body | raw }}
-  &lt;/section&gt;
-&lt;/main&gt;
-
-{% include 'footer' %}</code></pre>
-
-    <h2>Step 7: Activate the theme</h2>
-    <p>Go to Admin → Themes. Your new theme should appear in the grid. Click Activate. Outpost will immediately scan all template files in the theme and create database stubs for every field it finds. You will not see errors if fields have no content yet — they simply output empty strings.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — If your theme does not appear in the admin after creating <code>theme.json</code>, double-check that the JSON is valid. A missing comma or trailing comma will prevent it from being parsed.</div>
-
-    <h2>Step 8: Add content in the admin</h2>
-    <p>With the theme active, navigate to Admin → Pages → Home. You will see all the fields from <code>index.html</code> listed and ready to fill in: <code>hero_title</code>, <code>hero_subtitle</code>, <code>hero_button_label</code>, <code>hero_button_url</code>, and <code>intro_body</code>. Fill them in, save, and visit your site's homepage.</p>
-    <p>Global fields like <code>site_name</code> and <code>footer_text</code> are managed in Admin → Global Fields. They are shared across all pages and all templates.</p>
-
-    <h2>Adding a blog with collections</h2>
-    <p>A blog requires two templates: a list page (<code>blog.html</code>) and a single post page (<code>post.html</code>). First create the collection in Admin → Collections with slug <code>post</code> and URL pattern <code>/post/{slug}</code>. Then create the templates.</p>
-
-    <h3>blog.html — the post list</h3>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-&lt;main class="page-blog"&gt;
-  &lt;h1&gt;{{ page_title }}Blog{{ /page_title }}&lt;/h1&gt;
-  &lt;div class="post-list"&gt;
-  {% for post in collection.post %}
-    &lt;article class="post-card"&gt;
-      &lt;a href="{{ post.url }}"&gt;
-        {% if post.featured_image %}
-        &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}"&gt;
-        {% endif %}
-        &lt;h2&gt;{{ post.title }}&lt;/h2&gt;
-        &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
-      &lt;/a&gt;
-    &lt;/article&gt;
-  {% endfor %}
-  &lt;/div&gt;
-&lt;/main&gt;
-
-{% include 'footer' %}</code></pre>
-
-    <h3>post.html — the single post</h3>
-    <p>The <code>{% single post from collection.post %}</code> block reads the current URL's slug, looks up the matching post, and makes its fields available as <code>post.field_name</code>. The <code>{% else %}</code> block handles the 404 case where no matching post is found.</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-{% single post from collection.post %}
-&lt;main class="page-post"&gt;
-  &lt;article&gt;
-    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-    &lt;p class="post-meta"&gt;By {{ post.author }}&lt;/p&gt;
-    {% if post.featured_image %}
-    &lt;img src="{{ post.featured_image }}" alt="{{ post.title }}" class="post-hero"&gt;
-    {% endif %}
-    &lt;div class="post-body"&gt;{{ post.body | raw }}&lt;/div&gt;
-  &lt;/article&gt;
-&lt;/main&gt;
-{% else %}
-&lt;main&gt;&lt;p&gt;Post not found.&lt;/p&gt;&lt;/main&gt;
-{% endsingle %}
-
-{% include 'footer' %}</code></pre>
-
-    <h2>Adding static pages</h2>
-    <p>Each page on your site is a separate <code>.html</code> template file. Creating <code>about.html</code> makes the <code>/about</code> URL available. Creating <code>contact.html</code> makes <code>/contact</code> available. There is no registration step — the template file is the page.</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-&lt;main class="page-about"&gt;
-  &lt;h1&gt;{{ page_title }}About Us{{ /page_title }}&lt;/h1&gt;
-  &lt;div class="about-body"&gt;{{ about_body | raw }}&lt;/div&gt;
-&lt;/main&gt;
-
-{% include 'footer' %}</code></pre>
-    <p>After creating this file and loading <code>/about</code> once, Admin → Pages will show an "About" page entry with the <code>page_title</code> and <code>about_body</code> fields ready to edit.</p>
-
-    <h2>Adding a 404 page</h2>
-    <p>Create <code>404.html</code> in your theme root. Outpost renders this template whenever a URL cannot be matched to any page, collection item, or template file. If <code>404.html</code> does not exist, Outpost falls back to a plain built-in 404 response.</p>
-    <pre><code>{% include 'head' %}
-{% include 'nav' %}
-
-&lt;main class="page-404"&gt;
-  &lt;h1&gt;Page not found&lt;/h1&gt;
-  &lt;p&gt;The page you are looking for does not exist.&lt;/p&gt;
-  &lt;a href="/"&gt;Go home&lt;/a&gt;
-&lt;/main&gt;
-
-{% include 'footer' %}</code></pre>
-
-    <div class="callout callout-note"><strong>Note</strong> — The <code>404.html</code> template has no editable page fields in the admin. It is a static template. You can use globals (<code>{{ @site_name }}</code>, etc.) but there is no associated page record in the database for a 404 page.</div>
-
-    <h2>Common gotchas</h2>
-    <p>These are the most common mistakes developers make when building their first Outpost theme. Read this section before you start — it will save you debugging time.</p>
-
-    <h3>Links must use route paths, not file names</h3>
-    <p>Outpost's front-router maps URLs to template files, but visitors never see the file names. When writing links in your templates, always use the <strong>route path</strong> — the URL as it appears in the browser — not the template filename.</p>
-    <table>
-      <thead>
-        <tr><th>Correct</th><th>Wrong</th><th>Why</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>&lt;a href="/"&gt;</code></td><td><code>&lt;a href="index.html"&gt;</code></td><td><code>index.html</code> is the template file, <code>/</code> is the URL</td></tr>
-        <tr><td><code>&lt;a href="/about"&gt;</code></td><td><code>&lt;a href="about.html"&gt;</code></td><td><code>about.html</code> is not a valid URL — it returns a 404</td></tr>
-        <tr><td><code>&lt;a href="/blog"&gt;</code></td><td><code>&lt;a href="blog.html"&gt;</code></td><td>Same pattern — use the route, not the file</td></tr>
-        <tr><td><code>&lt;a href="/contact"&gt;</code></td><td><code>&lt;a href="contact.html"&gt;</code></td><td>The router only matches <code>/contact</code>, not <code>/contact.html</code></td></tr>
-      </tbody>
-    </table>
-    <p>This applies to all <code>&lt;a href&gt;</code> links in your templates, partials, and any inline HTML. If you are converting a static HTML site to an Outpost theme, you must update all internal links from <code>.html</code> file references to route paths.</p>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — This is the #1 cause of broken links in new themes. Relative links like <code>about.html</code> will 404 because the front-router does not serve <code>.html</code> files directly — it maps clean URLs like <code>/about</code> to template files internally.</div>
-
-    <h3>Asset paths must be absolute</h3>
-    <p>CSS, JavaScript, images, and fonts must use absolute paths starting with <code>/</code>. A relative path like <code>assets/style.css</code> resolves differently depending on the current URL:</p>
-    <ul>
-      <li>On <code>/</code> → browser requests <code>/assets/style.css</code> — wrong path, but might work by accident</li>
-      <li>On <code>/about</code> → browser requests <code>/about/assets/style.css</code> — 404</li>
-      <li>On <code>/post/hello-world</code> → browser requests <code>/post/hello-world/assets/style.css</code> — 404</li>
-    </ul>
-    <p>The correct path is always <code>/outpost/themes/{your-theme-slug}/assets/style.css</code>. See <a href="themes/assets.html">Assets</a> for details.</p>
-
-    <h3>Collection templates need admin setup first</h3>
-    <p>Unlike pages (where creating <code>about.html</code> instantly makes <code>/about</code> work), collections require two steps:</p>
-    <ol>
-      <li><strong>Create the collection in the admin</strong> — go to Admin → Collections → New Collection. Set the name, slug (e.g. <code>post</code>), and URL pattern (e.g. <code>/post/{slug}</code>). Add any custom fields to the schema.</li>
-      <li><strong>Create the template files</strong> — create <code>blog.html</code> for the list page and <code>post.html</code> for the single item page. The single template filename must match the collection slug: a collection with slug <code>post</code> needs <code>post.html</code>, a collection with slug <code>portfolio</code> needs <code>portfolio.html</code>.</li>
-    </ol>
-    <p>If you create the template first without the collection, the <code>{&#37; for item in collection.post &#37;}</code> loop will simply render nothing (no error, no items). If you create the collection without the template, visiting a collection item's URL will return a 404.</p>
-
-    <h2>How field auto-scaffolding works</h2>
-    <p>Every time Outpost compiles a template for the first time — or after you modify it — it scans all <code>{{ field_name }}</code> tags and registers any fields that do not yet exist. This means:</p>
-    <ul>
-      <li>Adding a new field to a template makes it appear in the admin after the next page load.</li>
-      <li>Removing a field from a template makes it disappear from the admin editor. The data is not deleted — it is simply not shown. Add the tag back and the data returns.</li>
-      <li>Changing a field's filter (e.g., from plain text to <code>| textarea</code>) updates how it is displayed in the admin editor.</li>
-    </ul>
-
-    <h2>Theme duplication for safe experimentation</h2>
-    <p>When you want to make significant changes to a live theme, the safest approach is to duplicate it first. In Admin → Themes, click the Duplicate button on the active theme. This creates a full copy — all templates, partials, and assets — under a new slug (e.g., <code>my-theme-v2</code>). Activate the duplicate and make your changes there. The original theme remains untouched. If something goes wrong, switch back to the original immediately.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Theme duplication copies files, but the content in the database (page fields, global fields, collection items) is shared across all themes. Activating a different theme does not lose any content — it just changes which template files are used to render it.</div>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

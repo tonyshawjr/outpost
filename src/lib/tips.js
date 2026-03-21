@@ -6,8 +6,8 @@ export const tips = {
   collections: 'Collections are reusable content types like blog posts, projects, or team members.',
   media: 'Drag and drop files anywhere on this page to upload. Images are automatically optimized.',
   globals: 'Globals are site-wide values like your site name, logo, and social links — available in every template.',
-  navigation: 'Create menus and add links to pages, collections, or custom URLs. Use {% for item in menu.slug %} in templates.',
-  forms: 'Build forms visually and embed them with {% form "slug" %} in any template.',
+  navigation: 'Create menus and add links to pages, collections, or custom URLs. Use <outpost-menu name="slug"> in templates.',
+  forms: 'Build forms visually and embed them with <outpost-form slug="name" /> in any template.',
   themes: 'Themes control your site\'s look and feel. Duplicate a theme to customize it without affecting the original.',
   codeEditor: 'Edit theme templates, CSS, and partials directly. Changes are saved to your active theme.',
 };

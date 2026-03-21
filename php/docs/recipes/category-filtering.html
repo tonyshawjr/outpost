@@ -128,7 +128,7 @@
     </div>
 
     <h2>4. Active state with JavaScript</h2>
-    <p>The Liquid template engine does not have access to the current URL query string inside a loop, so active-state highlighting must be done client-side. This small script reads the <code>?category=</code> parameter and adds an <code>active</code> class to the matching filter link.</p>
+    <p>The template engine does not have access to the current URL query string inside a loop, so active-state highlighting must be done client-side. This small script reads the <code>?category=</code> parameter and adds an <code>active</code> class to the matching filter link.</p>
 
     <pre><code>&lt;script&gt;
   const params = new URLSearchParams(location.search);
@@ -264,7 +264,7 @@ renderPosts(filtered);</code></pre>
 <span class="t-kw">{% pagination %}</span></code></pre>
 
     <h2>9. Displaying the current filter label</h2>
-    <p>You may want to show the user a heading like "Showing: Design" above the results. Since the Liquid template does not have access to the query parameter, use JavaScript to inject the label from the active filter link's text.</p>
+    <p>You may want to show the user a heading like "Showing: Design" above the results. Since the template engine does not have access to the query parameter, use JavaScript to inject the label from the active filter link's text.</p>
 
     <pre><code>&lt;h2 class="results-label" id="results-label"&gt;All Posts&lt;/h2&gt;
 
@@ -325,7 +325,7 @@ loadAll();
 
     <div class="callout callout-tip">
       <strong>Tip</strong>
-      For a Liquid-only site, the best approach to search is to redirect to the archive page with a <code>?search=query</code> parameter, then use the JavaScript content API approach above to filter results client-side after loading.
+      For a template-only site, the best approach to search is to redirect to the archive page with a <code>?search=query</code> parameter, then use the JavaScript content API approach above to filter results client-side after loading.
     </div>
 
     <h2>11. Per-page counts in filter links</h2>

@@ -1,270 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu Loops — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Menu Loops — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Menu Loops</h1>
-    <p class="lead">Render navigation menus defined in Admin → Navigation. Menu loops give editors full control over link labels, URLs, order, and nesting — without touching any template code.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Menu Loops</h1>
+ <p class="lead">Render navigation menus defined in Admin → Navigation. Menu loops give editors full control over link labels, URLs, order, and nesting — without touching any template code.</p>
+ </div>
+ <div class="content">
 
-    <h2>Basic Syntax</h2>
-    <p>Reference a menu by its slug — the identifier set when the menu was created in the admin. The menu slug <code>main</code> is the conventional name for the primary site navigation.</p>
-    <pre><code>{% for item in menu.main %}
-  {{ item.label }}
-  {{ item.url }}
-  {{ item.target }}
-{% endfor %}</code></pre>
+ <h2>Basic Syntax</h2>
+ <p>Reference a menu by its slug — the identifier set when the menu was created in the admin. The menu slug <code>main</code> is the conventional name for the primary site navigation.</p>
+ 
 
-    <h2>Available Item Fields</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>item.label</code></td>
-          <td>Display text for the link — set by the editor</td>
-        </tr>
-        <tr>
-          <td><code>item.url</code></td>
-          <td>Link destination — can be a relative path, absolute URL, or anchor</td>
-        </tr>
-        <tr>
-          <td><code>item.target</code></td>
-          <td><code>_self</code> (default, same tab) or <code>_blank</code> (new tab)</td>
-        </tr>
-        <tr>
-          <td><code>item.children</code></td>
-          <td>Array of child menu items — same structure as top-level items. Empty array if no children.</td>
-        </tr>
-      </tbody>
-    </table>
+ <h2>Available Item Fields</h2>
+ <table>
+ <thead>
+ <tr>
+ <th>Field</th>
+ <th>Description</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><code>item.label</code></td>
+ <td>Display text for the link — set by the editor</td>
+ </tr>
+ <tr>
+ <td><code>item.url</code></td>
+ <td>Link destination — can be a relative path, absolute URL, or anchor</td>
+ </tr>
+ <tr>
+ <td><code>item.target</code></td>
+ <td><code>_self</code> (default, same tab) or <code>_blank</code> (new tab)</td>
+ </tr>
+ <tr>
+ <td><code>item.children</code></td>
+ <td>Array of child menu items — same structure as top-level items. Empty array if no children.</td>
+ </tr>
+ </tbody>
+ </table>
 
-    <h2>Basic Horizontal Nav</h2>
-    <p>The simplest possible navigation — a flat list of links with no dropdown support.</p>
-    <pre><code>&lt;nav class="main-nav"&gt;
-  {% for item in menu.main %}
-    &lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;
-  {% endfor %}
-&lt;/nav&gt;</code></pre>
+ <h2>Basic Horizontal Nav</h2>
+ <p>The simplest possible navigation — a flat list of links with no dropdown support.</p>
+ 
 
-    <h2>Nav with Dropdown Menus</h2>
-    <p>Check <code>item.children</code> to conditionally render a dropdown panel. Nest a second <code>{% for child in item.children %}</code> loop inside.</p>
-    <pre><code>&lt;nav class="main-nav"&gt;
-  {% for item in menu.main %}
-    &lt;div class="nav-item {% if item.children %}has-dropdown{% endif %}"&gt;
-      &lt;a href="{{ item.url }}" target="{{ item.target }}" class="nav-link"&gt;
-        {{ item.label }}
-        {% if item.children %}
-          &lt;span class="arrow"&gt;&amp;#8964;&lt;/span&gt;
-        {% endif %}
-      &lt;/a&gt;
-      {% if item.children %}
-        &lt;ul class="dropdown"&gt;
-          {% for child in item.children %}
-            &lt;li&gt;
-              &lt;a href="{{ child.url }}" target="{{ child.target }}"&gt;
-                {{ child.label }}
-              &lt;/a&gt;
-            &lt;/li&gt;
-          {% endfor %}
-        &lt;/ul&gt;
-      {% endif %}
-    &lt;/div&gt;
-  {% endfor %}
-&lt;/nav&gt;</code></pre>
+ <h2>Nav with Dropdown Menus</h2>
+ <p>Check <code>item.children</code> to conditionally render a dropdown panel. Nest child items inside the menu template.</p>
+ 
 
-    <h3>CSS for Hover Dropdowns</h3>
-    <pre><code>.nav-item { position: relative; }
+ <h3>CSS for Hover Dropdowns</h3>
+ <pre><code>.nav-item { position: relative; }
 .dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #fff;
-  border: 1px solid #e4e4e7;
-  border-radius: 8px;
-  padding: 8px 0;
-  min-width: 180px;
-  list-style: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+ display: none;
+ position: absolute;
+ top: 100%;
+ left: 0;
+ background: #fff;
+ border: 1px solid #e4e4e7;
+ border-radius: 8px;
+ padding: 8px 0;
+ min-width: 180px;
+ list-style: none;
+ box-shadow: 0 4px 16px rgba(0,0,0,.08);
 }
 .nav-item.has-dropdown:hover .dropdown,
 .nav-item.has-dropdown:focus-within .dropdown {
-  display: block;
+ display: block;
 }
 .dropdown a {
-  display: block;
-  padding: 8px 16px;
-  text-decoration: none;
-  color: #374151;
+ display: block;
+ padding: 8px 16px;
+ text-decoration: none;
+ color: #374151;
 }
 .dropdown a:hover { background: #f4f4f5; }</code></pre>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — The <code>:focus-within</code> selector ensures dropdowns remain open when a user tabs into the child links, which is important for keyboard accessibility. See <a href="recipes/dropdown-navigation.html">Dropdown Navigation</a> for a more complete accessible implementation.</div>
+ 
 
-    <h2>Header and Footer Menus</h2>
-    <p>Create separate menus in the admin — one with slug <code>main</code> for the header, one with slug <code>footer</code> for the footer — then reference each by slug in your partials.</p>
-    <pre><code>{# In partials/nav.html #}
-&lt;header class="site-header"&gt;
-  &lt;a href="/" class="logo"&gt;{{ @site_name }}&lt;/a&gt;
-  &lt;nav&gt;
-    {% for item in menu.main %}
-      &lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;
-    {% endfor %}
-  &lt;/nav&gt;
-&lt;/header&gt;
-
-{# In partials/footer.html #}
-&lt;footer&gt;
-  &lt;nav class="footer-nav"&gt;
-    {% for item in menu.footer %}
-      &lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;
-    {% endfor %}
-  &lt;/nav&gt;
-  &lt;p&gt;{{ @footer_text }}&lt;/p&gt;
-&lt;/footer&gt;</code></pre>
-
-    <h2>Mobile Hamburger Navigation</h2>
-    <p>A toggle-based mobile menu using a minimal JavaScript class swap. The same template works for both mobile and desktop — CSS handles the display differences.</p>
-    <pre><code>&lt;header class="site-header"&gt;
-  &lt;a href="/" class="logo"&gt;{{ @site_name }}&lt;/a&gt;
-
-  &lt;button id="nav-toggle" aria-expanded="false" aria-controls="main-nav"&gt;
-    &lt;span class="hamburger-icon"&gt;&amp;#9776;&lt;/span&gt;
-  &lt;/button&gt;
-
-  &lt;nav id="main-nav" class="main-nav nav-closed"&gt;
-    {% for item in menu.main %}
-      &lt;a href="{{ item.url }}" target="{{ item.target }}" class="nav-link"&gt;
-        {{ item.label }}
-      &lt;/a&gt;
-      {% if item.children %}
-        &lt;ul class="sub-menu"&gt;
-          {% for child in item.children %}
-            &lt;li&gt;&lt;a href="{{ child.url }}" target="{{ child.target }}"&gt;{{ child.label }}&lt;/a&gt;&lt;/li&gt;
-          {% endfor %}
-        &lt;/ul&gt;
-      {% endif %}
-    {% endfor %}
-  &lt;/nav&gt;
-&lt;/header&gt;
-
-&lt;script&gt;
-var toggle = document.getElementById('nav-toggle');
-var nav = document.getElementById('main-nav');
-toggle.addEventListener('click', function () {
-  var isOpen = !nav.classList.contains('nav-closed');
-  nav.classList.toggle('nav-closed');
-  toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
-});
-&lt;/script&gt;</code></pre>
-
-    <pre><code>/* Mobile-first CSS */
-.main-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.main-nav.nav-closed {
-  display: none;
-}
-#nav-toggle {
-  display: block; /* show on mobile */
-}
-
-@media (min-width: 768px) {
-  #nav-toggle { display: none; }
-  .main-nav {
-    display: flex !important; /* always visible on desktop */
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-  }
-}</code></pre>
-
-    <h2>Social Links Menu</h2>
-    <p>Create a dedicated menu in the admin with slug <code>social</code> and add each social network as a link item with <code>target: _blank</code>. Render it anywhere in your theme.</p>
-    <pre><code>&lt;div class="social-links"&gt;
-  {% for item in menu.social %}
-    &lt;a href="{{ item.url }}" target="{{ item.target }}" aria-label="{{ item.label }}"&gt;
-      {{ item.label }}
-    &lt;/a&gt;
-  {% endfor %}
-&lt;/div&gt;</code></pre>
-
-    <h2>Empty Menu</h2>
-    <p>If no menu with the given slug exists, the loop simply renders nothing — no error is thrown. You can add an <code>{% else %}</code> branch for a fallback, though in practice menus are always created alongside the theme.</p>
-    <pre><code>{% for item in menu.main %}
-  &lt;a href="{{ item.url }}"&gt;{{ item.label }}&lt;/a&gt;
-{% else %}
-  &lt;a href="/"&gt;Home&lt;/a&gt;
-{% endfor %}</code></pre>
-
-    <h2>Using menu.target Safely</h2>
-    <p><code>item.target</code> is always either <code>_self</code> or <code>_blank</code> — it is safe to output directly in a <code>target</code> attribute. The admin enforces these two values; editors cannot set arbitrary attribute values.</p>
-    <pre><code>&lt;a href="{{ item.url }}" target="{{ item.target }}"&gt;{{ item.label }}&lt;/a&gt;</code></pre>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — For external links, consider adding <code>rel="noopener noreferrer"</code> when <code>target</code> is <code>_blank</code>. Because Outpost does not expose a conditional for this in template syntax, it is simplest to add <code>rel="noopener noreferrer"</code> to every link unconditionally — it has no negative effect on same-tab links.</div>
-
-    <h2>Complete nav.html Partial</h2>
-    <p>A fully featured header partial suitable for most sites: logo, main menu with dropdown support, and an optional call-to-action button from a global field.</p>
-    <pre><code>&lt;header class="site-header"&gt;
-  &lt;a href="/" class="site-logo"&gt;{{ @site_name }}&lt;/a&gt;
-
-  &lt;button id="nav-toggle" aria-expanded="false" aria-controls="primary-nav"&gt;Menu&lt;/button&gt;
-
-  &lt;nav id="primary-nav" class="primary-nav nav-closed"&gt;
-    {% for item in menu.main %}
-      &lt;div class="nav-item {% if item.children %}has-dropdown{% endif %}"&gt;
-        &lt;a href="{{ item.url }}" target="{{ item.target }}" class="nav-link"&gt;
-          {{ item.label }}
-        &lt;/a&gt;
-        {% if item.children %}
-          &lt;ul class="dropdown"&gt;
-            {% for child in item.children %}
-              &lt;li&gt;
-                &lt;a href="{{ child.url }}" target="{{ child.target }}"&gt;
-                  {{ child.label }}
-                &lt;/a&gt;
-              &lt;/li&gt;
-            {% endfor %}
-          &lt;/ul&gt;
-        {% endif %}
-      &lt;/div&gt;
-    {% endfor %}
-
-    {% if @cta_label %}
-      &lt;a href="{{ @cta_url }}" class="btn btn-primary"&gt;{{ @cta_label }}&lt;/a&gt;
-    {% endif %}
-  &lt;/nav&gt;
-&lt;/header&gt;
-
-&lt;script&gt;
-var toggle = document.getElementById('nav-toggle');
-var nav = document.getElementById('primary-nav');
-toggle.addEventListener('click', function () {
-  var open = nav.classList.toggle('nav-open');
-  nav.classList.toggle('nav-closed', !open);
-  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-});
-&lt;/script&gt;</code></pre>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

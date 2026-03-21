@@ -53,12 +53,10 @@
   }
 
   function snippetForField(key, type, prefix = '') {
-    const full = prefix ? `${prefix}.${key}` : key;
-    if (type === 'richtext') return `{{ ${full} | raw }}`;
-    if (type === 'image') return `{{ ${full} | image }}`;
-    if (type === 'link') return `{{ ${full} | link }}`;
-    if (type === 'textarea') return `{{ ${full} | textarea }}`;
-    return `{{ ${full} }}`;
+    const typeAttr = type === 'richtext' ? ' data-type="richtext"' : type === 'image' ? ' data-type="image"' : type === 'link' ? ' data-type="link"' : type === 'textarea' ? ' data-type="textarea"' : '';
+    const tag = type === 'image' ? 'img' : (type === 'richtext' ? 'div' : 'span');
+    const scopeAttr = prefix === '' ? '' : '';
+    return `<${tag} data-outpost="${key}"${typeAttr} />`;
   }
 
   function insertSnippet(text, key) {
@@ -71,13 +69,13 @@
   function collectionLoopSnippet(slug, fields) {
     const inner = fields.slice(0, 3).map(f => {
       const k = fieldKey(f);
-      return `  ${snippetForField(k, f.type, 'item')}`;
+      return `  ${snippetForField(k, f.type)}`;
     }).join('\n');
-    return `{% for item in collection.${slug} %}\n${inner || '  {{ item.title }}'}\n{% endfor %}`;
+    return `<outpost-each collection="${slug}">\n${inner || '  <span data-outpost="title" />'}\n</outpost-each>`;
   }
 
   function singleSnippet(slug) {
-    return `{% single item from collection.${slug} %}\n  {{ item.title }}\n{% else %}\n  Not found\n{% endsingle %}`;
+    return `<outpost-single collection="${slug}">\n  <span data-outpost="title" />\n</outpost-single>`;
   }
 
   // Derived fields for selected collection
@@ -102,11 +100,15 @@
 
   let pageGlobals = $derived.by(() => {
     if (activeType !== 'pages' || !selectedItem) return [];
-    return (selectedItem.globals || []).map(g => ({
-      key: g.name,
-      type: g.type,
-      snip: g.type === 'image' ? `{{ @${g.name} | image }}` : g.type === 'richtext' ? `{{ @${g.name} | raw }}` : `{{ @${g.name} }}`,
-    }));
+    return (selectedItem.globals || []).map(g => {
+      const typeAttr = g.type === 'richtext' ? ' data-type="richtext"' : g.type === 'image' ? ' data-type="image"' : '';
+      const tag = g.type === 'image' ? 'img' : (g.type === 'richtext' ? 'div' : 'span');
+      return {
+        key: g.name,
+        type: g.type,
+        snip: `<${tag} data-outpost="${g.name}" data-scope="global"${typeAttr} />`,
+      };
+    });
   });
 
   let pageCollections = $derived(selectedItem?.collections ?? []);
@@ -176,11 +178,11 @@
         <!-- Quick actions -->
         <div class="trp-section-label">QUICK INSERT</div>
         <button class="trp-snippet-btn" onclick={() => insertSnippet(collectionLoopSnippet(selectedItem.slug, selectedItem.fields || []), 'loop')}>
-          <code>for item in collection.{selectedItem.slug}</code>
+          <code>outpost-each collection="{selectedItem.slug}"</code>
           {#if copied['loop']}<span class="trp-inserted">Inserted</span>{/if}
         </button>
         <button class="trp-snippet-btn" onclick={() => insertSnippet(singleSnippet(selectedItem.slug), 'single')}>
-          <code>single item from collection.{selectedItem.slug}</code>
+          <code>outpost-single collection="{selectedItem.slug}"</code>
           {#if copied['single']}<span class="trp-inserted">Inserted</span>{/if}
         </button>
 
@@ -198,7 +200,7 @@
         <!-- Built-ins -->
         <div class="trp-section-label">BUILT-IN</div>
         {#each ['slug','url','created_at','published_at'] as key}
-          {@const snip = '{{ item.' + key + ' }}'}
+          {@const snip = `<span data-outpost="${key}" />`}
           <button class="trp-field-row" onclick={() => insertSnippet(snip, 'cb-' + key)}>
             <span class="trp-field-name">{key}</span>
             <span class="trp-field-type">built-in</span>
@@ -209,7 +211,7 @@
         {#if selectedItem.taxonomies?.length > 0}
           <div class="trp-section-label">FOLDERS</div>
           {#each selectedItem.taxonomies as tax}
-            {@const snip = '{% for label in folder.' + tax.slug + ' %}\n  {{ label.name }}\n{% endfor %}'}
+            {@const snip = `<outpost-each folder="${tax.slug}">\n  <span data-outpost="name" />\n</outpost-each>`}
             <button class="trp-field-row" onclick={() => insertSnippet(snip, 'ct-' + tax.slug)}>
               <span class="trp-field-name">{tax.name || tax.slug}</span>
               <span class="trp-field-type">folder</span>
@@ -253,9 +255,9 @@
         {#if pageCollections.length > 0}
           <div class="trp-section-label">COLLECTIONS</div>
           {#each pageCollections as slug}
-            {@const snip = '{% for item in collection.' + slug + ' %}\n  {{ item.title }}\n{% endfor %}'}
+            {@const snip = `<outpost-each collection="${slug}">\n  <span data-outpost="title" />\n</outpost-each>`}
             <button class="trp-field-row" onclick={() => insertSnippet(snip, 'pc-' + slug)}>
-              <span class="trp-field-name">collection.{slug}</span>
+              <span class="trp-field-name">collection="{slug}"</span>
               <span class="trp-field-type">loop</span>
               {#if copied['pc-' + slug]}<span class="trp-inserted">Inserted</span>{/if}
             </button>
@@ -265,9 +267,9 @@
         {#if pageSingles.length > 0}
           <div class="trp-section-label">SINGLES</div>
           {#each pageSingles as slug}
-            {@const snip = '{% single item from collection.' + slug + ' %}\n  {{ item.title }}\n{% endsingle %}'}
+            {@const snip = `<outpost-single collection="${slug}">\n  <span data-outpost="title" />\n</outpost-single>`}
             <button class="trp-field-row" onclick={() => insertSnippet(snip, 'ps-' + slug)}>
-              <span class="trp-field-name">collection.{slug}</span>
+              <span class="trp-field-name">collection="{slug}"</span>
               <span class="trp-field-type">single</span>
               {#if copied['ps-' + slug]}<span class="trp-inserted">Inserted</span>{/if}
             </button>
@@ -277,9 +279,9 @@
         {#if pageMenus.length > 0}
           <div class="trp-section-label">MENUS</div>
           {#each pageMenus as slug}
-            {@const snip = '{% for link in menu.' + slug + ' %}\n  <a href="{{ link.url }}">{{ link.label }}</a>\n{% endfor %}'}
+            {@const snip = `<outpost-menu name="${slug}">\n  <a data-outpost="url"><span data-outpost="label" /></a>\n</outpost-menu>`}
             <button class="trp-field-row" onclick={() => insertSnippet(snip, 'pm-' + slug)}>
-              <span class="trp-field-name">menu.{slug}</span>
+              <span class="trp-field-name">menu name="{slug}"</span>
               <span class="trp-field-type">menu</span>
               {#if copied['pm-' + slug]}<span class="trp-inserted">Inserted</span>{/if}
             </button>
@@ -289,9 +291,9 @@
         {#if pageFolders.length > 0}
           <div class="trp-section-label">FOLDERS</div>
           {#each pageFolders as slug}
-            {@const snip = '{% for label in folder.' + slug + ' %}\n  {{ label.name }}\n{% endfor %}'}
+            {@const snip = `<outpost-each folder="${slug}">\n  <span data-outpost="name" />\n</outpost-each>`}
             <button class="trp-field-row" onclick={() => insertSnippet(snip, 'pt-' + slug)}>
-              <span class="trp-field-name">folder.{slug}</span>
+              <span class="trp-field-name">folder="{slug}"</span>
               <span class="trp-field-type">folder</span>
               {#if copied['pt-' + slug]}<span class="trp-inserted">Inserted</span>{/if}
             </button>
@@ -300,7 +302,9 @@
 
       {:else if activeType === 'globals'}
         {#each globals as g}
-          {@const snip = g.type === 'image' ? `{{ @${g.name} | image }}` : g.type === 'richtext' ? `{{ @${g.name} | raw }}` : `{{ @${g.name} }}`}
+          {@const typeAttr = g.type === 'richtext' ? ' data-type="richtext"' : g.type === 'image' ? ' data-type="image"' : ''}
+          {@const tag = g.type === 'image' ? 'img' : (g.type === 'richtext' ? 'div' : 'span')}
+          {@const snip = `<${tag} data-outpost="${g.name}" data-scope="global"${typeAttr} />`}
           <button class="trp-field-row" onclick={() => insertSnippet(snip, 'gl-' + g.name)}>
             <span class="trp-field-name">@{g.name}</span>
             <span class="trp-field-type">{g.type}</span>

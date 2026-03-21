@@ -64,7 +64,7 @@
     Replace links with menu tags automatically
   </label>
   <div class="forge-mapper-hint">
-    Keeps the first link as the loop template. Replaces href with <code>{'{{ ' + (linkVar || 'link') + '.url }}'}</code> and text with <code>{'{{ ' + (linkVar || 'link') + '.label }}'}</code>.
+    Keeps the first link as the loop template. Adds <code>data-outpost="url"</code> and <code>data-type="link"</code> attributes to the link element.
   </div>
 {/if}
 

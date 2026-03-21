@@ -31,7 +31,7 @@
       <li>Flexible Content, Relationship, and Conditional Logic fields (ACF Pro parity)</li>
       <li>Block editor (TipTap richtext, image, markdown, HTML, divider)</li>
       <li>Media library with search, filter, crop, resize, alt text</li>
-      <li>Liquid template engine with partials, conditionals, loops, globals, meta tags</li>
+      <li>Data-attribute template engine with partials, conditionals, loops, globals, meta tags, block grouping, and block settings</li>
       <li>Built-in analytics (pageviews, referrers, top pages)</li>
       <li>Member system (registration, login, email verification, paid tiers, visibility gates)</li>
       <li>Visual form builder with submissions and email notifications</li>
@@ -124,11 +124,61 @@
     </ul>
     <p><a href="features/collaboration.html">Full Collaboration documentation &rarr;</a></p>
 
+    <h3>v4.0 &mdash; Smart Forge + Frontend Editor</h3>
+    <p>The product reinvention. Drop in HTML, everything is automatically editable, all editing moves to the frontend.</p>
+    <ul>
+      <li><strong>Smart Forge</strong> &mdash; one button scans an entire HTML file and auto-converts ALL content elements to editable <code>data-outpost</code> fields.</li>
+      <li><strong>Frontend editing drawer</strong> &mdash; Storyblok-style drawer with block-grouped field panels.</li>
+      <li><strong>Theme manifest system</strong> &mdash; scans templates to build a manifest of fields, globals, and collections per page.</li>
+      <li><strong>Editor overlay</strong> &mdash; page scaling with live preview in iframe.</li>
+    </ul>
+
+    <h3>v4.1 &mdash; Template Engine v2: Data Attribute Architecture</h3>
+    <p>Complete replacement of template syntax with HTML data attributes and custom elements.</p>
+    <ul>
+      <li><strong><code>data-outpost</code> fields</strong> &mdash; editable fields defined by attributes on HTML elements, not custom tags.</li>
+      <li><strong>Block grouping</strong> &mdash; <code>&lt;!-- outpost:hero --&gt;</code> comments group fields into editor sections.</li>
+      <li><strong>Block settings</strong> &mdash; CSS custom properties injected from structured comment definitions.</li>
+      <li><strong>Custom elements</strong> &mdash; <code>&lt;outpost-each&gt;</code>, <code>&lt;outpost-single&gt;</code>, <code>&lt;outpost-if&gt;</code>, <code>&lt;outpost-menu&gt;</code>, <code>&lt;outpost-include&gt;</code> for structural logic.</li>
+      <li><strong>Clean output</strong> &mdash; zero CMS fingerprints on the live site. All Outpost syntax stripped from public HTML.</li>
+      <li><strong>Auto-hide</strong> &mdash; elements with empty fields automatically removed from output.</li>
+    </ul>
+
+    <h3>v4.1.1 &mdash; Developer Tooling</h3>
+    <p>Code editor and Smart Forge updates for v2 template syntax.</p>
+    <ul>
+      <li><strong>v2 syntax highlighting</strong> &mdash; high-contrast, colorblind-accessible colors for <code>data-outpost</code>, <code>data-type</code>, <code>data-scope</code>, <code>&lt;outpost-*&gt;</code> elements, and block comments in the code editor.</li>
+      <li><strong>v2 autocomplete</strong> &mdash; context-aware completions for all v2 attributes and custom elements.</li>
+      <li><strong>Smart Forge v2</strong> &mdash; outputs <code>data-outpost</code> attributes and <code>&lt;!-- outpost:section --&gt;</code> block comments instead of Liquid syntax.</li>
+      <li><strong>Editor field display fix</strong> &mdash; frontend editor now correctly shows page fields and global fields from v2 templates.</li>
+    </ul>
+
+    <h3>v4.2 &mdash; Click-to-Edit Bridge, EditDrawer &amp; Skeleton Theme</h3>
+    <p>Click any element in the live preview to edit it, plus a Storyblok-style editing drawer and a full v2 reference theme.</p>
+    <ul>
+      <li><strong>Bridge JS</strong> &mdash; scans preview iframe for <code>[data-outpost]</code> elements, adds hover outlines and field name labels, handles click-to-field mapping via postMessage</li>
+      <li><strong>Block-level targeting</strong> &mdash; click a block background to see all its fields; click an element to jump to that specific field</li>
+      <li><strong>Editor mode rendering</strong> &mdash; v2 engine keeps <code>data-outpost</code> attributes in output when loaded with <code>?_outpost_editor=1</code></li>
+      <li><strong>Block attribute injection</strong> &mdash; engine adds <code>data-outpost-block="name"</code> to block wrappers in editor mode</li>
+      <li><strong>Reverse highlighting</strong> &mdash; sidebar field hover highlights the corresponding element in the preview</li>
+      <li><strong>Storyblok-style EditDrawer</strong> &mdash; three-level drill-down sidebar (section list &rarr; section detail with General/Style tabs &rarr; field detail), breadcrumb navigation, bridge click integration jumps to matching section/field</li>
+      <li><strong>Skeleton theme v2 showcase</strong> &mdash; complete theme rewrite with 7 homepage blocks, outpost-settings (colors, layout variants, ranges, toggles), repeaters, collection loops with pagination, folder taxonomy loops, single items with related posts, global blocks, conditionals, and responsive CSS using <code>var()</code> and <code>[data-layout]</code> selectors</li>
+    </ul>
+
+    <h3>v4.4 &mdash; JWT Auth &amp; Mobile API</h3>
+    <p>Bearer token authentication and CORS support for mobile apps and headless usage.</p>
+    <ul>
+      <li><strong>JWT bearer tokens</strong> &mdash; pure PHP HS256 implementation, no external libraries. Exchange email+password for a 30-day token.</li>
+      <li><strong>Token endpoints</strong> &mdash; <code>member/token</code> (login), <code>member/token/register</code>, <code>member/token/refresh</code>, <code>member/token/me</code> (profile)</li>
+      <li><strong>CORS support</strong> &mdash; configurable allowed origins for cross-domain API access from mobile apps and SPAs</li>
+      <li><strong>Dual auth</strong> &mdash; all endpoints accept both session cookies (web) and Bearer tokens (apps). CSRF skipped for token auth.</li>
+    </ul>
+
     <hr style="margin: 40px 0;">
 
     <h2>What&rsquo;s Next</h2>
 
-    <h3>v3.4 &mdash; Theme Gallery + New Themes</h3>
+    <h3>v4.3 &mdash; Theme Gallery + New Themes</h3>
     <p>More starting points, less blank-page anxiety. 4&ndash;5 polished, production-ready themes.</p>
     <ul>
       <li><strong>Theme gallery overhaul</strong> &mdash; WordPress-style cards with screenshots and live preview</li>
@@ -140,7 +190,8 @@
       <li><strong>Landing page theme</strong> &mdash; hero, features, pricing, CTA blocks, FAQ</li>
     </ul>
 
-    <h3>v3.5 &mdash; Multi-Language (i18n)</h3>
+    <h3>v4.4 &mdash; Multi-Language (i18n)</h3>
+
     <p>Field-level translations for international sites. Manage all languages from one admin panel.</p>
     <ul>
       <li><strong>Locale system</strong> &mdash; define languages in Settings</li>
@@ -151,7 +202,7 @@
       <li><strong>Ranger integration</strong> &mdash; &ldquo;Translate this page to Spanish&rdquo;</li>
     </ul>
 
-    <h3>v3.6 &mdash; Headless-First</h3>
+    <h3>v4.5 &mdash; Headless-First</h3>
     <p>Position Outpost as the zero-config headless CMS. Runs on a $5/month host.</p>
     <ul>
       <li><strong>GraphQL API</strong> &mdash; read-only, auto-generated from collection schemas</li>
@@ -161,22 +212,13 @@
       <li><strong>Framework integration guides</strong> &mdash; Astro, Next.js, Nuxt, SvelteKit, Remix</li>
     </ul>
 
-    <h3>v3.7 &mdash; Collaborative Editing</h3>
+    <h3>v4.6 &mdash; Collaborative Editing</h3>
     <p>Real-time multi-user editing. See who&rsquo;s editing what, watch changes appear live.</p>
     <ul>
       <li><strong>Presence indicators</strong> &mdash; avatar badges showing who&rsquo;s online</li>
       <li><strong>Live cursors</strong> &mdash; see other users&rsquo; cursors in richtext fields</li>
       <li><strong>Conflict-free edits</strong> &mdash; CRDT ensures two people never lose work</li>
       <li><strong>Field-level locking</strong> &mdash; &ldquo;being edited by Tony&rdquo; indicator</li>
-    </ul>
-
-    <h3>v4.0 &mdash; Smart Forge + Frontend Drawer</h3>
-    <p>The product reinvention. Drop in HTML, everything is automatically editable, all editing moves to the frontend.</p>
-    <ul>
-      <li><strong>Smart Forge</strong> &mdash; one button scans an entire HTML file and auto-converts ALL content elements to editable fields. What takes 20 right-clicks today takes 1 click.</li>
-      <li><strong>Frontend editing drawer</strong> &mdash; when logged in, the &ldquo;Edit in Outpost&rdquo; button opens a Storyblok-style drawer. Every editable field on the page is listed in the drawer. Edit text, swap images, change buttons &mdash; all from the frontend.</li>
-      <li><strong>Pages section removed</strong> &mdash; no more backend page editing. All content editing moves to the frontend drawer.</li>
-      <li><strong>Drawer design</strong> &mdash; section grouping, repeater fields, rich text editor, image picker, save &amp; instant preview.</li>
     </ul>
 
     <h3>v5.0 &mdash; Commerce / Payments</h3>
@@ -194,7 +236,7 @@
     <h2>Long-Term (v5.x+)</h2>
     <ul>
       <li><strong>Outpost CLI</strong> &mdash; standalone CLI tool for theme scaffolding, local dev server, template validation, and theme packaging</li>
-      <li><strong>VS Code Extension</strong> &mdash; syntax highlighting, autocomplete, and hover docs for Outpost Liquid templates</li>
+      <li><strong>VS Code Extension</strong> &mdash; syntax highlighting, autocomplete, and hover docs for Outpost <code>data-outpost</code> templates</li>
       <li><strong>Theme Marketplace</strong> &mdash; browse, preview, and install themes from within the admin</li>
       <li><strong>Channels Phase 3 &amp; 4</strong> &mdash; inbound webhooks, outbound channels, filtering, channel-to-channel piping</li>
       <li><strong>A/B Testing &amp; Personalization</strong> &mdash; content variant testing, audience segmentation, conversion tracking</li>
@@ -207,7 +249,7 @@
     <ol>
       <li><strong>Zero server-side dependencies</strong> &mdash; No Composer, no npm on the server, no build step to deploy</li>
       <li><strong>SQLite only</strong> &mdash; single-file database enables trivial backups and shared hosting compatibility</li>
-      <li><strong>Liquid templates</strong> &mdash; no PHP in theme files; content/presentation separation is enforced (Smart Forge in v4.0 makes Liquid optional for basic content)</li>
+      <li><strong>HTML data-attribute templates</strong> &mdash; no PHP in theme files; content/presentation separation enforced via <code>data-outpost</code> attributes and <code>&lt;outpost-*&gt;</code> elements</li>
       <li><strong>Drop-in install</strong> &mdash; copy files, visit <code>/outpost/</code>, done</li>
     </ol>
 

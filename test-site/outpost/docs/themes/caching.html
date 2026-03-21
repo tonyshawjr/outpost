@@ -1,206 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Template Cache — Outpost CMS</title>
-  <base href="/outpost/docs/">
-  <link rel="stylesheet" href="assets/docs.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Template Cache — Outpost CMS</title>
+ <base href="/outpost/docs/">
+ <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
 
 <nav class="sidebar"></nav>
 
 <main class="main">
-  <div class="page-hero">
-    <h1>Template Cache</h1>
-    <p class="lead">Outpost uses a two-level caching system to keep pages fast. Liquid templates are compiled to PHP once and cached on disk. Rendered HTML output is cached separately with a 1-hour TTL, so the database is queried only once per page per hour — regardless of traffic.</p>
-  </div>
-  <div class="content">
+ <div class="page-hero">
+ <h1>Template Cache</h1>
+ <p class="lead">Outpost uses a two-level caching system to keep pages fast. templates are compiled to PHP once and cached on disk. Rendered HTML output is cached separately with a 1-hour TTL, so the database is queried only once per page per hour — regardless of traffic.</p>
+ </div>
+ <div class="content">
 
-    <h2>Two-level caching overview</h2>
-    <p>When a visitor requests a page, Outpost works through two distinct caching layers before querying the database or executing template logic:</p>
-    <table>
-      <thead>
-        <tr><th>Layer</th><th>What is cached</th><th>Location</th><th>TTL</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Template cache</strong></td>
-          <td>Compiled PHP version of each Liquid <code>.html</code> template</td>
-          <td><code>cache/templates/</code></td>
-          <td>Until the source file changes (mtime-based)</td>
-        </tr>
-        <tr>
-          <td><strong>HTML page cache</strong></td>
-          <td>Full rendered HTML output for each URL</td>
-          <td><code>cache/html/</code></td>
-          <td>1 hour (3600 seconds)</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>On a cache hit for the HTML layer, Outpost reads a file from disk and sends it to the browser. No template compilation, no database queries, no PHP function calls. This is the most impactful performance optimization in the system.</p>
+ <h2>Two-level caching overview</h2>
+ <p>When a visitor requests a page, Outpost works through two distinct caching layers before querying the database or executing template logic:</p>
+ <table>
+ <thead>
+ <tr><th>Layer</th><th>What is cached</th><th>Location</th><th>TTL</th></tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td><strong>Template cache</strong></td>
+ <td>Compiled PHP version of each <code>.html</code> template</td>
+ <td><code>cache/templates/</code></td>
+ <td>Until the source file changes (mtime-based)</td>
+ </tr>
+ <tr>
+ <td><strong>HTML page cache</strong></td>
+ <td>Full rendered HTML output for each URL</td>
+ <td><code>cache/html/</code></td>
+ <td>1 hour (3600 seconds)</td>
+ </tr>
+ </tbody>
+ </table>
+ <p>On a cache hit for the HTML layer, Outpost reads a file from disk and sends it to the browser. No template compilation, no database queries, no PHP function calls. This is the most impactful performance optimization in the system.</p>
 
-    <h2>Template cache</h2>
-    <p>Liquid templates (<code>.html</code> files in your theme directory) are not executed directly. Outpost's template engine compiles them to plain PHP files the first time they are requested. Each subsequent request runs the compiled PHP file directly, bypassing the compilation step entirely.</p>
+ <h2>Template cache</h2>
+ <p>templates (<code>.html</code> files in your theme directory) are not executed directly. Outpost's template engine compiles them to plain PHP files the first time they are requested. Each subsequent request runs the compiled PHP file directly, bypassing the compilation step entirely.</p>
 
-    <h3>How compilation works</h3>
-    <p>The compiler reads your <code>.html</code> template, parses the Liquid-like syntax, and converts each tag to its PHP equivalent:</p>
-    <table>
-      <thead>
-        <tr><th>Template tag</th><th>Compiled PHP</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>{{ field_name }}</code></td><td><code>&lt;?= cms_text('field_name') ?&gt;</code></td></tr>
-        <tr><td><code>{{ field_name | raw }}</code></td><td><code>&lt;?= cms_richtext('field_name') ?&gt;</code></td></tr>
-        <tr><td><code>{{ @global_name }}</code></td><td><code>&lt;?= cms_global('global_name') ?&gt;</code></td></tr>
-        <tr><td><code>{% if field_name %}</code></td><td><code>&lt;?php if (cms_toggle('field_name')): ?&gt;</code></td></tr>
-        <tr><td><code>{% for item in collection.post %}</code></td><td><code>&lt;?php cms_collection_list('post', function($item) { ?&gt;</code></td></tr>
-        <tr><td><code>{% include 'nav' %}</code></td><td><code>&lt;?php include $__partials['nav']; ?&gt;</code></td></tr>
-        <tr><td><code>{# comment #}</code></td><td>(removed entirely)</td></tr>
-      </tbody>
-    </table>
-    <p>The compiled PHP is written to a file in <code>cache/templates/</code>. The cache filename is an MD5 hash of the source template's real file path, so each template has a unique, deterministic cache key.</p>
+ <h3>How compilation works</h3>
+ <p>The compiler reads your <code>.html</code> template, parses the template syntax, and converts each tag to its PHP equivalent:</p>
+ <table>
+ <thead>
+ <tr><th>Template tag</th><th>Compiled PHP</th></tr>
+ </thead>
+ <tbody>
+ <tr><td><code>data-outpost="field_name"</code></td><td><code>&lt;?= cms_text('field_name') ?&gt;</code></td></tr>
+ <tr><td><code>data-outpost="field_name" data-type="richtext"</code></td><td><code>&lt;?= cms_richtext('field_name') ?&gt;</code></td></tr>
+ <tr><td><code>data-outpost="field" data-scope="global"</code></td><td><code>&lt;?= cms_global('global_name') ?&gt;</code></td></tr>
+ <tr><td><code>&lt;outpost-if field="field_name" exists&gt;</code></td><td><code>&lt;?php if (cms_toggle('field_name')): ?&gt;</code></td></tr>
+ <tr><td><code>&lt;outpost-each collection="post"&gt;</code></td><td><code>&lt;?php cms_collection_list('post', function($item) { ?&gt;</code></td></tr>
+ <tr><td><code>&lt;outpost-include partial="nav" /&gt;</code></td><td><code>&lt;?php include $__partials['nav']; ?&gt;</code></td></tr>
+ <tr><td><code>&lt;!-- comment --&gt;</code></td><td>(removed entirely)</td></tr>
+ </tbody>
+ </table>
+ <p>The compiled PHP is written to a file in <code>cache/templates/</code>. The cache filename is an MD5 hash of the source template's real file path, so each template has a unique, deterministic cache key.</p>
 
-    <h3>Automatic invalidation</h3>
-    <p>The template cache is invalidated automatically based on file modification time. Before serving a cached template, Outpost compares the <code>filemtime()</code> of the source <code>.html</code> file against the <code>filemtime()</code> of the compiled cache file. If the source is newer, the template is recompiled and the cache is updated.</p>
-    <p>This means during development, editing and saving a <code>.html</code> template takes effect on the next page load with no manual steps required. The mtime check has negligible overhead — it is a single filesystem call per template.</p>
+ <h3>Automatic invalidation</h3>
+ <p>The template cache is invalidated automatically based on file modification time. Before serving a cached template, Outpost compares the <code>filemtime()</code> of the source <code>.html</code> file against the <code>filemtime()</code> of the compiled cache file. If the source is newer, the template is recompiled and the cache is updated.</p>
+ <p>This means during development, editing and saving a <code>.html</code> template takes effect on the next page load with no manual steps required. The mtime check has negligible overhead — it is a single filesystem call per template.</p>
 
-    <div class="callout callout-note"><strong>Note</strong> — Partials have their own cache entries, separate from the page templates that include them. Modifying <code>partials/nav.html</code> invalidates only the nav partial's cache. Other cached templates remain valid. Only the pages that include the nav partial will recompile their partial cache on the next request — the top-level page template cache is not touched.</div>
+ 
 
-    <h3>Cache file naming</h3>
-    <p>Compiled templates are stored as PHP files in <code>cache/templates/</code>:</p>
-    <pre><code>cache/templates/
-  a1b2c3d4e5f6...php    ← compiled index.html
-  7f8e9d0c1b2a...php    ← compiled about.html
-  3c4d5e6f7a8b...php    ← compiled partials/nav.html
-  9d0e1f2a3b4c...php    ← compiled partials/head.html</code></pre>
-    <p>The filenames are MD5 hashes of the absolute file path of the source template. You will rarely need to inspect these files directly, but they are valid PHP and can be read if you need to debug a compilation issue.</p>
+ <h2>Performance characteristics</h2>
+ <p>With both cache layers functioning, Outpost's request path is as fast as a static file server for cached pages:</p>
+ <ol class="steps">
+ <li>PHP router runs (microseconds — path parsing only)</li>
+ <li>HTML cache check — read one file from disk, send to browser</li>
+ <li>Done. No template execution, no database queries.</li>
+ </ol>
+ <p>On a cache miss (first request or after TTL expiry):</p>
+ <ol class="steps">
+ <li>PHP router runs</li>
+ <li>HTML cache miss detected</li>
+ <li>Template cache checked — compiled PHP loaded (or recompiled if source changed)</li>
+ <li>Compiled template executes — database queries run, output generated</li>
+ <li>HTML output written to <code>cache/html/</code></li>
+ <li>HTML output sent to browser</li>
+ </ol>
+ <p>Cache misses are fast in absolute terms — SQLite is an embedded database with sub-millisecond query times for typical Outpost data volumes. But cache hits are faster still, and they do not hold a database connection, making the system efficient under concurrent load.</p>
 
-    <h2>HTML page cache</h2>
-    <p>After a template is executed, its full HTML output is written to a file in <code>cache/html/</code>. On subsequent requests for the same URL within the TTL window, Outpost reads that file and sends it directly — executing no PHP template code and making no database queries.</p>
-
-    <h3>Cache key</h3>
-    <p>The HTML cache key is derived from the request URL and query string. Each unique URL gets its own cache entry:</p>
-    <pre><code>/blog                    → cache/html/[hash-of-/blog].html
-/blog?page=2             → cache/html/[hash-of-/blog?page=2].html
-/post/hello-world        → cache/html/[hash-of-/post/hello-world].html</code></pre>
-    <p>Paginated pages, filtered pages, and any URL with query parameters are cached separately from the base URL. This is the correct behavior — <code>/blog</code> and <code>/blog?page=2</code> have different content.</p>
-
-    <h3>TTL and expiry</h3>
-    <p>The default TTL is <strong>3600 seconds (1 hour)</strong>. After an hour, the next request for that URL will re-execute the template, query the database for fresh content, and write a new cache file. The old file is replaced in-place.</p>
-    <p>This means newly published content will be visible on the site within 1 hour without any manual intervention. For most blogs and brochure sites, a 1-hour TTL is a good balance between freshness and performance.</p>
-
-    <h3>Admin session bypass</h3>
-    <p>When an admin session cookie is present, the HTML cache is bypassed entirely. Admins always see freshly rendered pages — this is essential when previewing content changes or testing template edits. Public visitors without the session cookie always hit the cache.</p>
-
-    <h3>Cache bypass for development</h3>
-    <p>During theme development, the template cache auto-invalidates when you save a file — but the HTML page cache does not, because it does not check whether the underlying template has changed since the HTML was generated.</p>
-    <p>Append <code>?nocache=1</code> to any URL to bypass the HTML cache for that request:</p>
-    <pre><code>http://localhost:8000/blog?nocache=1
-http://localhost:8000/post/hello-world?nocache=1</code></pre>
-    <p>This forces a full re-render for that request without affecting the cache for other visitors. The cache entry is not updated when <code>nocache=1</code> is present — it is a bypass, not an invalidation.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Logging into the admin panel sets the admin session cookie, which means your browser will bypass the HTML cache on all page views while you are logged in. You do not need to add <code>?nocache=1</code> manually if you are signed in to the admin.</div>
-
-    <h2>Clearing the cache</h2>
-    <p>There are three ways to clear the cache:</p>
-
-    <h3>From the admin — Settings</h3>
-    <p>Navigate to Admin → Settings and click <strong>Clear Cache</strong>. This deletes all files in both <code>cache/templates/</code> and <code>cache/html/</code>. The next request for any page will recompile the template and rebuild the HTML cache from scratch.</p>
-    <p>Use this after deploying theme updates that affect many pages, or when you have edited theme files in a way that you want immediately reflected for all visitors (rather than waiting for the 1-hour TTL to expire).</p>
-
-    <h3>From the admin — Content saves</h3>
-    <p>When a content editor saves changes to a page or collection item in the admin, Outpost automatically invalidates the HTML cache entry for that specific page's URL. The item's cached HTML is deleted; the next visitor to that URL gets a freshly rendered page. Other pages are not affected.</p>
-
-    <h3>Manual deletion</h3>
-    <p>You can delete cache files directly on the server. Both cache directories contain only generated files — deleting any or all of them is safe. They will be regenerated automatically on the next request.</p>
-    <pre><code># Clear all HTML page cache
-rm -f outpost/cache/html/*.html
-
-# Clear all compiled templates
-rm -f outpost/cache/templates/*.php
-
-# Clear everything
-rm -f outpost/cache/html/*.html outpost/cache/templates/*.php</code></pre>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — Do not delete the <code>cache/</code> directory itself, or the <code>cache/html/</code> and <code>cache/templates/</code> subdirectories. The directories must exist for Outpost to write new cache files. Only delete the files inside them.</div>
-
-    <h2>Cache directory permissions</h2>
-    <p>Both cache directories must be writable by the PHP process (the web server user). On a freshly deployed Outpost installation, set the cache directories to be writable:</p>
-    <pre><code>chmod 755 outpost/cache/
-chmod 755 outpost/cache/html/
-chmod 755 outpost/cache/templates/</code></pre>
-    <p>If the cache directories are not writable, Outpost will still serve pages — it simply will not be able to write cache files. Every request will re-execute the full template and database query. No errors are shown to visitors; the site degrades gracefully.</p>
-    <p>If you suspect caching is not working (pages seem slow, or fresh content is always shown immediately), check that the web server user has write access to <code>outpost/cache/</code>.</p>
-
-    <h2>Development workflow</h2>
-    <p>Understanding the two cache layers clarifies the right workflow when building and editing themes:</p>
-
-    <h3>Editing template files (<code>.html</code>)</h3>
-    <p>Save the file. The template cache invalidates automatically via the mtime check. The HTML page cache still has the old output. If you are logged into the admin, you will see the fresh output immediately (admin session bypasses HTML cache). If you are testing as a public visitor, either append <code>?nocache=1</code> or clear the cache from Settings.</p>
-
-    <h3>Editing CSS and JS assets</h3>
-    <p>Assets are served as static files — they bypass both cache layers entirely. Save the file and reload the browser. If the browser itself has cached the CSS, do a hard reload (<kbd>Cmd+Shift+R</kbd> or <kbd>Ctrl+Shift+R</kbd>). For persistent cache busting across all visitors, increment the version query string on the asset URL in your partial. See <a href="themes/assets.html">Assets</a> for details.</p>
-
-    <h3>Publishing new content</h3>
-    <p>The admin save handler automatically purges the HTML cache for the affected page URL. Published changes are visible to the next visitor immediately. No manual cache clearing is needed after content edits.</p>
-
-    <h3>Deploying theme updates to production</h3>
-    <p>After uploading updated theme files to the server, the template cache will auto-invalidate via mtime on the next request for each page. If you want all pages to reflect the changes on the first request (rather than lazily on demand), clear the template cache from Admin → Settings after uploading.</p>
-
-    <h2>Cache storage reference</h2>
-    <table>
-      <thead>
-        <tr><th>Directory</th><th>Contents</th><th>Deleted by Clear Cache?</th><th>Safe to delete manually?</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>cache/templates/</code></td>
-          <td>Compiled PHP from Liquid <code>.html</code> templates</td>
-          <td>Yes</td>
-          <td>Yes — regenerated automatically</td>
-        </tr>
-        <tr>
-          <td><code>cache/html/</code></td>
-          <td>Full rendered HTML output per URL</td>
-          <td>Yes</td>
-          <td>Yes — regenerated on next request</td>
-        </tr>
-        <tr>
-          <td><code>data/</code></td>
-          <td>SQLite database (<code>cms.db</code>)</td>
-          <td>No</td>
-          <td>No — contains all site content</td>
-        </tr>
-        <tr>
-          <td><code>uploads/</code></td>
-          <td>User-uploaded media files</td>
-          <td>No</td>
-          <td>No — contains uploaded content</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>Performance characteristics</h2>
-    <p>With both cache layers functioning, Outpost's request path is as fast as a static file server for cached pages:</p>
-    <ol class="steps">
-      <li>PHP router runs (microseconds — path parsing only)</li>
-      <li>HTML cache check — read one file from disk, send to browser</li>
-      <li>Done. No template execution, no database queries.</li>
-    </ol>
-    <p>On a cache miss (first request or after TTL expiry):</p>
-    <ol class="steps">
-      <li>PHP router runs</li>
-      <li>HTML cache miss detected</li>
-      <li>Template cache checked — compiled PHP loaded (or recompiled if source changed)</li>
-      <li>Compiled template executes — database queries run, output generated</li>
-      <li>HTML output written to <code>cache/html/</code></li>
-      <li>HTML output sent to browser</li>
-    </ol>
-    <p>Cache misses are fast in absolute terms — SQLite is an embedded database with sub-millisecond query times for typical Outpost data volumes. But cache hits are faster still, and they do not hold a database connection, making the system efficient under concurrent load.</p>
-
-  </div>
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>
