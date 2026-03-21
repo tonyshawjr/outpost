@@ -418,6 +418,7 @@ if ($action === 'token/me' && $method === 'GET') {
 }
 
 if ($action === 'register' && $method === 'POST') {
+    outpost_ip_rate_limit('member_register_session', 5, 300);
     $data = member_json_body();
     $result = OutpostMember::register(
         $data['username'] ?? '',
@@ -445,6 +446,7 @@ if ($action === 'register' && $method === 'POST') {
 }
 
 if ($action === 'login' && $method === 'POST') {
+    outpost_ip_rate_limit('member_login_session', 10, 60);
     $data = member_json_body();
     $identifier = trim($data['username'] ?? $data['email'] ?? '');
     $password = $data['password'] ?? '';

@@ -1277,6 +1277,7 @@ class OutpostTemplateV2 {
                 $php .= '$_lodge_member = OutpostMember::currentMember(); ';
                 $php .= '$_lodge_full = OutpostDB::fetchOne("SELECT id, username, email, display_name, avatar, bio, tier FROM users WHERE id = ?", [$_lodge_member["id"]]); ';
                 $php .= '$item = $_lodge_full ?: []; ';
+                $php .= 'if (isset($item["bio"])) $item["bio"] = htmlspecialchars($item["bio"] ?? "", ENT_QUOTES, "UTF-8"); ';
                 $php .= '?>';
                 $php .= $inner;
                 $php .= '<?php } ?>';

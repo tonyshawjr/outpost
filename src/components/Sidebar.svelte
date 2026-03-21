@@ -441,6 +441,7 @@
         Backups
       </button>
     {/if}
+    {#if showSettings}
       <button
         class="sidebar-item"
         class:active={route === 'settings' || route === 'user-profile'}

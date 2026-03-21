@@ -31,6 +31,66 @@
       Because CORS is fully open (<code>Access-Control-Allow-Origin: *</code>), you can call these endpoints directly from any browser-side JavaScript, mobile app, or native client without a proxy. The <code>Authorization</code> header is also allowed for future authenticated content access.
     </div>
 
+    <h2>Quick start</h2>
+
+    <p>The Content API requires no setup, API keys, or authentication. Any HTTP client can call it immediately.</p>
+
+    <ol>
+      <li><strong>Base URL</strong> — <code>https://yoursite.com/outpost/api.php?action=content/...</code></li>
+      <li><strong>Method</strong> — GET only (all other methods return <code>405</code>)</li>
+      <li><strong>Headers</strong> — None required. No <code>Authorization</code>, no API key, no CSRF token.</li>
+      <li><strong>CORS</strong> — Open to all origins. Call from any browser, mobile app, or server.</li>
+    </ol>
+
+    <pre><code># Test it right now — no setup needed
+curl "https://yoursite.com/outpost/api.php?action=content/pages"</code></pre>
+
+    <h2 id="pages-vs-items">Pages vs. Items — choosing the right endpoint</h2>
+
+    <div class="callout callout-note">
+      <strong>This is the most common source of confusion.</strong> Outpost has two separate content types, and each has its own endpoint. Using the wrong one will return a <code>404</code> or an empty result.
+    </div>
+
+    <table>
+      <thead>
+        <tr><th></th><th>Pages (<code>content/pages</code>)</th><th>Items (<code>content/items</code>)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>What they are</strong></td>
+          <td>Standalone pages — Home, About, Contact, etc. Each maps to a <code>.html</code> template file in the theme.</td>
+          <td>Entries in a <strong>collection</strong> — blog posts, team members, projects, products. Like rows in a database table.</td>
+        </tr>
+        <tr>
+          <td><strong>Identified by</strong></td>
+          <td><code>path</code> — the URL path, e.g. <code>/</code>, <code>/about</code>, <code>/contact</code></td>
+          <td><code>slug</code> within a <code>collection</code> — e.g. <code>collection=blog&amp;slug=my-first-post</code></td>
+        </tr>
+        <tr>
+          <td><strong>Use when</strong></td>
+          <td>Fetching a specific page's content (hero text, page-level images, etc.)</td>
+          <td>Listing or fetching entries from a collection (blog posts, products, etc.)</td>
+        </tr>
+        <tr>
+          <td><strong>Supports pagination</strong></td>
+          <td>No — returns all pages (typically &lt;20)</td>
+          <td>Yes — <code>limit</code>, <code>offset</code>, <code>orderby</code>, <code>order</code></td>
+        </tr>
+        <tr>
+          <td><strong>Supports filtering</strong></td>
+          <td>No</td>
+          <td>Yes — by folder labels (e.g. <code>&amp;category=tutorials</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Example</strong></td>
+          <td><code>?action=content/pages&amp;path=/about</code></td>
+          <td><code>?action=content/items&amp;collection=blog&amp;slug=my-post</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Rule of thumb:</strong> If the content lives at a fixed URL like <code>/about</code> or <code>/contact</code>, use <code>content/pages</code>. If it's one of many entries in a list (blog posts, team members, products), use <code>content/items</code>.</p>
+
     <h2>Response envelope</h2>
 
     <p>All Content API responses wrap the payload in a <code>data</code> key. List endpoints also include a <code>meta</code> object with pagination information.</p>
@@ -613,6 +673,157 @@ Access-Control-Allow-Headers: Content-Type</code></pre>
     </ul>
 
     <p>IP-based rate limiting (120 requests per 60 seconds) prevents abuse. Exceeding the limit returns HTTP 429 with a <code>Retry-After</code> header.</p>
+
+    <h2>Authentication</h2>
+
+    <p>The Content API requires <strong>no authentication</strong>. No API key, no session cookie, no <code>Authorization</code> header, and no CSRF token. Every endpoint is fully public and read-only.</p>
+
+    <p>This means you can call the API from:</p>
+    <ul>
+      <li>Browser-side JavaScript (no proxy needed)</li>
+      <li>Static site generators at build time</li>
+      <li>Mobile apps (iOS, Android, React Native, Flutter)</li>
+      <li>Server-side code (Node.js, Python, PHP, Ruby, etc.)</li>
+      <li>cURL, Postman, or any HTTP client</li>
+    </ul>
+
+    <p>If you need to create, update, or delete content, use the <a href="admin-api.html">Admin API</a> instead, which requires session authentication or an API key.</p>
+
+    <h2>Error handling</h2>
+
+    <p>All errors return a JSON object with a single <code>error</code> key and an appropriate HTTP status code. Your code should always check <code>res.ok</code> before parsing the response.</p>
+
+    <h3>HTTP status codes</h3>
+
+    <table class="schema-table">
+      <thead><tr><th>Status</th><th>Meaning</th><th>When it happens</th></tr></thead>
+      <tbody>
+        <tr><td><code>200</code></td><td>OK</td><td>Request succeeded. Payload is in <code>data</code>.</td></tr>
+        <tr><td><code>400</code></td><td>Bad Request</td><td>Missing required parameter (e.g. <code>collection</code> for items endpoint).</td></tr>
+        <tr><td><code>404</code></td><td>Not Found</td><td>The requested resource doesn't exist — wrong path, slug, collection, folder, or menu slug.</td></tr>
+        <tr><td><code>405</code></td><td>Method Not Allowed</td><td>You sent a POST, PUT, or DELETE. Only GET is supported.</td></tr>
+        <tr><td><code>429</code></td><td>Too Many Requests</td><td>Rate limit exceeded (120 requests/60s per IP). Includes a <code>Retry-After</code> header.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Error response shape</h3>
+
+    <pre><code>// HTTP 404
+{ "error": "Page not found" }
+
+// HTTP 400
+{ "error": "Missing required parameter: collection" }
+
+// HTTP 429
+{ "error": "Too many requests. Please wait." }
+// Header: Retry-After: 45
+
+// HTTP 405
+{ "error": "Method not allowed" }</code></pre>
+
+    <h3>JavaScript error handling pattern</h3>
+
+    <pre><code>async function fetchFromOutpost(action, params = {}) {
+  const url = new URL('https://yoursite.com/outpost/api.php');
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    // Parse the error message from the JSON body
+    const body = await res.json().catch(() => ({}));
+    const message = body.error || `HTTP ${res.status}`;
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After');
+      throw new Error(`Rate limited. Retry after ${retryAfter} seconds.`);
+    }
+    if (res.status === 404) {
+      return null; // Resource doesn't exist
+    }
+    throw new Error(message);
+  }
+
+  return res.json();
+}
+
+// Usage
+const result = await fetchFromOutpost('content/pages', { path: '/about' });
+if (!result) {
+  console.log('Page not found');
+} else {
+  console.log(result.data.fields.hero_title);
+}
+
+// Fetch items with error handling
+try {
+  const { data: posts, meta } = await fetchFromOutpost('content/items', {
+    collection: 'blog',
+    limit: '10',
+    orderby: 'published_at',
+    order: 'DESC',
+  });
+  console.log(`${meta.total} total posts`);
+} catch (err) {
+  console.error('API error:', err.message);
+}</code></pre>
+
+    <h2>Edge cases</h2>
+
+    <table class="schema-table">
+      <thead><tr><th>Scenario</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Collection exists but has no published items</td>
+          <td>Returns <code>{ "data": [], "meta": { "total": 0, "limit": 10, "offset": 0 } }</code> — not an error.</td>
+        </tr>
+        <tr>
+          <td>Collection slug doesn't exist</td>
+          <td>Returns HTTP <code>404</code> with <code>{ "error": "Collection not found" }</code>.</td>
+        </tr>
+        <tr>
+          <td>Page path doesn't exist</td>
+          <td>Returns HTTP <code>404</code> with <code>{ "error": "Page not found" }</code>.</td>
+        </tr>
+        <tr>
+          <td>Item slug doesn't exist in collection</td>
+          <td>Returns HTTP <code>404</code> with <code>{ "error": "Item not found" }</code>.</td>
+        </tr>
+        <tr>
+          <td>Folder filter label doesn't exist</td>
+          <td>Returns an empty array <code>{ "data": [], "meta": { "total": 0 } }</code> — not an error.</td>
+        </tr>
+        <tr>
+          <td>Members-only or paid pages</td>
+          <td>Excluded from <code>content/pages</code> entirely — they don't appear in lists or single lookups.</td>
+        </tr>
+        <tr>
+          <td>Draft or scheduled items</td>
+          <td>Excluded from <code>content/items</code>. Only <code>status = published</code> with <code>published_at</code> in the past are returned.</td>
+        </tr>
+        <tr>
+          <td><code>limit</code> exceeds 100</td>
+          <td>Silently capped at 100.</td>
+        </tr>
+        <tr>
+          <td><code>offset</code> exceeds total items</td>
+          <td>Returns empty <code>data: []</code> with the correct <code>meta.total</code>.</td>
+        </tr>
+        <tr>
+          <td>Special characters in slug/path</td>
+          <td>URL-encode the value: <code>?path=%2Fabout</code>. Slugs are always lowercase alphanumeric with hyphens.</td>
+        </tr>
+        <tr>
+          <td>Globals page (<code>__global__</code>)</td>
+          <td>Never returned by <code>content/pages</code>. Use <code>content/globals</code> instead.</td>
+        </tr>
+        <tr>
+          <td>No menus defined</td>
+          <td><code>content/menus</code> returns <code>{ "data": [], "meta": { "total": 0 } }</code>.</td>
+        </tr>
+      </tbody>
+    </table>
 
   </div>
 </main>

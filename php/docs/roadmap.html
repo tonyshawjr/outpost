@@ -194,6 +194,22 @@
       <li><strong>JWT auth + CORS fixes</strong> &mdash; token validation edge cases and CORS preflight handling</li>
     </ul>
 
+    <h3>v4.6.0 &mdash; Lodge: Member-Owned Content</h3>
+    <p>Let members create, edit, and manage their own content from the front end. Turn any collection into a member portal.</p>
+    <ul>
+      <li><strong>Lodge system</strong> &mdash; enable on any collection, members get a dashboard to manage their own items</li>
+      <li><strong>8 Lodge API endpoints</strong> &mdash; dashboard, list, create, update, delete, profile, profile update, file upload &mdash; all ownership-scoped</li>
+      <li><strong>Lodge template tags</strong> &mdash; <code>&lt;outpost-lodge-dashboard&gt;</code>, <code>&lt;outpost-lodge-items&gt;</code>, <code>&lt;outpost-lodge-form&gt;</code></li>
+      <li><strong>Lodge config</strong> &mdash; allow_create, allow_edit, allow_delete, require_approval, max_items_per_member, editable_fields, readonly_fields, required_tiers</li>
+      <li><strong>Approval workflow</strong> &mdash; optional moderation queue for new/edited items</li>
+      <li><strong>Tier gating</strong> &mdash; restrict Lodge access by member tier</li>
+      <li><strong>Starter templates</strong> &mdash; ready-to-use dashboard, item list, and form pages</li>
+      <li><strong>Feature Toggles</strong> &mdash; 14 sidebar features toggleable via Settings</li>
+      <li><strong>Sidebar Accordion Groups</strong> &mdash; 5 collapsible sidebar sections</li>
+      <li><strong>Security</strong> &mdash; rate limiting, atomic transactions, MIME validation, slug sanitization, XSS protection, field whitelisting</li>
+    </ul>
+    <p><a href="features/lodge.html">Full Lodge documentation &rarr;</a></p>
+
     <hr style="margin: 40px 0;">
 
     <h2>What&rsquo;s Next</h2>

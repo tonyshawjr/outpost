@@ -120,6 +120,11 @@ console.log(`${meta.total} posts`, data);</code></pre>
       </tbody>
     </table>
 
+    <div class="callout callout-note">
+      <strong>Pages vs. Items — don't mix them up</strong>
+      <p><code>content/pages</code> returns standalone pages (Home, About, Contact) identified by their URL <strong>path</strong> (e.g. <code>/about</code>). <code>content/items</code> returns entries from a <strong>collection</strong> (blog posts, products) identified by <strong>collection slug + item slug</strong>. If you're fetching a specific page like "About Us", use <code>content/pages&amp;path=/about</code>. If you're fetching a blog post, use <code>content/items&amp;collection=blog&amp;slug=my-post</code>.</p>
+    </div>
+
     <h2>3. Query parameters</h2>
 
     <h3>Items endpoint</h3>
@@ -560,6 +565,63 @@ export default function ArticleList() {
       <strong>Tip</strong>
       Set <code>OUTPOST_URL</code> as an environment variable in your frontend project rather than hardcoding the URL. This makes it easy to switch between staging and production.
     </div>
+
+    <h2>14. Error handling</h2>
+    <p>Always check <code>res.ok</code> before parsing. The API returns JSON error bodies with an <code>error</code> key.</p>
+
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Meaning</th><th>Example cause</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>200</code></td><td>Success</td><td>—</td></tr>
+        <tr><td><code>400</code></td><td>Bad Request</td><td>Missing <code>collection</code> param on items endpoint</td></tr>
+        <tr><td><code>404</code></td><td>Not Found</td><td>Collection, page, item, or menu slug doesn't exist</td></tr>
+        <tr><td><code>405</code></td><td>Method Not Allowed</td><td>Sent a POST instead of GET</td></tr>
+        <tr><td><code>429</code></td><td>Rate Limited</td><td>More than 120 requests in 60 seconds from same IP</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code><span class="t-comment">// Robust fetch wrapper with error handling</span>
+async function outpost(endpoint, params = {}) {
+  const url = new URL(OUTPOST);
+  url.searchParams.set('action', endpoint);
+  Object.entries(params).forEach(([k, v]) =&gt; url.searchParams.set(k, v));
+
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    const body = await res.json().catch(() =&gt; ({}));
+
+    if (res.status === 404) return null; <span class="t-comment">// not found</span>
+    if (res.status === 429) {
+      const retry = res.headers.get('Retry-After');
+      throw new Error(`Rate limited — retry after ${retry}s`);
+    }
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
+<span class="t-comment">// Usage: returns null if page doesn't exist</span>
+const page = await outpost('content/pages', { path: '/about' });
+if (!page) {
+  console.log('Page not found');
+} else {
+  console.log(page.data.title);
+}</code></pre>
+
+    <h2>15. Edge cases</h2>
+    <ul>
+      <li><strong>Empty collection</strong> — returns <code>{ "data": [], "meta": { "total": 0 } }</code>, not an error</li>
+      <li><strong>Non-existent folder label</strong> — returns empty results, not an error</li>
+      <li><strong>Members-only pages</strong> — silently excluded from <code>content/pages</code></li>
+      <li><strong>Draft/scheduled items</strong> — silently excluded from <code>content/items</code></li>
+      <li><strong><code>limit</code> over 100</strong> — silently capped at 100</li>
+      <li><strong><code>offset</code> past total</strong> — returns empty <code>data: []</code> with correct <code>meta.total</code></li>
+      <li><strong>Globals page (<code>__global__</code>)</strong> — never returned by <code>content/pages</code>; use <code>content/globals</code></li>
+    </ul>
 
     <h2>Next steps</h2>
     <ul>

@@ -22,6 +22,41 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.6.0">4.6.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-20</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Lodge &mdash; Member-Owned Content Portal</strong> &mdash; Members can create, edit, and delete their own collection items from the front end. Enable Lodge on any collection via Admin &rarr; Collections &rarr; Lodge tab. Includes a full API (8 endpoints), template tags (<code>&lt;outpost-lodge-dashboard&gt;</code>, <code>&lt;outpost-lodge-items&gt;</code>, <code>&lt;outpost-lodge-form&gt;</code>), configurable routing with custom slugs, starter templates, and an approval workflow with admin review queue.</li>
+      <li><strong>Lodge API</strong> &mdash; 8 REST endpoints under <code>member-api.php?action=lodge/*</code>: dashboard, list items, create item, update item, delete item, get profile, update profile, and file upload. All requests are ownership-scoped &mdash; members can only access their own items.</li>
+      <li><strong>Lodge config options</strong> &mdash; Per-collection Lodge settings: <code>allow_create</code>, <code>allow_edit</code>, <code>allow_delete</code>, <code>require_approval</code>, <code>max_items_per_member</code>, <code>editable_fields</code> (whitelist), <code>readonly_fields</code>, and <code>required_tiers</code> for tier-gated access.</li>
+      <li><strong>Lodge template tags</strong> &mdash; Three new custom elements for theme templates: <code>&lt;outpost-lodge-dashboard&gt;</code> (member overview with item counts and recent activity), <code>&lt;outpost-lodge-items&gt;</code> (filterable list of the member&rsquo;s items), and <code>&lt;outpost-lodge-form&gt;</code> (create/edit form with field whitelisting).</li>
+      <li><strong>Lodge starter templates</strong> &mdash; Ready-to-use HTML templates for dashboard, item list, and item form pages, installable from the Lodge setup UI.</li>
+      <li><strong>Approval workflow</strong> &mdash; When <code>require_approval</code> is enabled, new items and edits are held in a <code>pending</code> status. Admins review and approve/reject from the admin panel. Webhook events fire on submission and approval.</li>
+      <li><strong>Tier gating</strong> &mdash; Lodge access can be restricted to specific member tiers (free, paid, or custom tiers). Members without the required tier see a gated message.</li>
+      <li><strong>Feature Toggles</strong> &mdash; 14 sidebar features can be individually toggled on/off via Admin &rarr; Settings &rarr; Features. Disabled features are hidden from the sidebar and their API endpoints return 403.</li>
+      <li><strong>Sidebar Accordion Groups</strong> &mdash; The admin sidebar is now organized into 5 collapsible groups: Content, Design, Connect, Members, and System. Group state persists across sessions.</li>
+      <li><strong>Member tier column</strong> &mdash; New <code>tier</code> column on the members table for granular access control beyond free/paid roles.</li>
+      <li><strong>Member meta column</strong> &mdash; New <code>meta</code> JSON column on the members table for storing arbitrary member metadata (bio, social links, preferences).</li>
+      <li><strong>Item ownership</strong> &mdash; New <code>owner_member_id</code> column on collection items linking items to the member who created them.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Sidebar reorganization</strong> &mdash; All sidebar items grouped into accordion sections with persistent expand/collapse state.</li>
+    </ul>
+
+    <h3>Security</h3>
+    <ul>
+      <li><strong>Rate limiting</strong> &mdash; Lodge API endpoints are rate-limited per member session to prevent abuse.</li>
+      <li><strong>Atomic transactions</strong> &mdash; Lodge create/update/delete operations use database transactions to prevent partial writes.</li>
+      <li><strong>MIME validation</strong> &mdash; Lodge file uploads validate MIME type against an allowlist before accepting.</li>
+      <li><strong>Slug sanitization</strong> &mdash; Member-submitted slugs are sanitized to prevent path traversal and injection.</li>
+      <li><strong>XSS protection</strong> &mdash; All member-submitted content is sanitized before storage and escaped on output.</li>
+      <li><strong>Field whitelisting</strong> &mdash; Only fields listed in <code>editable_fields</code> can be written via the Lodge API. Unlisted fields are silently dropped.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.5.0">4.5.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-20</span></h2>
 
     <h3>Added</h3>

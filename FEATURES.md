@@ -4,6 +4,20 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Lodge — Member-Owned Content Portal & Feature Toggles (v4.6.0)
+
+- **Lodge** — First-class member portal feature. Members log in and manage their own collection items from the front-end. Enable Lodge per-collection with granular config: allow create/edit/delete, require approval, max items per member, editable/readonly field whitelists, and tier-based access gating. Supports directories, marketplaces, job boards, membership platforms.
+- **Lodge API** — 8 JWT-authenticated endpoints on `member-api.php`: dashboard summary, items CRUD (list/create/update/delete), profile get/update, and file upload. All scoped to the authenticated member's own items via `owner_member_id`. Rate-limited, with atomic max-items enforcement and server-side field whitelisting.
+- **Lodge Template Tags** — Three custom elements for themes: `<outpost-lodge-dashboard>` (member-only wrapper with profile data), `<outpost-lodge-items collection="slug">` (loop member's own items), `<outpost-lodge-form collection="slug">` (auto-generated form from collection schema respecting editable_fields config).
+- **Lodge Routing** — Configurable URL slug (default `/lodge`, changeable in Settings > Features). Maps to `lodge/dashboard.html`, `lodge/edit.html`, `lodge/create.html`, `lodge/profile.html` in the active theme. Auto-redirects unauthenticated visitors to member login.
+- **Lodge Starter Templates** — 4 ready-to-use templates in the Personal theme: dashboard with item list and status badges, edit/create forms, and profile management page.
+- **Lodge Approval Workflow** — Items created with `require_approval` go to `pending_review`. Admin review queue via `lodge/pending` API endpoint. Webhooks fired on `lodge.item_created` and `lodge.item_updated`.
+- **Lodge Tier Gating** — `required_tiers` config restricts Lodge access by member tier. Member `tier` (TEXT) and `meta` (JSON) columns on users table for flexible membership tiers and site-specific data (e.g., Stripe customer ID).
+- **Feature Toggles** — Settings > Features tab with toggles for 14 admin sidebar features: Collections, Channels, Forms, Members, Lodge, Analytics, Media, Code Editor, Navigation, Releases, Workflows, Review Links, Backups, Ranger. Disabled features hide from sidebar but data is preserved and routes still work.
+- **Sidebar Accordion Groups** — Sidebar restructured into 5 collapsible groups: Content, Site, Members, Build, Insights. Dashboard and Calendar stay at top. System section (Settings, Backups, Review Links, Ranger, Log out) at bottom. Collapsed state persisted to localStorage. Groups with zero visible items auto-hide.
+
+---
+
 ## Smart Forge AI (v4.5.0)
 
 - **Smart Forge AI** — When an AI API key is configured in Ranger settings, the Smart Forge button becomes "Smart Forge AI" and uses AI (Claude, OpenAI, or Gemini) to annotate HTML instead of the PHP regex scanner. The AI understands semantic context — it names fields like `hero_heading` instead of `heading_1`, detects section boundaries accurately, and handles complex layouts that the regex scanner misses.

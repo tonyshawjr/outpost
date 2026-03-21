@@ -146,6 +146,11 @@ try {
 } catch (\Throwable $e) {
     $_lodgeSlug = 'lodge';
 }
+// Sanitize slug: alphanumeric and hyphens only, block reserved paths
+$_lodgeSlug = preg_replace('/[^a-z0-9-]/', '', strtolower($_lodgeSlug));
+if (!$_lodgeSlug || in_array($_lodgeSlug, ['outpost', 'admin', 'api', 'wp-admin', 'wp-login'])) {
+    $_lodgeSlug = 'lodge';
+}
 
 if ($_lodgeSlug && str_starts_with($reqPath, '/' . $_lodgeSlug)) {
     // Check if Lodge feature is enabled

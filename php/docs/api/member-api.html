@@ -718,6 +718,248 @@ const res = await fetch('https://example.com/outpost/member-api.php?action=profi
       </tbody>
     </table>
 
+    <h2>Lodge endpoints</h2>
+
+    <p>Lodge endpoints provide member-owned content management. They require an active member session and are only available on collections with Lodge enabled. See <a href="features/lodge.html">Lodge documentation</a> for full configuration details.</p>
+
+    <h3>Lodge dashboard</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=lodge/dashboard</span>
+      </div>
+      <p>Returns an overview of the member&rsquo;s Lodge activity across all Lodge-enabled collections, including item counts and recent activity.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "collections": [
+    {
+      "slug": "posts",
+      "name": "Blog Posts",
+      "total_items": 12,
+      "pending_items": 2,
+      "published_items": 10,
+      "max_items": 0,
+      "can_create": true
+    }
+  ],
+  "recent_activity": [
+    {
+      "collection": "posts",
+      "item_id": 45,
+      "title": "My Latest Article",
+      "status": "published",
+      "updated_at": "2026-03-19 14:30:00"
+    }
+  ]
+}</code></pre>
+
+    <h3>List member items</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;collection=slug</span>
+      </div>
+      <p>Returns the member&rsquo;s own items for the specified collection. Supports pagination and status filtering.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Param</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>Yes</td><td>Collection slug.</td></tr>
+        <tr><td><code>page</code></td><td>No</td><td>Page number (default 1).</td></tr>
+        <tr><td><code>limit</code></td><td>No</td><td>Items per page (default 20, max 100).</td></tr>
+        <tr><td><code>status</code></td><td>No</td><td>Filter: <code>published</code>, <code>pending</code>, <code>draft</code>, or <code>all</code> (default).</td></tr>
+      </tbody>
+    </table>
+
+    <p>Response:</p>
+    <pre><code>{
+  "items": [
+    {
+      "id": 45,
+      "title": "My Latest Article",
+      "slug": "my-latest-article",
+      "status": "published",
+      "data": { "title": "My Latest Article", "body": "..." },
+      "created_at": "2026-03-18 10:00:00",
+      "updated_at": "2026-03-19 14:30:00"
+    }
+  ],
+  "total": 12,
+  "page": 1,
+  "pages": 1
+}</code></pre>
+
+    <h3>Create member item</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;collection=slug</span>
+      </div>
+      <p>Creates a new item owned by the current member. Only fields in <code>editable_fields</code> are accepted (if configured).</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "title": "My New Post",
+  "body": "&lt;p&gt;Hello world&lt;/p&gt;",
+  "category": "tutorials"
+}</code></pre>
+
+    <p>Success response (HTTP 201):</p>
+    <pre><code>{
+  "success": true,
+  "item": {
+    "id": 46,
+    "slug": "my-new-post",
+    "status": "published",
+    "owner_member_id": 50,
+    "data": { "title": "My New Post", "body": "..." }
+  }
+}</code></pre>
+
+    <p>When <code>require_approval</code> is enabled, <code>status</code> will be <code>"pending"</code>.</p>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Lodge is not enabled for this collection" }     // 403
+{ "error": "You have reached the maximum number of items" }  // 403
+{ "error": "Your membership tier does not have access" }     // 403
+{ "error": "Title is required" }                              // 400</code></pre>
+
+    <h3>Update member item</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;id=123</span>
+      </div>
+      <p>Updates an item owned by the current member. Only fields in <code>editable_fields</code> are accepted. Partial updates supported.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "title": "Updated Title",
+  "body": "&lt;p&gt;Revised content&lt;/p&gt;"
+}</code></pre>
+
+    <p>Success response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Item not found or not owned by you" }  // 404
+{ "error": "Editing is not allowed" }               // 403</code></pre>
+
+    <h3>Delete member item</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-delete">DELETE</span>
+        <span class="endpoint-path">member-api.php?action=lodge/items&amp;id=123</span>
+      </div>
+      <p>Deletes an item owned by the current member. Only works when <code>allow_delete</code> is enabled.</p>
+    </div>
+
+    <p>Success response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Item not found or not owned by you" }  // 404
+{ "error": "Deleting is not allowed" }              // 403</code></pre>
+
+    <h3>Lodge profile</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">member-api.php?action=lodge/profile</span>
+      </div>
+      <p>Returns the current member&rsquo;s profile including tier and meta fields.</p>
+    </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "member": {
+    "id": 50,
+    "username": "janesmith",
+    "email": "jane@example.com",
+    "display_name": "Jane Smith",
+    "tier": "paid",
+    "meta": { "bio": "Writer and developer", "twitter": "@janesmith" },
+    "avatar": "/outpost/uploads/avatar-abc.jpg"
+  }
+}</code></pre>
+
+    <h3>Update Lodge profile</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-put">PUT</span>
+        <span class="endpoint-path">member-api.php?action=lodge/profile</span>
+      </div>
+      <p>Updates the current member&rsquo;s display name and metadata.</p>
+    </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "display_name": "Jane M. Smith",
+  "meta": { "bio": "Updated bio", "twitter": "@janemsmith" }
+}</code></pre>
+
+    <p>Success response:</p>
+    <pre><code>{ "success": true }</code></pre>
+
+    <h3>Lodge file upload</h3>
+
+    <div class="endpoint">
+      <div class="endpoint-line">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">member-api.php?action=lodge/upload&amp;item_id=123</span>
+      </div>
+      <p>Uploads a file and attaches it to an item owned by the current member. Uses <code>multipart/form-data</code>. MIME type is validated against an allowlist.</p>
+    </div>
+
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>file</code></td><td>Yes</td><td>The file (multipart form field).</td></tr>
+        <tr><td><code>item_id</code></td><td>Yes</td><td>Query param &mdash; the item to attach the file to.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Success response:</p>
+    <pre><code>{
+  "success": true,
+  "url": "/outpost/uploads/my-image.jpg",
+  "filename": "my-image.jpg"
+}</code></pre>
+
+    <p>Error responses:</p>
+    <pre><code>{ "error": "Item not found or not owned by you" }  // 404
+{ "error": "File type not allowed" }                // 400
+{ "error": "File too large" }                       // 400</code></pre>
+
+    <p>JavaScript example &mdash; upload with Lodge:</p>
+    <pre><code>const csrf = sessionStorage.getItem('csrf');
+const form = new FormData();
+form.append('file', fileInput.files[0]);
+
+const res = await fetch('/outpost/member-api.php?action=lodge/upload&item_id=123', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'X-CSRF-Token': csrf },
+  body: form,
+});
+
+const data = await res.json();
+if (data.success) {
+  console.log('Uploaded:', data.url);
+}</code></pre>
+
   </div>
 </main>
 
