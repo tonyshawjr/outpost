@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.9] — 2026-03-21
+
+### Fixed
+- **Repeater field rendering** — Repeater fields (hours, skills) in collection editor now render with proper add/remove row UI instead of showing gallery "Add Photo" button
+- **Label checkbox overflow** — Label checkboxes in editor right sidebar now scroll at 200px max-height instead of overflowing
+- **Redundant schema fields removed** — Removed redundant tags/status text fields from collection schemas (handled by folder labels and DB columns)
+
+---
+
+## [4.6.8] — 2026-03-21
+
+### Fixed
+- **Repeater field prop mismatch** — Repeater field component in collection editor was receiving wrong prop name (`fields` → `schema`) and array-format sub-field definitions needed conversion to flat map
+
+---
+
+## [4.6.7] — 2026-03-21
+
+### Added
+- **Collection editor field controls** — Collection editor now renders proper UI controls for all field types: select (dropdown), image (picker + preview), richtext (TipTap editor), color (native picker), repeater (add/remove rows), gallery (sortable image grid)
+
+### Fixed
+- **Schema normalization** — Schema normalization on collection create/update API — auto-converts `{fields:[{name,type}]}` array format to flat `{fieldName:{type}}` map the admin UI expects
+
+---
+
+## [4.6.6] — 2026-03-21
+
+### Fixed
+- **Collection sort_field validation** — API now rejects invalid sort fields (like `title`) that crash SQL queries, silently defaults to `created_at`
+- **Sort field validation scope** — Sort field validation also applied to items list query and front-end engine collection loop
+
+---
+
+## [4.6.5] — 2026-03-21
+
+### Fixed
+- **Orphan closing tag cleanup** — V2 template engine orphan closing tag cleanup — `</outpost-include>`, `</outpost-meta>`, `</outpost-seo>`, `</outpost-pagination>`, `</outpost-form>` no longer leak into rendered HTML
+- **Include tag regex** — `outpost-include` regex now consumes optional `</outpost-include>` closing tag
+- **Package script fix** — Package script variable reference fix (`phpFiles` → `coreFiles`)
+
+---
+
 ## [4.6.4] — 2026-03-21
 
 ### Added

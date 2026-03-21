@@ -22,6 +22,61 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.6.9">4.6.9 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Repeater field rendering</strong> &mdash; Repeater fields (hours, skills) in collection editor now render with proper add/remove row UI instead of showing gallery &ldquo;Add Photo&rdquo; button.</li>
+      <li><strong>Label checkbox overflow</strong> &mdash; Label checkboxes in editor right sidebar now scroll at 200px max-height instead of overflowing.</li>
+      <li><strong>Redundant schema fields removed</strong> &mdash; Removed redundant tags/status text fields from collection schemas (handled by folder labels and DB columns).</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.8">4.6.8 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Repeater field prop mismatch</strong> &mdash; Repeater field component in collection editor was receiving wrong prop name (<code>fields</code> &rarr; <code>schema</code>) and array-format sub-field definitions needed conversion to flat map.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.7">4.6.7 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Collection editor field controls</strong> &mdash; Collection editor now renders proper UI controls for all field types: select (dropdown), image (picker + preview), richtext (TipTap editor), color (native picker), repeater (add/remove rows), gallery (sortable image grid).</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Schema normalization</strong> &mdash; Collection create/update API auto-converts <code>{fields:[{name,type}]}</code> array format to flat <code>{fieldName:{type}}</code> map the admin UI expects.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.6">4.6.6 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Collection sort_field validation</strong> &mdash; API now rejects invalid sort fields (like <code>title</code>) that crash SQL queries, silently defaults to <code>created_at</code>.</li>
+      <li><strong>Sort field validation scope</strong> &mdash; Validation also applied to items list query and front-end engine collection loop.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.5">4.6.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Orphan closing tag cleanup</strong> &mdash; V2 template engine now removes orphan closing tags (<code>&lt;/outpost-include&gt;</code>, <code>&lt;/outpost-meta&gt;</code>, <code>&lt;/outpost-seo&gt;</code>, <code>&lt;/outpost-pagination&gt;</code>, <code>&lt;/outpost-form&gt;</code>) that previously leaked into rendered HTML.</li>
+      <li><strong>Include tag regex</strong> &mdash; <code>outpost-include</code> regex now consumes optional <code>&lt;/outpost-include&gt;</code> closing tag.</li>
+      <li><strong>Package script fix</strong> &mdash; Variable reference fix (<code>phpFiles</code> &rarr; <code>coreFiles</code>).</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.6.4">4.6.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
 
     <h3>Added</h3>

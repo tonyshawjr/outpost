@@ -880,6 +880,13 @@ Elements with `data-outpost` that resolve to an empty value are automatically re
 - **Public rendering** — all Outpost syntax (`data-outpost`, `data-type`, `data-scope`, `data-bind`, `<outpost-*>` elements, `<!-- outpost: -->` comments) is stripped from output. The result is clean, semantic HTML.
 - **Editor rendering** — when the page is loaded in the editor iframe with `?_outpost_editor=1`, all `data-outpost` attributes and `data-outpost-block` attributes are preserved in output so the click-to-edit bridge can map elements back to their fields.
 
+### Browse / Edit Mode
+
+The editor has two distinct modes:
+
+- **Browse mode (default)** — the site works like a normal website. Links navigate normally, no editing UI is active. This is the mode when the editor first loads or when the edit drawer is closed.
+- **Edit mode** — activated by clicking the Edit (pencil) icon in the sidebar rail, which opens the Edit drawer. In edit mode, clicking any `data-outpost` element in the preview selects the corresponding field in the drawer instead of navigating. Closing the drawer returns to browse mode.
+
 ### Click-to-Edit Bridge (Editor Mode)
 
 The click-to-edit bridge connects the editor preview iframe to the sidebar field panels. It is automatic and requires no developer action.
@@ -2419,6 +2426,10 @@ The `db_snapshot` excludes sync API key and admin credentials.
 
 `push_content: true` + `db_file` replaces the entire server database — overwrites all live data. Use with caution.
 
+### Builder CLAUDE.md
+
+The Builder desktop app auto-generates a `CLAUDE.md` file containing the site's Sync API key on every pull. This allows Claude Code and other AI agents to interact with the site's API without manual key configuration.
+
 ### Backup storage
 `outpost/content/backups/{backup-id}/` with `manifest.json` + `files/` directory. Backups older than 30 days auto-pruned on `backup/list`.
 
@@ -2587,7 +2598,34 @@ Key columns:
 
 **`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name)
 
-**`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`
+**`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`. `sort_field` only accepts: `created_at`, `updated_at`, `published_at`, `slug`, `sort_order` — invalid values default to `created_at`.
+
+**Collection schema format:** The admin UI and API expect schemas in flat key-value format:
+```json
+{
+  "title": { "type": "text", "label": "Title" },
+  "body": { "type": "richtext", "label": "Body" },
+  "featured_image": { "type": "image", "label": "Featured Image" }
+}
+```
+The API auto-normalizes incoming schemas — if you send `{"fields": [{"name": "title", "type": "text"}]}` (array format), it is automatically converted to the flat key-value format above.
+
+Valid field types: `text`, `textarea`, `richtext`, `image`, `link`, `select`, `toggle`, `color`, `number`, `date`, `repeater`, `gallery`, `flexible`, `relationship`.
+
+Repeater sub-fields use the same type set:
+```json
+{
+  "hours": {
+    "type": "repeater",
+    "label": "Hours",
+    "fields": [
+      { "name": "day", "type": "select", "options": ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] },
+      { "name": "open", "type": "text" },
+      { "name": "close", "type": "text" }
+    ]
+  }
+}
+```
 
 **`collection_items`:** `id`, `collection_id`, `slug`, `status` (`'published'|'draft'|'scheduled'|'pending_review'`), `scheduled_at`, `published_at`, `reviewed_by`, `reviewed_at`, `data` (JSON), `created_at`, `updated_at`
 
