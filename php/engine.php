@@ -2367,12 +2367,17 @@ function outpost_bridge_script(): string {
   var HOVER_CLASS = 'outpost-bridge-hover';
   var ACTIVE_CLASS = 'outpost-bridge-active';
 
+  // Edit mode — bridge only intercepts clicks when active
+  // Default: OFF (browse mode — site works like a normal website)
+  var editMode = false;
+
   // Inject bridge hover/active styles
   var style = document.createElement('style');
   style.id = 'outpost-bridge-styles';
   style.textContent = [
-    '[data-outpost] { cursor: pointer; }',
-    '[data-outpost].' + HOVER_CLASS + ' { outline: 1px solid rgba(45, 90, 71, 0.25); outline-offset: 2px; }',
+    // Only show edit cursors/outlines when edit mode is active
+    'body.outpost-edit-mode [data-outpost] { cursor: pointer; }',
+    'body.outpost-edit-mode [data-outpost].' + HOVER_CLASS + ' { outline: 1px solid rgba(45, 90, 71, 0.25); outline-offset: 2px; }',
     '[data-outpost].' + ACTIVE_CLASS + ' { outline: 2px solid rgba(45, 90, 71, 0.5); outline-offset: 2px; }',
     '[data-outpost-block] { position: relative; }',
     '.outpost-bridge-label { position: fixed; z-index: 2147483647; pointer-events: none;',
@@ -2421,6 +2426,11 @@ function outpost_bridge_script(): string {
     return null;
   }
 
+  // Humanize: "latest-posts" → "Latest Posts", "hero_heading" → "Hero Heading"
+  function humanize(s) {
+    return s.replace(/[-_]/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  }
+
   // Clear active highlight
   function clearActive() {
     if (currentActive) {
@@ -2429,19 +2439,31 @@ function outpost_bridge_script(): string {
     }
   }
 
-  // Set up event listeners using delegation for efficiency
+  // Toggle edit mode on/off
+  function setEditMode(on) {
+    editMode = on;
+    if (on) {
+      document.body.classList.add('outpost-edit-mode');
+    } else {
+      document.body.classList.remove('outpost-edit-mode');
+      clearActive();
+      hideLabel();
+      // Remove hover class from all elements
+      document.querySelectorAll('.' + HOVER_CLASS).forEach(function(el) {
+        el.classList.remove(HOVER_CLASS);
+      });
+    }
+  }
+
+  // Hover — only show outlines in edit mode
   document.addEventListener('mouseover', function(e) {
+    if (!editMode) return;
+
     var target = e.target.closest('[data-outpost]') || e.target.closest('[data-outpost-block]');
     if (!target) return;
 
     target.classList.add(HOVER_CLASS);
 
-    // Humanize: "latest-posts" → "Latest Posts", "hero_heading" → "Hero Heading"
-    function humanize(s) {
-      return s.replace(/[-_]/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
-    }
-
-    // Build label text
     var field = target.dataset.outpost;
     var block = target.dataset.outpostBlock || getBlockName(target);
     var labelParts = [];
@@ -2453,26 +2475,30 @@ function outpost_bridge_script(): string {
   }, true);
 
   document.addEventListener('mouseout', function(e) {
+    if (!editMode) return;
+
     var target = e.target.closest('[data-outpost]') || e.target.closest('[data-outpost-block]');
     if (!target) return;
     target.classList.remove(HOVER_CLASS);
     hideLabel();
   }, true);
 
+  // Click — only intercept in edit mode
   document.addEventListener('click', function(e) {
+    if (!editMode) return; // Browse mode — let clicks work normally
+
     var fieldEl = e.target.closest('[data-outpost]');
     var blockEl = e.target.closest('[data-outpost-block]');
 
     if (!fieldEl && !blockEl) return;
 
-    // Prevent default link navigation
+    // Prevent default link navigation (only in edit mode)
     e.preventDefault();
     e.stopPropagation();
 
     clearActive();
 
     if (fieldEl) {
-      // Field click — send field info
       var field = fieldEl.dataset.outpost;
       var block = getBlockName(fieldEl);
       var type = fieldEl.dataset.type || 'text';
@@ -2489,7 +2515,6 @@ function outpost_bridge_script(): string {
         scope: scope,
       }, '*');
     } else if (blockEl) {
-      // Block click (no specific field) — send block info
       var blockName = blockEl.dataset.outpostBlock;
 
       blockEl.classList.add(ACTIVE_CLASS);
@@ -2502,9 +2527,14 @@ function outpost_bridge_script(): string {
     }
   }, true);
 
-  // Listen for highlight requests from the editor sidebar
+  // Listen for messages from the editor overlay
   window.addEventListener('message', function(e) {
     if (!e.data || typeof e.data !== 'object') return;
+
+    // Edit mode toggle — sent by the Editor when Edit drawer opens/closes
+    if (e.data.type === 'outpost-edit-mode') {
+      setEditMode(!!e.data.active);
+    }
 
     if (e.data.type === 'outpost-highlight-field') {
       clearActive();
@@ -2533,7 +2563,7 @@ function outpost_bridge_script(): string {
     }
   });
 
-  console.log('[Outpost Bridge] Click-to-edit bridge initialized');
+  console.log('[Outpost Bridge] Click-to-edit bridge initialized (browse mode)');
 })();
 </script>
 BRIDGE;

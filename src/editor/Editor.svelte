@@ -66,6 +66,12 @@
     drawerOpen = false;
   }
 
+  // Sync edit mode with the bridge — only intercept clicks when Edit drawer is open
+  let isEditMode = $derived(activeDrawer === 'edit' && drawerOpen);
+  $effect(() => {
+    window.postMessage({ type: 'outpost-edit-mode', active: isEditMode }, '*');
+  });
+
   function enterPreview() {
     previewMode = true;
     overlayVisible = false;

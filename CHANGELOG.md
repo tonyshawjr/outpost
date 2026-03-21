@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.4] — 2026-03-21
+
+### Added
+- **Browse/Edit mode toggle** — On-page editor no longer intercepts link clicks by default. Site works like a normal website until the Edit drawer is opened, then click-to-edit activates. Close the drawer to browse again.
+- **`<outpost-form>` support in v2 template engine** — Forms now render correctly in v2 data-attribute themes.
+- **Sidebar collapse/expand all** — Button in the logo bar to collapse or expand all sidebar accordion groups at once.
+
+### Fixed
+- **Partial cache invalidation** — v2 template engine now checks partial file mtimes, so adding or editing partials triggers automatic recompilation.
+- **Smart Forge invalid data-type generation** — AI prompt restricts `data-type` to 9 valid values. Added post-processing sanitizer. Fixed v1→v2 filter mapping.
+- **Builder symlinks** — Builder now creates `outpost/themes` and `outpost/uploads` symlinks on pull so the PHP dev server can serve theme assets.
+- **Builder CLAUDE.md** — Complete rewrite: explicitly says "never build in forge-playground", includes full v2 template syntax, valid data-types, partials structure, collection/page data from snapshot.
+
+### Changed
+- **Developer docs overhaul** — Content API (Pages vs Items, error handling, edge cases), routing (full algorithm, standalone PHP bootstrap), Lodge (corrected routing to match sub-router), headless CMS recipe. All reflected in `llms.txt`.
+- **Sidebar group label padding** — Group labels now align with sidebar items below them.
+
+---
+
 ## [4.6.2] — 2026-03-20
 
 ### Added
