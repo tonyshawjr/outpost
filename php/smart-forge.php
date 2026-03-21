@@ -1828,6 +1828,8 @@ RULES:
 
 3b. If a heading (h1-h6) contains inline HTML formatting like <em>, <strong>, <span>, <mark>, or <br>, it MUST be tagged as data-type="richtext" not plain text. Example: `<h1 data-outpost="hero_heading" data-type="richtext">Build templates <em>visually</em></h1>`
 
+3c. ONLY use these data-type values: richtext, image, link, textarea, select, toggle, color, number, date. Do NOT invent types like "region", "filter", "button", "card", etc. If an element is plain text, omit data-type entirely (text is the default). Do NOT add data-type="region" or data-type to wrapper/container elements.
+
 4. Add <!-- outpost-settings: --> inside blocks for visual properties:
    - Sections with dark/colored backgrounds: bg_color: color(#detected_hex)
    - Sections with layout options: layout: select(centered, left-aligned, split)
@@ -1913,7 +1915,7 @@ CRITICAL — CONVERT ALL LEGACY LIQUID SYNTAX to v2:
 16. {% seo %} → <outpost-seo />
 17. {% pagination %} → <outpost-pagination />
 18. {% form 'slug' %} → <outpost-form slug="slug" />
-19. {{ field }} or {{ field | filter }} → add data-outpost="field" data-type="filter" to the containing element
+19. {{ field }} or {{ field | filter }} → add data-outpost="field" to the containing element. Map the filter to data-type: raw→richtext, image→image, link→link, textarea→textarea, select→(omit, text default), toggle→toggle, color→color, number→number, date→date. If no filter or unknown filter, omit data-type (defaults to text).
 20. {{ @global }} or {{ @global | filter }} → add data-outpost="global" data-scope="global" to the containing element
 21. {{ meta.title }}Default{{ /meta.title }} → <outpost-meta title="Default" />
 22. {# comment #} → <!-- comment --> or remove entirely
@@ -2131,6 +2133,16 @@ function handle_forge_ai_scan(): void {
     // Strip markdown code fences if AI wrapped its response
     $annotatedHtml = preg_replace('/^```html?\s*\n?/i', '', $annotatedHtml);
     $annotatedHtml = preg_replace('/\n?```\s*$/', '', $annotatedHtml);
+
+    // Strip invalid data-type values (only allow known types)
+    $annotatedHtml = preg_replace_callback(
+        '/\s+data-type="([^"]*)"/',
+        function ($m) {
+            $valid = ['richtext', 'image', 'link', 'textarea', 'select', 'toggle', 'color', 'number', 'date'];
+            return in_array($m[1], $valid) ? $m[0] : '';
+        },
+        $annotatedHtml
+    );
 
     // Validate AI output is proper annotated HTML
     if (empty($annotatedHtml) || strlen($annotatedHtml) < 50) {

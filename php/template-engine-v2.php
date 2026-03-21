@@ -59,8 +59,22 @@ class OutpostTemplateV2 {
         $cacheKey = md5($themeDir . '/' . $relPath . ($editorMode ? ':editor' : ':public'));
         $cacheFile = $cacheDir . $cacheKey . '.php';
 
-        // Recompile if source is newer than cache
-        if (!file_exists($cacheFile) || filemtime($templateFile) > filemtime($cacheFile)) {
+        // Recompile if source or any partial is newer than cache
+        $needsRecompile = !file_exists($cacheFile) || filemtime($templateFile) > filemtime($cacheFile);
+        if (!$needsRecompile && file_exists($cacheFile)) {
+            // Check if any partial is newer than the cache
+            $partialsDir = self::$themeDir . 'partials';
+            if (is_dir($partialsDir)) {
+                $cacheMtime = filemtime($cacheFile);
+                foreach (glob($partialsDir . '/*.html') as $partial) {
+                    if (filemtime($partial) > $cacheMtime) {
+                        $needsRecompile = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($needsRecompile) {
             $source = file_get_contents($templateFile);
             $compiled = self::compile($source, $editorMode);
             // Prepend execution guard to prevent direct access
@@ -89,6 +103,9 @@ class OutpostTemplateV2 {
 
         // Step 2b: Process <outpost-pagination />
         $html = self::compilePagination($html);
+
+        // Step 2c: Process <outpost-form slug="..." />
+        $html = self::compileForms($html);
 
         // Step 3: Process block comments and settings
         $html = self::compileBlocks($html, $editorMode);
@@ -189,6 +206,20 @@ class OutpostTemplateV2 {
         return preg_replace(
             '/<outpost-pagination\s*\/?\s*>/i',
             '<?php cms_pagination(); ?>',
+            $html
+        );
+    }
+
+    /**
+     * Replace <outpost-form slug="name" /> with rendered form output.
+     */
+    private static function compileForms(string $html): string {
+        return preg_replace_callback(
+            '/<outpost-form\s+slug="([^"]+)"\s*\/?\s*(?:><\/outpost-form>)?/i',
+            function ($m) {
+                $slug = $m[1];
+                return "<?php require_once __DIR__ . '/forms-engine.php'; cms_form('" . addslashes($slug) . "'); ?>";
+            },
             $html
         );
     }

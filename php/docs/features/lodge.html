@@ -368,21 +368,51 @@
       </tbody>
     </table>
 
-    <h2>Routing and custom slugs</h2>
+    <h2>Routing</h2>
 
-    <p>Lodge pages are standard theme template files. You create the routes by adding HTML files to your theme:</p>
+    <p>Lodge has its own sub-router built into <code>front-router.php</code>. All Lodge URLs live under a single configurable slug (default: <code>/lodge</code>). You do <strong>not</strong> create top-level theme files for Lodge pages &mdash; instead, templates go in a <code>lodge/</code> subdirectory inside your theme.</p>
+
+    <h3>URL &rarr; template mapping</h3>
 
     <table class="schema-table">
-      <thead><tr><th>Template file</th><th>URL</th><th>Purpose</th></tr></thead>
+      <thead><tr><th>URL</th><th>Template file</th><th>Purpose</th><th>Injected params</th></tr></thead>
       <tbody>
-        <tr><td><code>lodge-dashboard.html</code></td><td><code>/lodge-dashboard</code></td><td>Member dashboard overview</td></tr>
-        <tr><td><code>lodge-posts.html</code></td><td><code>/lodge-posts</code></td><td>List of member&rsquo;s posts</td></tr>
-        <tr><td><code>lodge-post-new.html</code></td><td><code>/lodge-post-new</code></td><td>Create a new post</td></tr>
-        <tr><td><code>lodge-post-edit.html</code></td><td><code>/lodge-post-edit?id=123</code></td><td>Edit an existing post</td></tr>
+        <tr><td><code>/lodge</code></td><td><code>lodge/dashboard.html</code></td><td>Member dashboard</td><td>&mdash;</td></tr>
+        <tr><td><code>/lodge/edit/42</code></td><td><code>lodge/edit.html</code></td><td>Edit an item</td><td><code>$_GET['item_id'] = 42</code></td></tr>
+        <tr><td><code>/lodge/create/posts</code></td><td><code>lodge/create.html</code></td><td>Create new item</td><td><code>$_GET['collection'] = 'posts'</code></td></tr>
+        <tr><td><code>/lodge/profile</code></td><td><code>lodge/profile.html</code></td><td>Member profile</td><td>&mdash;</td></tr>
       </tbody>
     </table>
 
-    <p>You have full control over the URL structure &mdash; name the template files whatever you want. Lodge template tags work on any page.</p>
+    <h3>Theme file structure</h3>
+
+    <pre><code>themes/your-theme/
+  index.html
+  about.html
+  post.html
+  lodge/                  &larr; Lodge templates go here
+    dashboard.html
+    edit.html
+    create.html
+    profile.html
+  partials/
+    head.html
+    nav.html
+    footer.html</code></pre>
+
+    <h3>Custom slug</h3>
+
+    <p>The Lodge URL prefix is configurable in <strong>Admin &rarr; Settings</strong> (stored as <code>lodge_slug</code>). Change it from <code>/lodge</code> to <code>/portal</code>, <code>/members</code>, or any other slug. The router will look for templates in both <code>themes/{theme}/{custom-slug}/</code> and <code>themes/{theme}/lodge/</code> (fallback).</p>
+
+    <p>Reserved slugs that cannot be used: <code>outpost</code>, <code>admin</code>, <code>api</code>, <code>wp-admin</code>, <code>wp-login</code>.</p>
+
+    <h3>Authentication</h3>
+
+    <p>All Lodge routes require an active member session. Unauthenticated visitors are automatically redirected to the member login page (<code>/outpost/member-pages/login.php</code>) with a <code>?return=</code> parameter so they return to the Lodge page after logging in.</p>
+
+    <div class="callout callout-tip">
+      <strong>Tip</strong> &mdash; Lodge can be toggled on/off via the <code>lodge</code> feature flag in Settings &rarr; Features. When disabled, all Lodge URLs return a 404.
+    </div>
 
     <h2>Starter templates</h2>
 

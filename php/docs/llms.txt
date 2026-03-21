@@ -3272,111 +3272,71 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - **Error sanitization** — internal PHP errors, stack traces, and file paths are never sent to the client; logged server-side with generic client messages
 - **Role scoping** — editors see ~13 content tools, developers see ~25 content+code tools, admins see all 35 tools
 
-## Lodge — Member-Owned Content (v4.6.0)
+## Lodge (Member Portal)
 
-### What is Lodge?
-Lodge turns any collection into a member-facing content portal. Members can create, edit, and delete their own collection items from the front end without admin access. Every API request is ownership-scoped — members can only see and modify items they own.
-
-### Use cases
-- User-generated blog posts or articles
-- Member directories and profiles
-- Job boards where employers post listings
-- Community classifieds or marketplace listings
-- Student or employee portfolios
-- Event submissions with admin approval
+Lodge turns any collection into a member-facing content portal. Members can create, edit, and delete their own items from the front end — with optional approval, tier gating, and field whitelisting.
 
 ### Enabling Lodge
-Navigate to Admin > Collections > [Collection] > Lodge tab. Toggle Lodge on and configure the options.
+
+Admin → Collections → [Collection] → Lodge tab. Toggle on and configure options.
 
 ### Configuration options
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `allow_create` | boolean | `true` | Members can create new items |
-| `allow_edit` | boolean | `true` | Members can edit their own items |
-| `allow_delete` | boolean | `false` | Members can delete their own items |
-| `require_approval` | boolean | `false` | New items/edits held in `pending` status until admin approves |
-| `max_items_per_member` | integer | `0` (unlimited) | Maximum items per member. 0 = no limit |
-| `editable_fields` | array | `[]` (all) | Whitelist of writable field slugs. Empty = all fields |
-| `readonly_fields` | array | `[]` | Fields visible but not editable by members |
-| `required_tiers` | array | `[]` (any) | Member tiers allowed to use Lodge. Empty = any logged-in member |
+| `allow_create` | boolean | true | Members can create items |
+| `allow_edit` | boolean | true | Members can edit own items |
+| `allow_delete` | boolean | false | Members can delete own items |
+| `require_approval` | boolean | false | Items held as `pending` until admin approves |
+| `max_items_per_member` | integer | 0 (unlimited) | Max items per member |
+| `editable_fields` | array | [] (all) | Whitelist of editable field slugs |
+| `readonly_fields` | array | [] | Visible but not editable fields |
+| `required_tiers` | array | [] (any) | Member tiers allowed access |
 
-### Lodge API endpoints (8 total)
+### Routing
 
-All endpoints at `member-api.php?action=lodge/*`. Require active member session (cookie or JWT).
+Lodge has its own sub-router in `front-router.php`. All URLs live under a configurable slug (default: `/lodge`, changeable in Settings → `lodge_slug`).
 
-- `GET lodge/dashboard` — overview of member's Lodge activity across all Lodge-enabled collections (item counts, recent activity)
-- `GET lodge/items?collection=slug` — list member's own items for a collection. Params: `page`, `limit`, `status` (published/pending/draft/all)
-- `POST lodge/items?collection=slug` — create a new item. Body: field data as JSON. Only `editable_fields` accepted. Returns 201 with created item. Status is `pending` when `require_approval` is on.
-- `PUT lodge/items?id=123` — update an owned item. Body: partial field data. Only `editable_fields` accepted.
-- `DELETE lodge/items?id=123` — delete an owned item. Only works when `allow_delete` is enabled.
-- `GET lodge/profile` — member profile including tier and meta JSON fields
-- `PUT lodge/profile` — update display_name and meta fields
-- `POST lodge/upload?item_id=123` — upload a file (multipart/form-data) attached to an owned item. MIME validated.
+| URL | Template | Injected params |
+|---|---|---|
+| `/lodge` | `lodge/dashboard.html` | — |
+| `/lodge/edit/42` | `lodge/edit.html` | `$_GET['item_id'] = 42` |
+| `/lodge/create/posts` | `lodge/create.html` | `$_GET['collection'] = 'posts'` |
+| `/lodge/profile` | `lodge/profile.html` | — |
 
-### Lodge template tags
+Templates go in `themes/{theme}/lodge/` subdirectory. Falls back from `{custom-slug}/` to `lodge/`. All routes require member auth — unauthenticated users redirect to login.
 
-Three custom elements for theme templates. Require logged-in member session.
+### Lodge API endpoints (member-api.php)
 
-**`<outpost-lodge-dashboard>`** — renders member dashboard with item counts and recent activity:
-```html
-<outpost-lodge-dashboard>
-  <h2>Your Dashboard</h2>
-  <span data-outpost="total_items">0</span> items
-  <span data-outpost="pending_items">0</span> pending
-</outpost-lodge-dashboard>
-```
+All require member session (JWT or cookie).
 
-**`<outpost-lodge-items collection="slug">`** — renders list of member's own items:
-```html
-<outpost-lodge-items collection="posts">
-  <article>
-    <h3 data-outpost="title">Post Title</h3>
-    <span data-outpost="status">published</span>
-    <a data-bind="href:edit_url">Edit</a>
-  </article>
-</outpost-lodge-items>
-```
-Attributes: `collection` (required), `limit`, `status`.
+| Action | Method | Description |
+|---|---|---|
+| `lodge/dashboard` | GET | Overview of member's Lodge activity |
+| `lodge/items&collection=slug` | GET | Member's own items (paginated) |
+| `lodge/items&collection=slug` | POST | Create new item |
+| `lodge/items&id=123` | PUT | Update own item |
+| `lodge/items&id=123` | DELETE | Delete own item (if allowed) |
+| `lodge/profile` | GET | Member profile + tier + meta |
+| `lodge/profile` | PUT | Update profile metadata |
+| `lodge/upload&item_id=123` | POST | Upload file to own item |
 
-**`<outpost-lodge-form collection="slug">`** — renders create/edit form:
-```html
-<outpost-lodge-form collection="posts">
-  <input data-outpost="title" type="text">
-  <textarea data-outpost="body"></textarea>
-  <button type="submit">Submit</button>
-</outpost-lodge-form>
-```
-Attributes: `collection` (required), `item` (optional, for editing — use `query:id` to read from URL).
+### Template tags
 
-### Lodge routing
-Lodge pages are standard theme template files. Create routes by adding HTML files:
-- `lodge-dashboard.html` → `/lodge-dashboard`
-- `lodge-posts.html` → `/lodge-posts`
-- `lodge-post-new.html` → `/lodge-post-new`
-- `lodge-post-edit.html` → `/lodge-post-edit?id=123`
+- `<outpost-lodge-dashboard>` — member dashboard with item counts
+- `<outpost-lodge-items collection="posts">` — list member's own items
+- `<outpost-lodge-form collection="posts">` — create/edit form (respects editable_fields)
+- `<outpost-lodge-form collection="posts" item="query:id">` — edit form (reads item ID from URL)
 
-### Starter templates
-When enabling Lodge, the setup UI offers to install ready-to-use templates: dashboard, item list, and item form pages.
+### Security
 
-### Approval workflow
-When `require_approval` is enabled:
-1. Member creates/edits → status set to `pending`
-2. Admin sees pending items in collection list
-3. Admin approves → status changes to `published`
-4. Admin rejects → status changes to `draft` with optional note
-
-Webhook events: `lodge.item.submitted`, `lodge.item.approved`, `lodge.item.rejected`
-
-### Security model
-- **Ownership scoping** — every query filters by `owner_member_id = :current_member`
-- **Field whitelisting** — only `editable_fields` accepted, unlisted fields silently dropped
-- **Rate limiting** — per-member session limits on all Lodge endpoints
-- **Atomic transactions** — create/update/delete wrapped in database transactions
-- **MIME validation** — uploads checked against allowlist, executables/scripts always rejected
-- **Slug sanitization** — special characters, path separators, null bytes stripped
-- **XSS protection** — content sanitized before storage, escaped on output
-- **Tier enforcement** — `required_tiers` checked before any Lodge operation
+- Ownership scoping: all queries filter by `owner_member_id`
+- Field whitelisting: only `editable_fields` accepted, others silently dropped
+- Rate limiting per member session
+- MIME validation on uploads
+- Slug sanitization (no path traversal)
+- XSS: member content sanitized before storage
+- Tier enforcement via `required_tiers`
 
 ### Database changes (v4.6.0)
 - `members.tier` — member tier column for granular access control

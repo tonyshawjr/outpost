@@ -22,6 +22,26 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.6.2">4.6.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-20</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong><code>&lt;outpost-form&gt;</code> support in v2 template engine</strong> &mdash; Forms now render correctly in v2 data-attribute themes. Previously only the v1 Liquid engine handled form tags.</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Partial cache invalidation</strong> &mdash; v2 template engine now checks partial file mtimes when determining whether to recompile. Adding or editing partials triggers automatic recompilation instead of requiring a manual cache clear.</li>
+      <li><strong>Smart Forge invalid data-type generation</strong> &mdash; AI prompt now restricts <code>data-type</code> to the 9 valid values. Added post-processing sanitizer that strips invalid types. Fixed v1&rarr;v2 conversion to map filters to correct data-types.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Developer docs overhaul</strong> &mdash; Comprehensive updates to Content API docs (Pages vs Items guide, error handling, edge cases), routing docs (full algorithm, standalone PHP bootstrap), Lodge docs (corrected routing to match actual sub-router), and headless CMS recipe.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.6.0">4.6.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-20</span></h2>
 
     <h3>Added</h3>

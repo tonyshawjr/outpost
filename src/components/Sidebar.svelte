@@ -64,6 +64,20 @@
     localStorage.setItem('outpost-sidebar-groups', JSON.stringify(groupState));
   }
 
+  let anyGroupOpen = $derived(
+    isGroupOpen('content') || isGroupOpen('site') || isGroupOpen('members') || isGroupOpen('build') || isGroupOpen('insights')
+  );
+
+  function collapseAllGroups() {
+    groupState = { content: false, site: false, members: false, build: false, insights: false };
+    localStorage.setItem('outpost-sidebar-groups', JSON.stringify(groupState));
+  }
+
+  function expandAllGroups() {
+    groupState = { content: true, site: true, members: true, build: true, insights: true };
+    localStorage.setItem('outpost-sidebar-groups', JSON.stringify(groupState));
+  }
+
   // Visibility checks for groups — hide groups with zero visible items
   let showContentGroup = $derived(
     (filteredColls.length > 0 && featureEnabled('collections')) ||
@@ -125,6 +139,17 @@
 <aside class="sidebar" class:open={open}>
   <div class="sidebar-logo sidebar-inner">
     <img src={outpostLogo} alt="Outpost" style="height: 11px; width: auto; filter: brightness(0) invert(1);" />
+    <button
+      class="sidebar-collapse-btn"
+      onclick={() => anyGroupOpen ? collapseAllGroups() : expandAllGroups()}
+      title={anyGroupOpen ? 'Collapse all' : 'Expand all'}
+    >
+      {#if anyGroupOpen}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      {:else}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      {/if}
+    </button>
   </div>
 
   <button class="sidebar-search-trigger sidebar-inner" onclick={() => searchOpen.set(true)}>
@@ -476,6 +501,30 @@
 </aside>
 
 <style>
+  .sidebar-collapse-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 4px;
+    border-radius: var(--radius-sm, 4px);
+    color: var(--sidebar-text-muted, rgba(255,255,255,0.35));
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo:hover .sidebar-collapse-btn {
+    opacity: 1;
+  }
+
+  .sidebar-collapse-btn:hover {
+    color: var(--sidebar-text-secondary, rgba(255,255,255,0.55));
+    background: var(--sidebar-bg-hover, rgba(255,255,255,0.06));
+  }
+
   .sidebar-search-trigger {
     display: flex;
     align-items: center;
@@ -523,7 +572,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 4px 0;
+    padding: 4px var(--space-md, 12px);
     background: none;
     border: none;
     font-size: 10px;

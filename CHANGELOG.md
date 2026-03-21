@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.2] — 2026-03-20
+
+### Added
+- **`<outpost-form>` support in v2 template engine** — Forms now render correctly in v2 data-attribute themes. Previously only the v1 Liquid engine handled `{% form %}` tags.
+
+### Fixed
+- **Partial cache invalidation** — v2 template engine now checks partial file mtimes when determining whether to recompile. Adding or editing partials triggers automatic recompilation instead of requiring a manual cache clear.
+- **Smart Forge invalid data-type generation** — AI prompt now restricts `data-type` to the 9 valid values (richtext, image, link, textarea, select, toggle, color, number, date). Added post-processing sanitizer that strips invalid types. Fixed v1→v2 conversion mapping filters to correct data-types instead of using literal filter names.
+
+### Changed
+- **Developer docs overhaul** — Comprehensive updates to Content API docs (Pages vs Items guide, error handling, edge cases), routing docs (full algorithm, standalone PHP bootstrap), Lodge docs (corrected routing to match actual sub-router), and headless CMS recipe. All changes reflected in `llms.txt`.
+
+---
+
 ## [4.6.1] — 2026-03-20
 
 ### Added
