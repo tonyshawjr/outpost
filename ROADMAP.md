@@ -265,6 +265,21 @@ Everything below is already built and released.
 
 ---
 
+## v4.8 — Compass (Smart Filtering & Search) — SHIPPED (v4.8.0)
+
+**Template-driven filtering and search for any collection.** Turn any collection into a searchable, filterable directory — business listings, event calendars, product catalogs — with zero PHP or JavaScript.
+
+- ~~**12 filter types**~~ — search, dropdown, checkbox, radio, range, A-Z, toggle, proximity, hierarchy, time-since, pager, sort — **Shipped**
+- ~~**Results container**~~ — `<outpost-compass-results>` with grid/list/table layouts and partial templates — **Shipped**
+- ~~**Helper tags**~~ — result count, reset, active filter pills — **Shipped**
+- ~~**URL state sync**~~ — all filters reflected in shareable URLs — **Shipped**
+- ~~**Mobile flyout**~~ — automatic slide-out filter panel on small screens — **Shipped**
+- ~~**Indexed search**~~ — SQLite-based index with incremental updates, sub-50ms queries — **Shipped**
+- ~~**Proximity search**~~ — geolocation-based distance filtering with browser Geolocation API — **Shipped**
+- ~~**CSS custom properties**~~ — 12 themeable properties for full styling control — **Shipped**
+
+---
+
 ## v5.0 — Commerce / Payments
 
 **Lightweight digital product sales via Stripe.** Not a full eCommerce platform — just clean checkout + access gates for digital products, courses, and memberships.
@@ -360,5 +375,6 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~4.0~~ | Smart Forge + Frontend Drawer | **Shipped** |
 | ~~4.1~~ | Template Engine v2 — Data Attribute Architecture | **Shipped** |
 | ~~4.5~~ | Smart Forge AI — AI-powered HTML annotation | **Shipped** |
+| ~~4.8~~ | Compass — Smart Filtering & Search | **Shipped** |
 | 5.0 | Commerce / Payments (Stripe) | Planned |
 | 5.x+ | CLI, VS Code Extension, Marketplace, Channels 3&4, A/B Testing | Future |

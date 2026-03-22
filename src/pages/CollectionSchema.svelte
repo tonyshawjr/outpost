@@ -449,49 +449,34 @@
       <div class="sf-main">
         <!-- Collection Settings Card -->
         <div class="card sf-settings-card">
-          <div class="sf-settings-grid-3">
-            <div class="form-group" style="margin-bottom: 0;">
+          <div style="display: flex; gap: var(--space-md); align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0; flex: 2;">
               <label class="sf-label" for="cs-name">Name</label>
               <input id="cs-name" class="input" type="text" bind:value={formName} placeholder="Blog Posts" />
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="sf-label" for="cs-singular">Singular Name</label>
+            <div class="form-group" style="margin-bottom: 0; flex: 2;">
+              <label class="sf-label" for="cs-singular">Singular</label>
               <input id="cs-singular" class="input" type="text" bind:value={formSingularName} placeholder="Blog Post" />
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-group" style="margin-bottom: 0; flex: 0 0 70px;">
               <label class="sf-label" for="cs-per-page">Per Page</label>
-              <input id="cs-per-page" class="input" type="number" min="1" max="100" bind:value={formItemsPerPage} style="max-width: 90px;" />
+              <input id="cs-per-page" class="input" type="number" min="1" max="100" bind:value={formItemsPerPage} />
             </div>
           </div>
-          <div class="sf-settings-grid-3" style="margin-top: var(--space-md);">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="sf-label">Slug</label>
-              <div class="sf-slug-row">
-                <code class="sf-slug-badge">{formSlug}</code>
-                <span class="sf-slug-hint">Cannot be changed</span>
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="sf-label">URL Pattern</label>
-              <input class="input" type="text" bind:value={formUrlPattern} placeholder="/{formSlug}/{'{slug}'}" style="font-family: var(--font-mono); font-size: 13px;" />
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="sf-label" for="cs-sort">Sort</label>
-              <div style="display: flex; gap: 6px;">
-                <select id="cs-sort" class="input" bind:value={formSortField} style="flex: 1;">
-                  <option value="created_at">Created At</option>
-                  <option value="updated_at">Updated At</option>
-                  <option value="published_at">Published At</option>
-                  <option value="title">Title</option>
-                  <option value="slug">Slug</option>
-                  <option value="sort_order">Sort Order</option>
-                </select>
-                <select class="input" bind:value={formSortDirection} style="width: 60px; flex-shrink: 0; padding-right: 8px; font-size: 11px; text-align: center;">
-                  <option value="DESC">DESC</option>
-                  <option value="ASC">ASC</option>
-                </select>
-              </div>
-            </div>
+          <div style="display: flex; gap: var(--space-md); align-items: center; margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid var(--border-secondary);">
+            <code class="sf-slug-badge">{formSlug}</code>
+            <input class="input" type="text" bind:value={formUrlPattern} placeholder="/{formSlug}/{'{slug}'}" style="font-family: var(--font-mono); font-size: 12px; flex: 1; height: 30px;" />
+            <select class="input" bind:value={formSortField} style="width: 120px; height: 30px; font-size: 12px;">
+              <option value="created_at">Created</option>
+              <option value="updated_at">Updated</option>
+              <option value="published_at">Published</option>
+              <option value="slug">Slug</option>
+              <option value="sort_order">Manual</option>
+            </select>
+            <select class="input" bind:value={formSortDirection} style="width: 55px; height: 30px; font-size: 11px; text-align: center;">
+              <option value="DESC">DESC</option>
+              <option value="ASC">ASC</option>
+            </select>
           </div>
         </div>
 

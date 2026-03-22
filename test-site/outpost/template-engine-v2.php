@@ -124,6 +124,9 @@ class OutpostTemplateV2 {
         // Step 6b: Process <outpost-lodge-*> elements (member portal)
         $html = self::compileLodgeTags($html, $editorMode);
 
+        // Step 6c: Process <outpost-compass*> elements (smart filtering)
+        $html = self::compileCompass($html, $editorMode);
+
         // Step 7: Process <outpost-if> elements
         $html = self::compileConditionals($html, $editorMode);
 
@@ -1437,6 +1440,271 @@ class OutpostTemplateV2 {
             },
             $html
         );
+
+        return $html;
+    }
+
+    // ─── Compass (Smart Filtering) ─────────────────────────
+
+    /**
+     * Compile <outpost-compass*> tags into PHP + HTML for client-side filtering.
+     *
+     * Supported tags:
+     *   <outpost-compass type="dropdown|checkbox|radio|search|range|az|toggle|proximity|hierarchy|time-since|pager" ...>
+     *   <outpost-compass-results collection="..." layout="grid" columns="3">...</outpost-compass-results>
+     *   <outpost-compass-count collection="...">
+     *   <outpost-compass-reset collection="...">
+     *   <outpost-compass-selections collection="...">
+     *   <outpost-compass-sort collection="..." options="..." labels="...">
+     */
+    private static function compileCompass(string $html, bool $editorMode): string {
+
+        // ── Facet tags: <outpost-compass type="..." ...> ──
+        $html = preg_replace_callback(
+            '/<outpost-compass\s+([^>]*?)\/?>(.*?)(?:<\/outpost-compass>)?/is',
+            function ($m) {
+                $attrs = self::parseAttributes($m[1]);
+                $type  = $attrs['type'] ?? '';
+                $col   = $attrs['collection'] ?? '';
+                $name  = $attrs['source'] ?? ($attrs['name'] ?? '');
+
+                if (!$type || !$col) return '<!-- outpost-compass: type and collection required -->';
+
+                $colSafe  = htmlspecialchars($col, ENT_QUOTES);
+                $nameSafe = htmlspecialchars($name, ENT_QUOTES);
+                $colPhp   = self::phpString($col);
+                $namePhp  = self::phpString($name);
+
+                switch ($type) {
+                    case 'dropdown':
+                        $label = htmlspecialchars($attrs['label'] ?? ('All ' . ucfirst($name) . 's'), ENT_QUOTES);
+                        return '<?php require_once OUTPOST_DIR . "compass-helpers.php";'
+                            . '$_cv = compass_tpl_facet_values(' . $colPhp . ', ' . $namePhp . '); ?>'
+                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="dropdown" data-compass-collection="' . $colSafe . '">'
+                            . '<select class="compass-dropdown input">'
+                            . '<option value="">' . $label . '</option>'
+                            . '<?php foreach ($_cv as $_ck => $_cc) { ?>'
+                            . '<option value="<?php echo htmlspecialchars($_ck); ?>"><?php echo htmlspecialchars(ucfirst($_ck)); ?> (<?php echo (int)$_cc; ?>)</option>'
+                            . '<?php } ?>'
+                            . '</select></div>';
+
+                    case 'checkbox':
+                        return '<?php require_once OUTPOST_DIR . "compass-helpers.php";'
+                            . '$_cv = compass_tpl_facet_values(' . $colPhp . ', ' . $namePhp . '); ?>'
+                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="checkbox" data-compass-collection="' . $colSafe . '" class="compass-checkbox-group">'
+                            . '<?php foreach ($_cv as $_ck => $_cc) { ?>'
+                            . '<label class="compass-checkbox"><input type="checkbox" value="<?php echo htmlspecialchars($_ck); ?>"> <?php echo htmlspecialchars(ucfirst($_ck)); ?> <span class="compass-count"><?php echo (int)$_cc; ?></span></label>'
+                            . '<?php } ?>'
+                            . '</div>';
+
+                    case 'radio':
+                        return '<?php require_once OUTPOST_DIR . "compass-helpers.php";'
+                            . '$_cv = compass_tpl_facet_values(' . $colPhp . ', ' . $namePhp . '); ?>'
+                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="radio" data-compass-collection="' . $colSafe . '" class="compass-radio-group">'
+                            . '<?php foreach ($_cv as $_ck => $_cc) { ?>'
+                            . '<label class="compass-radio"><input type="radio" name="compass_' . $nameSafe . '" value="<?php echo htmlspecialchars($_ck); ?>"> <?php echo htmlspecialchars(ucfirst($_ck)); ?> <span class="compass-count"><?php echo (int)$_cc; ?></span></label>'
+                            . '<?php } ?>'
+                            . '</div>';
+
+                    case 'search':
+                        $fields = htmlspecialchars($attrs['fields'] ?? 'title', ENT_QUOTES);
+                        $placeholder = htmlspecialchars($attrs['placeholder'] ?? 'Search...', ENT_QUOTES);
+                        return '<div data-compass-facet="q" data-compass-type="search" data-compass-collection="' . $colSafe . '">'
+                            . '<input type="text" class="compass-search input" placeholder="' . $placeholder . '" data-compass-fields="' . $fields . '">'
+                            . '</div>';
+
+                    case 'range':
+                        $min  = (int) ($attrs['min'] ?? 0);
+                        $max  = (int) ($attrs['max'] ?? 100);
+                        $step = (int) ($attrs['step'] ?? 1);
+                        $prefix = htmlspecialchars($attrs['prefix'] ?? '', ENT_QUOTES);
+                        return '<div data-compass-facet="' . $nameSafe . '" data-compass-type="range" data-compass-collection="' . $colSafe . '" data-compass-min="' . $min . '" data-compass-max="' . $max . '" data-compass-step="' . $step . '">'
+                            . '<div class="compass-range">'
+                            . '<input type="range" class="compass-range-min" data-compass-range="min" min="' . $min . '" max="' . $max . '" step="' . $step . '" value="' . $min . '">'
+                            . '<input type="range" class="compass-range-max" data-compass-range="max" min="' . $min . '" max="' . $max . '" step="' . $step . '" value="' . $max . '">'
+                            . '<div class="compass-range-display"><span class="compass-range-min-val" data-compass-range-min-display>' . $prefix . $min . '</span> – <span class="compass-range-max-val" data-compass-range-max-display>' . $prefix . $max . '</span></div>'
+                            . '</div></div>';
+
+                    case 'az':
+                        $letters = '<button class="compass-az-btn compass-az-active" data-compass-az="">All</button>';
+                        foreach (range('A', 'Z') as $l) {
+                            $letters .= '<button class="compass-az-btn" data-compass-az="' . $l . '">' . $l . '</button>';
+                        }
+                        return '<div data-compass-facet="' . $nameSafe . '" data-compass-type="az" data-compass-collection="' . $colSafe . '" class="compass-az">'
+                            . $letters . '</div>';
+
+                    case 'toggle':
+                        $label = htmlspecialchars($attrs['label'] ?? ucfirst(str_replace(['-', '_'], ' ', $name)), ENT_QUOTES);
+                        return '<?php require_once OUTPOST_DIR . "compass-helpers.php";'
+                            . '$_ct = compass_tpl_facet_count(' . $colPhp . ', ' . $namePhp . '); ?>'
+                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="toggle" data-compass-collection="' . $colSafe . '" class="compass-toggle-wrap">'
+                            . '<label class="compass-toggle-label">'
+                            . '<input type="checkbox" class="compass-toggle-input">'
+                            . '<span class="compass-toggle-switch"></span>'
+                            . ' ' . $label . ' <span class="compass-count"><?php echo (int)$_ct; ?></span>'
+                            . '</label></div>';
+
+                    case 'proximity':
+                        $radius = (int) ($attrs['radius'] ?? 25);
+                        $unit = htmlspecialchars($attrs['unit'] ?? 'miles', ENT_QUOTES);
+                        return '<div data-compass-facet="proximity" data-compass-type="proximity" data-compass-collection="' . $colSafe . '" data-compass-radius="' . $radius . '" data-compass-unit="' . $unit . '" class="compass-proximity">'
+                            . '<button class="compass-proximity-btn btn btn-outline btn-sm" type="button" data-compass-proximity>'
+                            . '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+                            . ' Near Me</button>'
+                            . '<select class="compass-proximity-radius input" data-compass-radius style="display:none;">'
+                            . '<option value="5">5 ' . $unit . '</option>'
+                            . '<option value="10">10 ' . $unit . '</option>'
+                            . '<option value="25"' . ($radius === 25 ? ' selected' : '') . '>25 ' . $unit . '</option>'
+                            . '<option value="50">50 ' . $unit . '</option>'
+                            . '</select></div>';
+
+                    case 'hierarchy':
+                        return '<?php require_once OUTPOST_DIR . "compass-helpers.php";'
+                            . '$_ch = compass_tpl_hierarchy_top(' . $colPhp . ', ' . $namePhp . '); ?>'
+                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="hierarchy" data-compass-collection="' . $colSafe . '" class="compass-hierarchy">'
+                            . '<select class="compass-hierarchy-level input" data-compass-level="0">'
+                            . '<option value="">All ' . htmlspecialchars(ucfirst($name), ENT_QUOTES) . '</option>'
+                            . '<?php foreach ($_ch as $_hv) { ?>'
+                            . '<option value="<?php echo htmlspecialchars($_hv); ?>"><?php echo htmlspecialchars($_hv); ?></option>'
+                            . '<?php } ?>'
+                            . '</select></div>';
+
+                    case 'time-since':
+                        return '<div data-compass-facet="' . $nameSafe . '" data-compass-type="time-since" data-compass-collection="' . $colSafe . '" class="compass-time-since">'
+                            . '<select class="input">'
+                            . '<option value="">Any Time</option>'
+                            . '<option value="7">Past 7 days</option>'
+                            . '<option value="30">Past 30 days</option>'
+                            . '<option value="90">Past 90 days</option>'
+                            . '<option value="365">Past year</option>'
+                            . '</select></div>';
+
+                    case 'pager':
+                        $perPage = (int) ($attrs['per-page'] ?? $attrs['perpage'] ?? 12);
+                        return '<div data-compass-facet="pager" data-compass-pager data-compass-type="pager" data-compass-collection="' . $colSafe . '" data-compass-per-page="' . $perPage . '" class="compass-pager"></div>';
+
+                    default:
+                        return '<!-- outpost-compass: unknown type "' . htmlspecialchars($type) . '" -->';
+                }
+            },
+            $html
+        );
+
+        // ── Results container: <outpost-compass-results collection="..." layout="..." columns="...">...</outpost-compass-results> ──
+        $html = preg_replace_callback(
+            '/<outpost-compass-results\s+([^>]*?)>(.*?)<\/outpost-compass-results>/is',
+            function ($m) use ($editorMode) {
+                $attrs   = self::parseAttributes($m[1]);
+                $inner   = $m[2];
+                $col     = $attrs['collection'] ?? '';
+                $layout  = $attrs['layout'] ?? 'grid';
+                $columns = (int) ($attrs['columns'] ?? 3);
+                $partial = $attrs['partial'] ?? '';
+
+                if (!$col) return '<!-- outpost-compass-results: collection required -->';
+
+                $colSafe     = htmlspecialchars($col, ENT_QUOTES);
+                $layoutSafe  = htmlspecialchars($layout, ENT_QUOTES);
+                $partialSafe = htmlspecialchars($partial, ENT_QUOTES);
+
+                // Build grid class
+                $gridClass = 'compass-results';
+                if ($layout === 'grid') {
+                    $gridClass .= ' grid';
+                    if ($columns === 2) $gridClass .= ' md:grid-cols-2';
+                    elseif ($columns === 3) $gridClass .= ' md:grid-cols-2 lg:grid-cols-3';
+                    elseif ($columns === 4) $gridClass .= ' md:grid-cols-2 lg:grid-cols-4';
+                    $gridClass .= ' gap-6';
+                } elseif ($layout === 'list') {
+                    $gridClass .= ' compass-results--list';
+                }
+
+                // Compile inner template as item-scoped fields (same as outpost-each)
+                $compiledInner = self::compileItemFields($inner, $editorMode);
+                $colPhp = self::phpString($col);
+
+                $php = '<div data-compass-results data-compass-collection="' . $colSafe . '" data-compass-layout="' . $layoutSafe . '" data-compass-columns="' . $columns . '"'
+                    . ($partial ? ' data-compass-partial="' . $partialSafe . '"' : '')
+                    . ' class="' . $gridClass . '">';
+                $php .= '<?php cms_collection_list(' . $colPhp . ', function($item) { ?>';
+                $php .= $compiledInner;
+                $php .= '<?php }); ?>';
+                $php .= '</div>';
+
+                return $php;
+            },
+            $html
+        );
+
+        // ── Count: <outpost-compass-count collection="..." /> ──
+        $html = preg_replace_callback(
+            '/<outpost-compass-count\s+([^>]*?)\/?>(.*?)(?:<\/outpost-compass-count>)?/is',
+            function ($m) {
+                $attrs = self::parseAttributes($m[1]);
+                $col = $attrs['collection'] ?? '';
+                if (!$col) return '';
+                $colSafe = htmlspecialchars($col, ENT_QUOTES);
+                $colPhp  = self::phpString($col);
+                return '<?php require_once OUTPOST_DIR . "compass-helpers.php";?>'
+                    . '<span data-compass-count data-compass-collection="' . $colSafe . '" class="compass-result-count">'
+                    . '<?php echo compass_tpl_total_count(' . $colPhp . '); ?></span>';
+            },
+            $html
+        );
+
+        // ── Reset: <outpost-compass-reset collection="..." /> ──
+        $html = preg_replace_callback(
+            '/<outpost-compass-reset\s+([^>]*?)\/?>(.*?)(?:<\/outpost-compass-reset>)?/is',
+            function ($m) {
+                $attrs = self::parseAttributes($m[1]);
+                $col = $attrs['collection'] ?? '';
+                if (!$col) return '';
+                $colSafe = htmlspecialchars($col, ENT_QUOTES);
+                $label = htmlspecialchars($attrs['label'] ?? 'Clear All Filters', ENT_QUOTES);
+                return '<button data-compass-reset data-compass-collection="' . $colSafe . '" class="compass-reset btn btn-outline btn-sm">' . $label . '</button>';
+            },
+            $html
+        );
+
+        // ── Selections: <outpost-compass-selections collection="..." /> ──
+        $html = preg_replace_callback(
+            '/<outpost-compass-selections\s+([^>]*?)\/?>(.*?)(?:<\/outpost-compass-selections>)?/is',
+            function ($m) {
+                $attrs = self::parseAttributes($m[1]);
+                $col = $attrs['collection'] ?? '';
+                if (!$col) return '';
+                $colSafe = htmlspecialchars($col, ENT_QUOTES);
+                return '<div data-compass-selections data-compass-collection="' . $colSafe . '" class="compass-selections"></div>';
+            },
+            $html
+        );
+
+        // ── Sort: <outpost-compass-sort collection="..." options="field1,field2" labels="Label 1,Label 2" /> ──
+        $html = preg_replace_callback(
+            '/<outpost-compass-sort\s+([^>]*?)\/?>(.*?)(?:<\/outpost-compass-sort>)?/is',
+            function ($m) {
+                $attrs = self::parseAttributes($m[1]);
+                $col = $attrs['collection'] ?? '';
+                if (!$col) return '';
+                $colSafe = htmlspecialchars($col, ENT_QUOTES);
+                $options = array_map('trim', explode(',', $attrs['options'] ?? 'title'));
+                $labels  = array_map('trim', explode(',', $attrs['labels'] ?? ''));
+
+                $out = '<div data-compass-facet="sort" data-compass-type="sort" data-compass-collection="' . $colSafe . '" class="compass-sort">'
+                    . '<select class="compass-sort-select input">'
+                    . '<option value="">Sort by...</option>';
+                foreach ($options as $i => $opt) {
+                    $label = $labels[$i] ?? ucfirst(str_replace('_', ' ', $opt));
+                    $out .= '<option value="' . htmlspecialchars($opt, ENT_QUOTES) . '">' . htmlspecialchars($label, ENT_QUOTES) . '</option>';
+                }
+                $out .= '</select></div>';
+                return $out;
+            },
+            $html
+        );
+
+        // Clean up orphaned closing tags
+        $html = preg_replace('/<\/outpost-compass(?:-results|-count|-reset|-selections|-sort)?>/i', '', $html);
 
         return $html;
     }

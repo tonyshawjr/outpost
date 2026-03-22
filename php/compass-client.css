@@ -1,0 +1,361 @@
+/* Compass — Smart Filtering for Outpost CMS */
+
+:root {
+  --compass-accent: #365a73;
+  --compass-accent-light: rgba(54, 90, 115, 0.1);
+  --compass-text: #323d44;
+  --compass-text-muted: rgba(50, 61, 68, 0.5);
+  --compass-border: #d8d6ce;
+  --compass-bg: #fff;
+  --compass-radius: 8px;
+  --compass-count-bg: rgba(50, 61, 68, 0.08);
+}
+
+/* ── Shared ─────────────────────────────────────── */
+
+[data-compass] select.input,
+[data-compass] input[type="text"].input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--compass-border);
+  border-radius: var(--compass-radius);
+  background: var(--compass-bg);
+  color: var(--compass-text);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+[data-compass] select.input:focus,
+[data-compass] input[type="text"].input:focus {
+  outline: none;
+  border-color: var(--compass-accent);
+}
+
+.compass-count {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--compass-text-muted);
+  background: var(--compass-count-bg);
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+/* ── Checkbox Group ─────────────────────────────── */
+
+.compass-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.compass-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--compass-text);
+  cursor: pointer;
+}
+.compass-checkbox input[type="checkbox"] {
+  accent-color: var(--compass-accent);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Radio Group ────────────────────────────────── */
+
+.compass-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.compass-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--compass-text);
+  cursor: pointer;
+}
+.compass-radio input[type="radio"] {
+  accent-color: var(--compass-accent);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Range Slider ───────────────────────────────── */
+
+.compass-range {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.compass-range input[type="range"] {
+  width: 100%;
+  accent-color: var(--compass-accent);
+}
+.compass-range-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--compass-text-muted);
+}
+
+/* ── A-Z Bar ────────────────────────────────────── */
+
+.compass-az {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.compass-az-btn {
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--compass-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.compass-az-btn:hover {
+  background: var(--compass-accent-light);
+  color: var(--compass-accent);
+}
+.compass-az-btn.compass-az-active {
+  background: var(--compass-accent);
+  color: #fff;
+}
+
+/* ── Toggle Switch ──────────────────────────────── */
+
+.compass-toggle-wrap {
+  display: flex;
+  align-items: center;
+}
+.compass-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--compass-text);
+  cursor: pointer;
+}
+.compass-toggle-input {
+  display: none;
+}
+.compass-toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--compass-border);
+  border-radius: 11px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.compass-toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.compass-toggle-input:checked + .compass-toggle-switch {
+  background: var(--compass-accent);
+}
+.compass-toggle-input:checked + .compass-toggle-switch::after {
+  transform: translateX(18px);
+}
+
+/* ── Proximity ──────────────────────────────────── */
+
+.compass-proximity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compass-proximity-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.compass-proximity-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Hierarchy ──────────────────────────────────── */
+
+.compass-hierarchy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.compass-hierarchy-level {
+  width: 100%;
+}
+.compass-hierarchy-level[data-compass-level="1"] { margin-left: 12px; width: calc(100% - 12px); }
+.compass-hierarchy-level[data-compass-level="2"] { margin-left: 24px; width: calc(100% - 24px); }
+
+/* ── Time Since ─────────────────────────────────── */
+
+.compass-time-since select { width: 100%; }
+
+/* ── Sort ───────────────────────────────────────── */
+
+.compass-sort { display: inline-flex; }
+.compass-sort-select { min-width: 160px; }
+
+/* ── Pager ──────────────────────────────────────── */
+
+.compass-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 24px;
+}
+.compass-pager-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid var(--compass-border);
+  border-radius: var(--compass-radius);
+  background: var(--compass-bg);
+  color: var(--compass-text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.compass-pager-btn:hover {
+  border-color: var(--compass-accent);
+}
+.compass-pager-btn.active {
+  background: var(--compass-accent);
+  color: #fff;
+  border-color: var(--compass-accent);
+}
+.compass-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Results Container ──────────────────────────── */
+
+.compass-results {
+  transition: opacity 0.2s ease;
+}
+.compass-results.compass-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.compass-results--list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Result Count ───────────────────────────────── */
+
+.compass-result-count {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Active Filter Selections / Pills ───────────── */
+
+.compass-selections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.compass-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  background: var(--compass-accent-light);
+  color: var(--compass-accent);
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.compass-pill-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.7;
+  padding: 0;
+}
+.compass-pill-remove:hover { opacity: 1; }
+
+/* ── Reset Button ───────────────────────────────── */
+
+.compass-reset {
+  font-size: 13px;
+}
+
+/* ── Mobile Flyout ──────────────────────────────── */
+
+.compass-mobile-toggle {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.compass-mobile-flyout {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .compass-facets {
+    display: none;
+  }
+  .compass-mobile-toggle {
+    display: flex;
+  }
+  .compass-mobile-flyout {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    max-width: 85vw;
+    background: var(--compass-bg);
+    z-index: 9999;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+    padding: 24px 20px;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  }
+  .compass-mobile-flyout.open {
+    transform: translateX(0);
+  }
+  .compass-mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 9998;
+  }
+  .compass-mobile-flyout.open ~ .compass-mobile-overlay {
+    display: block;
+  }
+}

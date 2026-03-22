@@ -576,9 +576,12 @@ function sync_validate_file_path(string $rel_path, string $theme_name): ?string 
     // Null byte injection
     if (str_contains($rel_path, "\x00")) return null;
 
-    // Must start with the expected theme prefix
-    $prefix = 'themes/' . $theme_name . '/';
-    if (!str_starts_with($rel_path, $prefix)) return null;
+    // Must start with themes/ prefix (any theme, not just the active one)
+    if (!str_starts_with($rel_path, 'themes/')) return null;
+    // Extract the theme name from the path for validation
+    $parts = explode('/', $rel_path, 3);
+    if (count($parts) < 3 || !preg_match('/^[a-zA-Z0-9_-]+$/', $parts[1])) return null;
+    $prefix = 'themes/' . $parts[1] . '/';
 
     // Reject any traversal attempt before normalization
     if (str_contains($rel_path, '..')) return null;

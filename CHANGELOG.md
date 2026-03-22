@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.8.0] — 2026-03-22
+
+### Added
+- **Compass** — Smart filtering and search system for any collection. Template-driven faceted navigation with 12 filter types: search, dropdown, checkbox, radio, range, A-Z, toggle, proximity, hierarchy, time-since, pager, and sort. URL state sync, automatic mobile flyout, indexed search with incremental updates, and CSS custom properties for theming. Zero PHP or JavaScript required.
+
+---
+
 ## [4.6.14] — 2026-03-22
 
 ### Added

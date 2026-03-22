@@ -100,6 +100,13 @@ if (str_starts_with($action, 'content/')) {
     exit;
 }
 
+// Public compass API (faceted search — no auth required, reindex requires admin)
+if (str_starts_with($action, 'compass/')) {
+    require_once __DIR__ . '/compass.php';
+    handle_compass_request($action, $method);
+    exit;
+}
+
 // Public cron endpoint — key-authenticated, no session required
 if ($action === 'cron' && in_array($method, ['GET', 'POST'])) {
     require_once __DIR__ . '/engine.php';
@@ -2244,6 +2251,10 @@ function handle_item_create(): void {
     }
     dispatch_webhook('entry.created', ['id' => $id, 'collection_id' => $collection_id, 'slug' => $slug, 'status' => $status, 'data' => $item_data]);
 
+    // Update compass index
+    require_once __DIR__ . '/compass.php';
+    compass_index_item($id);
+
     $response = ['success' => true, 'id' => $id];
     if ($submitted_for_review) $response['submitted_for_review'] = true;
     json_response($response, 201);
@@ -2372,6 +2383,10 @@ function handle_item_update(): void {
         dispatch_webhook('entry.updated', $wh_data);
     }
 
+    // Update compass index
+    require_once __DIR__ . '/compass.php';
+    compass_index_item($id);
+
     $response = ['success' => true, 'updated_at' => $newTimestamp];
     if ($finalStatus === 'pending_review' && isset($data['status']) && $data['status'] === 'published') {
         $response['submitted_for_review'] = true;
@@ -2479,6 +2494,10 @@ function handle_item_delete(): void {
             'slug'        => $item['coll_slug'],
         ]));
     }
+
+    // Remove from compass index before deleting the item
+    require_once __DIR__ . '/compass.php';
+    compass_remove_item($id);
 
     $wh_data = ['id' => $id, 'slug' => $item['slug'] ?? '', 'collection_slug' => $item['coll_slug'] ?? ''];
     OutpostDB::delete('collection_items', 'id = ?', [$id]);
@@ -3792,6 +3811,11 @@ function handle_item_labels_set(): void {
             [$item_id, (int) $lid]
         );
     }
+
+    // Re-index this item in compass (labels are facets)
+    require_once __DIR__ . '/compass.php';
+    compass_index_item($item_id);
+
     json_response(['success' => true]);
 }
 // Legacy alias

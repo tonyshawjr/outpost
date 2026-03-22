@@ -28,6 +28,7 @@
 - [Releases](/outpost/docs/features/releases.html): Bundle multiple content changes and publish them all at once with one-click rollback
 - [Collaboration & Comments](/outpost/docs/features/collaboration.html): Team comments, client review links, @mentions, and feedback overlay
 - [Lodge](/outpost/docs/features/lodge.html): Member-owned content portals — let members create, edit, and manage their own collection items
+- [Compass](/outpost/docs/features/compass.html): Smart filtering and search for any collection — 12 filter types, URL state sync, mobile flyout, indexed search
 - [Schema Editor](/outpost/docs/features/schema-editor.html): Full-page collection schema editor with drag-sortable field builder, visual repeater sub-fields, and all 15 field types
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
@@ -3573,3 +3574,94 @@ All require member session (JWT or cookie).
 
 ### Sidebar Accordion Groups (v4.6.0)
 Admin sidebar organized into 5 collapsible groups: Content, Design, Connect, Members, System. Group state persists across sessions.
+
+---
+
+## Compass — Smart Filtering & Search (v4.8.0)
+
+Template-driven filtering and search system for any collection. Drop `<outpost-compass>` elements into templates to create searchable, filterable directory pages — no PHP or JavaScript required.
+
+### Filter Types
+
+All filters use `<outpost-compass type="TYPE" collection="SLUG" ...>`:
+
+- `search` — Full-text search. Attrs: `fields` (comma-separated field slugs), `placeholder`, `live` (boolean, debounced), `min-chars`.
+  `<outpost-compass type="search" collection="business" fields="title,description,address" placeholder="Search...">`
+- `dropdown` — Single-select dropdown. Attrs: `source` (folder:slug or field:fieldname), `label`, `sort` (alpha|count|custom).
+  `<outpost-compass type="dropdown" source="folder:categories" collection="business" label="All Categories">`
+- `checkbox` — Multi-select checkboxes. Attrs: `source`, `label`, `show-count`, `max` (visible before "Show more").
+  `<outpost-compass type="checkbox" source="folder:amenities" collection="business" label="Amenities" show-count>`
+- `radio` — Single-select radio buttons. Attrs: `source`, `label`, `show-all` (include "All" option).
+  `<outpost-compass type="radio" source="field:type" collection="event" label="Event Type">`
+- `range` — Numeric range slider. Attrs: `source` (field:fieldname), `min`, `max`, `step`, `prefix`, `suffix`.
+  `<outpost-compass type="range" source="field:price" collection="product" label="Price" min="0" max="500" step="10" prefix="$">`
+- `az` — A-Z alphabetical letter bar. Attrs: `field` (default: title), `show-counts`, `disable-empty`.
+  `<outpost-compass type="az" collection="business" field="title">`
+- `toggle` — Boolean on/off filter. Attrs: `source` (field:fieldname or label:slug), `label`.
+  `<outpost-compass type="toggle" source="field:featured" collection="business" label="Featured Only">`
+- `proximity` — Geolocation distance filter. Attrs: `lat-field`, `lng-field` OR `address-field`, `radius`, `unit` (mi|km), `show-distance`.
+  `<outpost-compass type="proximity" collection="business" address-field="address" label="Near Me" radius="25" unit="mi">`
+- `hierarchy` — Nested category tree/breadcrumb. Attrs: `source` (folder:slug), `display` (tree|breadcrumb), `show-count`.
+  `<outpost-compass type="hierarchy" source="folder:categories" collection="business" display="tree">`
+- `time-since` — Relative date intervals. Attrs: `source` (field:date_field), `intervals` (today,this-week,this-month,this-year,next-week,next-month).
+  `<outpost-compass type="time-since" source="field:start_date" collection="event" label="When">`
+- `pager` — Pagination. Attrs: `per-page` (default 12), `max-pages` (default 7), `show-count`.
+  `<outpost-compass type="pager" collection="business" per-page="12">`
+- `sort` — Sort control. Attrs: `options` (field:dir=Label,...), `default`.
+  `<outpost-compass type="sort" collection="business" options="title:asc=A-Z,title:desc=Z-A,created_at:desc=Newest">`
+
+### Results Container
+
+`<outpost-compass-results collection="slug" layout="grid" columns="3">` — renders filtered items. Inner HTML is the item template. Attrs: `layout` (grid|list|table), `columns` (2|3|4), `empty-message`, `loading` (skeleton|spinner|none), `mobile-breakpoint` (default 768), `mobile-position` (left|right|bottom).
+
+### Helper Tags
+
+- `<outpost-compass-count collection="slug">0 results</outpost-compass-count>` — live result count
+- `<outpost-compass-reset collection="slug">Clear all</outpost-compass-reset>` — clear all filters
+- `<outpost-compass-selections collection="slug"></outpost-compass-selections>` — active filter pills with remove buttons
+
+### Source Types
+
+- `folder:slug` — options from folder labels (managed in admin)
+- `field:fieldname` — auto-populated from distinct field values across items
+- `label:slug` — options from a specific label group within a folder
+
+### API Endpoints
+
+- `GET api.php?action=compass/values&collection=slug&source=folder:categories` — returns filter options with counts
+- `POST api.php?action=compass/filter` — execute filter query (JSON body with collection, filters, sort, page, per_page)
+- `GET api.php?action=compass/proximity&collection=slug&lat=X&lng=Y&radius=25&unit=mi` — geo search sorted by distance
+- `POST api.php?action=compass/reindex&collection=slug` — rebuild search index (admin auth required)
+
+### URL State
+
+Filters sync to URL query params: `q` (search), `{folder-slug}` or `{field-name}` (dropdown/checkbox/radio), `{field}_min`/`{field}_max` (range), `letter` (az), `lat`/`lng`/`radius` (proximity), `since` (time-since), `sort`, `page`. URL params pre-populate filters on page load; changes update URL via pushState.
+
+### Indexing
+
+SQLite `compass_index` table. Rebuilds automatically on item create/update/delete and label changes. First page load with Compass tags triggers initial build. Incremental updates for single-item changes. Sub-50ms queries on 10k+ items.
+
+### Styling
+
+CSS custom properties: `--compass-accent`, `--compass-bg`, `--compass-border`, `--compass-radius`, `--compass-font-size`, `--compass-gap`, `--compass-input-height`, `--compass-pill-bg`, `--compass-pill-color`, `--compass-mobile-overlay`.
+
+Class names: `.compass-filter`, `.compass-search`, `.compass-dropdown`, `.compass-checkbox-group`, `.compass-radio-group`, `.compass-range`, `.compass-az`, `.compass-toggle`, `.compass-results`, `.compass-pager`, `.compass-sort`, `.compass-selections`, `.compass-count`, `.compass-reset`, `.compass-mobile-trigger`, `.compass-mobile-panel`.
+
+### Example: Full Directory Page
+
+```html
+<outpost-compass type="search" collection="business" fields="title,description,address" placeholder="Search..."></outpost-compass>
+<outpost-compass type="dropdown" source="folder:categories" collection="business" label="All Categories"></outpost-compass>
+<outpost-compass type="dropdown" source="field:city" collection="business" label="All Cities"></outpost-compass>
+
+<outpost-compass-count collection="business">0 results</outpost-compass-count>
+<outpost-compass-selections collection="business"></outpost-compass-selections>
+<outpost-compass-reset collection="business">Clear all</outpost-compass-reset>
+<outpost-compass type="sort" collection="business" options="title:asc=A-Z,created_at:desc=Newest"></outpost-compass>
+
+<outpost-compass-results collection="business" layout="grid" columns="3">
+  <outpost-include partial="business-card"></outpost-include>
+</outpost-compass-results>
+
+<outpost-compass type="pager" collection="business" per-page="12" show-count></outpost-compass>
+```

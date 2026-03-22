@@ -304,6 +304,19 @@ function cms_media_folder_items(string $slug): array {
 
 // Returns all rows of a repeater field as an array of escaped key=>value maps.
 function cms_repeater_items(string $name): array {
+    // Check $item first (for repeaters inside collection singles/loops)
+    if (isset($GLOBALS['item']) && isset($GLOBALS['item'][$name])) {
+        $items = $GLOBALS['item'][$name];
+        if (is_string($items)) $items = json_decode($items, true);
+        if (!is_array($items)) return [];
+        return array_map(function ($item) {
+            $safe = [];
+            foreach ($item as $k => $v) {
+                $safe[$k] = is_bool($v) ? ($v ? '1' : '0') : htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+            }
+            return $safe;
+        }, $items);
+    }
     $json = outpost_resolve_field($name, 'repeater', '[]', '[]');
     $items = json_decode($json, true);
     if (!is_array($items)) return [];
@@ -467,6 +480,25 @@ function cms_number(string $name, string $default = '0'): void {
 
 function cms_date(string $name, string $default = ''): void {
     echo htmlspecialchars(outpost_resolve_field($name, 'date', $default), ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Format a date field for display. Used by the template engine's data-format attribute.
+ * Supports formats: "month" (MAR), "day" (28), "weekday" (Sat), "full" (Sat, MAR 28), "long" (March 28, 2026)
+ */
+function outpost_format_date(string $dateStr, string $format = 'full'): string {
+    if (!$dateStr) return '';
+    $ts = strtotime($dateStr);
+    if ($ts === false) return $dateStr;
+    switch ($format) {
+        case 'month': return strtoupper(date('M', $ts));
+        case 'day': return date('j', $ts);
+        case 'weekday': return date('D', $ts);
+        case 'full': return date('D', $ts) . ', ' . strtoupper(date('M', $ts)) . ' ' . date('j', $ts);
+        case 'long': return date('F j, Y', $ts);
+        case 'iso': return date('Y-m-d', $ts);
+        default: return date($format, $ts);
+    }
 }
 
 // ── On-Page Editing: Collection Item Wrappers ───────────
@@ -1133,6 +1165,13 @@ function outpost_cache_output(string $buffer): string {
         $dir = dirname($cache_file);
         if (!is_dir($dir)) mkdir($dir, 0755, true);
         file_put_contents($cache_file, $buffer, LOCK_EX);
+    }
+
+    // 2b. Inject Compass assets before </body> when compass tags are present on the page
+    if (strpos($buffer, 'data-compass') !== false && stripos($buffer, '</body>') !== false) {
+        $compassAssets = '<link rel="stylesheet" href="/outpost/compass-client.css">' . "\n"
+            . '<script src="/outpost/compass-client.js"></script>';
+        $buffer = preg_replace('/<\/body>/i', $compassAssets . "\n</body>", $buffer, 1);
     }
 
     // 3. Inject frontend editor overlay + admin bar before </body> (never cached — admin only, skip in customizer preview)

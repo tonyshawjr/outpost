@@ -1167,6 +1167,13 @@ function outpost_cache_output(string $buffer): string {
         file_put_contents($cache_file, $buffer, LOCK_EX);
     }
 
+    // 2b. Inject Compass assets before </body> when compass tags are present on the page
+    if (strpos($buffer, 'data-compass') !== false && stripos($buffer, '</body>') !== false) {
+        $compassAssets = '<link rel="stylesheet" href="/outpost/compass-client.css">' . "\n"
+            . '<script src="/outpost/compass-client.js"></script>';
+        $buffer = preg_replace('/<\/body>/i', $compassAssets . "\n</body>", $buffer, 1);
+    }
+
     // 3. Inject frontend editor overlay + admin bar before </body> (never cached — admin only, skip in customizer preview)
     if (outpost_is_admin() && !$isCustomizerPreview) {
         // Inject editor CSS — only right padding for icon rail (no top bar)
