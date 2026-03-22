@@ -1035,7 +1035,7 @@ class OutpostTemplateV2 {
                     $cond = $resolveExpr . ' !== ' . $val;
                 } elseif (array_key_exists('exists', $attrs)) {
                     $cond = $truthyExpr;
-                } elseif (array_key_exists('empty', $attrs)) {
+                } elseif (array_key_exists('empty', $attrs) || array_key_exists('negate', $attrs)) {
                     $cond = '!(' . $truthyExpr . ')';
                 } else {
                     // Default: truthy check
