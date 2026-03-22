@@ -22,6 +22,54 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.6.14">4.6.14 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-22</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>GraphQL API</strong> &mdash; Full GraphQL endpoint at <code>/outpost/graphql.php</code> with public read queries and authenticated CRUD mutations. Zero dependencies &mdash; pure PHP recursive descent parser with field selection, aliases, variables, fragments, and full introspection.</li>
+      <li><strong>GraphQL Playground</strong> &mdash; Interactive GraphiQL explorer at <code>/outpost/graphql-playground.html</code> for testing queries and mutations.</li>
+      <li><strong>GraphQL mutations</strong> &mdash; 12 write operations (createItem, updateItem, deleteItem, updatePage, updateGlobals, deleteMedia, assignLabels, removeLabels, createCollection, updateCollection, createFolder, createLabel) secured with Bearer API key auth.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.13">4.6.13 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-22</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Repeater loops inside collection singles</strong> &mdash; Repeater fields inside <code>&lt;outpost-single&gt;</code> blocks now render correctly instead of being silently skipped.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.12">4.6.12 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-22</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Repeater sub-field editor</strong> &mdash; Visual sub-field builder for repeater fields in the schema editor with name, type, and label per sub-field.</li>
+      <li><strong>Negate conditional support</strong> &mdash; Conditional logic now supports negation (NOT operator) for &ldquo;show when field is NOT value&rdquo; rules.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.11">4.6.11 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-22</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>RepeaterField component</strong> &mdash; Proper labels on repeater rows, select dropdowns render correctly, toggle fields work as expected.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.6.10">4.6.10 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Repeater + Gallery field types</strong> &mdash; Schema builder type dropdown now includes Repeater and Gallery as selectable field types.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.6.9">4.6.9 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-21</span></h2>
 
     <h3>Fixed</h3>

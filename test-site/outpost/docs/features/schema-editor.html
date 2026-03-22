@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collection Schema Editor &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Collection Schema Editor</h1>
+    <p class="lead">A full-page editor for defining collection fields, settings, and behavior. Drag-sortable field builder with all 15 field types, visual repeater sub-fields, conditional logic, and Lodge configuration.</p>
+  </div>
+  <div class="content">
+
+    <h2>Accessing the schema editor</h2>
+
+    <p>Navigate to <strong>Admin &rarr; Collections</strong> and click <strong>Edit</strong> on any collection. This opens the full-page schema editor at the <code>collection-schema</code> route.</p>
+
+    <p>The schema editor replaces the previous inline modal with a spacious, dedicated page where you can configure every aspect of a collection in one place.</p>
+
+    <h2>Collection settings</h2>
+
+    <p>The top section of the schema editor contains collection-level settings:</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Setting</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Name</strong></td><td>Display name shown in the admin sidebar and lists (e.g. &ldquo;Blog Posts&rdquo;).</td></tr>
+        <tr><td><strong>Slug</strong></td><td>URL-safe identifier used in templates and API calls (e.g. <code>post</code>). Immutable after creation.</td></tr>
+        <tr><td><strong>URL pattern</strong></td><td>Route pattern for single item pages (e.g. <code>/post/{slug}</code>). The <code>{slug}</code> placeholder is replaced with the item&rsquo;s slug.</td></tr>
+        <tr><td><strong>Sort field</strong></td><td>Default sort column for collection items. Options: <code>created_at</code>, <code>updated_at</code>, <code>published_at</code>, <code>sort_order</code>.</td></tr>
+        <tr><td><strong>Items per page</strong></td><td>Pagination limit for <code>&lt;outpost-each&gt;</code> collection loops on the front end.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Schema field builder</h2>
+
+    <p>Below the collection settings is the field builder &mdash; a drag-sortable list of all fields in the collection&rsquo;s schema. Each field is displayed as a collapsible row showing the field slug, type badge, and controls.</p>
+
+    <h3>Adding a field</h3>
+    <p>Click <strong>Add Field</strong> at the bottom of the field list. Enter a field slug (lowercase, underscores allowed) and select a type from the dropdown. The field appears in the list and can be expanded to configure type-specific options.</p>
+
+    <h3>Reordering fields</h3>
+    <p>Drag fields by their handle to reorder them. The order in the schema editor determines the order fields appear in the collection item editor.</p>
+
+    <h3>Removing a field</h3>
+    <p>Click the remove button on any field row. Removing a field from the schema does not delete existing data &mdash; the data remains in the database but is no longer displayed in the editor.</p>
+
+    <h2>Field types</h2>
+
+    <p>The schema editor supports all 15 field types:</p>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Type</th><th>Description</th><th>Editor UI</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>text</code></td><td>Single-line text input</td><td>Plain text input</td></tr>
+        <tr><td><code>textarea</code></td><td>Multi-line plain text</td><td>Resizable textarea</td></tr>
+        <tr><td><code>richtext</code></td><td>Formatted content</td><td>TipTap editor with toolbar</td></tr>
+        <tr><td><code>image</code></td><td>Single image</td><td>Image picker with media library</td></tr>
+        <tr><td><code>link</code></td><td>URL with optional label</td><td>URL input + label input</td></tr>
+        <tr><td><code>select</code></td><td>Dropdown selection</td><td>Dropdown with configurable choices</td></tr>
+        <tr><td><code>color</code></td><td>Color value</td><td>Native color picker</td></tr>
+        <tr><td><code>number</code></td><td>Numeric value</td><td>Number input</td></tr>
+        <tr><td><code>date</code></td><td>Date or datetime</td><td>Date picker</td></tr>
+        <tr><td><code>toggle</code></td><td>Boolean on/off</td><td>Switch toggle</td></tr>
+        <tr><td><code>repeater</code></td><td>Repeating rows with sub-fields</td><td>Add/remove rows with nested fields</td></tr>
+        <tr><td><code>gallery</code></td><td>Multiple images</td><td>Sortable image grid</td></tr>
+        <tr><td><code>flexible</code></td><td>Layout builder with named layouts</td><td>Layout picker + per-layout fields</td></tr>
+        <tr><td><code>relationship</code></td><td>Linked items from another collection</td><td>Collection item picker</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Type-specific options</h2>
+
+    <p>When you expand a field row, the schema editor shows options relevant to that field type:</p>
+
+    <h3>Select fields</h3>
+    <p>A <strong>Choices</strong> editor where you define the available options. Enter choices as comma-separated values (e.g. <code>news,event,product</code>).</p>
+
+    <h3>Relationship fields</h3>
+    <p>A <strong>Collection</strong> dropdown to choose which collection to link items from. Additional options for <code>multiple</code> (allow selecting more than one item) and <code>max</code> (maximum number of linked items).</p>
+
+    <h3>Flexible fields</h3>
+    <p>A <strong>Layouts JSON</strong> editor for defining named layouts, each with its own set of fields. This is the ACF Pro-style flexible content builder.</p>
+
+    <h3>Repeater fields</h3>
+    <p>A visual sub-field builder (see below).</p>
+
+    <h2>Visual repeater sub-field builder</h2>
+
+    <p>Repeater fields get a dedicated sub-field editor. Each sub-field has three properties:</p>
+
+    <ul>
+      <li><strong>Name</strong> &mdash; the sub-field slug (e.g. <code>skill</code>, <code>level</code>, <code>url</code>)</li>
+      <li><strong>Type</strong> &mdash; any of the standard field types (text, select, image, etc.)</li>
+      <li><strong>Label</strong> &mdash; display label shown in the collection item editor</li>
+    </ul>
+
+    <p>Click <strong>Add Sub-Field</strong> to add a new sub-field row. Click the remove button to delete a sub-field.</p>
+
+    <h3>Switch to JSON</h3>
+
+    <p>For advanced users, a <strong>Switch to JSON</strong> toggle reveals the raw JSON definition of the sub-fields. This is useful for copy-pasting field definitions between collections or for defining complex nested structures. The visual builder and JSON editor stay in sync &mdash; changes in one are reflected in the other.</p>
+
+    <p>Example sub-fields JSON:</p>
+    <pre><code>{
+  "skill": { "type": "text", "label": "Skill Name" },
+  "level": { "type": "select", "label": "Level", "options": "beginner,intermediate,advanced" }
+}</code></pre>
+
+    <h2>Conditional logic</h2>
+
+    <p>Any field can have conditions that control its visibility in the collection item editor. Conditions reference other fields in the same schema.</p>
+
+    <h3>Adding a condition</h3>
+    <p>Expand a field and click <strong>Add Condition</strong>. Select the target field, choose an operator, and (for <code>==</code> and <code>!=</code>) enter the expected value.</p>
+
+    <h3>Operators</h3>
+    <table class="schema-table">
+      <thead>
+        <tr><th>Operator</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>==</code></td><td>Equals &mdash; field value matches exactly</td></tr>
+        <tr><td><code>!=</code></td><td>Not equal &mdash; field value does not match</td></tr>
+        <tr><td><code>not_empty</code></td><td>Field has any value (not empty, not <code>0</code>, not <code>false</code>)</td></tr>
+        <tr><td><code>empty</code></td><td>Field is empty, <code>0</code>, or <code>false</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Negation</h3>
+    <p>The NOT modifier inverts any condition. For example, &ldquo;Show this field when category is NOT event&rdquo; &mdash; the field appears for all categories except &ldquo;event&rdquo;.</p>
+
+    <h3>Multiple conditions</h3>
+    <p>When a field has multiple conditions, all must be true (AND logic) for the field to be visible.</p>
+
+    <p><strong>Note:</strong> Conditional logic is editor-side only. It controls field visibility in the admin UI but does not affect template rendering or API output.</p>
+
+    <h2>Lodge settings</h2>
+
+    <p>For Lodge-enabled collections, the schema editor includes a Lodge configuration panel. This is the same configuration available at <strong>Admin &rarr; Collections &rarr; Lodge tab</strong>, but accessible directly from the schema editor for convenience.</p>
+
+    <p>Lodge settings include:</p>
+    <ul>
+      <li>Enable/disable Lodge on the collection</li>
+      <li>Allow create, edit, and delete toggles</li>
+      <li>Require approval toggle (items need admin approval before publishing)</li>
+      <li>Max items per member limit</li>
+      <li>Editable fields whitelist (which fields members can write)</li>
+      <li>Read-only fields (visible but not editable by members)</li>
+      <li>Required tiers (restrict Lodge access to specific member tiers)</li>
+    </ul>
+
+    <p>See the <a href="features/lodge.html">Lodge documentation</a> for full details on member portal configuration.</p>
+
+    <h2>Require review</h2>
+
+    <p>Toggle the <strong>Require review</strong> option to enable editorial review for the collection. When enabled, items saved by non-admin users are set to <code>pending_review</code> status instead of <code>published</code>. An admin must then approve the item before it appears on the live site.</p>
+
+    <h2>Keyboard shortcuts</h2>
+
+    <table class="schema-table">
+      <thead>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><kbd>Cmd+S</kbd> (Mac) / <kbd>Ctrl+S</kbd> (Windows)</td><td>Save the collection schema</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Schema JSON format</h2>
+
+    <p>The schema is stored as a JSON object in the <code>collections.schema</code> column. Keys are field slugs and values are objects with <code>type</code>, <code>label</code>, and type-specific options.</p>
+
+    <pre><code>{
+  "title": { "type": "text", "label": "Title" },
+  "body": { "type": "richtext", "label": "Body" },
+  "category": {
+    "type": "select",
+    "label": "Category",
+    "options": "news,event,product"
+  },
+  "featured_image": { "type": "image", "label": "Featured Image" },
+  "skills": {
+    "type": "repeater",
+    "label": "Skills",
+    "sub_fields": {
+      "skill": { "type": "text", "label": "Skill Name" },
+      "level": { "type": "select", "label": "Level", "options": "beginner,intermediate,advanced" }
+    }
+  },
+  "related_posts": {
+    "type": "relationship",
+    "label": "Related Posts",
+    "collection": "post",
+    "multiple": true,
+    "max": 5
+  },
+  "event_date": {
+    "type": "date",
+    "label": "Event Date",
+    "conditions": [
+      { "field": "category", "operator": "==", "value": "event" }
+    ]
+  }
+}</code></pre>
+
+    <p>The schema editor reads and writes this JSON directly. The admin API normalizes incoming schema data &mdash; if you send the array format (<code>{fields: [{name, type}]}</code>), it is automatically converted to the flat object format shown above.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

@@ -177,7 +177,7 @@ Everything below is already built and released.
 **Position Outpost as the zero-config headless CMS.** Strapi and Payload own headless but require Node.js and a database server. Outpost's gap is "headless + zero config, runs on a $5/month host."
 
 - ~~**JWT Bearer Token Auth**~~ — SHIPPED (v4.4.0). Stateless HS256 JWT for mobile apps and headless clients. Member token endpoints (`token`, `token/register`, `token/refresh`, `token/me`). Configurable CORS origins via `api_cors_origins` setting.
-- **GraphQL API** — read-only to start, auto-generated from collection schemas. Query collections, items, pages, globals, menus, media — all via GraphQL. Introspection enabled for IDE autocomplete.
+- ~~**GraphQL API**~~ — **Shipped** (v4.6.14). Full GraphQL endpoint with public read queries and authenticated CRUD mutations. Auto-generated schema, introspection, field selection, aliases, variables, fragments. Interactive GraphiQL playground. Zero dependencies.
 - **Content webhooks v2** — structured payloads with full content diffs (before/after JSON), not just event names. Know exactly what changed.
 - **Static site preview** — trigger a preview build on content change via webhook (for Astro, Next.js, Hugo, Eleventy). One-click "Preview in Vercel/Netlify."
 - **Real-time content events** — SSE endpoint that streams content changes as they happen. Subscribe from any frontend framework for live updates.
@@ -261,6 +261,7 @@ Everything below is already built and released.
 - **Feature Toggles** — 14 toggleable sidebar features in Settings > Features (Collections, Channels, Forms, Members, Lodge, Analytics, Media, Code Editor, Navigation, Releases, Workflows, Review Links, Backups, Ranger)
 - **Sidebar Accordion Groups** — 5 collapsible groups (Content, Site, Members, Build, Insights) with localStorage persistence
 - **Security hardened** — atomic transactions for limits, rate limiting on all mutations, MIME-based file extension mapping, lodge slug sanitization, XSS protection on member profile data
+- **Full-page Collection Schema Editor** (v4.6.10–v4.6.13) — dedicated full-page route replaces inline modal. Drag-sortable field builder with all 15 field types, visual repeater sub-field builder (with JSON toggle), type-specific options (select choices, relationship picker, flexible layouts, repeater sub-fields), conditional logic on any field, Lodge settings panel, require review toggle, and Cmd+S save shortcut
 
 ---
 
@@ -354,7 +355,7 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~3.3~~ | Collaboration (Comments & Review) | **Shipped** |
 | 3.4 | Theme Gallery + 5 Themes | Planned |
 | 3.5 | Multi-Language (i18n) | Planned |
-| 3.6 | Headless-First (GraphQL) | Planned |
+| ~~3.6~~ | ~~Headless-First (GraphQL)~~ | **Shipped** |
 | 3.7 | Collaborative Editing | Planned |
 | ~~4.0~~ | Smart Forge + Frontend Drawer | **Shipped** |
 | ~~4.1~~ | Template Engine v2 — Data Attribute Architecture | **Shipped** |

@@ -29,6 +29,7 @@
   import CollectionList from '$pages/CollectionList.svelte';
   import CollectionItems from '$pages/CollectionItems.svelte';
   import CollectionEditor from '$pages/CollectionEditor.svelte';
+  import CollectionSchema from '$pages/CollectionSchema.svelte';
   import MediaLibrary from '$pages/MediaLibrary.svelte';
   import Settings from '$pages/Settings.svelte';
   import UserProfile from '$pages/UserProfile.svelte';
@@ -173,6 +174,8 @@
           <CollectionList />
         {:else if route === 'collection-items'}
           <CollectionItems />
+        {:else if route === 'collection-schema'}
+          <CollectionSchema />
         {:else if route === 'collection-editor'}
           <CollectionEditor />
         {:else if route === 'media'}

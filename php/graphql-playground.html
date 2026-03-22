@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphQL Playground — Outpost CMS</title>
+  <style>
+    body { margin: 0; height: 100vh; overflow: hidden; }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, system-ui, sans-serif; color: #666; }
+    #loading.hidden { display: none; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/graphiql@3.4.0/graphiql.min.css" />
+</head>
+<body>
+  <div id="loading">Loading GraphQL Playground...</div>
+  <div id="graphiql" style="height: 100vh;"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/graphiql@3.4.0/graphiql.min.js" crossorigin></script>
+
+  <script>
+    // Resolve the GraphQL endpoint relative to this page
+    const endpoint = window.location.pathname.replace(/\/graphql-playground\.html$/, '/graphql.php');
+
+    // Read API key from URL hash for convenience: #key=op_xxx
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const apiKey = hashParams.get('key') || '';
+
+    const fetcher = GraphiQL.createFetcher({
+      url: endpoint,
+      headers: apiKey ? { 'Authorization': 'Bearer ' + apiKey } : {},
+    });
+
+    const root = ReactDOM.createRoot(document.getElementById('graphiql'));
+    document.getElementById('loading').classList.add('hidden');
+
+    root.render(
+      React.createElement(GraphiQL, {
+        fetcher: fetcher,
+        defaultQuery: `# Outpost CMS GraphQL API
+#
+# Queries are public (no auth needed).
+# Mutations require: Authorization: Bearer <api_key>
+#
+# To set an API key for mutations, add #key=op_xxx to the URL.
+
+{
+  collections {
+    slug
+    name
+    itemCount
+  }
+
+  pages {
+    path
+    title
+  }
+
+  globals
+}
+`,
+      })
+    );
+  </script>
+</body>
+</html>

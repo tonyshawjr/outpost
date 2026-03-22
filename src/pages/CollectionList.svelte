@@ -133,7 +133,8 @@
     formUrlPattern = coll.url_pattern || `/${coll.slug}/{slug}`;
     formRequireReview = !!(coll.require_review);
     formWorkflowId = coll.workflow_id || null;
-    const schema = JSON.parse(coll.schema || '{}');
+    let schema = {};
+    try { schema = JSON.parse(coll.schema || '{}'); } catch { schema = {}; }
     formSchema = Object.entries(schema).map(([name, def]) => ({
       name,
       type: def.type || 'text',
@@ -298,7 +299,7 @@
   {:else}
     <div class="coll-grid">
       {#each colls as coll (coll.id)}
-        {@const schema = JSON.parse(coll.schema || '{}')}
+        {@const schema = (() => { try { return JSON.parse(coll.schema || '{}'); } catch { return {}; } })()}
         {@const fieldCount = Object.keys(schema).length}
         <div class="card" style="cursor: pointer;" onclick={() => viewItems(coll)} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && viewItems(coll)}>
           <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-md);">
@@ -312,7 +313,7 @@
             {fieldCount} field{fieldCount !== 1 ? 's' : ''}: {Object.keys(schema).slice(0, 3).join(', ')}{fieldCount > 3 ? '...' : ''}
           </div>
           <div style="display: flex; gap: var(--space-xs);">
-            <button class="btn btn-secondary btn-sm" onclick={(e) => { e.stopPropagation(); openEdit(coll); }} style="flex: 1;">Edit Schema</button>
+            <button class="btn btn-secondary btn-sm" onclick={(e) => { e.stopPropagation(); navigate('collection-schema', { collectionSlug: coll.slug }); }} style="flex: 1;">Edit Schema</button>
             <button class="btn btn-danger btn-sm" onclick={(e) => { e.stopPropagation(); openDeleteConfirm(coll); }}>Delete</button>
           </div>
         </div>

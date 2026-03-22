@@ -4,6 +4,31 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## GraphQL API (v4.6.14)
+
+- **GraphQL endpoint** — `/outpost/graphql.php` — single POST endpoint with auto-generated schema from the CMS database. Pure PHP recursive descent parser — zero external dependencies.
+- **Public queries** — All read operations are unauthenticated: collections, items (with pagination, sorting, folder filtering), pages, globals, menus, media, folders, labels, and full site schema.
+- **Authenticated mutations** — 12 CRUD mutations secured with Bearer API key: createItem, updateItem, deleteItem, updatePage, updateGlobals, deleteMedia, assignLabels, removeLabels, createCollection, updateCollection, createFolder, createLabel.
+- **GraphQL features** — Field selection, aliases, variables, fragments, and full `__schema` introspection (works with GraphiQL, Apollo Studio, any GraphQL client).
+- **Interactive playground** — GraphiQL explorer at `/outpost/graphql-playground.html` with API key support via URL hash.
+- **Rate limiting** — 120 requests per 60 seconds per IP, same as the REST Content API.
+
+---
+
+## Full-Page Collection Schema Editor (v4.6.10–v4.6.13)
+
+- **Full-page schema editor** — Replaces the old inline modal with a dedicated full-page route (`collection-schema`). Collection settings (name, slug, URL pattern, sort field, items per page) and schema field definitions are edited on one page with a clean, spacious layout.
+- **15 field types** — All field types available in the schema builder dropdown: text, textarea, richtext, image, link, select, color, number, date, toggle, repeater, gallery, flexible, relationship, and conditional logic on any field.
+- **Drag-sortable field builder** — Fields are reordered via drag-and-drop. Each field row shows the field name, type, and inline controls for editing options or removing the field.
+- **Visual repeater sub-field builder** — Repeater fields get a nested sub-field editor where you define sub-field name, type, and label visually. A "Switch to JSON" toggle lets advanced users edit the raw JSON definition directly.
+- **Type-specific options** — Select fields show a choices editor, relationship fields show a collection picker, flexible fields show a layouts JSON editor, repeater fields show the visual/JSON sub-field builder.
+- **Conditional logic** — Any field can have conditions (show/hide based on other field values) with operators: equals, not equals, not empty, empty, plus negation support.
+- **Lodge settings panel** — Lodge configuration (enable, permissions, tier gating, field whitelists) is accessible from the schema editor page for Lodge-enabled collections.
+- **Require review toggle** — Enable editorial review requirement directly from the schema editor.
+- **Keyboard shortcut** — Cmd+S (or Ctrl+S) saves the collection schema without reaching for the save button.
+
+---
+
 ## Lodge — Member-Owned Content Portal & Feature Toggles (v4.6.0)
 
 - **Lodge** — First-class member portal feature. Members log in and manage their own collection items from the front-end. Enable Lodge per-collection with granular config: allow create/edit/delete, require approval, max items per member, editable/readonly field whitelists, and tier-based access gating. Supports directories, marketplaces, job boards, membership platforms.

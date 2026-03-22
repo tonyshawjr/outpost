@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphQL API — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>GraphQL API</h1>
+    <p class="lead">A full GraphQL API for Outpost CMS. Read queries are public (no auth). Write mutations require a Bearer API key. Schema is auto-generated from your CMS database. No external dependencies.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+
+    <p>The GraphQL API is a single endpoint that accepts both queries and mutations. It supports field selection, aliases, variables, fragments, and full introspection (works with GraphiQL, GraphQL Playground, and Apollo Studio).</p>
+
+    <pre><code>POST https://example.com/outpost/graphql.php
+Content-Type: application/json
+
+{"query": "{ collections { slug name itemCount } }"}</code></pre>
+
+    <p>Rate limiting: 120 requests per 60 seconds per IP address.</p>
+
+    <div class="callout callout-tip">
+      <strong>Interactive playground</strong>
+      Open <code>/outpost/graphql-playground.html</code> in your browser to explore the API with GraphiQL. For mutations, add <code>#key=op_xxx</code> to the URL to set your API key.
+    </div>
+
+    <h2>Authentication</h2>
+
+    <table class="schema-table">
+      <thead><tr><th>Operation</th><th>Auth required?</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Queries</strong> (read)</td><td>No</td><td>All query fields are fully public, identical to the REST Content API.</td></tr>
+        <tr><td><strong>Mutations</strong> (write)</td><td>Yes</td><td>Requires <code>Authorization: Bearer &lt;api_key&gt;</code> header. Generate API keys in Settings &gt; API Keys.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Unauthenticated mutation attempts return:</p>
+    <pre><code>{"errors": [{"message": "Authentication required. Provide Authorization: Bearer &lt;api_key&gt; header."}]}</code></pre>
+
+    <h2>Quick start</h2>
+
+    <h3>Fetch all collections</h3>
+    <pre><code>curl -X POST https://yoursite.com/outpost/graphql.php \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ collections { slug name itemCount } }"}'</code></pre>
+
+    <h3>Fetch items with pagination</h3>
+    <pre><code>curl -X POST https://yoursite.com/outpost/graphql.php \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ items(collection: \"blog\", limit: 10) { data { slug title fields } total } }"}'</code></pre>
+
+    <h3>Fetch a single page</h3>
+    <pre><code>curl -X POST https://yoursite.com/outpost/graphql.php \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ page(path: \"/\") { title fields } }"}'</code></pre>
+
+    <h3>Using variables</h3>
+    <pre><code>curl -X POST https://yoursite.com/outpost/graphql.php \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "query GetItem($col: String!, $slug: String!) { item(collection: $col, slug: $slug) { title url fields } }",
+    "variables": {"col": "blog", "slug": "my-post"}
+  }'</code></pre>
+
+    <h3>Using aliases</h3>
+    <pre><code>{
+  blogs: items(collection: "blog", limit: 5) { total data { title } }
+  events: items(collection: "event", limit: 5) { total data { title } }
+}</code></pre>
+
+    <h2>Query types</h2>
+
+    <h3>collections</h3>
+    <p>List all collections.</p>
+    <pre><code>{ collections { id slug name singularName urlPattern sortField sortDirection itemsPerPage fields { name type label required } itemCount } }</code></pre>
+
+    <h3>collection(slug: String!)</h3>
+    <p>Get a single collection by slug. Returns <code>null</code> if not found.</p>
+    <pre><code>{ collection(slug: "blog") { name fields { name type } itemCount } }</code></pre>
+
+    <h3>items(collection: String!, limit: Int, offset: Int, orderBy: String, order: String, folder: String, label: String)</h3>
+    <p>Paginated list of published items in a collection. Filter by folder + label.</p>
+    <pre><code>{ items(collection: "blog", limit: 10, offset: 0, orderBy: "published_at", order: "DESC") {
+  data { id slug title url status createdAt updatedAt publishedAt fields labels }
+  total limit offset
+} }</code></pre>
+
+    <table class="schema-table">
+      <thead><tr><th>Argument</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>collection</code></td><td>String!</td><td>-</td><td>Collection slug (required)</td></tr>
+        <tr><td><code>limit</code></td><td>Int</td><td>10</td><td>Max items (1-100)</td></tr>
+        <tr><td><code>offset</code></td><td>Int</td><td>0</td><td>Skip N items</td></tr>
+        <tr><td><code>orderBy</code></td><td>String</td><td>Collection default</td><td>created_at, updated_at, published_at, slug, sort_order</td></tr>
+        <tr><td><code>order</code></td><td>String</td><td>Collection default</td><td>ASC or DESC</td></tr>
+        <tr><td><code>folder</code></td><td>String</td><td>-</td><td>Folder slug for filtering</td></tr>
+        <tr><td><code>label</code></td><td>String</td><td>-</td><td>Label slug within the folder</td></tr>
+      </tbody>
+    </table>
+
+    <h3>item(collection: String!, slug: String!)</h3>
+    <p>Get a single published item by collection + slug.</p>
+    <pre><code>{ item(collection: "blog", slug: "my-post") { title url fields labels } }</code></pre>
+
+    <h3>pages</h3>
+    <p>List all public pages.</p>
+    <pre><code>{ pages { id path title metaTitle metaDescription fields } }</code></pre>
+
+    <h3>page(path: String!)</h3>
+    <p>Get a single page by path. Use <code>/</code> for the homepage.</p>
+    <pre><code>{ page(path: "/about") { title fields } }</code></pre>
+
+    <h3>globals</h3>
+    <p>Get all global field values as a JSON object.</p>
+    <pre><code>{ globals }</code></pre>
+
+    <h3>menus</h3>
+    <p>List all menus (summary only).</p>
+    <pre><code>{ menus { slug name itemCount } }</code></pre>
+
+    <h3>menu(slug: String!)</h3>
+    <p>Get a single menu with its full item tree.</p>
+    <pre><code>{ menu(slug: "main") { name items { label url target children { label url } } } }</code></pre>
+
+    <h3>media(limit: Int, offset: Int)</h3>
+    <p>Paginated list of uploaded media files.</p>
+    <pre><code>{ media(limit: 20) { data { id filename path mimeType width height altText } total } }</code></pre>
+
+    <h3>folders(collection: String)</h3>
+    <p>List folders, optionally filtered by collection slug.</p>
+    <pre><code>{ folders(collection: "blog") { slug name type collectionSlug labelCount } }</code></pre>
+
+    <h3>labels(folder: String!)</h3>
+    <p>List labels in a folder.</p>
+    <pre><code>{ labels(folder: "categories") { id slug name description parentId itemCount data } }</code></pre>
+
+    <h3>schema</h3>
+    <p>Full site schema: collections, pages, globals, folders.</p>
+    <pre><code>{ schema { collections { slug name fields { name type } } pages { path title } globals { name type } folders { slug name } } }</code></pre>
+
+    <h2>Mutation types</h2>
+
+    <p>All mutations require <code>Authorization: Bearer &lt;api_key&gt;</code>.</p>
+
+    <h3>createItem</h3>
+    <p>Create a new collection item.</p>
+    <pre><code>mutation {
+  createItem(
+    collection: "blog"
+    slug: "my-new-post"
+    status: "published"
+    data: {title: "My New Post", body: "&lt;p&gt;Hello world&lt;/p&gt;"}
+  ) {
+    id slug title url status publishedAt
+  }
+}</code></pre>
+
+    <h3>updateItem</h3>
+    <p>Partial update — only provided fields are changed. Data is merged with existing data.</p>
+    <pre><code>mutation {
+  updateItem(id: 42, data: {title: "Updated Title"}, status: "published") {
+    id slug title status updatedAt
+  }
+}</code></pre>
+
+    <h3>deleteItem</h3>
+    <pre><code>mutation { deleteItem(id: 42) }</code></pre>
+
+    <h3>updatePage</h3>
+    <p>Update a page's meta fields and/or content fields.</p>
+    <pre><code>mutation {
+  updatePage(id: 1, fields: {hero_title: "Welcome!"}, metaTitle: "Home") {
+    id path title fields
+  }
+}</code></pre>
+
+    <h3>updateGlobals</h3>
+    <p>Update global field values.</p>
+    <pre><code>mutation { updateGlobals(fields: {site_name: "My Site", footer_text: "2024"}) }</code></pre>
+
+    <h3>deleteMedia</h3>
+    <pre><code>mutation { deleteMedia(id: 7) }</code></pre>
+
+    <h3>assignLabels / removeLabels</h3>
+    <pre><code>mutation { assignLabels(itemId: 42, labelIds: [1, 2, 3]) }
+mutation { removeLabels(itemId: 42, labelIds: [3]) }</code></pre>
+
+    <h3>createCollection</h3>
+    <pre><code>mutation {
+  createCollection(
+    name: "Products"
+    slug: "product"
+    singularName: "Product"
+    urlPattern: "/product/{slug}"
+    schema: {fields: [{name: "title", type: "text"}, {name: "price", type: "number"}]}
+  ) {
+    id slug name fields { name type }
+  }
+}</code></pre>
+
+    <h3>updateCollection</h3>
+    <pre><code>mutation {
+  updateCollection(id: 5, name: "Updated Name", urlPattern: "/shop/{slug}") {
+    id slug name urlPattern
+  }
+}</code></pre>
+
+    <h3>createFolder / createLabel</h3>
+    <pre><code>mutation {
+  createFolder(collectionId: 1, name: "Categories", slug: "categories", type: "flat") {
+    slug name type
+  }
+}
+
+mutation {
+  createLabel(folderId: 1, name: "Tutorials", slug: "tutorials") {
+    id slug name itemCount
+  }
+}</code></pre>
+
+    <h2>JavaScript example</h2>
+
+    <pre><code>// Helper function
+async function graphql(query, variables = {}, apiKey = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+  const res = await fetch('/outpost/graphql.php', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables }),
+  });
+
+  const json = await res.json();
+  if (json.errors) throw new Error(json.errors[0].message);
+  return json.data;
+}
+
+// Read (no auth)
+const { collections } = await graphql(`{
+  collections { slug name itemCount }
+}`);
+
+// Write (API key required)
+const { createItem } = await graphql(`
+  mutation CreatePost($slug: String!, $data: JSON!) {
+    createItem(collection: "blog", slug: $slug, status: "published", data: $data) {
+      id slug url
+    }
+  }
+`, { slug: 'hello-world', data: { title: 'Hello World', body: '&lt;p&gt;First post!&lt;/p&gt;' } }, 'op_your_api_key');</code></pre>
+
+    <h2>Response format</h2>
+
+    <p>Standard GraphQL response envelope:</p>
+    <pre><code>// Success
+{"data": {"collections": [...]}}
+
+// Error
+{"errors": [{"message": "Collection 'xyz' not found"}]}</code></pre>
+
+    <h2>Differences from the REST Content API</h2>
+
+    <table class="schema-table">
+      <thead><tr><th></th><th>REST Content API</th><th>GraphQL API</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Endpoint</strong></td><td><code>api.php?action=content/...</code></td><td><code>graphql.php</code></td></tr>
+        <tr><td><strong>Method</strong></td><td>GET only</td><td>POST (GET for simple queries)</td></tr>
+        <tr><td><strong>Field selection</strong></td><td>Returns all fields always</td><td>Only returns requested fields</td></tr>
+        <tr><td><strong>Multiple resources</strong></td><td>One endpoint per request</td><td>Multiple in a single request</td></tr>
+        <tr><td><strong>Write operations</strong></td><td>Not supported</td><td>Full CRUD via mutations</td></tr>
+        <tr><td><strong>Auth for reads</strong></td><td>None</td><td>None</td></tr>
+        <tr><td><strong>Auth for writes</strong></td><td>N/A</td><td>Bearer API key</td></tr>
+        <tr><td><strong>Introspection</strong></td><td>N/A</td><td>Full <code>__schema</code> support</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Rate limiting</h2>
+
+    <p>120 requests per 60 seconds per IP. Exceeding returns <code>429 Too Many Requests</code>.</p>
+
+    <h2>CORS</h2>
+
+    <p>Fully open: <code>Access-Control-Allow-Origin: *</code>. Supports <code>Content-Type</code> and <code>Authorization</code> headers.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

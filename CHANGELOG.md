@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.14] — 2026-03-22
+
+### Added
+- **GraphQL API** — Full GraphQL endpoint at `/outpost/graphql.php` with public read queries and authenticated CRUD mutations. Zero dependencies — pure PHP recursive descent parser with support for field selection, aliases, variables, fragments, and full introspection. Works with GraphiQL, Apollo Studio, and any GraphQL client.
+- **GraphQL Playground** — Interactive GraphiQL explorer at `/outpost/graphql-playground.html` for testing queries and mutations.
+- **GraphQL mutations** — 12 write operations (createItem, updateItem, deleteItem, updatePage, updateGlobals, deleteMedia, assignLabels, removeLabels, createCollection, updateCollection, createFolder, createLabel) secured with Bearer API key auth.
+
+---
+
+## [4.6.13] — 2026-03-22
+
+### Fixed
+- **Repeater loops inside collection singles** — Repeater fields inside `<outpost-single>` blocks now render correctly instead of being silently skipped
+
+---
+
+## [4.6.12] — 2026-03-22
+
+### Added
+- **Repeater sub-field editor** — Visual sub-field builder for repeater fields in the schema editor with name, type, and label per sub-field
+- **Negate conditional support** — Conditional logic now supports negation (NOT operator) for "show when field is NOT value" rules
+
+---
+
+## [4.6.11] — 2026-03-22
+
+### Fixed
+- **RepeaterField component** — Proper labels on repeater rows, select dropdowns render correctly, toggle fields work as expected
+
+---
+
+## [4.6.10] — 2026-03-21
+
+### Added
+- **Repeater + Gallery field types** — Schema builder type dropdown now includes Repeater and Gallery as selectable field types
+
+---
+
 ## [4.6.9] — 2026-03-21
 
 ### Fixed

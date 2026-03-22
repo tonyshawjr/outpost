@@ -14,6 +14,7 @@
 - [Channel Loops](/outpost/docs/loops/channel-loops.html): Template syntax for channel data loops (type-agnostic)
 - [Members System](/outpost/docs/members/): Member registration, login, password reset
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
+- [GraphQL API](/outpost/docs/api/graphql.html): Full GraphQL API with queries, mutations, introspection, and interactive playground
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
 - [Brand Settings](/outpost/docs/features/brand.html): Site-wide colors, fonts, logo, and favicon — baseline identity for themes
 - [Theme Customizer](/outpost/docs/features/theme-customizer.html): Visual color, font, logo, and favicon editor with live preview
@@ -27,6 +28,7 @@
 - [Releases](/outpost/docs/features/releases.html): Bundle multiple content changes and publish them all at once with one-click rollback
 - [Collaboration & Comments](/outpost/docs/features/collaboration.html): Team comments, client review links, @mentions, and feedback overlay
 - [Lodge](/outpost/docs/features/lodge.html): Member-owned content portals — let members create, edit, and manage their own collection items
+- [Schema Editor](/outpost/docs/features/schema-editor.html): Full-page collection schema editor with drag-sortable field builder, visual repeater sub-fields, and all 15 field types
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -1033,6 +1035,123 @@ Collection schema fields support conditional logic — show/hide fields based on
 ```
 
 When `category` is not "event", the `event_date` field is hidden from the editor. Multiple conditions use AND logic (all must be true). Conditional logic is editor-side only — it does not affect template rendering or API output.
+
+## Collection Schema Editor (v4.6.10+)
+
+A full-page editor for collection schemas, accessed via Admin → Collections → Edit on any collection. Route: `collection-schema`.
+
+### What it replaces
+
+Previously, collection schema editing was done in a small inline modal. The new schema editor is a full-page view with room for all settings and fields.
+
+### Collection settings
+
+The top of the page contains collection-level settings:
+
+| Setting | Description |
+|---|---|
+| Name | Display name (e.g. "Blog Posts") |
+| Slug | URL-safe identifier, used in templates and API (immutable after creation) |
+| URL pattern | Route pattern for single items, e.g. `/post/{slug}` |
+| Sort field | Default sort column for items (created_at, updated_at, published_at, sort_order) |
+| Items per page | Pagination limit for collection loops |
+
+### Schema field types (15 total)
+
+| Type | Description |
+|---|---|
+| text | Single-line text input |
+| textarea | Multi-line plain text |
+| richtext | TipTap rich text editor with formatting toolbar |
+| image | Image picker with media library integration |
+| link | URL field with optional label |
+| select | Dropdown with configurable choices |
+| color | Native color picker |
+| number | Numeric input |
+| date | Date/datetime picker |
+| toggle | Boolean on/off switch |
+| repeater | Nested repeating rows with sub-fields |
+| gallery | Sortable image grid with add/remove/reorder |
+| flexible | Flexible content layouts (ACF Pro-style) |
+| relationship | Linked items from another collection |
+| conditional | Any field can have show/hide conditions |
+
+### Drag-sortable field builder
+
+Fields are displayed as rows that can be reordered via drag-and-drop (SortableJS). Each row shows the field slug, type badge, and expand/collapse controls. Expanded view shows type-specific options.
+
+### Visual repeater sub-field builder
+
+Repeater fields get a nested builder where each sub-field has:
+- **Name** — the sub-field slug (e.g. `skill`, `level`)
+- **Type** — any of the 15 field types
+- **Label** — display label in the editor
+
+A "Switch to JSON" toggle reveals the raw JSON definition for advanced editing. The visual builder and JSON editor stay in sync.
+
+### Type-specific options
+
+- **Select** — choices editor (comma-separated or one per line)
+- **Relationship** — collection picker dropdown to select which collection to link
+- **Flexible** — layouts JSON editor for defining named layouts with fields
+- **Repeater** — visual sub-field builder (see above)
+
+### Conditional logic
+
+Any field can have conditions that control visibility in the editor. Conditions reference other fields in the same schema:
+
+- **Operators:** `==` (equals), `!=` (not equals), `not_empty`, `empty`
+- **Negation:** "NOT" modifier inverts any condition
+- **Multiple conditions** use AND logic (all must be true to show the field)
+
+### Lodge settings panel
+
+For Lodge-enabled collections, the schema editor includes a Lodge configuration section with:
+- Enable/disable Lodge
+- Allow create/edit/delete toggles
+- Require approval toggle
+- Max items per member
+- Editable and read-only field whitelists
+- Required tiers
+
+### Additional features
+
+- **Require review toggle** — enable editorial review for the collection directly from the schema editor
+- **Keyboard shortcut** — Cmd+S (Mac) or Ctrl+S (Windows) saves the schema
+- **Schema format** — stored as a JSON object where keys are field slugs and values are objects with `type`, `label`, and type-specific options (e.g. `options` for select, `sub_fields` for repeater, `conditions` for conditional logic)
+
+### Schema JSON format
+
+```json
+{
+  "title": { "type": "text", "label": "Title" },
+  "body": { "type": "richtext", "label": "Body" },
+  "category": { "type": "select", "label": "Category", "options": "news,event,product" },
+  "featured_image": { "type": "image", "label": "Featured Image" },
+  "skills": {
+    "type": "repeater",
+    "label": "Skills",
+    "sub_fields": {
+      "skill": { "type": "text", "label": "Skill Name" },
+      "level": { "type": "select", "label": "Level", "options": "beginner,intermediate,advanced" }
+    }
+  },
+  "related_posts": {
+    "type": "relationship",
+    "label": "Related Posts",
+    "collection": "post",
+    "multiple": true,
+    "max": 5
+  },
+  "event_date": {
+    "type": "date",
+    "label": "Event Date",
+    "conditions": [
+      { "field": "category", "operator": "==", "value": "event" }
+    ]
+  }
+}
+```
 
 ## Scheduling
 
@@ -2375,6 +2494,74 @@ const page = await outpost('content/pages', { path: '/about' });
 - `offset` past total → returns empty `data: []` with correct `meta.total`
 - Globals page (`__global__`) → never in `content/pages`; use `content/globals`
 - No menus defined → `content/menus` returns `{ "data": [], "meta": { "total": 0 } }`
+
+## GraphQL API
+
+Full GraphQL API at `/outpost/graphql.php`. Single endpoint, POST with JSON body `{"query": "...", "variables": {}}`. Zero external dependencies — pure PHP parser.
+
+**Authentication:**
+- Queries (reads) — no auth required, same as REST Content API
+- Mutations (writes) — require `Authorization: Bearer <api_key>` header (same API keys as admin API)
+
+**Interactive explorer:** `/outpost/graphql-playground.html` loads GraphiQL. Add `#key=op_xxx` to URL for mutation auth.
+
+### Query types
+```graphql
+{
+  collections { slug name itemCount fields { name type } }
+  collection(slug: "blog") { name fields { name type } itemCount }
+  items(collection: "blog", limit: 10, offset: 0, orderBy: "published_at", order: "DESC", folder: "categories", label: "tutorials") {
+    data { id slug title url status createdAt updatedAt publishedAt fields labels }
+    total limit offset
+  }
+  item(collection: "blog", slug: "my-post") { title url fields labels }
+  pages { id path title metaTitle metaDescription fields }
+  page(path: "/") { title fields }
+  globals  # Returns JSON object of all global fields
+  menus { slug name itemCount }
+  menu(slug: "main") { name items { label url target children { label url } } }
+  media(limit: 50, offset: 0) { data { id filename path mimeType width height altText } total }
+  folders(collection: "blog") { slug name type collectionSlug labelCount }
+  labels(folder: "categories") { id slug name description parentId itemCount data }
+  schema { collections { slug fields { name type } } pages { path title } globals { name type } folders { slug } }
+}
+```
+
+### Mutation types (require Bearer auth)
+```graphql
+mutation {
+  createItem(collection: "blog", slug: "new-post", status: "published", data: {title: "Hello", body: "<p>World</p>"}) { id slug url }
+  updateItem(id: 42, data: {title: "Updated"}, status: "published") { id slug updatedAt }
+  deleteItem(id: 42)
+  updatePage(id: 1, fields: {hero_title: "Welcome"}, metaTitle: "Home") { id path fields }
+  updateGlobals(fields: {site_name: "My Site"})
+  deleteMedia(id: 7)
+  assignLabels(itemId: 42, labelIds: [1, 2])
+  removeLabels(itemId: 42, labelIds: [3])
+  createCollection(name: "Products", slug: "product", schema: {fields: [{name: "title", type: "text"}]}) { id slug }
+  updateCollection(id: 5, name: "Updated", urlPattern: "/shop/{slug}") { id slug }
+  createFolder(collectionId: 1, name: "Tags", slug: "tags") { slug name }
+  createLabel(folderId: 1, name: "Tutorials", slug: "tutorials") { id slug name }
+}
+```
+
+### Features
+- Field selection — only requested fields are returned
+- Aliases — `blogs: items(collection: "blog") { total }`
+- Variables — `query($slug: String!) { item(collection: "blog", slug: $slug) { ... } }`
+- Fragments — `...PostFields` spread syntax
+- Full introspection — `__schema`, `__type` (works with GraphiQL/Apollo Studio)
+- Partial updates — `updateItem` merges provided data into existing data JSON
+- Rate limiting — 120 requests/60s per IP
+
+### Response format
+```json
+// Success
+{"data": {"collections": [...]}}
+
+// Error
+{"errors": [{"message": "Collection 'xyz' not found"}]}
+```
 
 ## Sync API
 
