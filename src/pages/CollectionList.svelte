@@ -506,6 +506,8 @@
                   <option value="select">Select</option>
                   <option value="color">Color</option>
                   <option value="link">Link</option>
+                  <option value="repeater">Repeater</option>
+                  <option value="gallery">Gallery</option>
                   <option value="folder">Folder</option>
                   <option value="relationship">Relationship</option>
                   <option value="flexible">Flexible Content</option>
