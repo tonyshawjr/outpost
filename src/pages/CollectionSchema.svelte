@@ -24,7 +24,10 @@
 
   // Schema fields
   let formSchema = $state([]);
-  let expandedFields = $state({});
+
+  // Selected field for right panel (repeater/complex)
+  let selectedFieldIndex = $state(null);
+  let selectedField = $derived(selectedFieldIndex !== null ? formSchema[selectedFieldIndex] : null);
 
   // Lodge settings
   let formLodgeEnabled = $state(false);
@@ -45,27 +48,74 @@
   // Repeater visual builder toggle per field index
   let repeaterJsonMode = $state({});
 
-  // Field type display labels & colors
-  const fieldTypeMeta = {
-    text: { label: 'Text', color: 'var(--text-tertiary)' },
-    textarea: { label: 'Textarea', color: 'var(--text-tertiary)' },
-    richtext: { label: 'Rich Text', color: 'var(--accent)' },
-    image: { label: 'Image', color: 'var(--clay)' },
-    date: { label: 'Date', color: 'var(--warning)' },
-    number: { label: 'Number', color: 'var(--sage)' },
-    toggle: { label: 'Toggle', color: 'var(--success)' },
-    select: { label: 'Select', color: 'var(--warning)' },
-    color: { label: 'Color', color: 'var(--clay)' },
-    link: { label: 'Link', color: 'var(--accent)' },
-    repeater: { label: 'Repeater', color: 'var(--accent)' },
-    gallery: { label: 'Gallery', color: 'var(--clay)' },
-    folder: { label: 'Folder', color: 'var(--sage)' },
-    relationship: { label: 'Relationship', color: 'var(--accent)' },
-    flexible: { label: 'Flexible', color: 'var(--warning)' },
+  // Advanced section collapsed by default
+  let advancedOpen = $state(false);
+
+  // Expanded field for inline settings (non-complex fields)
+  let expandedFields = $state({});
+
+  // Overflow menu
+  let showOverflow = $state(false);
+
+  // Max fields
+  const MAX_FIELDS = 20;
+
+  // Badge colors by type
+  const typeBadgeColors = {
+    text: { bg: 'var(--bg-tertiary)', color: 'var(--text-secondary)' },
+    textarea: { bg: 'var(--bg-tertiary)', color: 'var(--text-secondary)' },
+    richtext: { bg: '#F3EEFA', color: '#7B5EA7' },
+    image: { bg: '#E8F5F0', color: '#2D7A5F' },
+    date: { bg: 'var(--warning-soft)', color: 'var(--warning)' },
+    number: { bg: 'var(--sage-light)', color: 'var(--sage)' },
+    toggle: { bg: 'var(--success-soft)', color: 'var(--success)' },
+    select: { bg: '#FAF0E6', color: '#A67C52' },
+    color: { bg: 'var(--clay-light)', color: 'var(--clay)' },
+    link: { bg: 'var(--accent-soft)', color: 'var(--accent)' },
+    repeater: { bg: '#E8EFF8', color: '#4A6FA5' },
+    gallery: { bg: '#EEF3E8', color: '#5C7A3A' },
+    folder: { bg: 'var(--sage-light)', color: 'var(--sage)' },
+    relationship: { bg: 'var(--accent-soft)', color: 'var(--accent)' },
+    flexible: { bg: 'var(--warning-soft)', color: 'var(--warning)' },
   };
 
-  function toggleFieldExpand(i) {
-    expandedFields = { ...expandedFields, [i]: !expandedFields[i] };
+  const typeLabels = {
+    text: 'Text', textarea: 'Textarea', richtext: 'Rich Text', image: 'Image',
+    date: 'Date', number: 'Number', toggle: 'Toggle', select: 'Select',
+    color: 'Color', link: 'Link', repeater: 'Repeater', gallery: 'Gallery',
+    folder: 'Folder', relationship: 'Relationship', flexible: 'Flexible',
+  };
+
+  // Fields that show the right panel when selected
+  const complexTypes = ['repeater', 'flexible', 'relationship'];
+
+  function isComplexField(field) {
+    return complexTypes.includes(field?.type);
+  }
+
+  function selectField(i) {
+    if (isComplexField(formSchema[i])) {
+      // If already selected, deselect
+      if (selectedFieldIndex === i) {
+        selectedFieldIndex = null;
+      } else {
+        selectedFieldIndex = i;
+        expandedFields = { ...expandedFields, [i]: false };
+      }
+    } else {
+      // Toggle inline expansion for non-complex fields
+      selectedFieldIndex = null;
+      expandedFields = { ...expandedFields, [i]: !expandedFields[i] };
+    }
+  }
+
+  function openFieldPanel(i, e) {
+    e.stopPropagation();
+    if (isComplexField(formSchema[i])) {
+      selectedFieldIndex = selectedFieldIndex === i ? null : i;
+    } else {
+      expandedFields = { ...expandedFields, [i]: !expandedFields[i] };
+    }
   }
 
   function slugifyField(text) {
@@ -81,9 +131,14 @@
 
   function addSchemaField() {
     formSchema = [...formSchema, { name: '', type: 'text', label: '', required: false, placeholder: '', description: '', defaultValue: '', choices: '', repeaterFields: '[]', repeaterVisual: [], flexLayouts: '', relCollection: '', relMultiple: true, relMax: 0, conditions: [] }];
+    // expand the new field inline
+    const idx = formSchema.length - 1;
+    expandedFields = { ...expandedFields, [idx]: true };
   }
 
   function removeSchemaField(i) {
+    if (selectedFieldIndex === i) selectedFieldIndex = null;
+    if (selectedFieldIndex !== null && selectedFieldIndex > i) selectedFieldIndex--;
     formSchema = formSchema.filter((_, idx) => idx !== i);
   }
 
@@ -176,7 +231,6 @@
     } finally {
       loading = false;
     }
-    // Init sortable after DOM renders
     await tick();
     initSortable();
   }
@@ -245,21 +299,30 @@
     if (sortableInstance) sortableInstance.destroy();
     sortableInstance = new Sortable(fieldListEl, {
       animation: 150,
-      handle: '.schema-drag-handle',
-      ghostClass: 'schema-sortable-ghost',
+      handle: '.sf-drag-handle',
+      ghostClass: 'sf-sortable-ghost',
       onEnd(evt) {
         if (evt.oldIndex !== evt.newIndex) {
           const arr = [...formSchema];
           const [moved] = arr.splice(evt.oldIndex, 1);
           arr.splice(evt.newIndex, 0, moved);
           formSchema = arr;
+          // Update selectedFieldIndex if it was moved
+          if (selectedFieldIndex === evt.oldIndex) {
+            selectedFieldIndex = evt.newIndex;
+          } else if (selectedFieldIndex !== null) {
+            if (evt.oldIndex < selectedFieldIndex && evt.newIndex >= selectedFieldIndex) {
+              selectedFieldIndex--;
+            } else if (evt.oldIndex > selectedFieldIndex && evt.newIndex <= selectedFieldIndex) {
+              selectedFieldIndex++;
+            }
+          }
         }
       },
     });
   }
 
   $effect(() => {
-    // Re-init sortable when field count changes
     if (fieldListEl && formSchema.length >= 0) {
       tick().then(() => initSortable());
     }
@@ -315,7 +378,6 @@
         lodge_config: formLodgeConfig,
       });
       addToast('Collection saved', 'success');
-      // Refresh collections list
       const data = await collectionsApi.list();
       collectionsList.set(data.collections || []);
     } catch (err) {
@@ -335,14 +397,20 @@
       saveCollection();
     }
   }
+
+  function handleDocClick() {
+    if (showOverflow) showOverflow = false;
+  }
 </script>
 
 <svelte:window onkeydown={handleKeyboardSave} />
+<svelte:document onclick={handleDocClick} />
 
 {#if loading}
   <div class="loading-overlay"><div class="spinner"></div></div>
 {:else if collection}
   <div>
+    <!-- Page Header -->
     <div class="page-header">
       <div class="page-header-icon sage">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -350,443 +418,601 @@
       <div class="page-header-content">
         <h1 class="page-title">{formName || 'Collection Schema'}</h1>
         <p class="page-subtitle">
-          <button class="schema-back-link" onclick={goBack} type="button">Collections</button>
+          <button class="sf-back-link" onclick={goBack} type="button">Collections</button>
           <span style="color: var(--text-light); margin: 0 4px;">/</span>
           <span>{formName}</span>
           <span style="color: var(--text-light); margin: 0 4px;">/</span>
-          <span>Schema</span>
+          <span style="font-weight: 500; color: var(--text-secondary);">Schema</span>
         </p>
       </div>
       <div class="page-header-actions">
         <button class="btn btn-primary" onclick={saveCollection} disabled={saving || !formName}>
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? 'Saving...' : 'Save changes'}
         </button>
+        <div class="sf-overflow-wrap">
+          <button class="btn btn-ghost btn-sm" onclick={(e) => { e.stopPropagation(); showOverflow = !showOverflow; }} type="button" aria-label="More options">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+          {#if showOverflow}
+            <div class="sf-overflow-menu">
+              <button class="sf-overflow-item" type="button" onclick={() => { advancedOpen = !advancedOpen; showOverflow = false; }}>
+                {advancedOpen ? 'Hide' : 'Show'} Advanced Settings
+              </button>
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
 
-    <!-- Collection Settings -->
-    <div class="form-group">
-      <label class="form-label">Collection Settings</label>
-      <div class="schema-settings-grid">
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="cs-name" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Name</label>
-          <input id="cs-name" class="input" type="text" bind:value={formName} placeholder="Blog Posts" />
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="cs-singular" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Singular Name</label>
-          <input id="cs-singular" class="input" type="text" bind:value={formSingularName} placeholder="Blog Post" />
-        </div>
-      </div>
-      <div class="schema-settings-grid" style="margin-top: var(--space-md);">
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Slug</label>
-          <div style="padding: 6px 0;">
-            <code style="font-size: 12px; font-family: var(--font-mono); color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 8px; border-radius: 4px;">{formSlug}</code>
-            <span style="margin-left: 6px; font-size: var(--font-size-xs); color: var(--text-tertiary);">Cannot be changed</span>
+    <!-- Two-panel layout -->
+    <div class="sf-layout" class:sf-layout-with-panel={selectedFieldIndex !== null}>
+      <!-- LEFT PANEL -->
+      <div class="sf-main">
+        <!-- Collection Settings Card -->
+        <div class="card sf-settings-card">
+          <div class="sf-settings-grid-3">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="sf-label" for="cs-name">Name</label>
+              <input id="cs-name" class="input" type="text" bind:value={formName} placeholder="Blog Posts" />
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="sf-label" for="cs-singular">Singular Name</label>
+              <input id="cs-singular" class="input" type="text" bind:value={formSingularName} placeholder="Blog Post" />
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="sf-label" for="cs-per-page">Per Page</label>
+              <input id="cs-per-page" class="input" type="number" min="1" max="100" bind:value={formItemsPerPage} style="max-width: 90px;" />
+            </div>
+          </div>
+          <div class="sf-settings-grid-3" style="margin-top: var(--space-md);">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="sf-label">Slug</label>
+              <div class="sf-slug-row">
+                <code class="sf-slug-badge">{formSlug}</code>
+                <span class="sf-slug-hint">Cannot be changed</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="sf-label">URL Pattern</label>
+              <input class="input" type="text" bind:value={formUrlPattern} placeholder="/{formSlug}/{'{slug}'}" style="font-family: var(--font-mono); font-size: 13px;" />
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="sf-label" for="cs-sort">Sort</label>
+              <div style="display: flex; gap: 6px;">
+                <select id="cs-sort" class="input" bind:value={formSortField} style="flex: 1;">
+                  <option value="created_at">Created At</option>
+                  <option value="updated_at">Updated At</option>
+                  <option value="published_at">Published At</option>
+                  <option value="title">Title</option>
+                  <option value="slug">Slug</option>
+                  <option value="sort_order">Sort Order</option>
+                </select>
+                <select class="input" bind:value={formSortDirection} style="width: 60px; flex-shrink: 0; padding-right: 8px; font-size: 11px; text-align: center;">
+                  <option value="DESC">DESC</option>
+                  <option value="ASC">ASC</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="cs-url" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">URL Pattern</label>
-          <input id="cs-url" class="input" type="text" bind:value={formUrlPattern} placeholder="/{formSlug}/{'{slug}'}" style="font-family: var(--font-mono); font-size: 13px;" />
-        </div>
-      </div>
-      <div class="schema-settings-grid schema-settings-grid-three" style="margin-top: var(--space-md);">
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="cs-sort-field" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Sort Field</label>
-          <select id="cs-sort-field" class="input" bind:value={formSortField}>
-            <option value="created_at">Created At</option>
-            <option value="updated_at">Updated At</option>
-            <option value="published_at">Published At</option>
-            <option value="slug">Slug</option>
-            <option value="sort_order">Sort Order</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="cs-sort-dir" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Sort Direction</label>
-          <select id="cs-sort-dir" class="input" bind:value={formSortDirection}>
-            <option value="DESC">Descending</option>
-            <option value="ASC">Ascending</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="cs-per-page" style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Per Page</label>
-          <input id="cs-per-page" class="input" type="number" min="1" max="100" bind:value={formItemsPerPage} />
-        </div>
-      </div>
-    </div>
 
-    <!-- Content Fields -->
-    <div class="form-group">
-      <label class="form-label">Content Fields</label>
-      <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin-bottom: var(--space-sm);">
-        Define the fields each item in this collection will have. {formSchema.length} {formSchema.length === 1 ? 'field' : 'fields'} defined.
-      </p>
+        <!-- Content Fields -->
+        <div class="sf-fields-section">
+          <div class="sf-fields-header">
+            <span class="sf-section-title">Content fields</span>
+            <span class="sf-field-count">{formSchema.length} of {MAX_FIELDS} used</span>
+          </div>
 
-      <div bind:this={fieldListEl}>
-        {#each formSchema as field, i (i)}
-          <div class="schema-field-card" class:schema-field-card-expanded={expandedFields[i]}>
-            <div class="schema-field-header">
-              <span class="schema-drag-handle" title="Drag to reorder">
-                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
-                  <circle cx="2.5" cy="2" r="1.2"/><circle cx="7.5" cy="2" r="1.2"/>
-                  <circle cx="2.5" cy="7" r="1.2"/><circle cx="7.5" cy="7" r="1.2"/>
-                  <circle cx="2.5" cy="12" r="1.2"/><circle cx="7.5" cy="12" r="1.2"/>
-                </svg>
-              </span>
-              <div class="schema-field-main">
-                <input class="input schema-field-label" type="text" bind:value={field.label} oninput={() => autoFieldName(i)} placeholder="Field label" />
-                <select class="input" bind:value={field.type} style="flex: 0 0 130px;">
-                  <option value="text">Text</option>
-                  <option value="textarea">Textarea</option>
-                  <option value="richtext">Rich Text</option>
-                  <option value="image">Image</option>
-                  <option value="date">Date</option>
-                  <option value="number">Number</option>
-                  <option value="toggle">Toggle</option>
-                  <option value="select">Select</option>
-                  <option value="color">Color</option>
-                  <option value="link">Link</option>
-                  <option value="repeater">Repeater</option>
-                  <option value="gallery">Gallery</option>
-                  <option value="folder">Folder</option>
-                  <option value="relationship">Relationship</option>
-                  <option value="flexible">Flexible Content</option>
-                </select>
-                <label class="schema-required-toggle" title="Required">
-                  <input type="checkbox" bind:checked={field.required} style="display:none;" />
-                  <span class="schema-required-star" class:active={field.required}>*</span>
-                </label>
-              </div>
-              <div class="schema-field-actions">
-                <button class="btn btn-ghost btn-sm" class:schema-gear-active={expandedFields[i]} onclick={() => toggleFieldExpand(i)} aria-label="Field options" title="Field options" type="button">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-                </button>
-                <button class="btn btn-ghost btn-sm" onclick={() => removeSchemaField(i)} aria-label="Remove field" type="button">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="schema-field-meta">
-              <span style="font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono);">{field.name || '---'}</span>
-            </div>
-            {#if expandedFields[i]}
-              <div class="schema-field-options">
-                <div class="schema-opt-row">
-                  <label class="schema-opt-label">Machine Name</label>
-                  <input class="input schema-opt-input" type="text" bind:value={field.name} placeholder="auto_generated" />
-                </div>
-                <div class="schema-opt-row">
-                  <label class="schema-opt-label">Placeholder</label>
-                  <input class="input schema-opt-input" type="text" bind:value={field.placeholder} placeholder="Placeholder text..." />
-                </div>
-                <div class="schema-opt-row">
-                  <label class="schema-opt-label">Description</label>
-                  <input class="input schema-opt-input" type="text" bind:value={field.description} placeholder="Help text shown below field" />
-                </div>
-                <div class="schema-opt-row">
-                  <label class="schema-opt-label">Default Value</label>
-                  <input class="input schema-opt-input" type="text" bind:value={field.defaultValue} placeholder="Default value" />
-                </div>
-                {#if field.type === 'select'}
-                  <div class="schema-opt-row">
-                    <label class="schema-opt-label">Choices</label>
-                    <textarea class="input schema-opt-input" bind:value={field.choices} placeholder="One choice per line" rows="3" style="height: auto;"></textarea>
+          <div class="sf-field-list" bind:this={fieldListEl}>
+            {#each formSchema as field, i (i)}
+              <div
+                class="sf-field-row"
+                class:sf-field-row-selected={selectedFieldIndex === i}
+                class:sf-field-row-expanded={expandedFields[i]}
+              >
+                <div class="sf-field-row-main" onclick={() => selectField(i)}>
+                  <span class="sf-drag-handle" onclick={(e) => e.stopPropagation()} title="Drag to reorder">
+                    <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                      <circle cx="2.5" cy="2" r="1.2"/><circle cx="7.5" cy="2" r="1.2"/>
+                      <circle cx="2.5" cy="7" r="1.2"/><circle cx="7.5" cy="7" r="1.2"/>
+                      <circle cx="2.5" cy="12" r="1.2"/><circle cx="7.5" cy="12" r="1.2"/>
+                    </svg>
+                  </span>
+                  <div class="sf-field-info">
+                    <span class="sf-field-label">{field.label || 'Untitled field'}</span>
+                    <span class="sf-field-name">{field.name || '---'}</span>
                   </div>
-                {:else if field.type === 'relationship'}
-                  <div class="schema-opt-row">
-                    <label class="schema-opt-label">Collection</label>
-                    <select class="input schema-opt-input" bind:value={field.relCollection}>
-                      <option value="">Select collection...</option>
-                      {#each allCollections.filter(c => c.slug !== formSlug) as c}
-                        <option value={c.slug}>{c.name}</option>
-                      {/each}
-                    </select>
+                  <span class="sf-type-badge" style="background: {typeBadgeColors[field.type]?.bg || 'var(--bg-tertiary)'}; color: {typeBadgeColors[field.type]?.color || 'var(--text-secondary)'};">
+                    {typeLabels[field.type] || field.type}
+                  </span>
+                  <div class="sf-field-actions">
+                    <button
+                      class="sf-action-btn"
+                      class:sf-action-btn-active={selectedFieldIndex === i || expandedFields[i]}
+                      onclick={(e) => openFieldPanel(i, e)}
+                      aria-label="Field settings"
+                      title="Field settings"
+                      type="button"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                    </button>
+                    <button
+                      class="sf-action-btn sf-delete-btn"
+                      onclick={(e) => { e.stopPropagation(); removeSchemaField(i); }}
+                      aria-label="Remove field"
+                      title="Remove field"
+                      type="button"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                   </div>
-                  <div class="schema-opt-row">
-                    <label class="schema-opt-label">Allow Multiple</label>
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary);">
-                      <input type="checkbox" bind:checked={field.relMultiple} style="accent-color: var(--accent);" /> Select more than one item
-                    </label>
-                  </div>
-                  <div class="schema-opt-row">
-                    <label class="schema-opt-label">Max Items</label>
-                    <input class="input schema-opt-input" type="number" bind:value={field.relMax} placeholder="0 = unlimited" min="0" style="max-width: 120px;" />
-                  </div>
-                {:else if field.type === 'repeater'}
-                  <!-- Visual repeater sub-field builder -->
-                  <div class="schema-opt-row" style="margin-top: 4px; border-top: 1px solid var(--border-primary); padding-top: 10px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                      <label class="schema-opt-label" style="margin-bottom: 0;">Sub-fields</label>
-                      <button
-                        class="schema-pill-toggle"
-                        onclick={() => { repeaterJsonMode = { ...repeaterJsonMode, [i]: !repeaterJsonMode[i] }; if (!repeaterJsonMode[i]) syncRepeaterJsonToVisual(i); }}
-                        type="button"
-                      >
-                        <span class="schema-pill-opt" class:selected={!repeaterJsonMode[i]}>Visual</span>
-                        <span class="schema-pill-opt" class:selected={repeaterJsonMode[i]}>JSON</span>
-                      </button>
+                </div>
+
+                <!-- Inline expanded settings for non-complex fields -->
+                {#if expandedFields[i] && !isComplexField(field)}
+                  <div class="sf-inline-settings">
+                    <div class="sf-inline-grid-2">
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="sf-label">Field Label</label>
+                        <input class="input" type="text" bind:value={field.label} oninput={() => autoFieldName(i)} placeholder="e.g. Hero Title" />
+                      </div>
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="sf-label">Field Name</label>
+                        <input class="input" type="text" bind:value={field.name} placeholder="auto_generated" style="font-family: var(--font-mono); font-size: 13px;" />
+                      </div>
+                    </div>
+                    <div class="sf-inline-grid-2" style="margin-top: var(--space-sm);">
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="sf-label">Field Type</label>
+                        <select class="input" bind:value={field.type}>
+                          <option value="text">Text</option>
+                          <option value="textarea">Textarea</option>
+                          <option value="richtext">Rich Text</option>
+                          <option value="image">Image</option>
+                          <option value="date">Date</option>
+                          <option value="number">Number</option>
+                          <option value="toggle">Toggle</option>
+                          <option value="select">Select</option>
+                          <option value="color">Color</option>
+                          <option value="link">Link</option>
+                          <option value="repeater">Repeater</option>
+                          <option value="gallery">Gallery</option>
+                          <option value="folder">Folder</option>
+                          <option value="relationship">Relationship</option>
+                          <option value="flexible">Flexible Content</option>
+                        </select>
+                      </div>
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="sf-label">Required</label>
+                        <label class="sf-toggle-row" style="padding-top: 6px;">
+                          <input type="checkbox" bind:checked={field.required} style="display:none;" />
+                          <button class="toggle" class:active={field.required} onclick={() => { field.required = !field.required; }} type="button"></button>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="sf-inline-grid-2" style="margin-top: var(--space-sm);">
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="sf-label">Placeholder</label>
+                        <input class="input" type="text" bind:value={field.placeholder} placeholder="Placeholder text..." />
+                      </div>
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="sf-label">Default Value</label>
+                        <input class="input" type="text" bind:value={field.defaultValue} placeholder="Default value" />
+                      </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; margin-top: var(--space-sm);">
+                      <label class="sf-label">Instructions</label>
+                      <input class="input" type="text" bind:value={field.description} placeholder="Help text displayed below the field" />
                     </div>
 
-                    {#if repeaterJsonMode[i]}
-                      <textarea
-                        class="input schema-opt-input"
-                        bind:value={field.repeaterFields}
-                        placeholder={'[{"name": "day", "type": "select", "label": "Day", "options": ["Mon","Tue"]}]'}
-                        rows="6"
-                        style="height: auto; font-family: var(--font-mono); font-size: 12px;"
-                      ></textarea>
-                      <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">JSON array. Each entry: name, type, label. For select: add options array.</p>
-                    {:else}
-                      {@const visual = getRepeaterVisual(field)}
-                      {#if visual.length === 0 && (!field.repeaterVisual || field.repeaterVisual.length === 0)}
-                        <p style="font-size: 12px; color: var(--text-tertiary); padding: 8px 0 4px;">No sub-fields defined yet.</p>
-                      {:else}
-                        <div class="schema-subfield-list">
-                          {#each (field.repeaterVisual && field.repeaterVisual.length > 0 ? field.repeaterVisual : visual) as sub, si}
-                            <div class="schema-subfield-item">
-                              <div class="schema-subfield-row">
-                                <input
-                                  class="input"
-                                  type="text"
-                                  bind:value={sub.label}
-                                  oninput={() => autoSubFieldName(i, si)}
-                                  placeholder="Sub-field label"
-                                  style="flex: 1; height: 30px; font-size: 13px;"
-                                />
-                                <select class="input" bind:value={sub.type} onchange={() => syncRepeaterVisualToJson(i)} style="flex: 0 0 100px; height: 30px; font-size: 12px;">
-                                  <option value="text">Text</option>
-                                  <option value="textarea">Textarea</option>
-                                  <option value="select">Select</option>
-                                  <option value="toggle">Toggle</option>
-                                  <option value="number">Number</option>
-                                  <option value="date">Date</option>
-                                  <option value="image">Image</option>
-                                </select>
-                                <button class="btn btn-ghost btn-sm" onclick={() => removeRepeaterSubField(i, si)} aria-label="Remove sub-field" type="button" style="padding: 4px;">
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                              </div>
-                              {#if sub.type === 'select'}
-                                <div style="display: flex; flex-direction: column; gap: 2px;">
-                                  <input
-                                    class="input"
-                                    type="text"
-                                    value={Array.isArray(sub.options) ? sub.options.join(', ') : (sub.options || '')}
-                                    oninput={(e) => {
-                                      sub.options = e.target.value.split(',').map(o => o.trim()).filter(Boolean);
-                                      syncRepeaterVisualToJson(i);
-                                    }}
-                                    placeholder="Option 1, Option 2, Option 3"
-                                    style="height: 30px; font-size: 13px;"
-                                  />
-                                  <span style="font-size: 11px; color: var(--text-tertiary);">Comma-separated options</span>
-                                </div>
-                              {/if}
-                              <span style="font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); padding-left: 2px;">{sub.name || '---'}</span>
-                            </div>
-                          {/each}
-                        </div>
-                      {/if}
-                      <button class="btn btn-ghost btn-sm" onclick={() => addRepeaterSubField(i)} type="button" style="font-size: 11px; margin-top: 4px; color: var(--accent);">
-                        + Add sub-field
-                      </button>
+                    <!-- Type-specific: select choices -->
+                    {#if field.type === 'select'}
+                      <div class="form-group" style="margin-bottom: 0; margin-top: var(--space-sm);">
+                        <label class="sf-label">Choices</label>
+                        <textarea class="input" bind:value={field.choices} placeholder="One choice per line" rows="3" style="height: auto;"></textarea>
+                        <span class="sf-help">Enter each choice on a new line</span>
+                      </div>
                     {/if}
-                  </div>
-                {:else if field.type === 'flexible'}
-                  <div class="schema-opt-row">
-                    <label class="schema-opt-label">Layouts (JSON)</label>
-                    <textarea class="input schema-opt-input" bind:value={field.flexLayouts} placeholder="Paste layout JSON here..." rows="6" style="height: auto; font-family: var(--font-mono); font-size: 12px;"></textarea>
-                    <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Define layout types with named sub-fields.</p>
+
+                    <!-- Conditional Logic -->
+                    <div class="sf-conditions-row">
+                      <div class="sf-conditions-toggle">
+                        <span class="sf-label" style="margin-bottom: 0;">Conditional Logic</span>
+                        <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary);">
+                          <input type="checkbox" checked={field.conditions && field.conditions.length > 0} onchange={(e) => {
+                            if (e.target.checked) {
+                              field.conditions = [{ field: '', operator: '==', value: '' }];
+                            } else {
+                              field.conditions = [];
+                            }
+                          }} style="accent-color: var(--accent);" /> Enable
+                        </label>
+                      </div>
+                      {#if field.conditions && field.conditions.length > 0}
+                        {#each field.conditions as cond, ci}
+                          <div class="sf-condition-row">
+                            <select class="input" style="flex: 1; font-size: 12px; height: 30px;" bind:value={cond.field}>
+                              <option value="">Select field...</option>
+                              {#each formSchema.filter((f2, fi) => fi !== i) as otherField}
+                                <option value={otherField.name || slugifyField(otherField.label)}>{otherField.label || otherField.name}</option>
+                              {/each}
+                            </select>
+                            <select class="input" style="flex: 0 0 90px; font-size: 12px; height: 30px;" bind:value={cond.operator}>
+                              <option value="==">equals</option>
+                              <option value="!=">not equal</option>
+                              <option value="not_empty">has value</option>
+                              <option value="empty">is empty</option>
+                            </select>
+                            {#if cond.operator === '==' || cond.operator === '!='}
+                              <input class="input" style="flex: 1; font-size: 12px; height: 30px;" type="text" bind:value={cond.value} placeholder="Value" />
+                            {/if}
+                            <button class="btn btn-ghost btn-sm" onclick={() => { field.conditions = field.conditions.filter((_, idx) => idx !== ci); }} type="button" style="padding: 4px;">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                          </div>
+                        {/each}
+                        <button class="sf-text-btn" onclick={() => { field.conditions = [...field.conditions, { field: '', operator: '==', value: '' }]; }} type="button">
+                          + Add condition
+                        </button>
+                      {/if}
+                    </div>
                   </div>
                 {/if}
-                <!-- Conditional Logic -->
-                <div class="schema-opt-row" style="margin-top: 8px; border-top: 1px solid var(--border-primary); padding-top: 10px;">
-                  <label class="schema-opt-label" style="display: flex; align-items: center; gap: 6px;">
-                    Conditional Logic
-                    <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); font-weight: normal;">
-                      <input type="checkbox" checked={field.conditions && field.conditions.length > 0} onchange={(e) => {
-                        if (e.target.checked) {
-                          field.conditions = [{ field: '', operator: '==', value: '' }];
-                        } else {
-                          field.conditions = [];
-                        }
-                      }} style="accent-color: var(--accent);" /> Enable
-                    </label>
-                  </label>
-                  {#if field.conditions && field.conditions.length > 0}
-                    {#each field.conditions as cond, ci}
-                      <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
-                        <select class="input" style="flex: 1; font-size: 12px; padding: 6px 8px;" bind:value={cond.field}>
-                          <option value="">Select field...</option>
-                          {#each formSchema.filter((f2, fi) => fi !== i) as otherField}
-                            <option value={otherField.name || slugifyField(otherField.label)}>{otherField.label || otherField.name}</option>
-                          {/each}
-                        </select>
-                        <select class="input" style="flex: 0 0 90px; font-size: 12px; padding: 6px 8px;" bind:value={cond.operator}>
-                          <option value="==">equals</option>
-                          <option value="!=">not equal</option>
-                          <option value="not_empty">has value</option>
-                          <option value="empty">is empty</option>
-                        </select>
-                        {#if cond.operator === '==' || cond.operator === '!='}
-                          <input class="input" style="flex: 1; font-size: 12px; padding: 6px 8px;" type="text" bind:value={cond.value} placeholder="Value" />
-                        {/if}
-                        <button class="btn btn-ghost btn-sm" onclick={() => { field.conditions = field.conditions.filter((_, idx) => idx !== ci); }} type="button" style="padding: 4px;">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </button>
-                      </div>
-                    {/each}
-                    <button class="btn btn-ghost btn-sm" onclick={() => { field.conditions = [...field.conditions, { field: '', operator: '==', value: '' }]; }} type="button" style="font-size: 11px; margin-top: 4px; color: var(--accent);">
-                      + Add condition
-                    </button>
-                  {/if}
-                </div>
               </div>
-            {/if}
-          </div>
-        {/each}
-      </div>
-
-      <button class="btn btn-secondary btn-sm" onclick={addSchemaField} style="margin-top: var(--space-xs);">
-        Add Field
-      </button>
-    </div>
-
-    <!-- Advanced -->
-    <div class="form-group">
-      <label class="form-label">Advanced</label>
-      <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-md);">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
-          <input type="checkbox" bind:checked={formRequireReview} style="accent-color: var(--accent);" />
-          Require review before publishing
-        </label>
-        <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Editors must submit for review; admins approve or reject.</span>
-      </div>
-
-      {#if availableWorkflows.length > 0}
-        <div class="form-group">
-          <label class="form-label" for="cs-workflow">Workflow</label>
-          <select id="cs-workflow" class="input" value={formWorkflowId || ''} onchange={(e) => { formWorkflowId = e.target.value ? Number(e.target.value) : null; }}>
-            <option value="">Default (Simple)</option>
-            {#each availableWorkflows as wf}
-              <option value={wf.id}>{wf.name} ({wf.stages.length} stages)</option>
             {/each}
-          </select>
-          <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
-            Assign a workflow to define custom approval stages.
-            <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--accent);">Manage workflows</a>
-          </span>
+          </div>
+
+          <!-- Add field button -->
+          <button class="sf-add-field-btn" onclick={addSchemaField} type="button" disabled={formSchema.length >= MAX_FIELDS}>
+            + Add Field
+          </button>
         </div>
-      {/if}
 
-      <!-- Lodge Settings -->
-      <div class="lodge-section">
-        <div class="lodge-section-header">
-          <span class="lodge-section-label">LODGE</span>
-          <button
-            class="toggle"
-            class:active={formLodgeEnabled}
-            onclick={() => { formLodgeEnabled = !formLodgeEnabled; }}
-            type="button"
-          ></button>
-        </div>
-        <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 0 0 var(--space-sm);">Allow members to create and manage their own content in this collection.</p>
-
-        {#if formLodgeEnabled}
-          <div class="lodge-options">
-            <div class="lodge-toggle-row">
-              <label class="lodge-toggle-label">
-                <input type="checkbox" bind:checked={formLodgeConfig.allow_create} style="accent-color: var(--accent);" />
-                Allow Create
-              </label>
-              <span class="lodge-toggle-desc">Members can create new items</span>
-            </div>
-            <div class="lodge-toggle-row">
-              <label class="lodge-toggle-label">
-                <input type="checkbox" bind:checked={formLodgeConfig.allow_edit} style="accent-color: var(--accent);" />
-                Allow Edit
-              </label>
-              <span class="lodge-toggle-desc">Members can edit their own items</span>
-            </div>
-            <div class="lodge-toggle-row">
-              <label class="lodge-toggle-label">
-                <input type="checkbox" bind:checked={formLodgeConfig.allow_delete} style="accent-color: var(--accent);" />
-                Allow Delete
-              </label>
-              <span class="lodge-toggle-desc">Members can delete their own items</span>
-            </div>
-            <div class="lodge-toggle-row">
-              <label class="lodge-toggle-label">
-                <input type="checkbox" bind:checked={formLodgeConfig.require_approval} style="accent-color: var(--accent);" />
-                Require Approval
-              </label>
-              <span class="lodge-toggle-desc">Submissions require admin approval before publishing</span>
-            </div>
-            <div class="lodge-field-row">
-              <label class="lodge-field-label">Max Items Per Member</label>
-              <input class="input" type="number" min="0" style="width: 100px; height: 30px; font-size: 13px;" bind:value={formLodgeConfig.max_items_per_member} />
-              <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">0 = unlimited</span>
+        <!-- Advanced Settings (collapsed) -->
+        {#if advancedOpen}
+          <div class="card sf-advanced-card">
+            <div class="sf-advanced-header">
+              <span class="sf-section-title" style="font-size: 13px;">Advanced</span>
             </div>
 
-            {#if formSchema.filter(f => f.name || f.label).length > 0}
-              {@const schemaFields = formSchema.filter(f => f.name || f.label).map(f => f.name || slugifyField(f.label))}
-              <div class="lodge-field-row" style="flex-direction: column; align-items: flex-start;">
-                <label class="lodge-field-label">Editable Fields</label>
-                <div class="lodge-field-checks">
-                  {#each schemaFields as fieldName}
-                    <label class="lodge-check-label">
-                      <input type="checkbox"
-                        checked={formLodgeConfig.editable_fields.includes(fieldName)}
-                        onchange={(e) => {
-                          if (e.target.checked) {
-                            formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
-                            formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
-                          } else {
-                            formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
-                          }
-                        }}
-                        style="accent-color: var(--accent);"
-                      />
-                      {fieldName}
-                    </label>
-                  {/each}
-                </div>
-                <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Fields members can edit. Leave empty to allow all fields.</span>
+            <div class="sf-advanced-body">
+              <div class="sf-advanced-row">
+                <label class="sf-toggle-row" style="cursor: pointer;">
+                  <input type="checkbox" bind:checked={formRequireReview} style="display:none;" />
+                  <button class="toggle" class:active={formRequireReview} onclick={() => { formRequireReview = !formRequireReview; }} type="button"></button>
+                  <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Require review before publishing</span>
+                </label>
+                <span class="sf-help">Editors must submit for review; admins approve or reject.</span>
               </div>
-              <div class="lodge-field-row" style="flex-direction: column; align-items: flex-start;">
-                <label class="lodge-field-label">Read-only Fields</label>
-                <div class="lodge-field-checks">
-                  {#each schemaFields as fieldName}
-                    <label class="lodge-check-label">
-                      <input type="checkbox"
-                        checked={formLodgeConfig.readonly_fields.includes(fieldName)}
-                        onchange={(e) => {
-                          if (e.target.checked) {
-                            formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
-                            formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
-                          } else {
-                            formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
-                          }
-                        }}
-                        style="accent-color: var(--accent);"
-                      />
-                      {fieldName}
-                    </label>
-                  {/each}
+
+              {#if availableWorkflows.length > 0}
+                <div class="sf-advanced-row">
+                  <label class="sf-label">Workflow</label>
+                  <select class="input" value={formWorkflowId || ''} onchange={(e) => { formWorkflowId = e.target.value ? Number(e.target.value) : null; }}>
+                    <option value="">Default (Simple)</option>
+                    {#each availableWorkflows as wf}
+                      <option value={wf.id}>{wf.name} ({wf.stages.length} stages)</option>
+                    {/each}
+                  </select>
+                  <span class="sf-help">
+                    Assign a workflow to define custom approval stages.
+                    <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--accent);">Manage workflows</a>
+                  </span>
                 </div>
-                <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Fields visible to members but not editable.</span>
+              {/if}
+
+              <!-- Lodge -->
+              <div class="sf-lodge-card">
+                <div class="sf-lodge-header">
+                  <span class="sf-section-label">LODGE</span>
+                  <button class="toggle" class:active={formLodgeEnabled} onclick={() => { formLodgeEnabled = !formLodgeEnabled; }} type="button"></button>
+                </div>
+                <span class="sf-help" style="display: block; margin-bottom: var(--space-sm);">Allow members to create and manage their own content in this collection.</span>
+
+                {#if formLodgeEnabled}
+                  <div class="sf-lodge-options">
+                    <div class="sf-lodge-toggle-row">
+                      <label class="sf-toggle-row" style="cursor: pointer;">
+                        <input type="checkbox" bind:checked={formLodgeConfig.allow_create} style="accent-color: var(--accent);" />
+                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Allow Create</span>
+                      </label>
+                      <span class="sf-help" style="padding-left: 26px;">Members can create new items</span>
+                    </div>
+                    <div class="sf-lodge-toggle-row">
+                      <label class="sf-toggle-row" style="cursor: pointer;">
+                        <input type="checkbox" bind:checked={formLodgeConfig.allow_edit} style="accent-color: var(--accent);" />
+                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Allow Edit</span>
+                      </label>
+                      <span class="sf-help" style="padding-left: 26px;">Members can edit their own items</span>
+                    </div>
+                    <div class="sf-lodge-toggle-row">
+                      <label class="sf-toggle-row" style="cursor: pointer;">
+                        <input type="checkbox" bind:checked={formLodgeConfig.allow_delete} style="accent-color: var(--accent);" />
+                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Allow Delete</span>
+                      </label>
+                      <span class="sf-help" style="padding-left: 26px;">Members can delete their own items</span>
+                    </div>
+                    <div class="sf-lodge-toggle-row">
+                      <label class="sf-toggle-row" style="cursor: pointer;">
+                        <input type="checkbox" bind:checked={formLodgeConfig.require_approval} style="accent-color: var(--accent);" />
+                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Require Approval</span>
+                      </label>
+                      <span class="sf-help" style="padding-left: 26px;">Submissions require admin approval before publishing</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: var(--space-xs);">
+                      <label class="sf-label">Max Items Per Member</label>
+                      <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                        <input class="input" type="number" min="0" style="width: 100px; height: 30px; font-size: 13px;" bind:value={formLodgeConfig.max_items_per_member} />
+                        <span class="sf-help">0 = unlimited</span>
+                      </div>
+                    </div>
+
+                    {#if formSchema.filter(f => f.name || f.label).length > 0}
+                      {@const schemaFields = formSchema.filter(f => f.name || f.label).map(f => f.name || slugifyField(f.label))}
+                      <div style="display: flex; flex-direction: column; gap: 4px; margin-top: var(--space-xs);">
+                        <label class="sf-label">Editable Fields</label>
+                        <div class="sf-lodge-checks">
+                          {#each schemaFields as fieldName}
+                            <label class="sf-lodge-check">
+                              <input type="checkbox"
+                                checked={formLodgeConfig.editable_fields.includes(fieldName)}
+                                onchange={(e) => {
+                                  if (e.target.checked) {
+                                    formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
+                                    formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                                  } else {
+                                    formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                                  }
+                                }}
+                                style="accent-color: var(--accent);"
+                              />
+                              {fieldName}
+                            </label>
+                          {/each}
+                        </div>
+                        <span class="sf-help">Fields members can edit. Leave empty to allow all fields.</span>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 4px; margin-top: var(--space-xs);">
+                        <label class="sf-label">Read-only Fields</label>
+                        <div class="sf-lodge-checks">
+                          {#each schemaFields as fieldName}
+                            <label class="sf-lodge-check">
+                              <input type="checkbox"
+                                checked={formLodgeConfig.readonly_fields.includes(fieldName)}
+                                onchange={(e) => {
+                                  if (e.target.checked) {
+                                    formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
+                                    formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                                  } else {
+                                    formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                                  }
+                                }}
+                                style="accent-color: var(--accent);"
+                              />
+                              {fieldName}
+                            </label>
+                          {/each}
+                        </div>
+                        <span class="sf-help">Fields visible to members but not editable.</span>
+                      </div>
+                    {/if}
+                  </div>
+                {/if}
               </div>
-            {/if}
+            </div>
           </div>
         {/if}
       </div>
+
+      <!-- RIGHT PANEL — shows when a complex field is selected -->
+      {#if selectedFieldIndex !== null && selectedField}
+        <div class="sf-panel">
+          <div class="sf-panel-header">
+            <div class="sf-panel-title-row">
+              <div>
+                <span class="sf-panel-title">{selectedField.label || 'Untitled field'}</span>
+                <span class="sf-panel-subtitle">{typeLabels[selectedField.type] || selectedField.type} — configure sub-fields</span>
+              </div>
+              <button class="sf-panel-close" onclick={() => { selectedFieldIndex = null; }} type="button" aria-label="Close panel">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sf-panel-body">
+            <!-- Core field settings -->
+            <div class="form-group" style="margin-bottom: var(--space-md);">
+              <label class="sf-label">Field Label</label>
+              <input class="input" type="text" bind:value={selectedField.label} oninput={() => autoFieldName(selectedFieldIndex)} placeholder="e.g. Business Hours" />
+            </div>
+            <div class="sf-inline-grid-2" style="margin-bottom: var(--space-md);">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="sf-label">Field Name</label>
+                <input class="input" type="text" bind:value={selectedField.name} placeholder="auto_generated" style="font-family: var(--font-mono); font-size: 13px;" />
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="sf-label">Required</label>
+                <label class="sf-toggle-row" style="padding-top: 6px;">
+                  <input type="checkbox" bind:checked={selectedField.required} style="display:none;" />
+                  <button class="toggle" class:active={selectedField.required} onclick={() => { selectedField.required = !selectedField.required; }} type="button"></button>
+                </label>
+              </div>
+            </div>
+
+            <!-- Relationship-specific settings -->
+            {#if selectedField.type === 'relationship'}
+              <div class="sf-panel-type-settings">
+                <div class="form-group" style="margin-bottom: var(--space-sm);">
+                  <label class="sf-label">Collection</label>
+                  <select class="input" bind:value={selectedField.relCollection}>
+                    <option value="">Select collection...</option>
+                    {#each allCollections.filter(c => c.slug !== formSlug) as c}
+                      <option value={c.slug}>{c.name}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="sf-inline-grid-2">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="sf-label">Allow Multiple</label>
+                    <label class="sf-toggle-row" style="padding-top: 4px;">
+                      <button class="toggle" class:active={selectedField.relMultiple} onclick={() => { selectedField.relMultiple = !selectedField.relMultiple; }} type="button"></button>
+                    </label>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="sf-label">Max Items</label>
+                    <input class="input" type="number" bind:value={selectedField.relMax} placeholder="0 = unlimited" min="0" />
+                  </div>
+                </div>
+              </div>
+            {/if}
+
+            <!-- Repeater sub-fields -->
+            {#if selectedField.type === 'repeater'}
+              <div class="sf-panel-type-settings">
+                <div class="sf-repeater-toolbar">
+                  <span class="sf-label" style="margin-bottom: 0;">Sub-fields</span>
+                  <button
+                    class="sf-pill-toggle"
+                    onclick={() => { repeaterJsonMode = { ...repeaterJsonMode, [selectedFieldIndex]: !repeaterJsonMode[selectedFieldIndex] }; if (!repeaterJsonMode[selectedFieldIndex]) syncRepeaterJsonToVisual(selectedFieldIndex); }}
+                    type="button"
+                  >
+                    <span class="sf-pill-opt" class:selected={!repeaterJsonMode[selectedFieldIndex]}>Visual</span>
+                    <span class="sf-pill-opt" class:selected={repeaterJsonMode[selectedFieldIndex]}>JSON</span>
+                  </button>
+                </div>
+
+                {#if repeaterJsonMode[selectedFieldIndex]}
+                  <textarea
+                    class="input"
+                    bind:value={selectedField.repeaterFields}
+                    placeholder={'[{"name": "day", "type": "select", "label": "Day", "options": ["Mon","Tue"]}]'}
+                    rows="8"
+                    style="height: auto; font-family: var(--font-mono); font-size: 12px;"
+                  ></textarea>
+                  <span class="sf-help">JSON array. Each entry: name, type, label. For select: add options array.</span>
+                {:else}
+                  {@const visual = getRepeaterVisual(selectedField)}
+                  {#if visual.length === 0 && (!selectedField.repeaterVisual || selectedField.repeaterVisual.length === 0)}
+                    <p class="sf-help" style="padding: 12px 0;">No sub-fields defined yet.</p>
+                  {:else}
+                    <div class="sf-subfield-list">
+                      {#each (selectedField.repeaterVisual && selectedField.repeaterVisual.length > 0 ? selectedField.repeaterVisual : visual) as sub, si}
+                        <div class="sf-subfield-row">
+                          <div class="sf-subfield-info">
+                            <input
+                              class="input"
+                              type="text"
+                              bind:value={sub.label}
+                              oninput={() => autoSubFieldName(selectedFieldIndex, si)}
+                              placeholder="Sub-field label"
+                              style="height: 30px; font-size: 13px; font-weight: 500; border: none; padding: 0; background: transparent;"
+                            />
+                            <span class="sf-subfield-name">{sub.name || '---'}</span>
+                          </div>
+                          <select class="input" bind:value={sub.type} onchange={() => syncRepeaterVisualToJson(selectedFieldIndex)} style="width: 90px; height: 28px; font-size: 11px; flex-shrink: 0;">
+                            <option value="text">Text</option>
+                            <option value="textarea">Textarea</option>
+                            <option value="select">Select</option>
+                            <option value="toggle">Toggle</option>
+                            <option value="number">Number</option>
+                            <option value="date">Date</option>
+                            <option value="image">Image</option>
+                          </select>
+                          <span class="sf-type-badge" style="background: {typeBadgeColors[sub.type]?.bg || 'var(--bg-tertiary)'}; color: {typeBadgeColors[sub.type]?.color || 'var(--text-secondary)'}; font-size: 10px; padding: 1px 6px;">
+                            {typeLabels[sub.type] || sub.type}
+                          </span>
+                          <button class="sf-action-btn sf-delete-btn" onclick={() => removeRepeaterSubField(selectedFieldIndex, si)} aria-label="Remove sub-field" type="button" style="opacity: 1;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                          {#if sub.type === 'select'}
+                            <div class="sf-subfield-options">
+                              <input
+                                class="input"
+                                type="text"
+                                value={Array.isArray(sub.options) ? sub.options.join(', ') : (sub.options || '')}
+                                oninput={(e) => {
+                                  sub.options = e.target.value.split(',').map(o => o.trim()).filter(Boolean);
+                                  syncRepeaterVisualToJson(selectedFieldIndex);
+                                }}
+                                placeholder="Option 1, Option 2, Option 3"
+                                style="height: 28px; font-size: 12px;"
+                              />
+                              <span class="sf-help">Comma-separated options</span>
+                            </div>
+                          {/if}
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                  <button class="sf-add-field-btn" onclick={() => addRepeaterSubField(selectedFieldIndex)} type="button" style="margin-top: var(--space-sm);">
+                    + Add Sub-field
+                  </button>
+                  <span class="sf-help" style="display: block; margin-top: var(--space-sm);">Sub-fields define the columns for each repeated row. Drag to reorder.</span>
+                {/if}
+              </div>
+            {/if}
+
+            <!-- Flexible layouts -->
+            {#if selectedField.type === 'flexible'}
+              <div class="sf-panel-type-settings">
+                <label class="sf-label">Layouts (JSON)</label>
+                <textarea class="input" bind:value={selectedField.flexLayouts} placeholder="Paste layout JSON here..." rows="8" style="height: auto; font-family: var(--font-mono); font-size: 12px;"></textarea>
+                <span class="sf-help">Define layout types with named sub-fields.</span>
+              </div>
+            {/if}
+
+            <!-- Conditional Logic -->
+            <div class="sf-conditions-section">
+              <div class="sf-conditions-toggle">
+                <span class="sf-label" style="margin-bottom: 0;">Conditional Logic</span>
+                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary);">
+                  <input type="checkbox" checked={selectedField.conditions && selectedField.conditions.length > 0} onchange={(e) => {
+                    if (e.target.checked) {
+                      selectedField.conditions = [{ field: '', operator: '==', value: '' }];
+                    } else {
+                      selectedField.conditions = [];
+                    }
+                  }} style="accent-color: var(--accent);" /> Enable
+                </label>
+              </div>
+              {#if selectedField.conditions && selectedField.conditions.length > 0}
+                {#each selectedField.conditions as cond, ci}
+                  <div class="sf-condition-row">
+                    <select class="input" style="flex: 1; font-size: 12px; height: 30px;" bind:value={cond.field}>
+                      <option value="">Select field...</option>
+                      {#each formSchema.filter((f2, fi) => fi !== selectedFieldIndex) as otherField}
+                        <option value={otherField.name || slugifyField(otherField.label)}>{otherField.label || otherField.name}</option>
+                      {/each}
+                    </select>
+                    <select class="input" style="flex: 0 0 90px; font-size: 12px; height: 30px;" bind:value={cond.operator}>
+                      <option value="==">equals</option>
+                      <option value="!=">not equal</option>
+                      <option value="not_empty">has value</option>
+                      <option value="empty">is empty</option>
+                    </select>
+                    {#if cond.operator === '==' || cond.operator === '!='}
+                      <input class="input" style="flex: 1; font-size: 12px; height: 30px;" type="text" bind:value={cond.value} placeholder="Value" />
+                    {/if}
+                    <button class="btn btn-ghost btn-sm" onclick={() => { selectedField.conditions = selectedField.conditions.filter((_, idx) => idx !== ci); }} type="button" style="padding: 4px;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                {/each}
+                <button class="sf-text-btn" onclick={() => { selectedField.conditions = [...selectedField.conditions, { field: '', operator: '==', value: '' }]; }} type="button">
+                  + Add condition
+                </button>
+              {/if}
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
   </div>
 {/if}
 
 <style>
-  /* ── Back link in breadcrumb ────────────────────── */
-  .schema-back-link {
+  /* ── Breadcrumb back link ──────────────────────── */
+  .sf-back-link {
     background: none;
     border: none;
     color: var(--accent);
@@ -794,147 +1020,440 @@
     cursor: pointer;
     padding: 0;
   }
-  .schema-back-link:hover { text-decoration: underline; }
+  .sf-back-link:hover { text-decoration: underline; }
 
-  /* ── Settings grid ─────────────────────────────── */
-  .schema-settings-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-md);
-  }
-
-  .schema-settings-grid-three {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  /* ── Schema field cards (matches CollectionList) ── */
-  .schema-field-card {
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm) var(--space-md);
-    margin-bottom: var(--space-xs);
-    background: var(--bg-primary);
-    transition: border-color 0.15s;
-  }
-
-  .schema-field-card:hover {
-    border-color: var(--border-hover, var(--border-primary));
-  }
-
-  .schema-field-card-expanded {
-    border-color: var(--accent);
-  }
-
-  .schema-sortable-ghost {
-    opacity: 0.35;
-  }
-
-  .schema-field-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-  }
-
-  .schema-drag-handle {
-    cursor: grab;
-    color: var(--text-light);
-    display: flex;
-    align-items: center;
-    padding: 4px 2px;
-    opacity: 0.3;
-    transition: opacity 0.15s;
-    flex-shrink: 0;
-  }
-
-  .schema-field-card:hover .schema-drag-handle {
-    opacity: 0.6;
-  }
-
-  .schema-drag-handle:hover {
-    opacity: 1 !important;
-  }
-
-  .schema-field-main {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    min-width: 0;
-  }
-
-  .schema-field-label {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .schema-required-toggle {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-  }
-
-  .schema-required-star {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-light);
-    transition: color 0.15s;
-  }
-
-  .schema-required-star.active {
-    color: var(--danger);
-  }
-
-  .schema-field-actions {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    flex-shrink: 0;
-  }
-
-  .schema-gear-active {
-    color: var(--accent);
-  }
-
-  .schema-field-meta {
-    padding-left: 22px;
-    margin-top: 2px;
-  }
-
-  /* ── Expanded options ─────────────────────────── */
-  .schema-field-options {
-    margin-top: var(--space-sm);
-    padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-secondary);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .schema-opt-row {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .schema-opt-label {
+  /* ── Shared labels ─────────────────────────────── */
+  .sf-label {
+    display: block;
     font-size: 11px;
     font-weight: 600;
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    margin-bottom: 1px;
+    margin-bottom: 4px;
   }
 
-  .schema-opt-input {
+  .sf-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .sf-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .sf-help {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .sf-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sf-text-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: var(--space-xs) 0;
+  }
+  .sf-text-btn:hover { text-decoration: underline; }
+
+  /* ── Overflow menu ─────────────────────────────── */
+  .sf-overflow-wrap {
+    position: relative;
+  }
+
+  .sf-overflow-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    min-width: 200px;
+    z-index: 50;
+    padding: 4px;
+  }
+
+  .sf-overflow-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
     font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .sf-overflow-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 
-  /* ── Pill toggle (Visual / JSON) ──────────────── */
-  .schema-pill-toggle {
+  /* ── Two-panel layout ──────────────────────────── */
+  .sf-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  .sf-layout-with-panel {
+    grid-template-columns: 1fr 380px;
+  }
+
+  .sf-main {
+    min-width: 0;
+  }
+
+  /* ── Settings card ─────────────────────────────── */
+  .sf-settings-card {
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .sf-settings-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 90px;
+    gap: var(--space-md);
+  }
+
+  .sf-slug-row {
+    padding: 8px 0;
+  }
+
+  .sf-slug-badge {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .sf-slug-hint {
+    margin-left: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+  }
+
+  /* ── Fields section ────────────────────────────── */
+  .sf-fields-section {
+    margin-bottom: var(--space-xl);
+  }
+
+  .sf-fields-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+
+  .sf-field-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+  }
+
+  /* ── Field list ────────────────────────────────── */
+  .sf-field-list {
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  .sf-sortable-ghost {
+    opacity: 0.35;
+  }
+
+  .sf-field-row {
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .sf-field-row:last-child {
+    border-bottom: none;
+  }
+
+  .sf-field-row-selected {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+  }
+
+  .sf-field-row-expanded {
+    background: var(--bg-secondary);
+  }
+
+  /* ── Row main (clickable strip) ────────────────── */
+  .sf-field-row-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    user-select: none;
+  }
+
+  .sf-field-row-main:hover {
+    background: var(--bg-hover);
+  }
+
+  .sf-field-row-selected .sf-field-row-main:hover {
+    background: rgba(45, 90, 71, 0.06);
+  }
+
+  .sf-drag-handle {
+    cursor: grab;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    padding: 4px 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  .sf-field-row:hover .sf-drag-handle {
+    opacity: 0.5;
+  }
+
+  .sf-drag-handle:hover {
+    opacity: 1 !important;
+  }
+
+  .sf-field-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .sf-field-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sf-field-name {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-tertiary);
+    line-height: 1.2;
+  }
+
+  .sf-type-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .sf-field-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .sf-field-row:hover .sf-field-actions {
+    opacity: 1;
+  }
+
+  .sf-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.1s;
+  }
+
+  .sf-action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .sf-action-btn-active {
+    color: var(--accent);
+  }
+
+  .sf-delete-btn:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+
+  /* ── Inline expanded settings ──────────────────── */
+  .sf-inline-settings {
+    padding: var(--space-md) var(--space-xl);
+    padding-left: calc(var(--space-xl) + 18px);
+    border-top: 1px solid var(--border-secondary);
+    background: var(--bg-primary);
+  }
+
+  .sf-inline-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  /* ── Add field button ──────────────────────────── */
+  .sf-add-field-btn {
+    width: 100%;
+    padding: var(--space-md);
+    margin-top: var(--space-sm);
+    border: 1px dashed var(--border-primary);
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text-tertiary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sf-add-field-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .sf-add-field-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── Conditions ────────────────────────────────── */
+  .sf-conditions-section {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  .sf-conditions-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .sf-conditions-row {
+    margin-top: var(--space-md);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  .sf-condition-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  /* ── RIGHT PANEL ───────────────────────────────── */
+  .sf-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: var(--space-xl);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+
+  .sf-panel-header {
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .sf-panel-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .sf-panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+    line-height: 1.3;
+  }
+
+  .sf-panel-subtitle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .sf-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  .sf-panel-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .sf-panel-body {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .sf-panel-type-settings {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  /* ── Repeater toolbar ──────────────────────────── */
+  .sf-repeater-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+  }
+
+  .sf-pill-toggle {
     display: inline-flex;
     background: var(--bg-hover);
     border: none;
@@ -944,7 +1463,7 @@
     gap: 0;
   }
 
-  .schema-pill-opt {
+  .sf-pill-opt {
     font-size: 11px;
     font-weight: 500;
     padding: 3px 10px;
@@ -953,58 +1472,96 @@
     transition: all 0.15s;
   }
 
-  .schema-pill-opt.selected {
+  .sf-pill-opt.selected {
     background: var(--bg-primary);
     color: var(--text-primary);
     box-shadow: var(--shadow-sm);
   }
 
-  /* ── Repeater sub-field list ──────────────────── */
-  .schema-subfield-list {
-    border-left: 2px solid var(--border-primary);
-    padding-left: 12px;
-    margin-left: 4px;
+  /* ── Sub-field list in panel ───────────────────── */
+  .sf-subfield-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border-left: 3px solid var(--accent);
   }
 
-  .schema-subfield-item {
+  .sf-subfield-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-secondary);
+    flex-wrap: wrap;
+  }
+
+  .sf-subfield-row:last-child {
+    border-bottom: none;
+  }
+
+  .sf-subfield-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sf-subfield-name {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-tertiary);
+  }
+
+  .sf-subfield-options {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 2px;
+    padding-top: 4px;
   }
 
-  .schema-subfield-row {
+  /* ── Advanced card ─────────────────────────────── */
+  .sf-advanced-card {
+    margin-bottom: var(--space-xl);
+  }
+
+  .sf-advanced-header {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .sf-advanced-body {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: var(--space-lg);
   }
 
-  /* ── Lodge section (matches CollectionList) ───── */
-  .lodge-section {
-    margin-top: var(--space-lg);
+  .sf-advanced-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* ── Lodge section ─────────────────────────────── */
+  .sf-lodge-card {
     padding: var(--space-md);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-md);
+    margin-top: var(--space-sm);
   }
 
-  .lodge-section-header {
+  .sf-lodge-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--space-xs);
   }
 
-  .lodge-section-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-  }
-
-  .lodge-options {
+  .sf-lodge-options {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -1012,48 +1569,19 @@
     border-top: 1px solid var(--border-secondary);
   }
 
-  .lodge-toggle-row {
+  .sf-lodge-toggle-row {
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
 
-  .lodge-toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin: 0;
-  }
-
-  .lodge-toggle-desc {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
-    padding-left: 26px;
-  }
-
-  .lodge-field-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-top: var(--space-xs);
-  }
-
-  .lodge-field-label {
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
-  }
-
-  .lodge-field-checks {
+  .sf-lodge-checks {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 14px;
   }
 
-  .lodge-check-label {
+  .sf-lodge-check {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1063,18 +1591,37 @@
   }
 
   /* ── Responsive ────────────────────────────────── */
-  @media (max-width: 768px) {
-    .schema-settings-grid,
-    .schema-settings-grid-three {
+  @media (max-width: 1024px) {
+    .sf-layout-with-panel {
       grid-template-columns: 1fr;
     }
 
-    .schema-field-header {
-      flex-wrap: wrap;
+    .sf-panel {
+      position: static;
+      max-height: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sf-settings-grid-3 {
+      grid-template-columns: 1fr;
     }
 
-    .schema-field-main {
+    .sf-inline-grid-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .sf-field-row-main {
       flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .sf-field-name {
+      display: none;
+    }
+
+    .sf-inline-settings {
+      padding-left: var(--space-lg);
     }
   }
 </style>
