@@ -652,13 +652,14 @@ class OutpostTemplateV2 {
     private static function compileRepeaterLoop(array $attrs, string $inner, bool $editorMode, array &$emptyBlocks): string {
         $name = self::phpString($attrs['repeat']);
 
-        // Compile inner fields (item-scoped)
-        $compiledInner = self::compileItemFields($inner, $editorMode);
+        // Compile conditionals + inner fields (item-scoped)
+        $compiledInner = self::compileConditionals($inner, $editorMode);
+        $compiledInner = self::compileItemFields($compiledInner, $editorMode);
 
         $emptyKey = 'repeat:' . $attrs['repeat'];
         $emptyHtml = isset($emptyBlocks[$emptyKey]) ? $emptyBlocks[$emptyKey] : '';
 
-        $php = '<?php $_rpt_items = cms_repeater_items(' . $name . '); ?>';
+        $php = '<?php if (isset($item) && isset($item[' . $name . '])) { $_rpt_raw = $item[' . $name . ']; $_rpt_items = is_array($_rpt_raw) ? $_rpt_raw : (json_decode($_rpt_raw, true) ?: []); } else { $_rpt_items = cms_repeater_items(' . $name . '); } ?>';
         if ($emptyHtml) {
             $php .= '<?php if (empty($_rpt_items)) { ?>';
             $php .= $emptyHtml;

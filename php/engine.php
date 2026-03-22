@@ -304,6 +304,19 @@ function cms_media_folder_items(string $slug): array {
 
 // Returns all rows of a repeater field as an array of escaped key=>value maps.
 function cms_repeater_items(string $name): array {
+    // Check $item first (for repeaters inside collection singles/loops)
+    if (isset($GLOBALS['item']) && isset($GLOBALS['item'][$name])) {
+        $items = $GLOBALS['item'][$name];
+        if (is_string($items)) $items = json_decode($items, true);
+        if (!is_array($items)) return [];
+        return array_map(function ($item) {
+            $safe = [];
+            foreach ($item as $k => $v) {
+                $safe[$k] = is_bool($v) ? ($v ? '1' : '0') : htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+            }
+            return $safe;
+        }, $items);
+    }
     $json = outpost_resolve_field($name, 'repeater', '[]', '[]');
     $items = json_decode($json, true);
     if (!is_array($items)) return [];
