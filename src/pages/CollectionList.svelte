@@ -147,6 +147,7 @@
       relMultiple: def.multiple !== false,
       relMax: def.max || 0,
       flexLayouts: def.layouts ? JSON.stringify(def.layouts, null, 2) : '',
+      repeaterFields: def.fields ? JSON.stringify(def.fields, null, 2) : '',
       conditions: def.conditions || [],
     }));
     if (formSchema.length === 0) formSchema = [{ name: '', type: 'text', label: '', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }];
@@ -183,6 +184,9 @@
           field.collection = f.relCollection || '';
           field.multiple = f.relMultiple !== false;
           field.max = parseInt(f.relMax) || 0;
+        }
+        if (f.type === 'repeater') {
+          try { field.fields = JSON.parse(f.repeaterFields || '[]'); } catch { field.fields = []; }
         }
         if (f.type === 'flexible') {
           try { field.layouts = JSON.parse(f.flexLayouts || '{}'); } catch { field.layouts = {}; }
@@ -571,6 +575,12 @@
                   <div class="schema-opt-row">
                     <label class="schema-opt-label">Max Items</label>
                     <input class="input schema-opt-input" type="number" bind:value={field.relMax} placeholder="0 = unlimited" min="0" style="max-width: 120px;" />
+                  </div>
+                {:else if field.type === 'repeater'}
+                  <div class="schema-opt-row">
+                    <label class="schema-opt-label">Sub-fields (JSON)</label>
+                    <textarea class="input schema-opt-input" bind:value={field.repeaterFields} placeholder='[{"name": "day", "type": "select", "label": "Day", "options": ["Mon","Tue","Wed"]}, {"name": "value", "type": "text", "label": "Value"}]' rows="6" style="height: auto; font-family: var(--font-mono); font-size: 12px;"></textarea>
+                    <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Define sub-fields as a JSON array. Each entry needs: name, type, label. For select fields add an options array. Types: text, textarea, select, toggle, number, date, image.</p>
                   </div>
                 {:else if field.type === 'flexible'}
                   <div class="schema-opt-row">
