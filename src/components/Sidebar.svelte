@@ -81,14 +81,13 @@
   // Visibility checks for groups — hide groups with zero visible items
   let showContentGroup = $derived(
     (filteredColls.length > 0 && featureEnabled('collections')) ||
-    (showChannels && featureEnabled('channels')) ||
     featureEnabled('media')
   );
   let showSiteGroup = $derived(
     true // Globals is always visible
   );
   let showBuildGroup = $derived(
-    showSettings || (showCode && featureEnabled('code_editor'))
+    showSettings || (showCode && featureEnabled('code_editor')) || (showChannels && featureEnabled('channels'))
   );
   let showMembersGroup = $derived(
     (showMembers && featureEnabled('members')) || featureEnabled('lodge')
@@ -235,16 +234,6 @@
             </div>
           {/each}
         {/if}
-        {#if showChannels && featureEnabled('channels')}
-          <button
-            class="sidebar-item"
-            class:active={route === 'channels' || route === 'channel-builder'}
-            onclick={() => nav('channels')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.4"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.4"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>
-            Channels
-          </button>
-        {/if}
         {#if featureEnabled('media')}
           <button
             class="sidebar-item"
@@ -388,6 +377,16 @@
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11H3v10h6V11z"/><path d="M21 3H3v6h18V3z"/><path d="M21 11h-6v10h6V11z"/></svg>
             Form Builder
+          </button>
+        {/if}
+        {#if showChannels && featureEnabled('channels')}
+          <button
+            class="sidebar-item"
+            class:active={route === 'channels' || route === 'channel-builder'}
+            onclick={() => nav('channels')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.4"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.4"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>
+            Channels
           </button>
         {/if}
         <button
