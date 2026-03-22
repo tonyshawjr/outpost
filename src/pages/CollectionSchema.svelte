@@ -94,16 +94,15 @@
   }
 
   function selectField(i) {
-    if (isComplexField(formSchema[i])) {
-      // If already selected, deselect
-      if (selectedFieldIndex === i) {
-        selectedFieldIndex = null;
-      } else {
-        selectedFieldIndex = i;
-        expandedFields = { ...expandedFields, [i]: false };
-      }
+    // All fields open in the right panel
+    if (selectedFieldIndex === i) {
+      selectedFieldIndex = null;
     } else {
-      // Toggle inline expansion for non-complex fields
+      selectedFieldIndex = i;
+      expandedFields = { ...expandedFields, [i]: false };
+    }
+    if (false) {
+      // Legacy inline expansion — disabled, everything uses right panel now
       selectedFieldIndex = null;
       expandedFields = { ...expandedFields, [i]: !expandedFields[i] };
     }
@@ -811,7 +810,7 @@
             <div class="sf-panel-title-row">
               <div>
                 <span class="sf-panel-title">{selectedField.label || 'Untitled field'}</span>
-                <span class="sf-panel-subtitle">{typeLabels[selectedField.type] || selectedField.type} — configure sub-fields</span>
+                <span class="sf-panel-subtitle">{typeLabels[selectedField.type] || selectedField.type}{selectedField.type === 'repeater' ? ' — configure sub-fields' : ' — field settings'}</span>
               </div>
               <button class="sf-panel-close" onclick={() => { selectedFieldIndex = null; }} type="button" aria-label="Close panel">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -838,6 +837,30 @@
                 </label>
               </div>
             </div>
+
+            <div class="form-group" style="margin-bottom: var(--space-md);">
+              <label class="sf-label">Placeholder</label>
+              <input class="input" type="text" bind:value={selectedField.placeholder} placeholder="Placeholder text..." />
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-md);">
+              <label class="sf-label">Default Value</label>
+              <input class="input" type="text" bind:value={selectedField.defaultValue} placeholder="Default value" />
+            </div>
+            <div class="form-group" style="margin-bottom: var(--space-md);">
+              <label class="sf-label">Description</label>
+              <input class="input" type="text" bind:value={selectedField.description} placeholder="Help text shown below field" />
+            </div>
+
+            <!-- Select choices -->
+            {#if selectedField.type === 'select'}
+              <div class="sf-panel-type-settings">
+                <div class="form-group" style="margin-bottom: var(--space-sm);">
+                  <label class="sf-label">Choices</label>
+                  <textarea class="input" bind:value={selectedField.choices} placeholder="One choice per line" rows="4" style="height: auto;"></textarea>
+                  <span class="sf-help">Enter one option per line</span>
+                </div>
+              </div>
+            {/if}
 
             <!-- Relationship-specific settings -->
             {#if selectedField.type === 'relationship'}
@@ -885,6 +908,7 @@
                   <textarea
                     class="input"
                     bind:value={selectedField.repeaterFields}
+                    oninput={() => syncRepeaterJsonToVisual(selectedFieldIndex)}
                     placeholder={'[{"name": "day", "type": "select", "label": "Day", "options": ["Mon","Tue"]}]'}
                     rows="8"
                     style="height: auto; font-family: var(--font-mono); font-size: 12px;"
@@ -1114,7 +1138,7 @@
   }
 
   .sf-layout-with-panel {
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr 460px;
   }
 
   .sf-main {
@@ -1191,7 +1215,7 @@
 
   .sf-field-row-selected {
     background: var(--accent-soft);
-    border-left: 3px solid var(--accent);
+    /* clean — no left accent border */
   }
 
   .sf-field-row-expanded {
@@ -1485,7 +1509,7 @@
     border: 1px solid var(--border-secondary);
     border-radius: var(--radius-sm);
     overflow: hidden;
-    border-left: 3px solid var(--accent);
+    /* clean — no left accent border */
   }
 
   .sf-subfield-row {
