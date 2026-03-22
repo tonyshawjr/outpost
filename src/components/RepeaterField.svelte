@@ -9,8 +9,22 @@
 
   let rows = $state([]);
   let schemaObj = $state({});
-  let pickerRow = $state(null);  // { index, key }
+  let pickerRow = $state(null);
   let showPicker = $state(false);
+
+  // Normalize schema: accept both {key: "type"} and {key: {type, label, options}}
+  function getFieldType(def) {
+    if (typeof def === 'string') return def;
+    return def?.type || 'text';
+  }
+  function getFieldLabel(key, def) {
+    if (typeof def === 'object' && def?.label) return def.label;
+    return key.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  function getFieldOptions(def) {
+    if (typeof def === 'object' && Array.isArray(def?.options)) return def.options;
+    return [];
+  }
 
   $effect(() => {
     try {
@@ -92,9 +106,12 @@
         </button>
       </div>
       <div class="repeater-fields">
-        {#each Object.entries(schemaObj) as [key, type]}
+        {#each Object.entries(schemaObj) as [key, def]}
+          {@const type = getFieldType(def)}
+          {@const label = getFieldLabel(key, def)}
+          {@const options = getFieldOptions(def)}
           <div class="form-group">
-            <label class="form-label rp-label">{key}</label>
+            <label class="form-label rp-label">{label}</label>
             {#if type === 'image'}
               <div class="rp-image-field">
                 {#if row[key]}
@@ -115,6 +132,24 @@
                 value={row[key] || ''}
                 oninput={(e) => updateField(i, key, e.target.value)}
               ></textarea>
+            {:else if type === 'select' && options.length > 0}
+              <select
+                class="input"
+                value={row[key] || ''}
+                onchange={(e) => updateField(i, key, e.target.value)}
+              >
+                <option value="">—</option>
+                {#each options as opt}
+                  <option value={typeof opt === 'object' ? opt.value : opt} selected={row[key] === (typeof opt === 'object' ? opt.value : opt)}>{typeof opt === 'object' ? opt.label : opt}</option>
+                {/each}
+              </select>
+            {:else if type === 'toggle'}
+              <button
+                class="toggle"
+                class:active={row[key] === true || row[key] === '1' || row[key] === 'true'}
+                onclick={() => updateField(i, key, row[key] === true || row[key] === '1' || row[key] === 'true' ? false : true)}
+                type="button"
+              ></button>
             {:else}
               <input
                 class="input"
@@ -134,7 +169,7 @@
 
   <button class="btn btn-secondary btn-sm" onclick={addRow} style="margin-top: var(--space-sm);">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Add Photo
+    Add Row
   </button>
 </div>
 
