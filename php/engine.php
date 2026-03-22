@@ -482,6 +482,25 @@ function cms_date(string $name, string $default = ''): void {
     echo htmlspecialchars(outpost_resolve_field($name, 'date', $default), ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Format a date field for display. Used by the template engine's data-format attribute.
+ * Supports formats: "month" (MAR), "day" (28), "weekday" (Sat), "full" (Sat, MAR 28), "long" (March 28, 2026)
+ */
+function outpost_format_date(string $dateStr, string $format = 'full'): string {
+    if (!$dateStr) return '';
+    $ts = strtotime($dateStr);
+    if ($ts === false) return $dateStr;
+    switch ($format) {
+        case 'month': return strtoupper(date('M', $ts));
+        case 'day': return date('j', $ts);
+        case 'weekday': return date('D', $ts);
+        case 'full': return date('D', $ts) . ', ' . strtoupper(date('M', $ts)) . ' ' . date('j', $ts);
+        case 'long': return date('F j, Y', $ts);
+        case 'iso': return date('Y-m-d', $ts);
+        default: return date($format, $ts);
+    }
+}
+
 // ── On-Page Editing: Collection Item Wrappers ───────────
 // Used by compiled templates inside {% single %} blocks to annotate item fields.
 
