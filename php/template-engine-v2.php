@@ -1480,11 +1480,11 @@ class OutpostTemplateV2 {
                         $label = htmlspecialchars($attrs['label'] ?? ('All ' . ucfirst($name) . 's'), ENT_QUOTES);
                         return '<?php require_once OUTPOST_DIR . "compass-helpers.php";'
                             . '$_cv = compass_tpl_facet_values(' . $colPhp . ', ' . $namePhp . '); ?>'
-                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="dropdown" data-compass-collection="' . $colSafe . '">'
-                            . '<select class="compass-dropdown input">'
+                            . '<div data-compass-facet="' . $nameSafe . '" data-compass-type="dropdown" data-compass-collection="' . $colSafe . '" class="w-full sm:w-44">'
+                            . '<select class="compass-dropdown input w-full">'
                             . '<option value="">' . $label . '</option>'
-                            . '<?php foreach ($_cv as $_ck => $_cc) { ?>'
-                            . '<option value="<?php echo htmlspecialchars($_ck); ?>"><?php echo htmlspecialchars(ucfirst($_ck)); ?> (<?php echo (int)$_cc; ?>)</option>'
+                            . '<?php foreach ($_cv as $_ck => $_cc) { $__disp = is_array($_cc) ? ($_cc["display"] ?? $_ck) : $_ck; $__cnt = is_array($_cc) ? ($_cc["count"] ?? $_cc) : $_cc; ?>'
+                            . '<option value="<?php echo htmlspecialchars($_ck); ?>"><?php echo htmlspecialchars($__disp); ?> (<?php echo (int)$__cnt; ?>)</option>'
                             . '<?php } ?>'
                             . '</select></div>';
 
@@ -1509,8 +1509,9 @@ class OutpostTemplateV2 {
                     case 'search':
                         $fields = htmlspecialchars($attrs['fields'] ?? 'title', ENT_QUOTES);
                         $placeholder = htmlspecialchars($attrs['placeholder'] ?? 'Search...', ENT_QUOTES);
-                        return '<div data-compass-facet="q" data-compass-type="search" data-compass-collection="' . $colSafe . '">'
-                            . '<input type="text" class="compass-search input" placeholder="' . $placeholder . '" data-compass-fields="' . $fields . '">'
+                        return '<div data-compass-facet="q" data-compass-type="search" data-compass-collection="' . $colSafe . '" class="relative flex-1">'
+                            . '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-do-charcoal/40 pointer-events-none" style="width:16px;height:16px;"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>'
+                            . '<input type="text" class="compass-search input pl-10 w-full" placeholder="' . $placeholder . '" data-compass-fields="' . $fields . '">'
                             . '</div>';
 
                     case 'range':
