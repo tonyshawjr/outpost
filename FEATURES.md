@@ -4,6 +4,29 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## URL Redirects (v4.10.0)
+
+- **Redirect types** — 301 (permanent), 302 (temporary), 307 (temporary preserve method).
+- **Pattern matching** — Exact path match, wildcard patterns (/old-blog/* to /blog/*), and regex patterns (~^/post/(\d+)$ to /blog/$1).
+- **Hit tracking** — Each redirect tracks hit count and last hit timestamp.
+- **Active/inactive toggle** — Disable redirects without deleting them.
+- **CSV import** — Bulk import redirects from CSV (source, target, type per line).
+- **URL tester** — Test any URL against redirect rules without executing the redirect.
+- **Admin UI** — Full CRUD management page with search/filter, add/edit form, import panel, and test panel.
+- **API endpoints** — `redirects` (GET/POST/PUT/DELETE), `redirects/test`, `redirects/import`.
+- **Integration** — Checked in front-router.php after static file handling but before theme routing. Zero overhead for non-matching paths.
+
+---
+
+## Sidebar Reorganization (v4.10.0)
+
+- **New group structure** — Content (collections + media), Site (globals, navigation, themes, brand), Members (members, lodge), Build (code editor, forms, channels, collections, folders), Tools (analytics, redirects, shield, boost, review links, releases, workflows).
+- **Avatar dropdown** — User profile, settings, backups, calendar, dark mode toggle, and logout moved from sidebar to a dropdown in the top bar.
+- **Pinned items** — Favorite any sidebar item to pin it below Inbox. Stored in localStorage.
+- **Ranger** — AI assistant moved to the bottom of the sidebar as a persistent item.
+
+---
+
 ## Boost Performance Suite (v4.9.0)
 
 - **Page caching** — Full-page HTML cache for anonymous visitors with configurable TTL (default 1 hour), path exclusions (glob patterns), and cache preloading that warms all page and collection item URLs.

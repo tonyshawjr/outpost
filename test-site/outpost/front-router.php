@@ -98,6 +98,12 @@ try {
 require_once $configFile;
 require_once $outpostDir . '/db.php';
 
+// ── URL Redirects (checked early, before theme routing) ──
+if (file_exists(OUTPOST_DB_PATH) && file_exists($outpostDir . '/redirects.php')) {
+    require_once $outpostDir . '/redirects.php';
+    redirects_check($path);
+}
+
 // Not installed → redirect to admin
 if (!file_exists(OUTPOST_DB_PATH)) {
     header('Location: /outpost/');

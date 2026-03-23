@@ -22,6 +22,22 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.10.0">4.10.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-23</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>URL Redirects</strong> &mdash; Full redirect management from <strong>Tools &rarr; Redirects</strong>. Three match types: exact path, wildcard (<code>/old/*</code> &rarr; <code>/new/*</code>), and regex (<code>~^/post/(\d+)$</code> with capture group substitution). Supports 301, 302, and 307 status codes. CSV bulk import, URL test tool, hit counter with last-hit timestamps, and per-redirect enable/disable toggle.</li>
+      <li><strong>Open redirect prevention</strong> &mdash; Redirect targets are validated at execution time. Only relative paths and same-domain absolute URLs are allowed; external domains and protocol-relative URLs are blocked.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Sidebar reorganization</strong> &mdash; Admin sidebar restructured into accordion groups: Content, Site, Members, Build, and Tools. Redirects, Shield, Boost, Review Links, Releases, and Workflows appear under Tools. Groups are collapsible with state persisted to localStorage.</li>
+    </ul>
+    <p><a href="features/redirects.html">Redirects documentation &rarr;</a></p>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.9.0">4.9.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-23</span></h2>
 
     <h3>Added</h3>

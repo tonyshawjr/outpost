@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirects — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Redirects</h1>
+    <p class="lead">Manage URL redirects from the admin panel. Keep links working when pages move, consolidate old URLs, and track redirect usage &mdash; all without touching server config.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Redirects let you point old or changed URLs to new destinations. Every front-end request is checked against your redirect rules before theme routing, so visitors (and search engines) are seamlessly forwarded.</p>
+    <p>Access redirects from the sidebar under <strong>Tools &rarr; Redirects</strong>. Requires the <code>settings.*</code> capability (admin role or higher).</p>
+
+    <h2>Redirect Types</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>When to Use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>301</code></td>
+          <td>Permanent</td>
+          <td>The old URL is gone forever. Search engines transfer link equity to the new URL. <strong>Default.</strong></td>
+        </tr>
+        <tr>
+          <td><code>302</code></td>
+          <td>Temporary</td>
+          <td>The old URL will come back. Search engines keep the original indexed.</td>
+        </tr>
+        <tr>
+          <td><code>307</code></td>
+          <td>Temporary (preserve method)</td>
+          <td>Like 302, but the browser must use the same HTTP method (POST stays POST). Useful for API or form endpoints.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Match Types</h2>
+    <p>Outpost evaluates redirect rules in this order: exact match first, then wildcard, then regex. The first match wins.</p>
+
+    <h3>Exact Match</h3>
+    <p>The source URL must match the request path exactly (trailing slashes are normalized).</p>
+    <table>
+      <thead><tr><th>Source</th><th>Target</th><th>Matches</th></tr></thead>
+      <tbody>
+        <tr><td><code>/old-page</code></td><td><code>/new-page</code></td><td><code>/old-page</code> and <code>/old-page/</code></td></tr>
+        <tr><td><code>/blog/my-post</code></td><td><code>/articles/my-post</code></td><td><code>/blog/my-post</code> only</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Wildcard Match</h3>
+    <p>End the source URL with <code>*</code> to match any path that starts with the prefix. The matched remainder is appended to the target.</p>
+    <table>
+      <thead><tr><th>Source</th><th>Target</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>/old-blog/*</code></td><td><code>/blog/*</code></td><td><code>/old-blog/my-post</code> &rarr; <code>/blog/my-post</code></td></tr>
+        <tr><td><code>/docs/*</code></td><td><code>/help/*</code></td><td><code>/docs/getting-started</code> &rarr; <code>/help/getting-started</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Regex Match</h3>
+    <p>Prefix the source URL with <code>~</code> to use a PCRE regular expression. Capture groups (<code>$1</code>, <code>$2</code>, etc.) can be used in the target URL.</p>
+    <table>
+      <thead><tr><th>Source</th><th>Target</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>~^/post/(\d+)$</code></td><td><code>/archive/$1</code></td><td><code>/post/42</code> &rarr; <code>/archive/42</code></td></tr>
+        <tr><td><code>~^/(\w+)/(\w+)$</code></td><td><code>/$2/$1</code></td><td><code>/category/item</code> &rarr; <code>/item/category</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Regex patterns are standard PCRE. The leading <code>~</code> is stripped before matching. Invalid patterns are silently skipped.</div>
+
+    <h2>Adding a Redirect</h2>
+    <ol>
+      <li>Navigate to <strong>Tools &rarr; Redirects</strong></li>
+      <li>Click <strong>Add Redirect</strong></li>
+      <li>Enter the <strong>Source URL</strong> (the old path)</li>
+      <li>Enter the <strong>Target URL</strong> (where to send visitors)</li>
+      <li>Choose the redirect <strong>Type</strong> (301, 302, or 307)</li>
+      <li>Optionally add <strong>Notes</strong> for your reference</li>
+      <li>Click <strong>Create</strong></li>
+    </ol>
+
+    <h2>CSV Import</h2>
+    <p>Bulk-import redirects by pasting CSV data. Click <strong>Import</strong> in the toolbar.</p>
+    <p>Format: one redirect per line with columns <code>source, target, type</code>. The type column is optional (defaults to 301). A header row is auto-detected and skipped if it contains the words "source" or "from".</p>
+    <pre><code>/old-page,/new-page,301
+/blog/*,/articles/*,301
+/about-us,/about,302</code></pre>
+    <p>Duplicate source URLs are silently skipped. The import reports how many were imported and how many were skipped.</p>
+
+    <h2>Hit Tracking</h2>
+    <p>Every time a redirect fires, the hit counter increments and the last-hit timestamp updates. This helps you identify which redirects are still in use and which can be cleaned up.</p>
+
+    <h2>Testing Redirects</h2>
+    <p>Click <strong>Test URL</strong> in the toolbar to check how a URL would be handled without actually navigating. Enter a path and the system reports whether it matches (and which rule), the match type (exact, wildcard, or regex), and the resolved target URL.</p>
+
+    <h2>Enable / Disable</h2>
+    <p>Each redirect can be toggled on or off without deleting it. Disabled redirects appear dimmed in the list and are not evaluated during front-end requests.</p>
+
+    <h2>Security</h2>
+    <p>Redirect targets are validated at execution time. Only relative paths and same-domain absolute URLs are allowed. External URLs are blocked to prevent open-redirect attacks. Protocol-relative URLs (<code>//</code>) are also blocked.</p>
+    <p>All redirect management endpoints require the <code>settings.*</code> capability, restricting access to admin-level users.</p>
+
+    <h2 id="api">API Endpoints</h2>
+    <p>All endpoints require admin authentication and CSRF token.</p>
+
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>api.php?action=redirects</code></td><td>List all redirects</td></tr>
+        <tr><td><code>POST</code></td><td><code>api.php?action=redirects</code></td><td>Create a redirect</td></tr>
+        <tr><td><code>PUT</code></td><td><code>api.php?action=redirects&amp;id=ID</code></td><td>Update a redirect</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>api.php?action=redirects&amp;id=ID</code></td><td>Delete a redirect</td></tr>
+        <tr><td><code>POST</code></td><td><code>api.php?action=redirects/test</code></td><td>Test a URL against rules</td></tr>
+        <tr><td><code>POST</code></td><td><code>api.php?action=redirects/import</code></td><td>Bulk import from CSV</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Create / Update Body</h3>
+    <pre><code>{
+  "source_url": "/old-page",
+  "target_url": "/new-page",
+  "type": 301,
+  "notes": "Moved during redesign",
+  "active": 1
+}</code></pre>
+
+    <h3>Test Body</h3>
+    <pre><code>{ "url": "/old-page" }</code></pre>
+
+    <h3>Import Body</h3>
+    <pre><code>{ "csv": "/old,/new,301\n/blog/*,/articles/*" }</code></pre>
+
+    <h2>How It Works Internally</h2>
+    <p>The redirect check runs in <code>front-router.php</code> after the config and database are loaded but <strong>before</strong> theme routing. This ensures redirects take priority over page or collection routes. The <code>redirects</code> table is created automatically on first use (no migration step needed).</p>
+    <p>The evaluation order is: exact match &rarr; wildcard match &rarr; regex match. Only active rules are considered. On match, the response is sent immediately with the configured status code and <code>Location</code> header.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

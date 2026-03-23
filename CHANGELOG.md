@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.10.0] — 2026-03-23
+
+### Added
+- **URL Redirects** — Full redirect manager with 301/302/307 support. Exact path matching, wildcard patterns (/old/*), and regex matching (~^/post/(\d+)$). Hit tracking with counters, active/inactive toggle, CSV import, URL tester, and admin UI at Redirects page. Integrated into front-router.php early in the request lifecycle before theme routing.
+- **Avatar Menu** — User account dropdown in the top bar with profile, settings, backups, calendar, dark mode toggle, and logout. Replaces user-related items that were previously in the sidebar.
+
+### Changed
+- **Sidebar reorganization** — Restructured sidebar into five groups: Content (collections + media), Site (globals, navigation, themes, brand), Build (code editor, forms, channels, collections management, folders), Tools (analytics, redirects, shield, boost, review links, releases, workflows), and Members (members, lodge). Pinned/favorites system with localStorage persistence. Ranger moved to bottom of sidebar. Settings, backups, calendar, profile, dark mode, and logout moved to the avatar dropdown menu.
+
+---
+
 ## [4.9.0] — 2026-03-23
 
 ### Added

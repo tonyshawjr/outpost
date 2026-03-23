@@ -711,6 +711,16 @@ export const reviewTokens = {
     request('review-tokens', { method: 'PUT', params: { id }, body: {} }),
 };
 
+// Redirects
+export const redirects = {
+  list: () => request('redirects'),
+  create: (data) => request('redirects', { method: 'POST', body: data }),
+  update: (id, data) => request('redirects', { method: 'PUT', params: { id }, body: data }),
+  delete: (id) => request('redirects', { method: 'DELETE', params: { id } }),
+  test: (url) => request('redirects/test', { method: 'POST', body: { url } }),
+  import: (csv) => request('redirects/import', { method: 'POST', body: { csv } }),
+};
+
 // Revisions
 export const revisions = {
   list: (entityType, entityId) =>

@@ -74,7 +74,12 @@ Everything below is already built and released.
 - Menus endpoint, item title/url, page visibility filtering, rate limiting, complete headless recipe docs
 
 ### v2.5 — Outpost Design System
-- Sidebar reorganization, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
+- ~~Sidebar reorganization~~ **Shipped v4.10.0**, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
+
+### v4.10 — URL Redirects & Sidebar Overhaul (2026-03-23)
+- ~~URL redirect manager~~ **Shipped** — 301/302/307, wildcard, regex, hit tracking, CSV import, URL tester
+- ~~Sidebar reorganization~~ **Shipped** — Content/Site/Members/Build/Tools groups, avatar dropdown, pinned favorites
+- ~~Avatar menu~~ **Shipped** — Profile, settings, backups, calendar, dark mode, logout in top bar dropdown
 
 ### v3.0 — Ranger AI Assistant (2026-03-19)
 - 35 tools covering every CMS operation (content, themes, files, media, channels, forms, users, members, webhooks, backups, database queries, template debugging, email config, navigation, settings, frontend actions)

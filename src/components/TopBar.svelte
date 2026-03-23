@@ -1,6 +1,7 @@
 <script>
-  import { currentRoute, darkMode, sidebarOpen, rangerOpen, user, navigate, addToast } from '$lib/stores.js';
+  import { currentRoute, sidebarOpen, rangerOpen, user, addToast } from '$lib/stores.js';
   import { cache as cacheApi } from '$lib/api.js';
+  import AvatarMenu from '$components/AvatarMenu.svelte';
 
   let clearingCache = $state(false);
 
@@ -18,15 +19,10 @@
   }
 
   let route = $derived($currentRoute);
-  let isDark = $derived($darkMode);
   let currentUser = $derived($user);
 
   function toggleSidebar() {
     sidebarOpen.update((v) => !v);
-  }
-
-  function toggleDarkMode() {
-    darkMode.update((v) => !v);
   }
 
   const routeTitles = {
@@ -52,32 +48,10 @@
     settings: 'Settings',
     navigation: 'Navigation',
     import: 'Import',
+    redirects: 'Redirects',
   };
-
-  const roleLabels = {
-    admin: 'Admin',
-    developer: 'Developer',
-    editor: 'Editor',
-  };
-  let roleBadge = $derived(roleLabels[currentUser?.role] || '');
 
   let title = $derived(routeTitles[route] || 'Dashboard');
-  let displayName = $derived(currentUser?.display_name || currentUser?.username || '');
-  let avatarUrl = $derived(currentUser?.avatar ? (currentUser.avatar.startsWith('/') ? currentUser.avatar : '/' + currentUser.avatar) : '');
-  let initial = $derived((displayName || '?')[0].toUpperCase());
-
-  const avatarColors = ['#4A8B72', '#C4785C', '#7D9B8A', '#B85C4A', '#5B8C5A', '#C49A3D', '#6B8FA3', '#9B7EB8'];
-  function getColor(name) {
-    let hash = 0;
-    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return avatarColors[Math.abs(hash) % avatarColors.length];
-  }
-
-  function goToProfile() {
-    if (currentUser?.id) {
-      navigate('user-profile', { userId: currentUser.id });
-    }
-  }
 </script>
 
 <header class="topbar">
@@ -112,27 +86,8 @@
         <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
       </svg>
     </button>
-    <button class="btn btn-ghost btn-sm" onclick={toggleDarkMode} aria-label="Toggle dark mode">
-      {#if isDark}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      {:else}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      {/if}
-    </button>
     {#if currentUser}
-      <button class="topbar-user" onclick={goToProfile} title="Edit profile">
-        {#if avatarUrl}
-          <img src={avatarUrl} alt={displayName} class="topbar-avatar-img" />
-        {:else}
-          <span class="topbar-avatar-fallback" style="background-color: {getColor(currentUser.username)};">
-            {initial}
-          </span>
-        {/if}
-        <span class="topbar-username">{displayName}</span>
-        {#if roleBadge}
-          <span class="topbar-role-badge">{roleBadge}</span>
-        {/if}
-      </button>
+      <AvatarMenu />
     {/if}
   </div>
 </header>
@@ -163,61 +118,7 @@
     }
   }
 
-  .topbar-user {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    background: none;
-    border: none;
-    padding: 4px 8px 4px 4px;
-    border-radius: var(--radius-full, 999px);
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    font-family: var(--font-sans);
-  }
-
-  .topbar-user:hover {
-    background: var(--bg-hover);
-  }
-
-  .topbar-avatar-img {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .topbar-avatar-fallback {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 12px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
-
-  .topbar-username {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    font-weight: 500;
-  }
-
   .ranger-active {
     color: var(--accent);
-  }
-
-  .topbar-role-badge {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    padding: 1px 6px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-full, 999px);
   }
 </style>

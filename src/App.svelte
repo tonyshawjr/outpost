@@ -58,6 +58,7 @@
   import Workflows from '$pages/Workflows.svelte';
   import ReviewTokens from '$pages/ReviewTokens.svelte';
   import Lodge from '$pages/Lodge.svelte';
+  import Redirects from '$pages/Redirects.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopBar from '$components/TopBar.svelte';
@@ -281,6 +282,12 @@
         {:else if route === 'lodge'}
           {#if hasSettingsAccess}
             <Lodge />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'redirects'}
+          {#if hasSettingsAccess}
+            <Redirects />
           {:else}
             <AccessDenied />
           {/if}

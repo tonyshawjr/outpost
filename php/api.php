@@ -30,6 +30,7 @@ require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
 require_once __DIR__ . '/smart-forge.php';
 require_once __DIR__ . '/shield.php';
+require_once __DIR__ . '/redirects.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -195,6 +196,7 @@ ensure_member_tier_columns();
 ensure_collections_lodge_columns();
 ensure_editor_sessions_table();
 ensure_shield_tables();
+redirects_ensure_table();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -227,6 +229,7 @@ $cap_map = [
     'lodge'      => 'settings.*',
     'shield'     => 'settings.*',
     'boost'      => 'settings.*',
+    'redirects'  => 'settings.*',
 ];
 // Workflow transition/history/for-collection endpoints are accessible to any authenticated user
 // (stage-level role enforcement is done inside the handlers)
@@ -621,6 +624,14 @@ match (true) {
     $action === 'ranger/conversations' && $method === 'DELETE' => handle_ranger_conversation_delete(),
     $action === 'ranger/settings' && $method === 'GET' => handle_ranger_settings_get(),
     $action === 'ranger/settings' && $method === 'PUT' => handle_ranger_settings_update(),
+
+    // Redirects
+    $action === 'redirects' && $method === 'GET'                          => handle_redirects_list(),
+    $action === 'redirects' && $method === 'POST'                         => handle_redirect_create(),
+    $action === 'redirects' && $method === 'PUT' && isset($_GET['id'])    => handle_redirect_update(),
+    $action === 'redirects' && $method === 'DELETE' && isset($_GET['id']) => handle_redirect_delete(),
+    $action === 'redirects/test' && $method === 'POST'                    => handle_redirect_test(),
+    $action === 'redirects/import' && $method === 'POST'                  => handle_redirect_import(),
 
     default => json_error('Not found', 404),
 };

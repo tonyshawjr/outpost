@@ -32,6 +32,7 @@
 - [Schema Editor](/outpost/docs/features/schema-editor.html): Full-page collection schema editor with drag-sortable field builder, visual repeater sub-fields, and all 15 field types
 - [Boost](/outpost/docs/features/boost.html): Performance optimization suite — page caching, browser cache headers, GZIP compression, HTML minification, lazy loading, database optimization, Developer Mode
 - [Shield](/outpost/docs/features/shield.html): Security suite — login protection, IP blocklist, WAF-lite firewall, file integrity monitoring, security headers, traffic logging, email notifications
+- [Redirects](/outpost/docs/features/redirects.html): URL redirect management — exact, wildcard, and regex matching, 301/302/307 types, CSV import, hit tracking, open-redirect prevention
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -3768,6 +3769,52 @@ Compass does not wrap your HTML. Your inputs, selects, buttons keep their markup
   <div data-compass="pager" data-collection="business" data-per-page="12"></div>
 </div>
 ```
+
+---
+
+## Redirects (v4.10.0)
+
+URL redirect management from the admin panel. Access from Tools > Redirects (requires `settings.*` capability).
+
+### Match Types (evaluated in order)
+
+1. **Exact match** — source URL must match request path exactly (trailing slashes normalized).
+2. **Wildcard match** — source ends with `*`. The prefix is matched, and the remainder is appended to the target. Example: `/old-blog/*` → `/blog/*` makes `/old-blog/my-post` → `/blog/my-post`.
+3. **Regex match** — source starts with `~`. Standard PCRE pattern. Capture groups `$1`, `$2`, etc. substituted in target. Example: `~^/post/(\d+)$` → `/archive/$1`.
+
+### Redirect Types
+
+- **301** — Permanent. Search engines transfer link equity. Default.
+- **302** — Temporary. Search engines keep the original indexed.
+- **307** — Temporary, preserves HTTP method. POST stays POST.
+
+### Features
+
+- **Hit tracking** — counter and last-hit timestamp per redirect.
+- **Enable/disable** — toggle without deleting.
+- **CSV import** — columns: source, target, type (optional, defaults to 301). Header row auto-detected.
+- **URL test tool** — check how a URL would be handled without navigating.
+- **Notes** — optional per-redirect notes for your reference.
+
+### Security
+
+- **Open redirect prevention** — targets validated at execution time. Only relative paths and same-domain absolute URLs allowed. External domains and protocol-relative URLs (`//`) are blocked.
+- **Auth** — all management endpoints require `settings.*` capability (admin role or higher).
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `api.php?action=redirects` | List all redirects |
+| POST | `api.php?action=redirects` | Create a redirect |
+| PUT | `api.php?action=redirects&id=ID` | Update a redirect |
+| DELETE | `api.php?action=redirects&id=ID` | Delete a redirect |
+| POST | `api.php?action=redirects/test` | Test a URL against rules |
+| POST | `api.php?action=redirects/import` | Bulk import from CSV |
+
+### How It Works
+
+The redirect check runs in `front-router.php` after config/database load but before theme routing. The `redirects` table is auto-created on first use. Evaluation order: exact → wildcard → regex. First match wins. On match, the configured status code and Location header are sent immediately.
 
 ---
 

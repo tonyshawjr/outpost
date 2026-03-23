@@ -65,17 +65,25 @@
   }
 
   let anyGroupOpen = $derived(
-    isGroupOpen('content') || isGroupOpen('site') || isGroupOpen('members') || isGroupOpen('build') || isGroupOpen('insights')
+    isGroupOpen('content') || isGroupOpen('site') || isGroupOpen('members') || isGroupOpen('build') || isGroupOpen('tools')
   );
 
   function collapseAllGroups() {
-    groupState = { content: false, site: false, members: false, build: false, insights: false };
+    groupState = { content: false, site: false, members: false, build: false, tools: false };
     localStorage.setItem('outpost-sidebar-groups', JSON.stringify(groupState));
   }
 
   function expandAllGroups() {
-    groupState = { content: true, site: true, members: true, build: true, insights: true };
+    groupState = { content: true, site: true, members: true, build: true, tools: true };
     localStorage.setItem('outpost-sidebar-groups', JSON.stringify(groupState));
+  }
+
+  // Pinned items — stored in localStorage
+  let pinned = $state(JSON.parse(localStorage.getItem('outpost-pinned') || '[]'));
+
+  function removePinned(index) {
+    pinned = pinned.filter((_, i) => i !== index);
+    localStorage.setItem('outpost-pinned', JSON.stringify(pinned));
   }
 
   // Visibility checks for groups — hide groups with zero visible items
@@ -87,13 +95,17 @@
     true // Globals is always visible
   );
   let showBuildGroup = $derived(
-    showSettings || (showCode && featureEnabled('code_editor')) || (showChannels && featureEnabled('channels'))
+    (showCode && featureEnabled('code_editor')) ||
+    (showFormBuilder && featureEnabled('forms')) ||
+    (showChannels && featureEnabled('channels')) ||
+    featureEnabled('collections')
   );
   let showMembersGroup = $derived(
     (showMembers && featureEnabled('members')) || featureEnabled('lodge')
   );
-  let showInsightsGroup = $derived(
-    showCode && featureEnabled('analytics')
+  let showToolsGroup = $derived(
+    (showCode && featureEnabled('analytics')) ||
+    showSettings
   );
 
   function toggleCollExpand(slug) {
@@ -115,11 +127,6 @@
       statsData.set(s);
     } catch (e) {}
   });
-
-  async function handleLogout() {
-    await auth.logout();
-    user.set(null);
-  }
 
   function nav(r, params = {}) {
     navigate(r, params);
@@ -156,10 +163,10 @@
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
     <span class="sidebar-search-hint">Search...</span>
-    <span class="sidebar-search-kbd">⌘K</span>
+    <span class="sidebar-search-kbd">&#8984;K</span>
   </button>
 
-  <!-- Dashboard (always visible, no group) -->
+  <!-- Dashboard + Inbox (always visible, no group) -->
   <div class="sidebar-section sidebar-inner">
     <button
       class="sidebar-item"
@@ -169,15 +176,35 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
       Dashboard
     </button>
-    <button
-      class="sidebar-item"
-      class:active={route === 'calendar'}
-      onclick={() => nav('calendar')}
-    >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Calendar
-    </button>
+    {#if featureEnabled('forms')}
+      <button
+        class="sidebar-item"
+        class:active={route === 'forms' || route === 'form-submissions'}
+        onclick={() => nav('form-submissions')}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Inbox
+      </button>
+    {/if}
   </div>
+
+  <!-- Pinned items -->
+  {#if pinned.length > 0}
+    <div class="sidebar-section sidebar-inner">
+      {#each pinned as pin, i (i)}
+        <button
+          class="sidebar-item"
+          onclick={() => nav(pin.route, pin.params || {})}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          {pin.label}
+          <span class="pin-remove" role="button" tabindex="0" onclick={(e) => { e.stopPropagation(); removePinned(i); }} onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); removePinned(i); } }} title="Unpin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </span>
+        </button>
+      {/each}
+    </div>
+  {/if}
 
   <!-- ═══ CONTENT ═══ -->
   {#if showContentGroup}
@@ -275,14 +302,22 @@
             Navigation
           </button>
         {/if}
-        {#if featureEnabled('forms')}
+        {#if showSettings}
           <button
             class="sidebar-item"
-            class:active={route === 'forms' || route === 'form-submissions'}
-            onclick={() => nav('form-submissions')}
+            class:active={route === 'themes' || route === 'theme-customizer'}
+            onclick={() => nav('themes')}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            Inbox
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Themes
+          </button>
+          <button
+            class="sidebar-item"
+            class:active={route === 'brand'}
+            onclick={() => nav('brand')}
+          >
+            <svg viewBox="0 0 324.99 324.99" fill="currentColor"><path d="M307.6,129.885c-11.453-11.447-23.783-16.778-38.805-16.778c-6.189,0-12.056,0.858-17.729,1.688c-5.094,0.745-9.905,1.449-14.453,1.45c-8.27,0-14.197-2.397-19.82-8.017c-10.107-10.101-8.545-20.758-6.569-34.25c2.357-16.096,5.291-36.127-15.101-56.508C183.578,5.932,167.848,0.081,148.372,0.081c-37.296,0-78.367,21.546-99.662,42.829C17.398,74.205,0.1,115.758,0,159.917c-0.1,44.168,17.018,85.656,48.199,116.82c31.077,31.061,72.452,48.168,116.504,48.171c0.005,0,0.007,0,0.013,0c44.315,0,86.02-17.289,117.428-48.681c17.236-17.226,32.142-44.229,38.9-70.471C329.291,173.738,324.517,146.793,307.6,129.885z"/></svg>
+            Brand
           </button>
         {/if}
       {/if}
@@ -331,24 +366,6 @@
         <svg class="sidebar-group-chevron" class:rotated={isGroupOpen('build')} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       {#if isGroupOpen('build')}
-        {#if showSettings}
-          <button
-            class="sidebar-item"
-            class:active={route === 'themes' || route === 'theme-customizer'}
-            onclick={() => nav('themes')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            Themes
-          </button>
-          <button
-            class="sidebar-item"
-            class:active={route === 'brand'}
-            onclick={() => nav('brand')}
-          >
-            <svg viewBox="0 0 324.99 324.99" fill="currentColor"><path d="M307.6,129.885c-11.453-11.447-23.783-16.778-38.805-16.778c-6.189,0-12.056,0.858-17.729,1.688c-5.094,0.745-9.905,1.449-14.453,1.45c-8.27,0-14.197-2.397-19.82-8.017c-10.107-10.101-8.545-20.758-6.569-34.25c2.357-16.096,5.291-36.127-15.101-56.508C183.578,5.932,167.848,0.081,148.372,0.081c-37.296,0-78.367,21.546-99.662,42.829C17.398,74.205,0.1,115.758,0,159.917c-0.1,44.168,17.018,85.656,48.199,116.82c31.077,31.061,72.452,48.168,116.504,48.171c0.005,0,0.007,0,0.013,0c44.315,0,86.02-17.289,117.428-48.681c17.236-17.226,32.142-44.229,38.9-70.471C329.291,173.738,324.517,146.793,307.6,129.885z M309.424,202.764c-6.16,23.915-20.197,49.42-35.763,64.976c-29.145,29.129-67.833,45.17-108.946,45.169c-0.002,0-0.009,0-0.011,0c-40.849-0.003-79.211-15.863-108.023-44.659C27.777,239.36,11.908,200.896,12,159.944c0.092-40.962,16.142-79.512,45.191-108.545c19.071-19.061,57.508-39.317,91.18-39.317c16.18,0,29.056,4.669,38.269,13.877c16.127,16.118,13.981,30.769,11.71,46.28c-2.067,14.116-4.41,30.115,9.96,44.478c7.871,7.866,16.864,11.529,28.304,11.528c5.421-0.001,10.895-0.802,16.189-1.576c5.248-0.768,10.676-1.562,15.992-1.562c7.938,0,18.557,1.508,30.322,13.267C317.724,156.971,313.562,186.699,309.424,202.764z"/><path d="M142.002,43.531c-1.109,0-2.233,0.065-3.342,0.192c-15.859,1.824-27.33,16.199-25.571,32.042c1.613,14.631,13.93,25.665,28.647,25.665c1.105,0,2.226-0.065,3.332-0.191c15.851-1.823,27.326-16.191,25.581-32.031C169.032,54.57,156.716,43.531,142.002,43.531z"/><path d="M102.997,113.64c-1.72-7.512-6.261-13.898-12.784-17.984c-4.597-2.881-9.889-4.404-15.304-4.404c-10.051,0-19.254,5.079-24.618,13.587c-4.14,6.566-5.472,14.34-3.75,21.888c1.715,7.52,6.261,13.92,12.799,18.018c4.596,2.88,9.888,4.402,15.303,4.402c10.051,0,19.255-5.078,24.624-13.593C103.401,128.975,104.726,121.193,102.997,113.64z"/><path d="M70.131,173.25c-3.275,0-6.516,0.557-9.63,1.654c-15.055,5.301-23.05,21.849-17.821,36.892c4.032,11.579,14.984,19.358,27.254,19.358c3.276,0,6.517-0.556,9.637-1.652c15.065-5.301,23.053-21.854,17.806-36.896C93.346,181.029,82.397,173.25,70.131,173.25z"/><path d="M140.817,229.415c-3.071-1.066-6.266-1.606-9.496-1.606c-12.307,0-23.328,7.804-27.431,19.429c-2.566,7.317-2.131,15.185,1.229,22.151c3.349,6.943,9.204,12.163,16.486,14.696c3.075,1.071,6.274,1.614,9.51,1.614c12.3,0,23.314-7.811,27.409-19.439c2.574-7.31,2.143-15.175-1.216-22.145C153.958,237.165,148.103,231.945,140.817,229.415z"/><path d="M212.332,213.811c-5.466,0-10.81,1.55-15.448,4.479c-13.525,8.521-17.652,26.427-9.193,39.927c5.315,8.445,14.463,13.488,24.469,13.488c5.458,0,10.796-1.545,15.434-4.464c13.541-8.507,17.663-26.419,9.19-39.926C231.486,218.86,222.345,213.811,212.332,213.811z"/><path d="M255.384,141.998c-1.06-0.117-2.134-0.176-3.194-0.176c-14.772,0-27.174,11.068-28.846,25.747c-0.876,7.698,1.297,15.266,6.118,21.311c4.812,6.03,11.686,9.821,19.369,10.676c1.053,0.114,2.12,0.173,3.175,0.173c14.754,0,27.164-11.067,28.869-25.748c0.886-7.688-1.277-15.247-6.091-21.288C269.97,146.651,263.082,142.853,255.384,141.998z"/></svg>
-            Brand
-          </button>
-        {/if}
         {#if showCode && featureEnabled('code_editor')}
           <button
             class="sidebar-item"
@@ -359,16 +376,6 @@
             Code Editor
           </button>
         {/if}
-        {#if featureEnabled('collections')}
-          <button
-            class="sidebar-item"
-            class:active={route === 'collections'}
-            onclick={() => nav('collections')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            Collections
-          </button>
-        {/if}
         {#if showFormBuilder && featureEnabled('forms')}
           <button
             class="sidebar-item"
@@ -376,7 +383,7 @@
             onclick={() => nav('forms-list')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11H3v10h6V11z"/><path d="M21 3H3v6h18V3z"/><path d="M21 11h-6v10h6V11z"/></svg>
-            Form Builder
+            Forms
           </button>
         {/if}
         {#if showChannels && featureEnabled('channels')}
@@ -389,6 +396,16 @@
             Channels
           </button>
         {/if}
+        {#if featureEnabled('collections')}
+          <button
+            class="sidebar-item"
+            class:active={route === 'collections'}
+            onclick={() => nav('collections')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Collections
+          </button>
+        {/if}
         <button
           class="sidebar-item"
           class:active={route === 'folder-manager'}
@@ -397,6 +414,69 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           Folders
         </button>
+      {/if}
+    </div>
+  {/if}
+
+  <!-- ═══ TOOLS ═══ -->
+  {#if showToolsGroup}
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section sidebar-inner">
+      <button class="sidebar-group-label" onclick={() => toggleGroup('tools')}>
+        Tools
+        <svg class="sidebar-group-chevron" class:rotated={isGroupOpen('tools')} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      {#if isGroupOpen('tools')}
+        {#if showCode && featureEnabled('analytics')}
+          <button
+            class="sidebar-item"
+            class:active={route === 'analytics' || route.startsWith('analytics-')}
+            onclick={() => nav('analytics')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Analytics
+          </button>
+        {/if}
+        {#if showSettings}
+          <button
+            class="sidebar-item"
+            class:active={route === 'redirects'}
+            onclick={() => nav('redirects')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+            Redirects
+          </button>
+        {/if}
+        {#if showSettings && featureEnabled('shield')}
+          <button
+            class="sidebar-item"
+            class:active={route === 'settings' && false}
+            onclick={() => nav('settings', { section: 'shield' })}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Shield
+          </button>
+        {/if}
+        {#if showSettings && featureEnabled('boost')}
+          <button
+            class="sidebar-item"
+            class:active={route === 'settings' && false}
+            onclick={() => nav('settings', { section: 'boost' })}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Boost
+          </button>
+        {/if}
+        {#if showSettings && featureEnabled('review_links')}
+          <button
+            class="sidebar-item"
+            class:active={route === 'review-tokens'}
+            onclick={() => nav('review-tokens')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Review Links
+          </button>
+        {/if}
         {#if showSettings && featureEnabled('releases')}
           <button
             class="sidebar-item"
@@ -421,66 +501,12 @@
     </div>
   {/if}
 
-  <!-- ═══ INSIGHTS ═══ -->
-  {#if showInsightsGroup}
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section sidebar-inner">
-      <button class="sidebar-group-label" onclick={() => toggleGroup('insights')}>
-        Insights
-        <svg class="sidebar-group-chevron" class:rotated={isGroupOpen('insights')} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      {#if isGroupOpen('insights')}
-        <button
-          class="sidebar-item"
-          class:active={route === 'analytics' || route.startsWith('analytics-')}
-          onclick={() => nav('analytics')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          Analytics
-        </button>
-      {/if}
-    </div>
-  {/if}
-
-  <!-- ═══ SYSTEM (bottom, always visible) ═══ -->
-  <div class="sidebar-divider"></div>
-  <div class="sidebar-section sidebar-inner" style="margin-top: auto;">
-    {#if showSettings && featureEnabled('review_links')}
-      <button
-        class="sidebar-item"
-        class:active={route === 'review-tokens'}
-        onclick={() => nav('review-tokens')}
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        Review Links
-      </button>
-    {/if}
-    {#if showSettings && featureEnabled('backups')}
-      <button
-        class="sidebar-item"
-        class:active={route === 'backups'}
-        onclick={() => nav('backups')}
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
-        Backups
-      </button>
-    {/if}
-    {#if showSettings}
-      <button
-        class="sidebar-item"
-        class:active={route === 'settings' || route === 'user-profile'}
-        onclick={() => nav('settings')}
-      >
-        <span class="sidebar-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          {#if hasUpdate}<span class="update-dot"></span>{/if}
-        </span>
-        Settings
-      </button>
-    {/if}
+  <!-- ═══ Ranger (bottom, always visible) ═══ -->
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-section sidebar-inner sidebar-bottom">
     {#if featureEnabled('ranger')}
       <button
-        class="sidebar-item"
+        class="sidebar-item ranger-item"
         class:active={$rangerOpen}
         onclick={() => rangerOpen.update(v => !v)}
         title="Ranger AI Assistant"
@@ -492,10 +518,6 @@
         Ranger
       </button>
     {/if}
-    <button class="sidebar-item" onclick={handleLogout}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Log out
-    </button>
   </div>
 </aside>
 
@@ -672,31 +694,45 @@
     text-align: right;
   }
 
-  .sidebar-icon-wrap {
-    position: relative;
-    display: inline-flex;
-    flex-shrink: 0;
-  }
-  .sidebar-icon-wrap svg {
-    width: 22px;
-    height: 22px;
-  }
-  .update-dot {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #22c55e;
-    border: 2px solid var(--sidebar-bg);
-    box-sizing: content-box;
-  }
-
   .sidebar-sub-divider {
     height: 1px;
     background: var(--sidebar-border);
     margin: 4px 12px 4px 42px;
     opacity: 0.4;
+  }
+
+  .sidebar-spacer {
+    flex: 1;
+  }
+
+  .sidebar-bottom {
+    margin-top: 0;
+    padding-bottom: 8px;
+  }
+
+  .ranger-item svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pin-remove {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: var(--sidebar-text-muted);
+    opacity: 0;
+    transition: opacity 0.1s;
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar-item:hover .pin-remove {
+    opacity: 1;
+  }
+
+  .pin-remove:hover {
+    color: var(--sidebar-text);
   }
 </style>
