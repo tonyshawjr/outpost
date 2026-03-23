@@ -283,6 +283,39 @@ Everything below is already built and released.
 
 ---
 
+## v4.9.0 — Shield (Security Suite) — SHIPPED (v4.9.0)
+
+**Comprehensive security hardening with admin settings panel.** Protects Outpost sites from brute force, injection attacks, and file tampering — all configurable from Settings > Shield.
+
+- ~~**Login protection**~~ — lockout after N failed attempts, configurable duration, auto-permanent-block after repeated lockouts — **Shipped**
+- ~~**IP blocklist**~~ — manual and automatic blocking with optional expiry — **Shipped**
+- ~~**WAF-lite firewall**~~ — blocks SQL injection, XSS, path traversal, PHP injection, null byte attacks. Block or log-only mode — **Shipped**
+- ~~**File integrity monitoring**~~ — MD5 hash verification of core PHP files with on-demand checks — **Shipped**
+- ~~**Security headers**~~ — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy — **Shipped**
+- ~~**Traffic logging**~~ — last 1,000 requests for security monitoring — **Shipped**
+- ~~**Security event log**~~ — all blocked/logged threats with threat classification — **Shipped**
+- ~~**Email notifications**~~ — optional alerts for lockouts, blocked attacks, file changes — **Shipped**
+- ~~**Admin UI**~~ — status dashboard, configuration, blocked IPs management, security log, traffic monitor — **Shipped**
+
+---
+
+## v4.9.0 — Boost (Performance Suite) — SHIPPED (v4.9.0)
+
+**Comprehensive performance optimization with admin settings panel.** Makes Outpost sites fast with caching, compression, and minification — all configurable from Settings > Boost.
+
+- ~~**Page caching**~~ — full-page HTML cache for anonymous visitors with configurable TTL and path exclusions — **Shipped**
+- ~~**Cache preloading**~~ — crawls all page and collection item URLs to warm the cache — **Shipped**
+- ~~**Browser cache headers**~~ — Cache-Control, ETag, Expires, Last-Modified, 304 Not Modified for static assets — **Shipped**
+- ~~**GZIP compression**~~ — compresses HTML responses, 60-80% size reduction — **Shipped**
+- ~~**HTML minification**~~ — strips whitespace and comments, preserves pre/code/script/style content — **Shipped**
+- ~~**Lazy loading**~~ — auto-adds loading="lazy" to images and iframes, configurable skip count — **Shipped**
+- ~~**Database optimization**~~ — cleanup stale data + VACUUM to reclaim space — **Shipped**
+- ~~**Developer Mode**~~ — single toggle disables all caching and optimization — **Shipped**
+- ~~**Performance dashboard**~~ — cache hit rate, page count, template cache, database size — **Shipped**
+- ~~**Admin UI**~~ — Settings > Boost with full configuration and real-time stats — **Shipped**
+
+---
+
 ## v5.0 — Commerce / Payments
 
 **Lightweight digital product sales via Stripe.** Not a full eCommerce platform — just clean checkout + access gates for digital products, courses, and memberships.

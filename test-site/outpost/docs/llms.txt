@@ -30,6 +30,8 @@
 - [Lodge](/outpost/docs/features/lodge.html): Member-owned content portals — let members create, edit, and manage their own collection items
 - [Compass](/outpost/docs/features/compass.html): Smart filtering and search for any collection — 12 filter types, URL state sync, mobile flyout, indexed search
 - [Schema Editor](/outpost/docs/features/schema-editor.html): Full-page collection schema editor with drag-sortable field builder, visual repeater sub-fields, and all 15 field types
+- [Boost](/outpost/docs/features/boost.html): Performance optimization suite — page caching, browser cache headers, GZIP compression, HTML minification, lazy loading, database optimization, Developer Mode
+- [Shield](/outpost/docs/features/shield.html): Security suite — login protection, IP blocklist, WAF-lite firewall, file integrity monitoring, security headers, traffic logging, email notifications
 - [Changelog](/outpost/docs/changelog.html): Every release and its changes
 - [Roadmap](/outpost/docs/roadmap.html): What's shipped, what's next, and why
 
@@ -3577,6 +3579,62 @@ Admin sidebar organized into 5 collapsible groups: Content, Design, Connect, Mem
 
 ---
 
+## Boost — Performance Suite (v4.9.0)
+
+Comprehensive performance optimization for Outpost sites. Configure from Settings > Boost.
+
+### Features
+
+- **Developer Mode** — Single toggle at the top of the Boost settings. Disables all caching, compression, minification, and browser cache headers. Sends no-cache headers. The first check in every Boost function.
+- **Page caching** — Full-page HTML cache for anonymous visitors. Cached pages served before any PHP/DB processing. Configurable TTL (default: 1 hour), glob-pattern path exclusions (default: `/outpost/*`, `/api/*`). Never caches: logged-in users, POST requests, previews, nocache param.
+- **Cache preloading** — One-click button crawls all page and collection item URLs to warm the cache.
+- **Browser cache headers** — Cache-Control, Expires, ETag, Last-Modified on static assets. Configurable TTL per type: CSS (1 year), JS (1 year), images (30 days), fonts (1 year). Hashed filenames marked `immutable`. Returns 304 Not Modified for unchanged files.
+- **GZIP compression** — Compresses HTML responses, 60-80% size reduction. Requires PHP `zlib` extension. Falls back gracefully if unavailable.
+- **HTML minification** — Strips whitespace and comments. Preserves `<pre>`, `<code>`, `<script>`, `<style>`, `<textarea>` content and Outpost block markers.
+- **Lazy loading** — Auto-adds `loading="lazy"` to `<img>` and `<iframe>` tags. Configurable skip count for above-the-fold images (default: 2).
+- **Database optimization** — Cleans expired rate limits, old activity logs (90d+), old analytics (1y+), stale preview tokens. Runs VACUUM.
+
+### Configuration (stored as JSON in settings table, key: boost_config)
+
+```json
+{
+  "enabled": true,
+  "developer_mode": false,
+  "page_cache": true,
+  "page_cache_ttl": 3600,
+  "page_cache_excludes": ["/outpost/*", "/api/*"],
+  "browser_cache": true,
+  "browser_cache_css_ttl": 31536000,
+  "browser_cache_js_ttl": 31536000,
+  "browser_cache_img_ttl": 2592000,
+  "browser_cache_font_ttl": 31536000,
+  "compression": true,
+  "html_minify": true,
+  "lazy_loading": true,
+  "lazy_skip_count": 2
+}
+```
+
+### API Endpoints (admin auth required)
+
+- `GET boost/status` — cache stats, DB size, compression availability
+- `GET boost/config` — current config
+- `PUT boost/config` — update config (auto-clears page cache)
+- `POST boost/clear-cache` — clear all page + template cache
+- `POST boost/preload` — warm cache by crawling all URLs
+- `POST boost/optimize-db` — cleanup + VACUUM
+
+### Response Headers
+
+- `X-Boost-Cache: HIT` or `MISS` — whether page was served from cache
+- `X-Boost-Age: N` — cache age in seconds (on HIT only)
+
+### Integration
+
+Boost hooks into `front-router.php` early in the request lifecycle. Static assets get browser cache headers before being served. For HTML pages, Boost checks the page cache first (exits on HIT), then starts output buffering. The buffer callback applies lazy loading, minification, and compression, then caches the result. The legacy engine.php cache defers to Boost when it is loaded.
+
+---
+
 ## Compass — Smart Filtering & Search (v4.8.0)
 
 Data-attribute-driven filtering and search for any collection. You write your own HTML with your own classes and layout. Add `data-compass` attributes to make elements smart. Compass handles the filtering behavior — you control everything visual. No forced layouts, no generated wrappers.
@@ -3710,3 +3768,73 @@ Compass does not wrap your HTML. Your inputs, selects, buttons keep their markup
   <div data-compass="pager" data-collection="business" data-per-page="12"></div>
 </div>
 ```
+
+---
+
+## Shield — Security Suite (v4.9.0)
+
+Comprehensive security hardening system. Enabled by default, configurable from Settings > Shield.
+
+### Seven layers of protection
+
+1. **Login Protection** — Lockout after N failed attempts (default: 5 attempts, 15 min lockout). Auto-permanent-block after repeated lockouts (default: 3 lockout events). Configurable via `login_max_attempts`, `login_lockout_minutes`, `auto_block_after_lockouts`.
+
+2. **IP Blocklist** — Manual and automatic IP blocking. Checked on every request before routing. Temporary blocks auto-expire. Admin cannot block own IP. `shield_blocked_ips` table with `ip`, `reason`, `auto_blocked`, `blocked_at`, `expires_at`.
+
+3. **WAF-lite Firewall** — Scans URLs, query strings, and POST bodies for attack patterns:
+   - `sql_injection` — UNION SELECT, DROP TABLE, SLEEP(), tautologies, comment injection
+   - `xss` — script tags, javascript: URLs, inline event handlers
+   - `path_traversal` — ../ and URL-encoded variants
+   - `php_injection` — <?php, eval(), base64_decode(), system(), exec(), etc.
+   - `null_byte` — %00 injection
+   Two modes: "block" (403 + log) and "log" (log only, for monitoring). Skips logged-in admin sessions.
+
+4. **File Integrity Monitoring** — MD5 hashes of core PHP files. First scan stores baseline. Subsequent scans detect modified or deleted files. On-demand check from admin UI.
+
+5. **Security Headers** — X-Content-Type-Options: nosniff, X-Frame-Options: SAMEORIGIN, X-XSS-Protection: 1; mode=block, Referrer-Policy: strict-origin-when-cross-origin, Permissions-Policy: camera=(), microphone=(), geolocation=().
+
+6. **Traffic Logging** — Last 1,000 requests with IP, path, method, user agent, timestamp. Auto-pruned.
+
+7. **Email Notifications** — Alerts for lockout, permanent block, firewall block, file integrity change. Uses configured SMTP settings.
+
+### Configuration
+
+Stored as JSON in `settings` table under key `shield_config`:
+
+```json
+{
+  "enabled": true,
+  "login_lockout": true,
+  "login_max_attempts": 5,
+  "login_lockout_minutes": 15,
+  "auto_block_after_lockouts": 3,
+  "firewall_enabled": true,
+  "firewall_mode": "block",
+  "file_integrity": true,
+  "security_headers": true,
+  "traffic_logging": true,
+  "email_notifications": false,
+  "notification_email": ""
+}
+```
+
+### API Endpoints (admin auth required)
+
+- `GET shield/status` — dashboard: blocked IPs count, attacks in 24h, failed logins, last integrity check
+- `GET shield/log?limit=50&offset=0` — security event log (paginated)
+- `GET shield/blocked-ips` — list all blocked IPs
+- `POST shield/block-ip` — block IP. Body: `{ "ip": "...", "reason": "..." }`
+- `DELETE shield/block-ip&ip=X` — unblock IP
+- `GET shield/traffic?limit=100&offset=0` — recent traffic (paginated)
+- `POST shield/file-check` — run file integrity check
+- `GET shield/config` — get Shield config
+- `PUT shield/config` — update Shield config
+- `GET shield/login-attempts?limit=50` — recent login attempts
+
+### Database Tables (auto-created)
+
+- `shield_login_attempts` — id, ip, username, success, created_at
+- `shield_blocked_ips` — id, ip (UNIQUE), reason, auto_blocked, blocked_at, expires_at
+- `shield_log` — id, ip, path, method, rule, payload, blocked, created_at
+- `shield_file_hashes` — file_path (PK), hash, checked_at
+- `shield_traffic` — id, ip, path, method, status_code, user_agent, threat, created_at

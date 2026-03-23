@@ -29,6 +29,7 @@ require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
 require_once __DIR__ . '/smart-forge.php';
+require_once __DIR__ . '/shield.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -72,6 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
+
+// ── Shield Security Check ────────────────────────────────
+shield_check_request();
 
 // ── Route ────────────────────────────────────────────────
 $action = $_GET['action'] ?? '';
@@ -190,6 +194,7 @@ ensure_collection_items_owner_column();
 ensure_member_tier_columns();
 ensure_collections_lodge_columns();
 ensure_editor_sessions_table();
+ensure_shield_tables();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -220,6 +225,8 @@ $cap_map = [
     'workflows'  => 'settings.*',
     'review-tokens' => 'settings.*',
     'lodge'      => 'settings.*',
+    'shield'     => 'settings.*',
+    'boost'      => 'settings.*',
 ];
 // Workflow transition/history/for-collection endpoints are accessible to any authenticated user
 // (stage-level role enforcement is done inside the handlers)
@@ -303,6 +310,14 @@ match (true) {
 
     // Cache
     $action === 'cache/clear' && $method === 'POST' => handle_cache_clear(),
+
+    // Boost Performance Suite
+    $action === 'boost/status' && $method === 'GET' => handle_boost_status(),
+    $action === 'boost/config' && $method === 'GET' => handle_boost_config_get(),
+    $action === 'boost/config' && $method === 'PUT' => handle_boost_config_update(),
+    $action === 'boost/clear-cache' && $method === 'POST' => handle_boost_clear_cache(),
+    $action === 'boost/preload' && $method === 'POST' => handle_boost_preload(),
+    $action === 'boost/optimize-db' && $method === 'POST' => handle_boost_optimize_db(),
 
     // Users
     $action === 'users' && $method === 'GET' && isset($_GET['id']) => handle_user_get(),
@@ -587,6 +602,18 @@ match (true) {
     $action === 'editor/block-settings' && $method === 'GET' => handle_editor_block_settings_get(),
     $action === 'editor/block-settings' && $method === 'PUT' => handle_editor_block_settings_save(),
 
+    // Shield Security
+    $action === 'shield/status'       && $method === 'GET'    => handle_shield_status(),
+    $action === 'shield/log'          && $method === 'GET'    => handle_shield_log(),
+    $action === 'shield/blocked-ips'  && $method === 'GET'    => handle_shield_blocked_ips(),
+    $action === 'shield/block-ip'     && $method === 'POST'   => handle_shield_block_ip(),
+    $action === 'shield/block-ip'     && $method === 'DELETE' => handle_shield_unblock_ip(),
+    $action === 'shield/traffic'      && $method === 'GET'    => handle_shield_traffic(),
+    $action === 'shield/file-check'   && $method === 'POST'   => handle_shield_file_check(),
+    $action === 'shield/config'       && $method === 'GET'    => handle_shield_config_get(),
+    $action === 'shield/config'       && $method === 'PUT'    => handle_shield_config_update(),
+    $action === 'shield/login-attempts' && $method === 'GET'  => handle_shield_login_attempts(),
+
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
     $action === 'ranger/conversations' && $method === 'GET' && isset($_GET['id']) => handle_ranger_conversation_get(),
@@ -783,8 +810,16 @@ function handle_login(): void {
 
     $user = OutpostDB::fetchOne('SELECT * FROM users WHERE username = ?', [$username]);
 
+    $loginIp = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+    // Shield: check if this IP is locked out
+    if (shield_is_login_locked($loginIp)) {
+        json_error('Too many failed login attempts. Please try again later.', 429);
+    }
+
     if (!$user || !password_verify($password, $user['password_hash'])) {
         OutpostAuth::recordFailedAttempt();
+        shield_record_login_attempt($loginIp, $username, false);
         json_error('Invalid username or password.', 401);
     }
 
@@ -792,6 +827,9 @@ function handle_login(): void {
     if (!outpost_is_internal_role($user['role'])) {
         json_error('This login is for site administrators only.', 401);
     }
+
+    // Shield: record successful login
+    shield_record_login_attempt($loginIp, $username, true);
 
     // If 2FA is enabled, return a signed token instead of creating a session
     if (!empty($user['totp_enabled'])) {
@@ -3490,8 +3528,58 @@ function handle_fonts_save(): void {
 function handle_cache_clear(): void {
     require_once __DIR__ . '/engine.php';
     outpost_clear_cache();
+    // Also clear Boost page cache
+    require_once __DIR__ . '/boost.php';
+    boost_clear_page_cache();
     dispatch_webhook('cache.cleared', []);
     json_response(['success' => true, 'message' => 'Cache cleared']);
+}
+
+// ── Boost Performance Suite Handlers ─────────────────────
+function handle_boost_status(): void {
+    require_once __DIR__ . '/boost.php';
+    json_response(boost_status());
+}
+
+function handle_boost_config_get(): void {
+    require_once __DIR__ . '/boost.php';
+    json_response(['config' => boost_get_config()]);
+}
+
+function handle_boost_config_update(): void {
+    require_once __DIR__ . '/boost.php';
+    $data = get_json_body();
+    boost_save_config($data);
+    log_activity('system', 'Boost performance settings updated');
+    json_response(['success' => true, 'config' => boost_get_config()]);
+}
+
+function handle_boost_clear_cache(): void {
+    require_once __DIR__ . '/boost.php';
+    boost_clear_page_cache();
+    // Also clear template cache
+    $templateDir = OUTPOST_CACHE_DIR . 'templates/';
+    if (is_dir($templateDir)) {
+        $files = glob($templateDir . '*.php') ?: [];
+        foreach ($files as $f) @unlink($f);
+    }
+    log_activity('system', 'Boost cache cleared');
+    json_response(['success' => true, 'message' => 'All caches cleared']);
+}
+
+function handle_boost_preload(): void {
+    require_once __DIR__ . '/boost.php';
+    $result = boost_preload_cache();
+    log_activity('system', "Boost cache preloaded: {$result['warmed']} pages warmed");
+    json_response(['success' => true, ...$result]);
+}
+
+function handle_boost_optimize_db(): void {
+    require_once __DIR__ . '/boost.php';
+    $result = boost_optimize_db();
+    $dbSize = boost_db_size();
+    log_activity('system', 'Database optimized via Boost');
+    json_response(['success' => true, 'cleaned' => $result, 'database' => $dbSize]);
 }
 
 // ── Sync Key Handlers ────────────────────────────────────

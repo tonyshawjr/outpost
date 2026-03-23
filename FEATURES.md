@@ -4,6 +4,36 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Boost Performance Suite (v4.9.0)
+
+- **Page caching** — Full-page HTML cache for anonymous visitors with configurable TTL (default 1 hour), path exclusions (glob patterns), and cache preloading that warms all page and collection item URLs.
+- **Browser cache headers** — Sets Cache-Control, Expires, ETag, and Last-Modified headers on static assets (CSS, JS, images, fonts). Configurable TTL per asset type. Sends 304 Not Modified when appropriate. Hashed filenames marked as immutable.
+- **GZIP compression** — Compresses HTML responses, reducing transfer size by 60-80%. Auto-detects client Accept-Encoding support. Graceful fallback if zlib unavailable.
+- **HTML minification** — Strips unnecessary whitespace and comments from HTML output. Preserves content inside `<pre>`, `<code>`, `<script>`, `<style>`, and `<textarea>` tags. Preserves Outpost block comment markers.
+- **Lazy loading** — Auto-adds `loading="lazy"` to `<img>` and `<iframe>` tags. Configurable skip count for above-the-fold images (default: skip first 2).
+- **Database optimization** — One-click cleanup of expired rate limits, old activity logs (90d+), old analytics (1y+), and stale preview tokens. Runs SQLite VACUUM to reclaim disk space. Shows current database size.
+- **Developer Mode** — Single prominent toggle that disables all caching, compression, minification, and browser cache headers. Sends no-cache headers instead. Essential for development workflows.
+- **Performance dashboard** — Real-time stats: cache hit rate (24h), cached page count and size, template cache entries, database size, and GZIP availability.
+- **API endpoints** — `boost/status`, `boost/config` (GET/PUT), `boost/clear-cache`, `boost/preload`, `boost/optimize-db`.
+- **Integration** — Hooks into front-router.php early in the request lifecycle. Serves cached pages before any PHP processing. Output buffer handles minification, lazy loading, and caching at the end of the response. Legacy engine.php cache defers to Boost when active.
+
+---
+
+## Shield Security Suite (v4.9.0)
+
+- **Login protection** — Lockout after N failed attempts (default: 5), configurable lockout duration (default: 15 min). Auto-permanent-block after repeated lockouts.
+- **IP blocklist** — Manual and automatic IP blocking with optional expiry. Admin cannot block own IP.
+- **WAF-lite firewall** — Blocks SQL injection, XSS, path traversal, PHP injection, null byte attacks. Configurable block or log-only mode.
+- **File integrity monitoring** — MD5 hash verification of core PHP files. On-demand checks and alerts on unexpected changes.
+- **Security headers** — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy on all responses.
+- **Traffic logging** — Last 1,000 requests with IP, path, method, user agent for security monitoring.
+- **Security event log** — All blocked/logged threats with threat type classification and color-coded indicators.
+- **Email notifications** — Optional alerts for lockouts, blocked attacks, and file integrity changes via configured SMTP.
+- **Admin UI** — Settings > Shield with status dashboard, configuration toggles, blocked IPs management, security log viewer, and live traffic monitor.
+- **API endpoints** — `shield/status`, `shield/log`, `shield/blocked-ips`, `shield/block-ip`, `shield/traffic`, `shield/file-check`, `shield/config`.
+
+---
+
 ## Compass — Smart Filtering & Search (v4.8.0, v2 architecture in v4.8.4)
 
 - **Data-attribute architecture (v2)** — Write your own HTML and add `data-compass` attributes to make elements smart. No wrapper divs, no forced classes, no locked-in layout. `<input data-compass="search">`, `<select data-compass="dropdown">`, `<div data-compass="results">`, `<button data-compass="reset">`, etc.

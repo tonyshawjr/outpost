@@ -1,5 +1,11 @@
 # Outpost CMS — Agent Instructions
 
+## Documentation Rule
+**Code first, read what was built, then write docs. Always.** Never write documentation in parallel with the code — the docs agent must READ the finished code files before writing any HTML documentation. The code is the source of truth. This prevents docs from describing features that don't exist or work differently than documented.
+
+## Security Audit Rule
+**Every feature MUST be audited before release.** After building any new feature, run a full code and security audit agent that reads the new/changed files and checks for: SQL injection, XSS, auth bypass, input validation, rate limiting, information disclosure, and code quality issues. The audit agent FIXES issues directly — it does not just report them. No release ships without a passing audit.
+
 ## After Every Feature
 **CRITICAL: The front-end developer documentation (`php/docs/*.html`) is what users see. These HTML files MUST be updated every time functionality changes. The markdown files (CHANGELOG.md, ROADMAP.md, FEATURES.md) are secondary — the HTML docs at `/outpost/docs/` are the source of truth for users. Always deploy updated docs to `test-site/outpost/docs/` as well.**
 

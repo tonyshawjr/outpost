@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.9.0] — 2026-03-23
+
+### Added
+- **Boost Performance Suite** — Comprehensive performance optimization system with admin settings panel. Includes configurable page caching with TTL and path exclusions, browser cache headers (Cache-Control, ETag, Expires, 304 Not Modified) for static assets, GZIP compression for HTML responses, HTML minification (preserves pre/code/script/style), automatic lazy loading for images and iframes, database optimization (VACUUM + stale data cleanup), cache preloading (warms all page and collection item URLs), and a real-time performance dashboard with cache hit rate, cache size, and database size. Developer Mode toggle disables all caching and optimization with one click.
+- **Shield Security Suite** — Comprehensive security hardening system with admin settings panel at Settings > Shield. Login lockout protection (configurable attempts and duration with auto-IP-blocking), WAF-lite firewall (blocks SQL injection, XSS, path traversal, PHP injection, null byte attacks in block or log-only mode), IP blocklist (manual and automatic with expiring bans), file integrity monitoring (MD5 hash verification of core PHP files with on-demand checks), security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy), live traffic logging (last 1,000 requests), security event log with threat indicators, and optional email notifications for lockouts, blocked attacks, and file changes. All configurable via a clean tabbed UI with status dashboard, blocked IPs management, security log viewer, and traffic monitor.
+
+---
+
 ## [4.8.4] — 2026-03-23
 
 ### Changed

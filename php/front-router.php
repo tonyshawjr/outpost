@@ -17,7 +17,19 @@ $docRoot = $_SERVER['DOCUMENT_ROOT'];
 // ── 1. Static assets — serve directly (non-PHP only) ─────
 if ($path !== '/' && file_exists($docRoot . $path) && is_file($docRoot . $path)) {
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    if ($ext !== 'php') return false;
+    if ($ext !== 'php') {
+        // Set Boost browser caching headers on static assets
+        $boostFile = $docRoot . '/outpost/boost.php';
+        if (file_exists($boostFile)) {
+            require_once $docRoot . '/outpost/config.php';
+            require_once $docRoot . '/outpost/db.php';
+            if (file_exists(OUTPOST_DB_PATH)) {
+                require_once $boostFile;
+                boost_set_static_headers($docRoot . $path);
+            }
+        }
+        return false;
+    }
 }
 
 // ── 2. /outpost/ admin paths ──────────────────────────────
@@ -90,6 +102,16 @@ require_once $outpostDir . '/db.php';
 if (!file_exists(OUTPOST_DB_PATH)) {
     header('Location: /outpost/');
     exit;
+}
+
+// ── Boost Performance Suite ──────────────────────────────
+require_once $outpostDir . '/boost.php';
+$_boostConfig = boost_get_config();
+if (!boost_is_bypassed() && $_boostConfig['page_cache']) {
+    // Try to serve from page cache (exits on HIT)
+    if (boost_serve_cached_page()) exit;
+    // Start output buffering for minification/compression/caching
+    boost_start_output_buffer();
 }
 
 // ── Sitemap ──────────────────────────────────────────────

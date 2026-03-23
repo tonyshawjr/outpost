@@ -314,6 +314,16 @@ export const cache = {
     request('cache/clear', { method: 'POST' }),
 };
 
+// Boost Performance Suite
+export const boost = {
+  status: () => request('boost/status'),
+  getConfig: () => request('boost/config'),
+  updateConfig: (config) => request('boost/config', { method: 'PUT', body: config }),
+  clearCache: () => request('boost/clear-cache', { method: 'POST' }),
+  preload: () => request('boost/preload', { method: 'POST' }),
+  optimizeDb: () => request('boost/optimize-db', { method: 'POST' }),
+};
+
 // Code Editor
 export const code = {
   files: () =>
@@ -510,6 +520,20 @@ export const webhooks = {
   regenerateSecret: (id) => request('webhooks/regenerate-secret', { method: 'POST', params: { id }, body: {} }),
   deliveries: (id, limit = 50) => request('webhooks/deliveries', { params: { id, limit } }),
   test: (id) => request('webhooks/test', { method: 'POST', params: { id }, body: {} }),
+};
+
+// Shield Security (admin+ only)
+export const shield = {
+  status: () => request('shield/status'),
+  log: (limit = 50, offset = 0) => request('shield/log', { params: { limit, offset } }),
+  blockedIps: () => request('shield/blocked-ips'),
+  blockIp: (ip, reason) => request('shield/block-ip', { method: 'POST', body: { ip, reason } }),
+  unblockIp: (ip) => request('shield/block-ip', { method: 'DELETE', params: { ip } }),
+  traffic: (limit = 100, offset = 0) => request('shield/traffic', { params: { limit, offset } }),
+  fileCheck: () => request('shield/file-check', { method: 'POST', body: {} }),
+  getConfig: () => request('shield/config'),
+  updateConfig: (config) => request('shield/config', { method: 'PUT', body: config }),
+  loginAttempts: (limit = 50) => request('shield/login-attempts', { params: { limit } }),
 };
 
 // Cron key (scheduled publishing — admin+ only)

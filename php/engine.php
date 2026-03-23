@@ -88,8 +88,10 @@ function outpost_init(): void {
     }
 
     // Check cache first — skip for logged-in admins, preview mode
+    // When Boost is loaded, it handles page caching; skip the legacy cache check
     $isPreview = defined('OUTPOST_PREVIEW_MODE') && OUTPOST_PREVIEW_MODE;
-    if (OUTPOST_CACHE_ENABLED && !isset($_GET['nocache']) && !outpost_is_admin() && !$isPreview) {
+    $boostActive = function_exists('boost_get_config') && !boost_is_bypassed();
+    if (!$boostActive && OUTPOST_CACHE_ENABLED && !isset($_GET['nocache']) && !outpost_is_admin() && !$isPreview) {
         $cache_file = outpost_cache_path($_outpost_page_path);
         if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 3600) {
             readfile($cache_file);
@@ -1159,8 +1161,10 @@ function outpost_cache_output(string $buffer): string {
     }
 
     // 2. Save to cache (only for non-admins, only when caching is enabled, skip preview)
+    // When Boost is active, it handles page caching via its output buffer — skip the legacy cache write
     $isPreview = defined('OUTPOST_PREVIEW_MODE') && OUTPOST_PREVIEW_MODE;
-    if (OUTPOST_CACHE_ENABLED && $_outpost_page_path && !outpost_is_admin() && !$isPreview && !$isCustomizerPreview) {
+    $boostHandlesCaching = function_exists('boost_get_config') && !boost_is_bypassed();
+    if (!$boostHandlesCaching && OUTPOST_CACHE_ENABLED && $_outpost_page_path && !outpost_is_admin() && !$isPreview && !$isCustomizerPreview) {
         $cache_file = outpost_cache_path($_outpost_page_path);
         $dir = dirname($cache_file);
         if (!is_dir($dir)) mkdir($dir, 0755, true);

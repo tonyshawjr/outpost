@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shield Security Suite — Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Shield Security Suite</h1>
+    <p class="lead">Comprehensive security hardening for your Outpost site. Protects against brute force attacks, SQL injection, XSS, path traversal, and more &mdash; all configurable from Settings &gt; Shield.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Shield is a built-in security suite that runs on every request. It provides seven layers of protection:</p>
+    <ol>
+      <li><strong>Login Protection</strong> &mdash; lockout after failed attempts</li>
+      <li><strong>IP Blocklist</strong> &mdash; manual and automatic IP blocking</li>
+      <li><strong>WAF-lite Firewall</strong> &mdash; blocks common attack patterns</li>
+      <li><strong>File Integrity Monitoring</strong> &mdash; detects modified core files</li>
+      <li><strong>Security Headers</strong> &mdash; adds protective HTTP headers</li>
+      <li><strong>Traffic Logging</strong> &mdash; monitors recent requests</li>
+      <li><strong>Email Notifications</strong> &mdash; alerts on security events</li>
+    </ol>
+
+    <p>Shield is enabled by default. All features can be toggled individually from <strong>Settings &gt; Shield</strong>.</p>
+
+    <h2>Login Protection</h2>
+    <p>When enabled, Shield tracks failed login attempts by IP address. After a configurable number of failures (default: 5), the IP is temporarily blocked for a lockout period (default: 15 minutes).</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>login_max_attempts</code></td>
+          <td>5</td>
+          <td>Failed attempts before lockout triggers</td>
+        </tr>
+        <tr>
+          <td><code>login_lockout_minutes</code></td>
+          <td>15</td>
+          <td>Duration of temporary IP block</td>
+        </tr>
+        <tr>
+          <td><code>auto_block_after_lockouts</code></td>
+          <td>3</td>
+          <td>After this many lockout events, the IP is blocked permanently (no expiry)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Failed attempt counts are based on a rolling time window. Attempts older than the lockout duration are not counted, so the counter resets naturally.</div>
+
+    <h2>IP Blocklist</h2>
+    <p>Blocked IPs are checked on every request, before any routing or authentication. Blocked requests receive a <code>403 Forbidden</code> response.</p>
+    <p>IPs can be blocked in two ways:</p>
+    <ul>
+      <li><strong>Manual</strong> &mdash; add IPs from Settings &gt; Shield &gt; Blocked IPs tab</li>
+      <li><strong>Automatic</strong> &mdash; IPs that trigger login lockouts are auto-blocked (temporary for single lockouts, permanent after repeated lockouts)</li>
+    </ul>
+    <p>Temporary blocks have an expiry timestamp and are automatically removed after expiry. You can unblock any IP at any time from the admin UI.</p>
+
+    <div class="callout callout-warning"><strong>Safety</strong> &mdash; Shield prevents you from blocking your own IP address.</div>
+
+    <h2>Firewall (WAF-lite)</h2>
+    <p>The firewall scans request URLs, query strings, and POST bodies for common attack patterns:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Detects</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>sql_injection</code></td>
+          <td><code>UNION SELECT</code>, <code>DROP TABLE</code>, <code>SLEEP()</code>, tautologies, comment injection</td>
+        </tr>
+        <tr>
+          <td><code>xss</code></td>
+          <td><code>&lt;script&gt;</code> tags, <code>javascript:</code> URLs, inline event handlers (<code>onerror=</code>, etc.)</td>
+        </tr>
+        <tr>
+          <td><code>path_traversal</code></td>
+          <td><code>../</code>, <code>..\\</code>, URL-encoded variants</td>
+        </tr>
+        <tr>
+          <td><code>php_injection</code></td>
+          <td><code>&lt;?php</code>, <code>eval(</code>, <code>base64_decode(</code>, <code>system(</code>, <code>exec(</code>, etc.</td>
+        </tr>
+        <tr>
+          <td><code>null_byte</code></td>
+          <td><code>%00</code> null byte injection</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Firewall modes</h3>
+    <ul>
+      <li><strong>Block</strong> (default) &mdash; malicious requests are blocked with <code>403</code> and logged</li>
+      <li><strong>Log only</strong> &mdash; requests are logged but allowed through. Use this to monitor before enabling blocking.</li>
+    </ul>
+
+    <div class="callout callout-note"><strong>Performance</strong> &mdash; The firewall skips scanning for logged-in admin sessions, so it never interferes with normal admin operations.</div>
+
+    <h2>File Integrity Monitoring</h2>
+    <p>Shield computes MD5 hashes of all PHP files in the Outpost root directory. On the first scan, hashes are stored as a baseline. Subsequent scans compare current hashes against the stored baseline and report any changes.</p>
+    <p>Run a check anytime from <strong>Settings &gt; Shield &gt; Configuration &gt; Run Check Now</strong>. Changed files are listed with their modification type (modified or deleted).</p>
+    <p>If email notifications are enabled, file integrity changes trigger an alert email.</p>
+
+    <h2>Security Headers</h2>
+    <p>When enabled, Shield adds the following headers to every API response:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Header</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>X-Content-Type-Options</code></td>
+          <td><code>nosniff</code></td>
+        </tr>
+        <tr>
+          <td><code>X-Frame-Options</code></td>
+          <td><code>SAMEORIGIN</code></td>
+        </tr>
+        <tr>
+          <td><code>X-XSS-Protection</code></td>
+          <td><code>1; mode=block</code></td>
+        </tr>
+        <tr>
+          <td><code>Referrer-Policy</code></td>
+          <td><code>strict-origin-when-cross-origin</code></td>
+        </tr>
+        <tr>
+          <td><code>Permissions-Policy</code></td>
+          <td><code>camera=(), microphone=(), geolocation=()</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Traffic Logging</h2>
+    <p>Shield logs the last 1,000 API requests with IP, path, HTTP method, user agent, and timestamp. View the traffic log from <strong>Settings &gt; Shield &gt; Traffic</strong> tab. Old entries are automatically pruned.</p>
+
+    <h2>Email Notifications</h2>
+    <p>When enabled, Shield sends email alerts for these events:</p>
+    <ul>
+      <li><strong>Login lockout</strong> &mdash; an IP triggered too many failed login attempts</li>
+      <li><strong>Permanent IP block</strong> &mdash; an IP was auto-blocked after repeated lockouts</li>
+      <li><strong>Firewall block</strong> &mdash; an attack pattern was detected and blocked</li>
+      <li><strong>File integrity change</strong> &mdash; core PHP files were modified or deleted</li>
+    </ul>
+    <p>Emails are sent using your configured SMTP settings from <strong>Settings &gt; Email</strong>. If SMTP is not configured, Shield falls back to PHP <code>mail()</code>.</p>
+
+    <h2>API Endpoints</h2>
+    <p>All endpoints require admin authentication.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>shield/status</code></td>
+          <td>Security dashboard: blocked IPs count, attacks in 24h, login attempts, last integrity check</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>shield/log</code></td>
+          <td>Security event log (paginated: <code>limit</code>, <code>offset</code>)</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>shield/blocked-ips</code></td>
+          <td>List all blocked IPs</td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>shield/block-ip</code></td>
+          <td>Block an IP. Body: <code>{ "ip": "...", "reason": "..." }</code></td>
+        </tr>
+        <tr>
+          <td><code>DELETE</code></td>
+          <td><code>shield/block-ip&amp;ip=X</code></td>
+          <td>Unblock an IP</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>shield/traffic</code></td>
+          <td>Recent traffic log (paginated)</td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>shield/file-check</code></td>
+          <td>Run file integrity check now</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>shield/config</code></td>
+          <td>Get current Shield configuration</td>
+        </tr>
+        <tr>
+          <td><code>PUT</code></td>
+          <td><code>shield/config</code></td>
+          <td>Update Shield configuration</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>shield/login-attempts</code></td>
+          <td>Recent login attempts</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Configuration Object</h2>
+    <p>Shield settings are stored as a JSON object in the <code>settings</code> table under the key <code>shield_config</code>:</p>
+    <pre><code>{
+  "enabled": true,
+  "login_lockout": true,
+  "login_max_attempts": 5,
+  "login_lockout_minutes": 15,
+  "auto_block_after_lockouts": 3,
+  "firewall_enabled": true,
+  "firewall_mode": "block",
+  "file_integrity": true,
+  "security_headers": true,
+  "traffic_logging": true,
+  "email_notifications": false,
+  "notification_email": ""
+}</code></pre>
+
+    <h2>Database Tables</h2>
+    <p>Shield auto-creates these tables on first use:</p>
+    <ul>
+      <li><code>shield_login_attempts</code> &mdash; tracks login successes and failures by IP</li>
+      <li><code>shield_blocked_ips</code> &mdash; blocked IPs with reason, type (manual/auto), and optional expiry</li>
+      <li><code>shield_log</code> &mdash; security events (firewall hits, lockouts, blocked requests)</li>
+      <li><code>shield_file_hashes</code> &mdash; MD5 hashes of core PHP files for integrity checks</li>
+      <li><code>shield_traffic</code> &mdash; recent request log for traffic monitoring</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

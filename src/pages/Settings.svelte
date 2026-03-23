@@ -10,8 +10,10 @@
   import IntegrationsSettings from './settings/IntegrationsSettings.svelte';
   import ImportSettings from './settings/ImportSettings.svelte';
   import AdvancedSettings from './settings/AdvancedSettings.svelte';
+  import BoostSettings from './settings/BoostSettings.svelte';
   import FeaturesSettings from './settings/FeaturesSettings.svelte';
   import UpdateSettings from './settings/UpdateSettings.svelte';
+  import ShieldSettings from './settings/ShieldSettings.svelte';
 
   let settings = $state({});
   let loading = $state(true);
@@ -29,6 +31,8 @@
     { id: 'import', label: 'Import' },
     { id: 'advanced', label: 'Advanced' },
     { id: 'features', label: 'Features' },
+    { id: 'boost', label: 'Boost' },
+    { id: 'shield', label: 'Shield' },
     { id: 'updates', label: 'Updates' },
   ];
 
@@ -114,6 +118,10 @@
         <AdvancedSettings {settings} {onSettingChange} />
       {:else if section === 'features'}
         <FeaturesSettings />
+      {:else if section === 'boost'}
+        <BoostSettings />
+      {:else if section === 'shield'}
+        <ShieldSettings />
       {:else if section === 'updates'}
         <UpdateSettings />
       {/if}

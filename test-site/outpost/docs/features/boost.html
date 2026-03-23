@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boost Performance Suite &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Boost</h1>
+    <p class="lead">Comprehensive performance optimization for Outpost sites. Page caching, browser cache headers, GZIP compression, HTML minification, lazy loading, and database optimization &mdash; all configurable from the admin panel.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Boost is a built-in performance suite that makes Outpost sites fast without any external tools or plugins. It runs automatically once enabled, handling caching, compression, and optimization at every layer of the request lifecycle.</p>
+    <p>Configure everything from <strong>Settings &rarr; Boost</strong> in the admin panel.</p>
+
+    <div class="callout callout-note"><strong>Developer Mode</strong> &mdash; A single toggle at the top of the Boost settings page disables all caching and optimization. Use it during development to always see fresh content. When Developer Mode is on, Boost sends <code>no-cache</code> headers instead of caching headers.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Features</h2>
+
+    <h3>Page Caching</h3>
+    <p>Boost caches the full rendered HTML output of every page for anonymous visitors. Subsequent requests for the same page are served directly from the cache file, bypassing all PHP processing, database queries, and template rendering.</p>
+    <ul>
+      <li><strong>Configurable TTL</strong> &mdash; how long cached pages live before they expire (default: 1 hour)</li>
+      <li><strong>Path exclusions</strong> &mdash; glob patterns for pages that should never be cached (default: <code>/outpost/*</code> and <code>/api/*</code>)</li>
+      <li><strong>Smart invalidation</strong> &mdash; cache is automatically cleared when Boost settings change</li>
+      <li><strong>Cache preloading</strong> &mdash; one-click button crawls all page and collection item URLs to warm the cache</li>
+    </ul>
+    <p>Pages are never cached for:</p>
+    <ul>
+      <li>Logged-in users (session cookie present)</li>
+      <li>POST requests</li>
+      <li>Preview mode (<code>?preview=TOKEN</code>)</li>
+      <li>Requests with <code>?nocache</code></li>
+      <li>Paths matching exclusion patterns</li>
+    </ul>
+
+    <h3>Browser Cache Headers</h3>
+    <p>Boost sets proper HTTP caching headers on static assets so browsers cache them locally. This dramatically reduces repeat-visit load times.</p>
+    <table>
+      <thead>
+        <tr><th>Asset Type</th><th>Default TTL</th><th>Headers Set</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CSS</td><td>1 year</td><td>Cache-Control, Expires, Last-Modified, ETag</td></tr>
+        <tr><td>JavaScript</td><td>1 year</td><td>Cache-Control, Expires, Last-Modified, ETag</td></tr>
+        <tr><td>Images</td><td>30 days</td><td>Cache-Control, Expires, Last-Modified, ETag</td></tr>
+        <tr><td>Fonts</td><td>1 year</td><td>Cache-Control, Expires, Last-Modified, ETag</td></tr>
+      </tbody>
+    </table>
+    <p>Files with hashed filenames (e.g. <code>app-abc123.js</code>) are marked as <code>immutable</code> for maximum caching. Boost also handles <code>If-None-Match</code> and <code>If-Modified-Since</code> headers, returning <strong>304 Not Modified</strong> when the file hasn't changed.</p>
+
+    <h3>GZIP Compression</h3>
+    <p>Boost compresses HTML responses using GZIP encoding, reducing transfer size by 60&ndash;80%. Compression is applied automatically based on the client's <code>Accept-Encoding</code> header.</p>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Requires the PHP <code>zlib</code> extension. If it's not available, compression is silently skipped. The Boost status panel shows whether GZIP is available.</div>
+
+    <h3>HTML Minification</h3>
+    <p>Strips unnecessary whitespace and comments from HTML output, reducing page size by 10&ndash;30%.</p>
+    <p>The following content is preserved exactly as-is:</p>
+    <ul>
+      <li><code>&lt;pre&gt;</code> blocks</li>
+      <li><code>&lt;code&gt;</code> blocks</li>
+      <li><code>&lt;script&gt;</code> blocks</li>
+      <li><code>&lt;style&gt;</code> blocks</li>
+      <li><code>&lt;textarea&gt;</code> blocks</li>
+      <li>Outpost block comment markers (<code>&lt;!-- outpost:hero --&gt;</code>)</li>
+      <li>IE conditional comments</li>
+    </ul>
+
+    <h3>Lazy Loading</h3>
+    <p>Boost automatically adds <code>loading="lazy"</code> to <code>&lt;img&gt;</code> and <code>&lt;iframe&gt;</code> tags that don't already have a <code>loading</code> attribute. Images above the fold (the first N images on the page) are skipped to avoid delaying the initial paint.</p>
+    <ul>
+      <li><strong>Skip count</strong> &mdash; number of images to skip (default: 2). Set this to however many images appear in your hero/header area.</li>
+    </ul>
+
+    <h3>Database Optimization</h3>
+    <p>One-click cleanup and compaction of the SQLite database.</p>
+    <p>The "Optimize Now" button:</p>
+    <ol>
+      <li>Removes expired rate limit entries</li>
+      <li>Deletes activity log entries older than 90 days</li>
+      <li>Deletes analytics data older than 1 year</li>
+      <li>Clears expired preview tokens</li>
+      <li>Runs <code>VACUUM</code> to reclaim disk space</li>
+    </ol>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Configuration</h2>
+    <p>Boost settings are stored as JSON in the <code>settings</code> table under the key <code>boost_config</code>.</p>
+
+    <h3>Default Configuration</h3>
+    <pre><code>{
+  "enabled": true,
+  "developer_mode": false,
+  "page_cache": true,
+  "page_cache_ttl": 3600,
+  "page_cache_excludes": ["/outpost/*", "/api/*"],
+  "browser_cache": true,
+  "browser_cache_css_ttl": 31536000,
+  "browser_cache_js_ttl": 31536000,
+  "browser_cache_img_ttl": 2592000,
+  "browser_cache_font_ttl": 31536000,
+  "compression": true,
+  "html_minify": true,
+  "css_minify": true,
+  "js_minify": false,
+  "lazy_loading": true,
+  "lazy_skip_count": 2,
+  "db_auto_optimize": false
+}</code></pre>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>API Endpoints</h2>
+    <p>All endpoints require admin authentication.</p>
+
+    <h3>GET boost/status</h3>
+    <p>Returns full Boost status: configuration, page cache stats, template cache stats, database size, and compression availability.</p>
+
+    <h3>GET boost/config</h3>
+    <p>Returns the current Boost configuration.</p>
+
+    <h3>PUT boost/config</h3>
+    <p>Updates the Boost configuration. Automatically clears the page cache on any change.</p>
+    <pre><code>PUT /outpost/api.php?action=boost/config
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "developer_mode": false,
+  "page_cache": true,
+  "page_cache_ttl": 7200
+}</code></pre>
+
+    <h3>POST boost/clear-cache</h3>
+    <p>Clears all page cache and template cache files.</p>
+
+    <h3>POST boost/preload</h3>
+    <p>Warms the page cache by requesting all known page and collection item URLs. Returns the count of URLs warmed.</p>
+
+    <h3>POST boost/optimize-db</h3>
+    <p>Runs database cleanup and VACUUM. Returns details of what was cleaned.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>How It Works</h2>
+
+    <h3>Request Lifecycle</h3>
+    <ol>
+      <li><strong>Static assets</strong> &mdash; Boost sets browser caching headers before the file is served. This happens in <code>front-router.php</code>, before any other PHP processing.</li>
+      <li><strong>Page cache check</strong> &mdash; For HTML page requests, Boost checks for a cached version. If found and not expired, it's served immediately with GZIP compression (if enabled). The request ends here.</li>
+      <li><strong>Output buffering</strong> &mdash; If no cache hit, Boost starts an output buffer. The normal Outpost rendering pipeline runs.</li>
+      <li><strong>Post-processing</strong> &mdash; When the buffer flushes, Boost applies lazy loading, HTML minification, and GZIP compression. The processed output is cached for future requests.</li>
+    </ol>
+
+    <h3>Developer Mode Priority</h3>
+    <p>Developer Mode is the <strong>first check</strong> in every Boost function. When enabled:</p>
+    <ul>
+      <li>Page cache is bypassed</li>
+      <li>Template cache is bypassed</li>
+      <li>Browser cache headers send <code>no-cache, no-store, must-revalidate</code></li>
+      <li>HTML minification is skipped</li>
+      <li>GZIP compression is skipped</li>
+      <li>Lazy loading is skipped</li>
+    </ul>
+
+    <h3>Cache File Location</h3>
+    <p>Page cache files are stored in <code>outpost/cache/boost/</code> as MD5-hashed HTML files. Template cache files remain in <code>outpost/cache/templates/</code>.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Headers</h2>
+    <p>Boost adds diagnostic headers to every response:</p>
+    <table>
+      <thead>
+        <tr><th>Header</th><th>Values</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>X-Boost-Cache</code></td><td><code>HIT</code> / <code>MISS</code></td><td>Whether the page was served from cache</td></tr>
+        <tr><td><code>X-Boost-Age</code></td><td>seconds</td><td>How old the cached page is (only on HIT)</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>
