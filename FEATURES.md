@@ -4,18 +4,18 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
-## Compass — Smart Filtering & Search (v4.8.0)
+## Compass — Smart Filtering & Search (v4.8.0, v2 architecture in v4.8.4)
 
-- **Compass** — Template-driven filtering and search system for any collection. Drop `<outpost-compass>` elements into any template to create searchable, filterable directory pages — no PHP or JavaScript required.
-- **12 filter types** — `search` (full-text across multiple fields), `dropdown` (single-select from folders or field values), `checkbox` (multi-select), `radio` (single select), `range` (numeric slider with min/max), `az` (A-Z alphabetical index), `toggle` (boolean/label filter), `proximity` (geolocation-based distance search), `hierarchy` (nested category tree), `time-since` (relative date intervals), `pager` (pagination), `sort` (order results).
-- **Results container** — `<outpost-compass-results collection="slug" layout="grid" columns="3">` renders filtered items using any item template or partial. Supports grid, list, and table layouts.
-- **Helper tags** — `<outpost-compass-count>` (live result count), `<outpost-compass-reset>` (clear all filters), `<outpost-compass-selections>` (active filter pills with remove buttons).
+- **Data-attribute architecture (v2)** — Write your own HTML and add `data-compass` attributes to make elements smart. No wrapper divs, no forced classes, no locked-in layout. `<input data-compass="search">`, `<select data-compass="dropdown">`, `<div data-compass="results">`, `<button data-compass="reset">`, etc.
+- **Backward compatible** — `<outpost-compass type="...">` tags still work. They compile down to the same clean data-attribute HTML.
+- **Auto-population** — Empty selects, checkbox containers, and radio containers automatically fetch options from the `compass/values` API on page load. If the developer pre-populates options server-side, Compass just wires up events.
+- **Submit mode** — Add a `<button data-compass="submit">` to collect filter selections and trigger filtering on click instead of instant mode.
+- **12 filter types** — `search`, `dropdown`, `checkbox`, `radio`, `range-min`/`range-max`, `az`, `toggle`, `proximity`, `pager`, `sort`, `submit`, `reset`, `count`, `selections`, `results`.
 - **Three source types** — `folder:slug` (folder labels), `field:fieldname` (auto-populated distinct values), `label:slug` (specific label group).
 - **API endpoints** — `compass/values` (get filter options), `compass/filter` (execute filtered query), `compass/proximity` (geo search), `compass/reindex` (rebuild index).
 - **URL state sync** — Every filter selection is reflected in the URL for sharing and bookmarking. Filters pre-populate from URL on page load.
-- **Mobile flyout** — Filters automatically collapse into a slide-out panel on small screens.
+- **Minimal CSS** — ~95 lines. Only styles auto-generated content (checkbox labels, pager buttons, A-Z letters, selection pills). Theme elements are never touched.
 - **Indexed search** — SQLite-based search index with incremental updates on item create/update/delete. Sub-50ms queries on collections with thousands of items.
-- **CSS custom properties** — 12 themeable properties (`--compass-accent`, `--compass-bg`, `--compass-border`, etc.) and semantic class names for full styling control.
 
 ---
 

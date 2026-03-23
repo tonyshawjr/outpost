@@ -265,18 +265,21 @@ Everything below is already built and released.
 
 ---
 
-## v4.8 — Compass (Smart Filtering & Search) — SHIPPED (v4.8.0)
+## v4.8 — Compass (Smart Filtering & Search) — SHIPPED (v4.8.0, v2 in v4.8.4)
 
-**Template-driven filtering and search for any collection.** Turn any collection into a searchable, filterable directory — business listings, event calendars, product catalogs — with zero PHP or JavaScript.
+**Data-attribute-driven filtering and search for any collection.** Write your own HTML, add `data-compass` attributes, and Compass handles the rest. No wrapper divs, no forced classes, no locked-in layout.
 
-- ~~**12 filter types**~~ — search, dropdown, checkbox, radio, range, A-Z, toggle, proximity, hierarchy, time-since, pager, sort — **Shipped**
-- ~~**Results container**~~ — `<outpost-compass-results>` with grid/list/table layouts and partial templates — **Shipped**
+- ~~**Data-attribute architecture (v2)**~~ — `data-compass="search|dropdown|checkbox|results|pager|reset|sort|..."` on native HTML elements — **Shipped v4.8.4**
+- ~~**Backward compatible**~~ — `<outpost-compass>` tags compile to the same data-attribute HTML — **Shipped v4.8.4**
+- ~~**Auto-population**~~ — empty selects/containers fetch options from API automatically — **Shipped v4.8.4**
+- ~~**Submit mode**~~ — `<button data-compass="submit">` for form-style filtering — **Shipped v4.8.4**
+- ~~**12 filter types**~~ — search, dropdown, checkbox, radio, range, A-Z, toggle, proximity, pager, sort — **Shipped**
+- ~~**Results container**~~ — `<div data-compass="results">` with any layout — **Shipped**
 - ~~**Helper tags**~~ — result count, reset, active filter pills — **Shipped**
 - ~~**URL state sync**~~ — all filters reflected in shareable URLs — **Shipped**
-- ~~**Mobile flyout**~~ — automatic slide-out filter panel on small screens — **Shipped**
 - ~~**Indexed search**~~ — SQLite-based index with incremental updates, sub-50ms queries — **Shipped**
 - ~~**Proximity search**~~ — geolocation-based distance filtering with browser Geolocation API — **Shipped**
-- ~~**CSS custom properties**~~ — 12 themeable properties for full styling control — **Shipped**
+- ~~**Minimal CSS**~~ — ~95 lines, only auto-generated content styled — **Shipped v4.8.4**
 
 ---
 

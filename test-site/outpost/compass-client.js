@@ -1,12 +1,14 @@
 /**
- * Outpost CMS — Compass Client
- * Faceted search & filtering for collection items.
+ * Outpost CMS — Compass Client v2
+ * Data-attribute-driven faceted search & filtering.
  *
- * Self-initializing: runs on DOMContentLoaded, discovers all [data-compass]
- * elements, wires up facet controls, syncs state with URL query params,
+ * Discovery: finds all [data-compass] elements on the page,
+ * groups them by data-collection, wires up events, syncs URL state,
  * and fetches filtered results via AJAX.
  *
- * No dependencies. Vanilla JS, modern syntax (ES2020+).
+ * No wrapper divs. No forced classes. Developer owns the HTML.
+ *
+ * No dependencies. Vanilla JS, ES2020+.
  */
 
 (function () {
@@ -16,7 +18,6 @@
   // Utilities
   // ────────────────────────────────────────────────────────
 
-  /** Debounce helper — returns a wrapper that delays `fn` by `ms`. */
   function debounce(fn, ms) {
     let timer;
     return function (...args) {
@@ -25,14 +26,12 @@
     };
   }
 
-  /** Dispatch a custom event on an element (bubbles, cancelable). */
   function emit(el, name, detail = {}) {
     return el.dispatchEvent(
       new CustomEvent(name, { bubbles: true, cancelable: true, detail })
     );
   }
 
-  /** Shallow-equal comparison for two plain objects (string/array values). */
   function stateEqual(a, b) {
     const ka = Object.keys(a);
     const kb = Object.keys(b);
@@ -47,139 +46,169 @@
     });
   }
 
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   // ────────────────────────────────────────────────────────
-  // OutpostCompass Controller
+  // CompassController — one per collection
   // ────────────────────────────────────────────────────────
 
-  class OutpostCompass {
-    /**
-     * @param {HTMLElement} root — the top-level [data-compass] wrapper
-     */
-    constructor(root) {
-      this.root = root;
-
-      /** Current filter state — facetName → value (string | string[]). */
+  class CompassController {
+    constructor(collection) {
+      this.collection = collection;
       this.state = {};
-
-      /** Collection slug pulled from the root element. */
-      this.collection = root.dataset.compassCollection || '';
-
-      /** API base URL (auto-detected from <script> location or explicit). */
-      this.apiBase = root.dataset.compassApi || this._detectApi();
-
-      /** Results container. */
-      this.resultsEl = root.querySelector('[data-compass-results]');
-
-      /** Count display element. */
-      this.countEl = root.querySelector('[data-compass-count]');
-
-      /** Partial template name for server-side rendering of results. */
-      this.partial = this.resultsEl?.dataset.compassPartial || '';
-
-      /** Original (server-rendered) results HTML — used as initial state. */
-      this._originalHTML = this.resultsEl ? this.resultsEl.innerHTML : '';
-
-      /** Per-page count. */
-      this.perPage = parseInt(root.dataset.compassPerpage, 10) || 12;
-
-      /** Current page. */
       this.currentPage = 1;
-
-      /** Loading flag to avoid concurrent requests. */
       this.loading = false;
-
-      /** Facet elements keyed by facet name. */
-      this.facets = {};
-
-      /** Mobile drawer state. */
-      this._drawerOpen = false;
-
-      /** Abort controller for in-flight requests. */
       this._abortCtrl = null;
+
+      /** All registered elements by compass type → array of elements */
+      this.elements = {};
+
+      /** API base */
+      this.apiBase = this._detectApi();
+
+      /** Per-page (from pager element if present) */
+      this.perPage = 12;
+
+      /** Results container(s) */
+      this.resultsEls = [];
+
+      /** Count element(s) */
+      this.countEls = [];
+
+      /** Selections element(s) */
+      this.selectionsEls = [];
+
+      /** Original HTML for results (server-rendered) */
+      this._originalHTML = new Map();
+
+      /** Whether we use instant filtering or submit-button mode */
+      this._hasSubmitButton = false;
+
+      /** Pending state (used in submit mode — accumulated before submit) */
+      this._pendingState = {};
     }
 
-    // ── Lifecycle ────────────────────────────────────────
+    // ── Registration ──────────────────────────────────────
 
-    /** Discover facets, parse URL, bind events, optionally fetch. */
+    register(el) {
+      const type = el.getAttribute('data-compass');
+      if (!this.elements[type]) this.elements[type] = [];
+      this.elements[type].push(el);
+    }
+
+    // ── Lifecycle ─────────────────────────────────────────
+
     init() {
-      this._discoverFacets();
-      this._buildMobileDrawer();
-      this._bindGlobalEvents();
+      // Check for submit button — determines instant vs. manual mode
+      this._hasSubmitButton = !!(this.elements['submit'] && this.elements['submit'].length);
 
-      // Restore state from URL
-      const urlState = this._parseURL();
-      if (Object.keys(urlState).length) {
-        this.state = urlState;
-        this._syncFacetsFromState();
-        this.filter();
-      }
+      this._bindAll();
+      this._autoPopulate();
+      this._restoreFromURL();
+
+      // Listen for popstate
+      window.addEventListener('popstate', (e) => {
+        if (e.state?.compass === this.collection) {
+          this.state = e.state.state || {};
+          this.currentPage = parseInt(this.state.page, 10) || 1;
+          this._syncUIFromState();
+          this.filter();
+        } else {
+          const urlState = this._parseURL();
+          if (Object.keys(urlState).length) {
+            this.state = urlState;
+            this._syncUIFromState();
+            this.filter();
+          }
+        }
+      });
     }
 
-    // ── State ────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────
 
-    /**
-     * Set a facet value and trigger filtering.
-     * @param {string} name  Facet name (matches data-compass-facet attribute)
-     * @param {*}      value String, string[], or null to clear
-     */
-    setState(name, value) {
+    setState(name, value, opts = {}) {
+      const target = this._hasSubmitButton && !opts.force
+        ? this._pendingState
+        : this.state;
+
       const prev = { ...this.state };
 
-      // Normalize: null/undefined/empty string → remove from state
       if (value === null || value === undefined || value === '') {
-        delete this.state[name];
+        delete target[name];
       } else if (Array.isArray(value) && value.length === 0) {
-        delete this.state[name];
+        delete target[name];
       } else {
-        this.state[name] = value;
+        target[name] = value;
       }
 
-      // Reset to page 1 when any filter changes (unless the change IS a page change)
-      if (name !== 'page') {
-        this.currentPage = 1;
-        delete this.state.page;
-      } else {
-        this.currentPage = parseInt(value, 10) || 1;
-      }
+      // In instant mode, filter immediately
+      if (!this._hasSubmitButton || opts.force) {
+        if (name !== 'page') {
+          this.currentPage = 1;
+          delete this.state.page;
+        } else {
+          this.currentPage = parseInt(value, 10) || 1;
+        }
 
-      if (!stateEqual(prev, this.state)) {
-        emit(this.root, 'compass:stateChange', {
-          facet: name,
-          value,
-          state: { ...this.state },
-        });
-        this.filter();
+        if (!stateEqual(prev, this.state)) {
+          emit(document, 'compass:stateChange', {
+            collection: this.collection,
+            facet: name,
+            value,
+            state: { ...this.state },
+          });
+          this.filter();
+        }
       }
     }
 
-    /** Clear all filters and reset to default state. */
+    /** Apply pending state (submit mode) */
+    _applyPending() {
+      Object.assign(this.state, this._pendingState);
+      this._pendingState = {};
+      this.currentPage = 1;
+      delete this.state.page;
+      emit(document, 'compass:stateChange', {
+        collection: this.collection,
+        state: { ...this.state },
+      });
+      this.filter();
+    }
+
     reset() {
       this.state = {};
+      this._pendingState = {};
       this.currentPage = 1;
-      this._syncFacetsFromState();
+      this._syncUIFromState();
       this._updateURL();
-      emit(this.root, 'compass:reset');
+      this._updateSelections();
 
       // Restore original server-rendered results
-      if (this.resultsEl && this._originalHTML) {
-        this.resultsEl.innerHTML = this._originalHTML;
-      }
-      if (this.countEl) {
-        this.countEl.textContent = '';
-      }
-      this._updateActiveBadge();
+      this.resultsEls.forEach((el) => {
+        const original = this._originalHTML.get(el);
+        if (original) el.innerHTML = original;
+      });
+
+      this.countEls.forEach((el) => {
+        el.textContent = el.dataset.compassOriginal || '';
+      });
+
+      emit(document, 'compass:reset', { collection: this.collection });
     }
 
-    // ── Filtering (AJAX) ─────────────────────────────────
+    // ── Filtering ─────────────────────────────────────────
 
-    /** Build query params and fetch filtered results from the server. */
     async filter() {
-      if (this.loading) {
-        // Abort previous in-flight request
-        if (this._abortCtrl) this._abortCtrl.abort();
+      if (this.loading && this._abortCtrl) {
+        this._abortCtrl.abort();
       }
 
-      const allowed = emit(this.root, 'compass:beforeFilter', {
+      const allowed = emit(document, 'compass:beforeFilter', {
+        collection: this.collection,
         state: { ...this.state },
       });
       if (!allowed) return;
@@ -188,23 +217,28 @@
       this._abortCtrl = new AbortController();
       this._setLoading(true);
 
-      // Build query string
       const params = new URLSearchParams();
       params.set('action', 'compass/filter');
       params.set('collection', this.collection);
       params.set('per_page', String(this.perPage));
 
-      if (this.partial) {
-        params.set('partial', this.partial);
-      }
+      // Check for partial template on results element
+      const partial = this.resultsEls[0]?.dataset.compassPartial || '';
+      if (partial) params.set('partial', partial);
 
       for (const [key, val] of Object.entries(this.state)) {
         if (Array.isArray(val)) {
-          // Multiple values → comma-separated
           params.set(key, val.join(','));
         } else {
           params.set(key, String(val));
         }
+      }
+
+      // Include search fields from the search input
+      const searchEls = this.elements['search'] || [];
+      if (searchEls.length && this.state.q) {
+        const fields = searchEls[0].getAttribute('data-fields');
+        if (fields) params.set('fields', fields);
       }
 
       if (this.currentPage > 1) {
@@ -218,28 +252,22 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const json = await res.json();
-
-        // Update results
         this._updateResults(json);
+        this._updateURL();
+        this._updateSelections();
 
-        // Update facet counts if the API provides them
         if (json.facets) {
           this._updateFacetCounts(json.facets);
         }
 
-        // Update URL
-        this._updateURL();
-
-        // Update mobile badge
-        this._updateActiveBadge();
-
-        emit(this.root, 'compass:afterFilter', {
+        emit(document, 'compass:afterFilter', {
+          collection: this.collection,
           state: { ...this.state },
           total: json.total ?? 0,
           page: this.currentPage,
         });
       } catch (err) {
-        if (err.name === 'AbortError') return; // Intentional abort
+        if (err.name === 'AbortError') return;
         console.error('[Compass] Filter request failed:', err);
       } finally {
         this.loading = false;
@@ -247,367 +275,505 @@
       }
     }
 
-    // ── DOM Updates ──────────────────────────────────────
+    // ── DOM Updates ───────────────────────────────────────
 
-    /**
-     * Replace the results container with server-rendered HTML.
-     * @param {object} json — API response
-     */
     _updateResults(json) {
-      if (!this.resultsEl) return;
-
       const html = json.html ?? '';
       const total = json.total ?? 0;
 
-      if (total === 0 || !html) {
-        const emptyMsg =
-          this.resultsEl.dataset.compassEmpty || 'No results found.';
-        this.resultsEl.innerHTML =
-          '<div class="compass-empty">' + this._escapeHTML(emptyMsg) + '</div>';
-      } else {
-        this.resultsEl.innerHTML = html;
-      }
+      this.resultsEls.forEach((el) => {
+        if (total === 0 || !html) {
+          const emptyMsg = el.dataset.compassEmpty || 'No results found.';
+          el.innerHTML = '<div class="compass-empty">' + escapeHTML(emptyMsg) + '</div>';
+        } else {
+          el.innerHTML = html;
+        }
+      });
 
-      // Update count display
-      if (this.countEl) {
-        this.countEl.textContent = String(total);
-      }
+      this.countEls.forEach((el) => {
+        const template = el.dataset.compassTemplate || '{n} results';
+        el.textContent = template.replace('{n}', String(total));
+      });
 
-      // Render pagination if a pager facet exists
       this._renderPager(total);
     }
 
-    /**
-     * Update count badges on facet options and optionally disable zero-count items.
-     * @param {object} facets — { facetName: { value: count, ... }, ... }
-     */
+    _setLoading(on) {
+      this.resultsEls.forEach((el) => {
+        el.classList.toggle('compass-loading', on);
+      });
+    }
+
     _updateFacetCounts(facets) {
       for (const [name, rawCounts] of Object.entries(facets)) {
-        const facetEl = this.facets[name];
-        if (!facetEl) continue;
-
-        // Normalize: API returns [{value, display, count}, ...] arrays
-        // Convert to { value: count } map for easy lookup
         const counts = {};
         if (Array.isArray(rawCounts)) {
           rawCounts.forEach((entry) => {
             counts[entry.value] = entry.count ?? 0;
           });
         } else if (rawCounts && typeof rawCounts === 'object') {
-          // Already a { value: count } map (legacy)
           Object.assign(counts, rawCounts);
         }
 
-        // Find all options with data-compass-value
-        const options = facetEl.querySelectorAll('[data-compass-value]');
-        options.forEach((opt) => {
-          const val = opt.dataset.compassValue;
-          const count = counts[val] ?? 0;
-          const badge = opt.querySelector('.compass-count');
-          if (badge) {
-            badge.textContent = String(count);
-          }
-          opt.classList.toggle('compass-zero', count === 0);
-        });
-
-        // For <select> facets update option text counts
-        const select = facetEl.querySelector('select');
-        if (select) {
-          Array.from(select.options).forEach((opt) => {
-            if (!opt.value) return; // skip "All" placeholder
+        // Update select options
+        (this.elements['dropdown'] || []).forEach((sel) => {
+          const source = sel.getAttribute('data-source') || '';
+          const facetName = source.replace(/^(folder|field|label):/, '');
+          if (facetName !== name) return;
+          Array.from(sel.options).forEach((opt) => {
+            if (!opt.value) return;
             const count = counts[opt.value] ?? 0;
-            // Strip existing count suffix and re-add
             opt.textContent = opt.textContent.replace(/\s*\(\d+\)$/, '');
             opt.textContent += ` (${count})`;
           });
+        });
+
+        // Update checkbox containers
+        (this.elements['checkbox'] || []).forEach((container) => {
+          const source = container.getAttribute('data-source') || '';
+          const facetName = source.replace(/^(folder|field|label):/, '');
+          if (facetName !== name) return;
+          container.querySelectorAll('.compass-count').forEach((badge) => {
+            const cb = badge.closest('label')?.querySelector('input[type="checkbox"]');
+            if (cb) {
+              const count = counts[cb.value] ?? 0;
+              badge.textContent = String(count);
+            }
+          });
+        });
+
+        // Update radio containers
+        (this.elements['radio'] || []).forEach((container) => {
+          const source = container.getAttribute('data-source') || '';
+          const facetName = source.replace(/^(folder|field|label):/, '');
+          if (facetName !== name) return;
+          container.querySelectorAll('.compass-count').forEach((badge) => {
+            const rb = badge.closest('label')?.querySelector('input[type="radio"]');
+            if (rb) {
+              const count = counts[rb.value] ?? 0;
+              badge.textContent = String(count);
+            }
+          });
+        });
+      }
+    }
+
+    // ── Selections Display ────────────────────────────────
+
+    _updateSelections() {
+      this.selectionsEls.forEach((el) => {
+        const pills = [];
+        for (const [key, val] of Object.entries(this.state)) {
+          if (key === 'page' || key === 'sort') continue;
+          const values = Array.isArray(val) ? val : [val];
+          values.forEach((v) => {
+            pills.push(
+              '<span class="compass-pill">' +
+                escapeHTML(v) +
+                ' <button class="compass-pill-remove" data-compass-remove-facet="' +
+                escapeHTML(key) + '" data-compass-remove-value="' + escapeHTML(v) +
+                '" type="button" aria-label="Remove filter">&times;</button>' +
+              '</span>'
+            );
+          });
+        }
+        el.innerHTML = pills.join('');
+
+        // Bind removal
+        el.querySelectorAll('.compass-pill-remove').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const facet = btn.dataset.compassRemoveFacet;
+            const removeVal = btn.dataset.compassRemoveValue;
+            const current = this.state[facet];
+            if (Array.isArray(current)) {
+              const filtered = current.filter((v) => v !== removeVal);
+              this.setState(facet, filtered.length ? filtered : null, { force: true });
+            } else {
+              this.setState(facet, null, { force: true });
+            }
+          });
+        });
+      });
+    }
+
+    // ── Pagination ────────────────────────────────────────
+
+    _renderPager(total) {
+      const pagerEls = this.elements['pager'] || [];
+      if (!pagerEls.length) return;
+
+      const totalPages = Math.ceil(total / this.perPage);
+      const current = this.currentPage;
+
+      pagerEls.forEach((pagerEl) => {
+        if (totalPages <= 1) {
+          pagerEl.innerHTML = '';
+          return;
+        }
+
+        let html = '';
+
+        // Previous
+        html += `<button class="compass-pager-btn" ${current <= 1 ? 'disabled' : ''} data-page="${current - 1}" aria-label="Previous page">&laquo; Prev</button>`;
+
+        const startPage = Math.max(1, current - 2);
+        const endPage = Math.min(totalPages, current + 2);
+
+        if (startPage > 1) {
+          html += `<button class="compass-pager-btn" data-page="1">1</button>`;
+          if (startPage > 2) html += '<span class="compass-pager-ellipsis">&hellip;</span>';
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          const active = i === current ? ' compass-pager-active' : '';
+          html += `<button class="compass-pager-btn${active}" data-page="${i}" ${i === current ? 'aria-current="page"' : ''}>${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) html += '<span class="compass-pager-ellipsis">&hellip;</span>';
+          html += `<button class="compass-pager-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        // Next
+        html += `<button class="compass-pager-btn" ${current >= totalPages ? 'disabled' : ''} data-page="${current + 1}" aria-label="Next page">Next &raquo;</button>`;
+
+        pagerEl.innerHTML = html;
+
+        pagerEl.querySelectorAll('[data-page]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (btn.disabled) return;
+            const page = parseInt(btn.dataset.page, 10);
+            if (page < 1 || page > totalPages) return;
+            this.setState('page', String(page), { force: true });
+            if (this.resultsEls[0]) {
+              this.resultsEls[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+      });
+    }
+
+    // ── Auto-Populate ─────────────────────────────────────
+    // For selects/checkbox/radio containers that are empty,
+    // fetch values from the compass/values API and populate.
+
+    async _autoPopulate() {
+      const toPopulate = [];
+
+      // Dropdowns: if select has only 1 option (the default "All"), auto-populate
+      (this.elements['dropdown'] || []).forEach((sel) => {
+        if (sel.tagName === 'SELECT' && sel.options.length <= 1) {
+          const source = sel.getAttribute('data-source');
+          if (source) toPopulate.push({ el: sel, source, type: 'dropdown' });
+        }
+      });
+
+      // Checkboxes: if container is empty, auto-populate
+      (this.elements['checkbox'] || []).forEach((container) => {
+        if (!container.children.length) {
+          const source = container.getAttribute('data-source');
+          if (source) toPopulate.push({ el: container, source, type: 'checkbox' });
+        }
+      });
+
+      // Radio: if container is empty, auto-populate
+      (this.elements['radio'] || []).forEach((container) => {
+        if (!container.children.length) {
+          const source = container.getAttribute('data-source');
+          if (source) toPopulate.push({ el: container, source, type: 'radio' });
+        }
+      });
+
+      // A-Z: if container is empty, fill with letter buttons
+      (this.elements['az'] || []).forEach((container) => {
+        if (!container.children.length) {
+          let html = '<button class="compass-az-btn compass-az-active" data-letter="" type="button">All</button>';
+          for (let i = 65; i <= 90; i++) {
+            const l = String.fromCharCode(i);
+            html += `<button class="compass-az-btn" data-letter="${l}" type="button">${l}</button>`;
+          }
+          container.innerHTML = html;
+          this._bindAZ(container);
+        }
+      });
+
+      // Fetch values for items that need populating
+      for (const item of toPopulate) {
+        try {
+          const params = new URLSearchParams({
+            action: 'compass/values',
+            collection: this.collection,
+            source: item.source,
+          });
+          const res = await fetch(this.apiBase + '?' + params.toString());
+          if (!res.ok) continue;
+          const json = await res.json();
+          const values = json.data || json.values || [];
+
+          if (item.type === 'dropdown' && item.el.tagName === 'SELECT') {
+            // values is array of {value, display, count} or {value: count} map
+            const entries = Array.isArray(values)
+              ? values
+              : Object.entries(values).map(([v, c]) => ({
+                  value: v,
+                  display: typeof c === 'object' ? c.display || v : v,
+                  count: typeof c === 'object' ? c.count : c,
+                }));
+            entries.forEach((entry) => {
+              const opt = document.createElement('option');
+              opt.value = entry.value;
+              opt.textContent = (entry.display || entry.value) + (entry.count != null ? ` (${entry.count})` : '');
+              item.el.appendChild(opt);
+            });
+          } else if (item.type === 'checkbox') {
+            const entries = Array.isArray(values) ? values : Object.entries(values).map(([v, c]) => ({
+              value: v, display: typeof c === 'object' ? c.display || v : v, count: typeof c === 'object' ? c.count : c
+            }));
+            const facetName = (item.source || '').replace(/^(folder|field|label):/, '');
+            let html = '';
+            entries.forEach((entry) => {
+              html += `<label class="compass-checkbox"><input type="checkbox" value="${escapeHTML(entry.value)}"> ${escapeHTML(entry.display || entry.value)} <span class="compass-count">${entry.count ?? ''}</span></label>`;
+            });
+            item.el.innerHTML = html;
+            this._bindCheckbox(item.el, facetName);
+          } else if (item.type === 'radio') {
+            const entries = Array.isArray(values) ? values : Object.entries(values).map(([v, c]) => ({
+              value: v, display: typeof c === 'object' ? c.display || v : v, count: typeof c === 'object' ? c.count : c
+            }));
+            const facetName = (item.source || '').replace(/^(folder|field|label):/, '');
+            let html = '';
+            entries.forEach((entry) => {
+              html += `<label class="compass-radio"><input type="radio" name="compass_${escapeHTML(facetName)}" value="${escapeHTML(entry.value)}"> ${escapeHTML(entry.display || entry.value)} <span class="compass-count">${entry.count ?? ''}</span></label>`;
+            });
+            item.el.innerHTML = html;
+            this._bindRadio(item.el, facetName);
+          }
+        } catch (err) {
+          console.error('[Compass] Auto-populate failed:', err);
         }
       }
     }
 
-    /** Add/remove the loading class on the results container. */
-    _setLoading(on) {
-      if (this.resultsEl) {
-        this.resultsEl.classList.toggle('compass-loading', on);
-      }
-    }
+    // ── Binding ───────────────────────────────────────────
 
-    // ── Facet Discovery & Binding ────────────────────────
+    _bindAll() {
+      // Search inputs
+      (this.elements['search'] || []).forEach((el) => this._bindSearch(el));
 
-    /** Find all [data-compass-facet] elements inside the root and wire them up. */
-    _discoverFacets() {
-      const els = this.root.querySelectorAll('[data-compass-facet]');
-      els.forEach((el) => {
-        const name = el.dataset.compassFacet;
-        const type = el.dataset.compassType || this._inferType(el);
-        this.facets[name] = el;
-        this._bindFacet(el, name, type);
+      // Dropdowns
+      (this.elements['dropdown'] || []).forEach((el) => this._bindDropdown(el));
+
+      // Checkboxes
+      (this.elements['checkbox'] || []).forEach((el) => {
+        const source = el.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '');
+        if (el.querySelectorAll('input[type="checkbox"]').length) {
+          this._bindCheckbox(el, name);
+        }
+        // If empty, _autoPopulate will handle binding after fetch
       });
 
-      // Also bind the reset button if present
-      const resetBtn = this.root.querySelector('[data-compass-reset]');
-      if (resetBtn) {
-        resetBtn.addEventListener('click', (e) => {
+      // Radio
+      (this.elements['radio'] || []).forEach((el) => {
+        const source = el.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '');
+        if (el.querySelectorAll('input[type="radio"]').length) {
+          this._bindRadio(el, name);
+        }
+      });
+
+      // Range (min/max pair)
+      (this.elements['range-min'] || []).forEach((el) => this._bindRangeMin(el));
+      (this.elements['range-max'] || []).forEach((el) => this._bindRangeMax(el));
+
+      // A-Z containers
+      (this.elements['az'] || []).forEach((el) => {
+        if (el.children.length) this._bindAZ(el);
+      });
+
+      // Toggle
+      (this.elements['toggle'] || []).forEach((el) => this._bindToggle(el));
+
+      // Proximity
+      (this.elements['proximity'] || []).forEach((el) => this._bindProximity(el));
+
+      // Sort
+      (this.elements['sort'] || []).forEach((el) => this._bindSort(el));
+
+      // Reset
+      (this.elements['reset'] || []).forEach((el) => {
+        el.addEventListener('click', (e) => {
           e.preventDefault();
           this.reset();
         });
-      }
-    }
+      });
 
-    /** Infer facet type from element contents if data-compass-type is missing. */
-    _inferType(el) {
-      if (el.querySelector('select')) return 'dropdown';
-      if (el.querySelector('input[type="checkbox"]')) return 'checkbox';
-      if (el.querySelector('input[type="radio"]')) return 'radio';
-      if (el.querySelector('input[type="search"], input[type="text"]'))
-        return 'search';
-      if (el.querySelector('input[type="range"]')) return 'range';
-      if (el.querySelector('[data-compass-az]')) return 'az';
-      if (el.querySelector('[data-compass-timesince]')) return 'timesince';
-      if (el.querySelector('[data-compass-proximity]')) return 'proximity';
-      if (el.querySelector('[data-compass-hierarchy]')) return 'hierarchy';
-      return 'unknown';
-    }
+      // Submit
+      (this.elements['submit'] || []).forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          // Merge pending state into real state and filter
+          this._applyPending();
+        });
+      });
 
-    /**
-     * Bind event listeners for a specific facet element.
-     */
-    _bindFacet(el, name, type) {
-      switch (type) {
-        case 'dropdown':
-          this._bindDropdown(el, name);
-          break;
-        case 'checkbox':
-          this._bindCheckbox(el, name);
-          break;
-        case 'radio':
-          this._bindRadio(el, name);
-          break;
-        case 'search':
-          this._bindSearch(el, name);
-          break;
-        case 'range':
-          this._bindRange(el, name);
-          break;
-        case 'az':
-          this._bindAZ(el, name);
-          break;
-        case 'toggle':
-          this._bindToggle(el, name);
-          break;
-        case 'proximity':
-          this._bindProximity(el, name);
-          break;
-        case 'hierarchy':
-          this._bindHierarchy(el, name);
-          break;
-        case 'timesince':
-          this._bindTimeSince(el, name);
-          break;
-        case 'sort':
-          this._bindSort(el, name);
-          break;
-        case 'pager':
-          // Pager is rendered dynamically, no initial bind
-          break;
-        default:
-          console.warn(`[Compass] Unknown facet type "${type}" for "${name}"`);
-      }
-    }
+      // Results containers
+      (this.elements['results'] || []).forEach((el) => {
+        this.resultsEls.push(el);
+        this._originalHTML.set(el, el.innerHTML);
+      });
 
-    // ── Facet Type Handlers ──────────────────────────────
+      // Count elements
+      (this.elements['count'] || []).forEach((el) => {
+        this.countEls.push(el);
+        el.dataset.compassOriginal = el.textContent;
+      });
 
-    /** Dropdown: <select> change handler. */
-    _bindDropdown(el, name) {
-      const select = el.querySelector('select');
-      if (!select) return;
-      select.addEventListener('change', () => {
-        this.setState(name, select.value || null);
+      // Selections
+      (this.elements['selections'] || []).forEach((el) => {
+        this.selectionsEls.push(el);
+      });
+
+      // Pager — set perPage
+      (this.elements['pager'] || []).forEach((el) => {
+        const pp = parseInt(el.getAttribute('data-per-page'), 10);
+        if (pp) this.perPage = pp;
       });
     }
 
-    /** Checkboxes: multiple selection → array value. */
-    _bindCheckbox(el, name) {
-      const boxes = el.querySelectorAll('input[type="checkbox"]');
-      boxes.forEach((cb) => {
+    // ── Individual Binders ────────────────────────────────
+
+    _bindSearch(el) {
+      const handler = debounce(() => {
+        this.setState('q', el.value.trim() || null);
+      }, 300);
+
+      el.addEventListener('input', handler);
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (this._hasSubmitButton) {
+            this._pendingState.q = el.value.trim() || undefined;
+            if (!this._pendingState.q) delete this._pendingState.q;
+          } else {
+            this.setState('q', el.value.trim() || null);
+          }
+        }
+      });
+    }
+
+    _bindDropdown(el) {
+      if (el.tagName !== 'SELECT') return;
+      const source = el.getAttribute('data-source') || '';
+      const name = source.replace(/^(folder|field|label):/, '') || 'filter';
+
+      el.addEventListener('change', () => {
+        this.setState(name, el.value || null);
+      });
+    }
+
+    _bindCheckbox(container, name) {
+      container.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
         cb.addEventListener('change', () => {
           const checked = Array.from(
-            el.querySelectorAll('input[type="checkbox"]:checked')
+            container.querySelectorAll('input[type="checkbox"]:checked')
           ).map((c) => c.value);
           this.setState(name, checked.length ? checked : null);
         });
       });
     }
 
-    /** Radio buttons: single selection. */
-    _bindRadio(el, name) {
-      const radios = el.querySelectorAll('input[type="radio"]');
-      radios.forEach((r) => {
+    _bindRadio(container, name) {
+      container.querySelectorAll('input[type="radio"]').forEach((r) => {
         r.addEventListener('change', () => {
-          if (r.checked) {
-            this.setState(name, r.value || null);
-          }
+          if (r.checked) this.setState(name, r.value || null);
         });
       });
     }
 
-    /** Text search: debounced input. */
-    _bindSearch(el, name) {
-      const input = el.querySelector(
-        'input[type="search"], input[type="text"]'
-      );
-      if (!input) return;
-
+    _bindRangeMin(el) {
+      const source = el.getAttribute('data-source') || '';
+      const name = source.replace(/^(folder|field|label):/, '') || 'range';
       const handler = debounce(() => {
-        this.setState(name, input.value.trim() || null);
-      }, 300);
-
-      input.addEventListener('input', handler);
-
-      // Also filter on Enter (immediate, no debounce)
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          this.setState(name, input.value.trim() || null);
-        }
-      });
-    }
-
-    /**
-     * Range slider: dual-handle range.
-     * Expects two <input type="range"> inside the facet element,
-     * one with data-compass-range="min" and one with data-compass-range="max".
-     */
-    _bindRange(el, name) {
-      const minInput = el.querySelector('[data-compass-range="min"]');
-      const maxInput = el.querySelector('[data-compass-range="max"]');
-
-      if (!minInput || !maxInput) {
-        // Single range input fallback
-        const single = el.querySelector('input[type="range"]');
-        if (single) {
-          const handler = debounce(() => {
-            this.setState(name, single.value);
-          }, 200);
-          single.addEventListener('input', handler);
-        }
-        return;
-      }
-
-      const minDisplay = el.querySelector('[data-compass-range-min-display]');
-      const maxDisplay = el.querySelector('[data-compass-range-max-display]');
-
-      const handler = debounce(() => {
-        let min = parseFloat(minInput.value);
-        let max = parseFloat(maxInput.value);
-
-        // Prevent crossing
-        if (min > max) {
-          const temp = min;
-          min = max;
-          max = temp;
-          minInput.value = String(min);
-          maxInput.value = String(max);
-        }
-
-        // Update display labels
-        if (minDisplay) minDisplay.textContent = String(min);
-        if (maxDisplay) maxDisplay.textContent = String(max);
-
-        // Store as two state keys: name_min and name_max
-        this.state[name + '_min'] = String(min);
-        this.state[name + '_max'] = String(max);
+        this.state[name + '_min'] = el.value;
         this.currentPage = 1;
         delete this.state.page;
-
-        emit(this.root, 'compass:stateChange', {
-          facet: name,
-          value: { min, max },
-          state: { ...this.state },
-        });
         this.filter();
       }, 200);
-
-      minInput.addEventListener('input', () => {
-        if (minDisplay) minDisplay.textContent = minInput.value;
-        handler();
-      });
-      maxInput.addEventListener('input', () => {
-        if (maxDisplay) maxDisplay.textContent = maxInput.value;
-        handler();
-      });
+      el.addEventListener('input', handler);
     }
 
-    /** A-Z listing: letter buttons. */
-    _bindAZ(el, name) {
-      const buttons = el.querySelectorAll('[data-compass-az]');
+    _bindRangeMax(el) {
+      const source = el.getAttribute('data-source') || '';
+      const name = source.replace(/^(folder|field|label):/, '') || 'range';
+      const handler = debounce(() => {
+        this.state[name + '_max'] = el.value;
+        this.currentPage = 1;
+        delete this.state.page;
+        this.filter();
+      }, 200);
+      el.addEventListener('input', handler);
+    }
+
+    _bindAZ(container) {
+      const source = container.getAttribute('data-source') || '';
+      const name = source.replace(/^(folder|field|label):/, '') || 'az';
+      const buttons = container.querySelectorAll('[data-letter]');
+
       buttons.forEach((btn) => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
-          const letter = btn.dataset.compassAz;
+          const letter = btn.dataset.letter;
 
-          // Toggle: clicking active letter clears it
-          if (this.state[name] === letter) {
+          if (this.state[name] === letter && letter !== '') {
             this.setState(name, null);
-            btn.classList.remove('compass-az-active');
+            buttons.forEach((b) => b.classList.remove('compass-az-active'));
+            container.querySelector('[data-letter=""]')?.classList.add('compass-az-active');
           } else {
-            // Remove active from siblings
             buttons.forEach((b) => b.classList.remove('compass-az-active'));
             btn.classList.add('compass-az-active');
-            this.setState(name, letter === 'all' ? null : letter);
+            this.setState(name, letter === '' ? null : letter);
           }
         });
       });
     }
 
-    /** Toggle: on/off switch or checkbox. */
-    _bindToggle(el, name) {
-      const input = el.querySelector('input[type="checkbox"]');
-      if (!input) return;
-      input.addEventListener('change', () => {
-        this.setState(name, input.checked ? '1' : null);
-      });
+    _bindToggle(el) {
+      if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+        const source = el.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '') || 'toggle';
+        el.addEventListener('change', () => {
+          this.setState(name, el.checked ? '1' : null);
+        });
+      }
     }
 
-    /** Proximity: geolocation-based search. */
-    _bindProximity(el, name) {
-      const btn = el.querySelector('[data-compass-proximity]');
-      const radiusSelect = el.querySelector('[data-compass-radius]');
-      const statusEl = el.querySelector('[data-compass-proximity-status]');
+    _bindProximity(el) {
+      const radius = el.getAttribute('data-radius') || '25';
+      const unit = el.getAttribute('data-unit') || 'miles';
 
-      if (!btn) return;
-
-      btn.addEventListener('click', (e) => {
+      el.addEventListener('click', (e) => {
         e.preventDefault();
 
         if (this.state.lat && this.state.lng) {
-          // Already active — toggle off
+          // Toggle off
           delete this.state.lat;
           delete this.state.lng;
           delete this.state.radius;
-          btn.classList.remove('compass-proximity-active');
-          if (statusEl) statusEl.textContent = '';
+          el.classList.remove('compass-proximity-active');
           this.filter();
           return;
         }
 
-        if (!navigator.geolocation) {
-          if (statusEl) statusEl.textContent = 'Geolocation not supported.';
-          return;
-        }
+        if (!navigator.geolocation) return;
 
-        btn.classList.add('compass-proximity-loading');
-        if (statusEl) statusEl.textContent = 'Locating...';
-
+        el.classList.add('compass-proximity-loading');
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            btn.classList.remove('compass-proximity-loading');
-            btn.classList.add('compass-proximity-active');
-            if (statusEl) statusEl.textContent = '';
-
-            const radius = radiusSelect
-              ? radiusSelect.value
-              : el.dataset.compassDefaultRadius || '25';
-
+            el.classList.remove('compass-proximity-loading');
+            el.classList.add('compass-proximity-active');
             this.state.lat = String(pos.coords.latitude);
             this.state.lng = String(pos.coords.longitude);
             this.state.radius = radius;
@@ -615,222 +781,25 @@
             delete this.state.page;
             this.filter();
           },
-          (err) => {
-            btn.classList.remove('compass-proximity-loading');
-            if (statusEl) {
-              statusEl.textContent =
-                err.code === 1
-                  ? 'Location permission denied.'
-                  : 'Unable to get location.';
-            }
+          () => {
+            el.classList.remove('compass-proximity-loading');
           },
           { enableHighAccuracy: false, timeout: 10000 }
         );
       });
-
-      // Radius change (if already located)
-      if (radiusSelect) {
-        radiusSelect.addEventListener('change', () => {
-          if (this.state.lat && this.state.lng) {
-            this.state.radius = radiusSelect.value;
-            this.currentPage = 1;
-            delete this.state.page;
-            this.filter();
-          }
-        });
-      }
     }
 
-    /**
-     * Hierarchy: chained dropdowns.
-     * Each <select> in the facet has data-compass-level="0", "1", etc.
-     * Selecting a parent populates/enables the next level.
-     */
-    _bindHierarchy(el, name) {
-      const selects = Array.from(
-        el.querySelectorAll('select[data-compass-level]')
-      ).sort(
-        (a, b) =>
-          parseInt(a.dataset.compassLevel) - parseInt(b.dataset.compassLevel)
-      );
-
-      if (!selects.length) return;
-
-      selects.forEach((select, idx) => {
-        select.addEventListener('change', () => {
-          // Clear all child selects
-          for (let i = idx + 1; i < selects.length; i++) {
-            selects[i].innerHTML =
-              '<option value="">All</option>';
-            selects[i].disabled = true;
-          }
-
-          const value = select.value;
-          if (!value) {
-            // Cleared this level — update state with parent levels only
-            const values = selects
-              .slice(0, idx)
-              .map((s) => s.value)
-              .filter(Boolean);
-            this.setState(name, values.length ? values : null);
-            return;
-          }
-
-          // Enable next level and fetch its options
-          if (idx + 1 < selects.length) {
-            this._fetchHierarchyChildren(name, value, selects[idx + 1]);
-          }
-
-          // Build full hierarchy value
-          const values = selects
-            .slice(0, idx + 1)
-            .map((s) => s.value)
-            .filter(Boolean);
-          this.setState(name, values.length ? values : null);
-        });
+    _bindSort(el) {
+      if (el.tagName !== 'SELECT') return;
+      el.addEventListener('change', () => {
+        this.setState('sort', el.value || null, { force: true });
       });
     }
 
-    /** Fetch child options for a hierarchy level. */
-    async _fetchHierarchyChildren(facetName, parentValue, childSelect) {
-      const params = new URLSearchParams({
-        action: 'compass/hierarchy',
-        collection: this.collection,
-        facet: facetName,
-        parent: parentValue,
-      });
+    // ── URL ───────────────────────────────────────────────
 
-      try {
-        const res = await fetch(this.apiBase + '?' + params.toString());
-        if (!res.ok) return;
-        const json = await res.json();
-        const options = json.data || [];
-
-        childSelect.innerHTML = '<option value="">All</option>';
-        options.forEach((opt) => {
-          const el = document.createElement('option');
-          el.value = opt.value || opt;
-          el.textContent = opt.label || opt.value || opt;
-          childSelect.appendChild(el);
-        });
-        childSelect.disabled = false;
-      } catch (err) {
-        console.error('[Compass] Hierarchy fetch failed:', err);
-      }
-    }
-
-    /** Time-since: preset date range buttons/dropdown. */
-    _bindTimeSince(el, name) {
-      // Works with either buttons or a <select>
-      const select = el.querySelector('select');
-      if (select) {
-        select.addEventListener('change', () => {
-          this.setState(name, select.value || null);
-        });
-        return;
-      }
-
-      const buttons = el.querySelectorAll('[data-compass-timesince]');
-      buttons.forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const val = btn.dataset.compassTimesince;
-          buttons.forEach((b) => b.classList.remove('compass-timesince-active'));
-
-          if (this.state[name] === val) {
-            // Toggle off
-            this.setState(name, null);
-          } else {
-            btn.classList.add('compass-timesince-active');
-            this.setState(name, val);
-          }
-        });
-      });
-    }
-
-    /** Sort dropdown. */
-    _bindSort(el, name) {
-      const select = el.querySelector('select');
-      if (!select) return;
-      select.addEventListener('change', () => {
-        this.setState('sort', select.value || null);
-      });
-    }
-
-    // ── Pagination ───────────────────────────────────────
-
-    /**
-     * Render pagination controls inside the [data-compass-pager] element.
-     * @param {number} total — total result count from API
-     */
-    _renderPager(total) {
-      const pagerEl = this.root.querySelector('[data-compass-pager]');
-      if (!pagerEl) return;
-
-      const totalPages = Math.ceil(total / this.perPage);
-      if (totalPages <= 1) {
-        pagerEl.innerHTML = '';
-        return;
-      }
-
-      const current = this.currentPage;
-      let html = '<nav class="compass-pager" aria-label="Pagination">';
-
-      // Previous button
-      html += `<button class="compass-pager-btn compass-pager-prev" ${current <= 1 ? 'disabled' : ''} data-compass-page="${current - 1}" aria-label="Previous page">&laquo; Prev</button>`;
-
-      // Page numbers — show window of 5 around current
-      const startPage = Math.max(1, current - 2);
-      const endPage = Math.min(totalPages, current + 2);
-
-      if (startPage > 1) {
-        html += `<button class="compass-pager-btn" data-compass-page="1">1</button>`;
-        if (startPage > 2) {
-          html += '<span class="compass-pager-ellipsis">&hellip;</span>';
-        }
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        const active = i === current ? ' compass-pager-active' : '';
-        html += `<button class="compass-pager-btn${active}" data-compass-page="${i}" ${i === current ? 'aria-current="page"' : ''}>${i}</button>`;
-      }
-
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          html += '<span class="compass-pager-ellipsis">&hellip;</span>';
-        }
-        html += `<button class="compass-pager-btn" data-compass-page="${totalPages}">${totalPages}</button>`;
-      }
-
-      // Next button
-      html += `<button class="compass-pager-btn compass-pager-next" ${current >= totalPages ? 'disabled' : ''} data-compass-page="${current + 1}" aria-label="Next page">Next &raquo;</button>`;
-
-      html += '</nav>';
-      pagerEl.innerHTML = html;
-
-      // Bind page buttons
-      pagerEl.querySelectorAll('[data-compass-page]').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (btn.disabled) return;
-          const page = parseInt(btn.dataset.compassPage, 10);
-          if (page < 1 || page > totalPages) return;
-          this.setState('page', String(page));
-
-          // Scroll to top of results
-          if (this.resultsEl) {
-            this.resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        });
-      });
-    }
-
-    // ── URL State Management ─────────────────────────────
-
-    /** Push current filter state into the URL without page reload. */
     _updateURL() {
       const params = new URLSearchParams();
-
       for (const [key, val] of Object.entries(this.state)) {
         if (Array.isArray(val)) {
           params.set(key, val.join(','));
@@ -838,278 +807,106 @@
           params.set(key, val);
         }
       }
-
-      if (this.currentPage > 1) {
-        params.set('page', String(this.currentPage));
-      }
+      if (this.currentPage > 1) params.set('page', String(this.currentPage));
 
       const qs = params.toString();
-      const newURL =
-        window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
-
-      history.pushState({ compass: true, state: { ...this.state } }, '', newURL);
+      const newURL = window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
+      history.pushState({ compass: this.collection, state: { ...this.state } }, '', newURL);
     }
 
-    /** Parse filter state from the current URL query params. */
     _parseURL() {
       const params = new URLSearchParams(window.location.search);
       const state = {};
-
-      // Known multi-value params (checkboxes) are comma-separated
       params.forEach((val, key) => {
         if (key === 'page') {
           this.currentPage = parseInt(val, 10) || 1;
           state.page = val;
           return;
         }
-        // If value contains commas, treat as array
         if (val.includes(',')) {
           state[key] = val.split(',').filter(Boolean);
         } else {
           state[key] = val;
         }
       });
-
       return state;
     }
 
-    /** Sync facet UI elements to match the current state object. */
-    _syncFacetsFromState() {
-      for (const [name, el] of Object.entries(this.facets)) {
-        const val = this.state[name];
-        const type = el.dataset.compassType || this._inferType(el);
-
-        switch (type) {
-          case 'dropdown':
-          case 'sort': {
-            const select = el.querySelector('select');
-            if (select) select.value = val || '';
-            break;
-          }
-          case 'checkbox': {
-            const values = Array.isArray(val) ? val : val ? [val] : [];
-            el.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
-              cb.checked = values.includes(cb.value);
-            });
-            break;
-          }
-          case 'radio': {
-            el.querySelectorAll('input[type="radio"]').forEach((r) => {
-              r.checked = r.value === (val || '');
-            });
-            break;
-          }
-          case 'search': {
-            const input = el.querySelector(
-              'input[type="search"], input[type="text"]'
-            );
-            if (input) input.value = val || '';
-            break;
-          }
-          case 'toggle': {
-            const input = el.querySelector('input[type="checkbox"]');
-            if (input) input.checked = val === '1';
-            break;
-          }
-          case 'az': {
-            el.querySelectorAll('[data-compass-az]').forEach((btn) => {
-              btn.classList.toggle(
-                'compass-az-active',
-                btn.dataset.compassAz === val
-              );
-            });
-            break;
-          }
-          case 'timesince': {
-            const select = el.querySelector('select');
-            if (select) {
-              select.value = val || '';
-            } else {
-              el.querySelectorAll('[data-compass-timesince]').forEach((btn) => {
-                btn.classList.toggle(
-                  'compass-timesince-active',
-                  btn.dataset.compassTimesince === val
-                );
-              });
-            }
-            break;
-          }
-          case 'range': {
-            const minInput = el.querySelector('[data-compass-range="min"]');
-            const maxInput = el.querySelector('[data-compass-range="max"]');
-            if (minInput && this.state[name + '_min']) {
-              minInput.value = this.state[name + '_min'];
-            }
-            if (maxInput && this.state[name + '_max']) {
-              maxInput.value = this.state[name + '_max'];
-            }
-            break;
-          }
-          // Proximity and hierarchy restore from state is handled by their params
-        }
+    _restoreFromURL() {
+      const urlState = this._parseURL();
+      if (Object.keys(urlState).length) {
+        this.state = urlState;
+        this._syncUIFromState();
+        this.filter();
       }
     }
 
-    // ── Mobile Drawer ────────────────────────────────────
+    _syncUIFromState() {
+      // Search
+      (this.elements['search'] || []).forEach((el) => {
+        el.value = this.state.q || '';
+      });
 
-    /** Build the mobile filter drawer structure. */
-    _buildMobileDrawer() {
-      // Find the facets container
-      const facetsContainer = this.root.querySelector('[data-compass-facets]');
-      if (!facetsContainer) return;
+      // Dropdowns
+      (this.elements['dropdown'] || []).forEach((el) => {
+        if (el.tagName !== 'SELECT') return;
+        const source = el.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '') || 'filter';
+        el.value = this.state[name] || '';
+      });
 
-      // Create the toggle button (visible on mobile only)
-      const toggleBtn = document.createElement('button');
-      toggleBtn.className = 'compass-mobile-toggle';
-      toggleBtn.type = 'button';
-      toggleBtn.setAttribute('aria-label', 'Toggle filters');
-      toggleBtn.innerHTML =
-        '<span class="compass-mobile-toggle-text">Filters</span>' +
-        '<span class="compass-mobile-toggle-badge" data-compass-active-count></span>';
+      // Checkboxes
+      (this.elements['checkbox'] || []).forEach((container) => {
+        const source = container.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '');
+        const vals = this.state[name];
+        const valArr = Array.isArray(vals) ? vals : vals ? [vals] : [];
+        container.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+          cb.checked = valArr.includes(cb.value);
+        });
+      });
 
-      // Create backdrop
-      const backdrop = document.createElement('div');
-      backdrop.className = 'compass-drawer-backdrop';
+      // Radio
+      (this.elements['radio'] || []).forEach((container) => {
+        const source = container.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '');
+        container.querySelectorAll('input[type="radio"]').forEach((r) => {
+          r.checked = r.value === (this.state[name] || '');
+        });
+      });
 
-      // Create drawer wrapper
-      const drawer = document.createElement('div');
-      drawer.className = 'compass-drawer';
-
-      // Drawer header
-      const drawerHeader = document.createElement('div');
-      drawerHeader.className = 'compass-drawer-header';
-      drawerHeader.innerHTML =
-        '<span class="compass-drawer-title">Filters</span>' +
-        '<button class="compass-drawer-close" type="button" aria-label="Close filters">&times;</button>';
-
-      // Drawer footer with apply button
-      const drawerFooter = document.createElement('div');
-      drawerFooter.className = 'compass-drawer-footer';
-      drawerFooter.innerHTML =
-        '<button class="compass-drawer-apply" type="button">Apply Filters</button>';
-
-      // Move facets into drawer on mobile
-      drawer.appendChild(drawerHeader);
-
-      const drawerBody = document.createElement('div');
-      drawerBody.className = 'compass-drawer-body';
-      drawer.appendChild(drawerBody);
-      drawer.appendChild(drawerFooter);
-
-      // Insert elements
-      this.root.insertBefore(toggleBtn, this.root.firstChild);
-      this.root.appendChild(backdrop);
-      this.root.appendChild(drawer);
-
-      // Store references
-      this._drawer = drawer;
-      this._drawerBody = drawerBody;
-      this._drawerBackdrop = backdrop;
-      this._drawerToggle = toggleBtn;
-      this._facetsContainer = facetsContainer;
-
-      // Event: open drawer
-      toggleBtn.addEventListener('click', () => this._openDrawer());
-
-      // Event: close drawer
-      drawerHeader
-        .querySelector('.compass-drawer-close')
-        .addEventListener('click', () => this._closeDrawer());
-      backdrop.addEventListener('click', () => this._closeDrawer());
-      drawerFooter
-        .querySelector('.compass-drawer-apply')
-        .addEventListener('click', () => this._closeDrawer());
-
-      // Close on Escape
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && this._drawerOpen) {
-          this._closeDrawer();
+      // Toggle
+      (this.elements['toggle'] || []).forEach((el) => {
+        if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+          const source = el.getAttribute('data-source') || '';
+          const name = source.replace(/^(folder|field|label):/, '') || 'toggle';
+          el.checked = this.state[name] === '1';
         }
+      });
+
+      // Sort
+      (this.elements['sort'] || []).forEach((el) => {
+        if (el.tagName === 'SELECT') {
+          el.value = this.state.sort || '';
+        }
+      });
+
+      // A-Z
+      (this.elements['az'] || []).forEach((container) => {
+        const source = container.getAttribute('data-source') || '';
+        const name = source.replace(/^(folder|field|label):/, '') || 'az';
+        container.querySelectorAll('[data-letter]').forEach((btn) => {
+          btn.classList.toggle('compass-az-active', btn.dataset.letter === (this.state[name] || ''));
+        });
       });
     }
 
-    /** Open the mobile filter drawer. */
-    _openDrawer() {
-      if (!this._drawer || !this._facetsContainer) return;
+    // ── Helpers ───────────────────────────────────────────
 
-      // Move facets into the drawer body
-      this._drawerBody.appendChild(this._facetsContainer);
-
-      this._drawer.classList.add('compass-drawer-open');
-      this._drawerBackdrop.classList.add('compass-drawer-backdrop-visible');
-      document.body.classList.add('compass-drawer-noscroll');
-      this._drawerOpen = true;
-    }
-
-    /** Close the mobile filter drawer. */
-    _closeDrawer() {
-      if (!this._drawer || !this._facetsContainer) return;
-
-      // Move facets back to original position (before results)
-      const results = this.resultsEl || this._drawer;
-      this.root.insertBefore(this._facetsContainer, results);
-
-      this._drawer.classList.remove('compass-drawer-open');
-      this._drawerBackdrop.classList.remove('compass-drawer-backdrop-visible');
-      document.body.classList.remove('compass-drawer-noscroll');
-      this._drawerOpen = false;
-    }
-
-    /** Update the active filter count badge on the mobile toggle. */
-    _updateActiveBadge() {
-      const badge = this.root.querySelector('[data-compass-active-count]');
-      if (!badge) return;
-
-      // Count non-empty state entries (exclude sort, page)
-      const count = Object.entries(this.state).filter(
-        ([k, v]) => k !== 'sort' && k !== 'page' && v !== null && v !== ''
-      ).length;
-
-      badge.textContent = count > 0 ? String(count) : '';
-      badge.classList.toggle('compass-badge-visible', count > 0);
-    }
-
-    // ── Global Events ────────────────────────────────────
-
-    /** Listen for browser back/forward to restore compass state. */
-    _bindGlobalEvents() {
-      window.addEventListener('popstate', (e) => {
-        if (e.state?.compass) {
-          this.state = e.state.state || {};
-          this.currentPage = parseInt(this.state.page, 10) || 1;
-          this._syncFacetsFromState();
-          this.filter();
-        } else {
-          // No compass state — parse from URL (handles initial back nav)
-          const urlState = this._parseURL();
-          if (Object.keys(urlState).length) {
-            this.state = urlState;
-            this._syncFacetsFromState();
-            this.filter();
-          } else {
-            this.reset();
-          }
-        }
-      });
-    }
-
-    // ── Helpers ──────────────────────────────────────────
-
-    /** Auto-detect the API URL from the current page context. */
     _detectApi() {
-      // Look for a <meta> tag or <script> data attribute
       const meta = document.querySelector('meta[name="outpost-api"]');
       if (meta) return meta.getAttribute('content');
-
-      // Default: assume /outpost/api.php relative to site root
       return '/outpost/api.php';
-    }
-
-    /** Escape HTML special characters. */
-    _escapeHTML(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
     }
   }
 
@@ -1117,23 +914,30 @@
   // Auto-initialization
   // ────────────────────────────────────────────────────────
 
-  /** All active Compass instances on the page. */
-  const instances = [];
+  const controllers = {};
 
   function initCompass() {
-    const roots = document.querySelectorAll('[data-compass]');
-    roots.forEach((root) => {
-      // Prevent double-init
-      if (root._compassInstance) return;
+    // Discover all [data-compass] elements and group by collection
+    const els = document.querySelectorAll('[data-compass]');
+    els.forEach((el) => {
+      const collection = el.getAttribute('data-collection');
+      if (!collection) return;
 
-      const compass = new OutpostCompass(root);
-      compass.init();
-      root._compassInstance = compass;
-      instances.push(compass);
+      if (!controllers[collection]) {
+        controllers[collection] = new CompassController(collection);
+      }
+      controllers[collection].register(el);
     });
+
+    // Initialize each controller
+    for (const [col, ctrl] of Object.entries(controllers)) {
+      if (!ctrl._initialized) {
+        ctrl.init();
+        ctrl._initialized = true;
+      }
+    }
   }
 
-  // Run on DOMContentLoaded, or immediately if DOM is already ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCompass);
   } else {
@@ -1141,6 +945,6 @@
   }
 
   // Expose for external scripting
-  window.OutpostCompass = OutpostCompass;
-  window.__compassInstances = instances;
+  window.OutpostCompass = CompassController;
+  window.__compassControllers = controllers;
 })();

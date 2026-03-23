@@ -212,17 +212,20 @@
     <p><a href="features/lodge.html">Full Lodge documentation &rarr;</a></p>
     <p><a href="features/schema-editor.html">Full Schema Editor documentation &rarr;</a></p>
 
-    <h3>v4.8.0 &mdash; Compass: Smart Filtering &amp; Search</h3>
-    <p>Template-driven filtering and search for any collection. Turn any collection into a searchable, filterable directory with zero PHP or JavaScript.</p>
+    <h3>v4.8.0 / v4.8.4 &mdash; Compass: Smart Filtering &amp; Search</h3>
+    <p>Data-attribute-driven filtering and search for any collection. Write your own HTML, add <code>data-compass</code> attributes, and Compass handles the rest. No wrapper divs, no forced classes, no locked-in layout.</p>
     <ul>
-      <li><strong>12 filter types</strong> &mdash; search, dropdown, checkbox, radio, range, A&ndash;Z, toggle, proximity, hierarchy, time-since, pager, sort</li>
-      <li><strong>Results container</strong> &mdash; <code>&lt;outpost-compass-results&gt;</code> with grid/list/table layouts and partial templates</li>
+      <li><strong>Data-attribute architecture (v2)</strong> &mdash; <code>data-compass="search|dropdown|checkbox|results|pager|reset|sort|..."</code> on native HTML elements (v4.8.4)</li>
+      <li><strong>Backward compatible</strong> &mdash; <code>&lt;outpost-compass&gt;</code> tags compile to the same data-attribute HTML</li>
+      <li><strong>Auto-population</strong> &mdash; empty selects and containers fetch options from API automatically</li>
+      <li><strong>Submit mode</strong> &mdash; <code>&lt;button data-compass="submit"&gt;</code> for form-style filtering</li>
+      <li><strong>12 filter types</strong> &mdash; search, dropdown, checkbox, radio, range, A&ndash;Z, toggle, proximity, pager, sort</li>
+      <li><strong>Results container</strong> &mdash; <code>&lt;div data-compass="results"&gt;</code> with any layout</li>
       <li><strong>Helper tags</strong> &mdash; result count, reset, active filter pills</li>
       <li><strong>URL state sync</strong> &mdash; all filters reflected in shareable URLs</li>
-      <li><strong>Mobile flyout</strong> &mdash; automatic slide-out filter panel on small screens</li>
       <li><strong>Indexed search</strong> &mdash; SQLite-based index with incremental updates, sub-50ms queries</li>
       <li><strong>Proximity search</strong> &mdash; geolocation-based distance filtering</li>
-      <li><strong>CSS custom properties</strong> &mdash; 12 themeable properties for full styling control</li>
+      <li><strong>Minimal CSS</strong> &mdash; ~95 lines, only auto-generated content styled (v4.8.4)</li>
     </ul>
     <p><a href="features/compass.html">Full Compass documentation &rarr;</a></p>
 

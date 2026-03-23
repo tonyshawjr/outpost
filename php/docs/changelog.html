@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.8.4">4.8.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-23</span></h2>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Compass v2 &mdash; Data-attribute architecture</strong> &mdash; Rebuilt Compass to use <code>data-compass</code> attributes on native HTML elements instead of wrapper <code>&lt;outpost-compass&gt;</code> elements. Developers write their own HTML and add data attributes. No generated wrapper divs, no forced classes, no locked-in layout. The <code>&lt;outpost-compass&gt;</code> tag syntax still works for backward compatibility.</li>
+      <li><strong>Compass client JS rewrite</strong> &mdash; New controller-per-collection architecture. Elements discovered by <code>[data-compass]</code> and grouped by <code>data-collection</code>. Supports instant filtering and submit-button mode. Auto-populates empty dropdowns, checkboxes, and radio containers from the API.</li>
+      <li><strong>Compass CSS minimal</strong> &mdash; Reduced from 362 lines to ~95 lines. Only styles auto-generated content (checkbox labels, pager buttons, A&ndash;Z buttons, selection pills, loading state). Theme-owned elements are never styled.</li>
+    </ul>
+    <p><a href="features/compass.html">Full Compass documentation &rarr;</a></p>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.8.0">4.8.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-22</span></h2>
 
     <h3>Added</h3>

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.8.4] — 2026-03-23
+
+### Changed
+- **Compass v2 — Data-attribute architecture** — Rebuilt the entire Compass filtering system to use `data-compass` attributes on native HTML elements instead of custom `<outpost-compass>` wrapper elements. Developers write their own HTML and add data attributes to make elements smart. No generated wrapper divs, no forced classes, no locked-in layout. The `<outpost-compass>` tag syntax still works for backward compatibility — it now compiles to the same clean data-attribute HTML.
+- **Compass client JS rewrite** — New controller-per-collection architecture. Elements are discovered by `[data-compass]` attribute and grouped by `data-collection`. Supports instant filtering and submit-button mode. Auto-populates empty dropdowns, checkboxes, and radio containers from the API.
+- **Compass CSS minimal** — Reduced from 362 lines to ~95 lines. Only styles auto-generated content (checkbox labels, pager buttons, A-Z buttons, selection pills, loading state). Theme-owned elements (inputs, selects, buttons) are never styled by Compass.
+
+---
+
 ## [4.8.0] — 2026-03-22
 
 ### Added
