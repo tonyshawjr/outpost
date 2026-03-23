@@ -181,18 +181,18 @@
 
 <div class="page-container" style="max-width: var(--content-width-wide);">
   <div class="page-header">
-    <div>
-      <h1 class="page-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="vertical-align: -3px; margin-right: 6px;"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
-        Redirects
-      </h1>
+    <div class="page-header-icon sage">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+    </div>
+    <div class="page-header-content">
+      <h1 class="page-title">Redirects</h1>
       <p class="page-subtitle">Manage URL redirects for your site</p>
     </div>
     <div class="page-header-actions">
-      <button class="btn btn-ghost btn-sm" onclick={() => { showTest = !showTest; showImport = false; }}>
+      <button class="btn btn-secondary btn-sm" onclick={() => { showTest = !showTest; showImport = false; }}>
         Test URL
       </button>
-      <button class="btn btn-ghost btn-sm" onclick={() => { showImport = !showImport; showTest = false; }}>
+      <button class="btn btn-secondary btn-sm" onclick={() => { showImport = !showImport; showTest = false; }}>
         Import
       </button>
       <button class="btn btn-primary btn-sm" onclick={openNew}>
