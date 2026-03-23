@@ -201,12 +201,26 @@ function compass_index_item_internal(int $itemId, int $collectionId, string $dat
 
     // 2. Index schema fields (text, select, number, date)
     $indexableTypes = ['text', 'select', 'number', 'date', 'textarea'];
-    $fields = $schema['fields'] ?? $schema;
+    // Support both flat format {fieldName: {type}} and array format [{name, type}]
+    $fields = [];
+    if (isset($schema['fields']) && is_array($schema['fields']) && isset($schema['fields'][0]['name'])) {
+        // Array format: [{name: "city", type: "select"}]
+        foreach ($schema['fields'] as $f) {
+            $fields[$f['name']] = $f;
+        }
+    } else {
+        // Flat format: {city: {type: "select", label: "City"}}
+        $fields = $schema;
+    }
     if (is_array($fields)) {
-        foreach ($fields as $field) {
-            $fieldName = $field['name'] ?? $field['key'] ?? null;
+        foreach ($fields as $fieldName => $field) {
+            // Skip if fieldName is numeric (shouldn't happen in flat format)
+            if (is_int($fieldName)) {
+                $fieldName = $field['name'] ?? null;
+                if (!$fieldName) continue;
+            }
             $fieldType = $field['type'] ?? 'text';
-            if (!$fieldName || !in_array($fieldType, $indexableTypes)) continue;
+            if (!in_array($fieldType, $indexableTypes)) continue;
 
             $value = $data[$fieldName] ?? null;
             if ($value === null || $value === '') continue;
