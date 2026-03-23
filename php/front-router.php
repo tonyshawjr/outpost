@@ -349,9 +349,16 @@ if (!$templateFile) {
     }
 }
 
-// 4. Not found
+// 4. Not found — log for redirect suggestions
 if (!$templateFile || !file_exists($templateFile)) {
     http_response_code(404);
+    // Log 404 for redirect suggestions
+    try {
+        require_once $outpostDir . '/redirects.php';
+        redirects_log_404($reqPath);
+    } catch (\Throwable $e) {
+        // Don't let logging break the 404 page
+    }
     $notFound = $themeDir . '/404.html';
     if (file_exists($notFound)) {
         outpost_init();

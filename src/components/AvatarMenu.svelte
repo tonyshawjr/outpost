@@ -156,12 +156,31 @@
     top: calc(100% + 8px);
     right: 0;
     min-width: 200px;
-    background: var(--bg-elevated, var(--bg));
-    border: 1px solid var(--border);
+    background: var(--bg-card, var(--bg-elevated, #fff));
+    border: 1px solid var(--border-primary, var(--border, #e4e4e7));
     border-radius: var(--radius-lg, 8px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     padding: 4px;
     z-index: 1000;
+  }
+
+  :global(.dark) .avatar-dropdown {
+    background: var(--bg-card, #1a1a1a);
+    border-color: var(--border-primary, #2a2a2a);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  :global(.dark) .dropdown-name {
+    color: #e5e5e5;
+  }
+
+  :global(.dark) .dropdown-item {
+    color: #a1a1aa;
+  }
+
+  :global(.dark) .dropdown-item:hover {
+    background: rgba(255,255,255,0.06);
+    color: #e5e5e5;
   }
 
   .dropdown-user {

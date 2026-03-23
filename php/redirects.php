@@ -30,6 +30,46 @@ function redirects_ensure_table(): void {
 }
 
 /**
+ * Log a 404 hit for redirect suggestions.
+ * Tracks URLs that visitors try to access but don't exist.
+ */
+function redirects_log_404(string $path): void {
+    try {
+        OutpostDB::query("
+            CREATE TABLE IF NOT EXISTS redirect_404s (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                url TEXT NOT NULL,
+                hits INTEGER DEFAULT 1,
+                last_hit_at TEXT DEFAULT (datetime('now')),
+                resolved INTEGER DEFAULT 0,
+                ip TEXT,
+                referrer TEXT
+            )
+        ");
+        try { OutpostDB::query("CREATE INDEX IF NOT EXISTS idx_404_url ON redirect_404s(url)"); } catch (\Throwable $e) {}
+
+        $existing = OutpostDB::fetchOne("SELECT id, hits FROM redirect_404s WHERE url = ?", [$path]);
+        if ($existing) {
+            OutpostDB::query(
+                "UPDATE redirect_404s SET hits = hits + 1, last_hit_at = datetime('now'), ip = ?, referrer = ? WHERE id = ?",
+                [$_SERVER['REMOTE_ADDR'] ?? '', $_SERVER['HTTP_REFERER'] ?? '', $existing['id']]
+            );
+        } else {
+            OutpostDB::insert('redirect_404s', [
+                'url' => $path,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'referrer' => $_SERVER['HTTP_REFERER'] ?? '',
+            ]);
+        }
+
+        // Prune old entries (keep last 500)
+        OutpostDB::query("DELETE FROM redirect_404s WHERE id NOT IN (SELECT id FROM redirect_404s ORDER BY last_hit_at DESC LIMIT 500)");
+    } catch (\Throwable $e) {
+        // Silent fail — don't break the 404 page
+    }
+}
+
+/**
  * Check if current path has a redirect rule and execute it if found.
  * Called early in front-router.php before theme routing.
  *
