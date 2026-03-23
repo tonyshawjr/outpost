@@ -89,3 +89,85 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link) {
 document.querySelectorAll('h2[id], h3[id]').forEach(function(el) {
   el.style.scrollMarginTop = '24px';
 });
+
+// ── Docs Search ──────────────────────────────────────────
+(function() {
+  // Wait for sidebar to load
+  var checkSearch = setInterval(function() {
+    var input = document.getElementById('docs-search');
+    if (!input) return;
+    clearInterval(checkSearch);
+
+    var sidebar = document.querySelector('.sidebar-nav');
+    if (!sidebar) return;
+
+    // Cache all nav links with their text
+    var links = [];
+    sidebar.querySelectorAll('.nav-link').forEach(function(el) {
+      links.push({ el: el, text: el.textContent.toLowerCase(), original: el.textContent });
+    });
+
+    // Keyboard shortcut: "/" to focus search
+    document.addEventListener('keydown', function(e) {
+      if (e.key === '/' && document.activeElement !== input && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        input.focus();
+      }
+      if (e.key === 'Escape' && document.activeElement === input) {
+        input.value = '';
+        input.blur();
+        filterLinks('');
+      }
+    });
+
+    input.addEventListener('input', function() {
+      filterLinks(this.value.toLowerCase().trim());
+    });
+
+    function filterLinks(query) {
+      if (!query) {
+        // Show all
+        links.forEach(function(l) {
+          l.el.classList.remove('search-hidden');
+          l.el.innerHTML = l.original;
+        });
+        sidebar.querySelectorAll('.nav-section').forEach(function(s) {
+          s.classList.remove('search-hidden');
+        });
+        return;
+      }
+
+      var visibleSections = new Set();
+
+      links.forEach(function(l) {
+        var idx = l.text.indexOf(query);
+        if (idx >= 0) {
+          l.el.classList.remove('search-hidden');
+          // Highlight match
+          var orig = l.original;
+          var before = orig.substring(0, idx);
+          var match = orig.substring(idx, idx + query.length);
+          var after = orig.substring(idx + query.length);
+          l.el.innerHTML = before + '<span class="search-highlight">' + match + '</span>' + after;
+          var section = l.el.closest('.nav-section');
+          if (section) {
+            visibleSections.add(section);
+            section.classList.add('open');
+          }
+        } else {
+          l.el.classList.add('search-hidden');
+          l.el.innerHTML = l.original;
+        }
+      });
+
+      // Hide sections with no visible links
+      sidebar.querySelectorAll('.nav-section').forEach(function(s) {
+        if (visibleSections.has(s)) {
+          s.classList.remove('search-hidden');
+        } else {
+          s.classList.add('search-hidden');
+        }
+      });
+    }
+  }, 100);
+})();
