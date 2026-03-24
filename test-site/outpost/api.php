@@ -1425,7 +1425,17 @@ function handle_totp_status(): void {
 // ── Page Handlers ────────────────────────────────────────
 function handle_pages_list(): void {
     $search = $_GET['search'] ?? '';
+    $showAll = isset($_GET['all']) && $_GET['all'] === '1';
     $activeTheme = get_active_theme();
+
+    // all=1: return every page without theme-field filtering (used by Lodge page selectors)
+    if ($showAll && !$search) {
+        $pages = OutpostDB::fetchAll(
+            "SELECT * FROM pages WHERE path != '__global__' ORDER BY path ASC"
+        );
+        json_response(['pages' => $pages]);
+        return;
+    }
 
     // Build list of collection URL prefixes to exclude
     $collections = OutpostDB::fetchAll('SELECT slug, url_pattern FROM collections');

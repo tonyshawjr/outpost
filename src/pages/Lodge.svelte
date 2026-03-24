@@ -49,9 +49,9 @@
       if (data.settings?.lodge_forgot_page) lodgeForgotPage = data.settings.lodge_forgot_page;
     } catch (e) {}
 
-    // Load pages for dropdowns
+    // Load all pages for dropdowns (include unscoped pages like /login)
     try {
-      const res = await fetch('./api.php?action=pages', { credentials: 'same-origin' });
+      const res = await fetch('./api.php?action=pages&all=1', { credentials: 'same-origin' });
       const data = await res.json();
       sitePages = (data.pages || []).filter(p => p.path !== '__global__' && !p.path.startsWith('/outpost'));
     } catch (e) {}

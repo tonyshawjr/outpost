@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.12.2] — 2026-03-24
+
+### Fixed
+- **Lodge page dropdowns empty** -- Pages API now supports `all=1` parameter to return all pages without theme-field filtering. Lodge page selectors show login, register, forgot-password and all other pages.
+- **Compass template caching** -- Improved `<template>` content extraction with try/catch and childNodes fallback. Fixes search results showing "0 results" when items exist.
+
+---
+
 ## [4.12.1] — 2026-03-24
 
 ### Changed
