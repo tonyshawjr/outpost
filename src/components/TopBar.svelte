@@ -21,6 +21,20 @@
   let route = $derived($currentRoute);
   let currentUser = $derived($user);
 
+  // Environment detection
+  let environment = $derived.by(() => {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') return 'local';
+    if (host.includes('staging') || host.includes('stage') || host.includes('dev.') || host.includes('test.')) return 'staging';
+    return 'production';
+  });
+
+  const envConfig = {
+    local:      { label: 'Local',      color: '#3b82f6' },
+    staging:    { label: 'Staging',    color: '#f59e0b' },
+    production: { label: 'Production', color: '#22c55e' },
+  };
+
   function toggleSidebar() {
     sidebarOpen.update((v) => !v);
   }
@@ -60,6 +74,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <h1 class="topbar-title">{title}</h1>
+    <span class="env-pill" style="--env-color: {envConfig[environment].color};">{envConfig[environment].label}</span>
   </div>
 
   <div class="topbar-actions">
@@ -120,5 +135,18 @@
 
   .ranger-active {
     color: var(--accent);
+  }
+
+  .env-pill {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    color: var(--env-color);
+    background: color-mix(in srgb, var(--env-color) 12%, transparent);
+    white-space: nowrap;
+    line-height: 1.4;
   }
 </style>

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.11.1] — 2026-03-24
+
+### Added
+- **Environment indicator** — Top bar now shows a color-coded pill (Local/Staging/Production) auto-detected from hostname. Blue for localhost, yellow for staging subdomains, green for production. Zero configuration.
+
+---
+
 ## [4.11.0] — 2026-03-24
 
 ### Added
