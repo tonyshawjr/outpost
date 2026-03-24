@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.13.0] — 2026-03-24
+
+### Added
+- **Auth client JS** -- New `auth-client.js` auto-discovers forms with `data-outpost-auth="login|register|forgot-password"` and wires them to the member API. Session-based login with rate limiting, CSRF tokens, error/success handling, and redirect support. Auto-injected when `data-outpost-auth` is detected on the page.
+- **Theme auth forms pattern** -- Developers can build custom login/register/forgot-password pages in their theme using standard HTML forms with `data-outpost-auth` attribute. No form builder needed. Documented in developer docs.
+
+---
+
 ## [4.12.3] — 2026-03-24
 
 ### Changed

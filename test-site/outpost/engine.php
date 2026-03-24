@@ -1203,7 +1203,14 @@ function outpost_cache_output(string $buffer): string {
         $buffer = preg_replace('/<\/body>/i', $searchJs . "\n</body>", $buffer, 1);
     }
 
-    // 3. Inject frontend editor overlay + admin bar before </body> (never cached — admin only, skip in customizer preview)
+    // 2d. Inject Auth client when auth forms are present on the page
+    if (strpos($buffer, 'data-outpost-auth') !== false && stripos($buffer, '</body>') !== false) {
+        $authBust = '?v=' . OUTPOST_VERSION;
+        $authJs = '<script src="/outpost/auth-client.js' . $authBust . '"></script>';
+        $buffer = preg_replace('/<\/body>/i', $authJs . "\n</body>", $buffer, 1);
+    }
+
+    // 3. Inject frontend editor overlay + admin bar before </body> (never cached -- admin only, skip in customizer preview)
     if (outpost_is_admin() && !$isCustomizerPreview) {
         // Inject editor CSS — only right padding for icon rail (no top bar)
         if (stripos($buffer, '</head>') !== false) {

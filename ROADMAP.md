@@ -76,6 +76,10 @@ Everything below is already built and released.
 ### v2.5 — Outpost Design System
 - ~~Sidebar reorganization~~ **Shipped v4.10.0**, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
 
+### v4.13 — Auth Forms & OAuth Roadmap (2026-03-24)
+- ~~Auth client JS~~ **Shipped** — `data-outpost-auth` attribute for theme login/register/forgot-password forms with auto member API wiring
+- **OAuth Social Login** — Planned: Google, Facebook, and Apple sign-in. Provider configuration in settings, server-side callback handlers, account linking.
+
 ### v4.12.0 — Lodge Custom Pages (2026-03-24)
 - ~~Lodge custom login/register/forgot pages~~ **Shipped** — Page selector dropdowns in Lodge settings, front-router redirects to custom pages
 

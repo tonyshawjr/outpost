@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Forms &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Auth Forms</h1>
+    <p class="lead">Build custom login, register, and forgot-password pages in your theme. Drop a <code>data-outpost-auth</code> attribute on a form and Outpost handles the rest.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Outpost includes built-in member login pages at <code>/outpost/member-pages/login.php</code>, but most themes need branded auth pages that match the site design. The auth client lets you build your own forms in plain HTML &mdash; Outpost auto-discovers them and wires them to the member API.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Auth forms use session-based login (not JWT tokens). This means Lodge, member-only pages, and all session-dependent features work immediately after login. No extra configuration needed.</div>
+
+    <h2>Login Form</h2>
+    <p>Create a <code>login.html</code> page in your theme with a form that has <code>data-outpost-auth="login"</code>:</p>
+
+    <pre><code>&lt;form data-outpost-auth="login" data-auth-redirect="/" class="space-y-4"&gt;
+  &lt;div data-auth-error style="display:none;"&gt;&lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label for="email"&gt;Email&lt;/label&gt;
+    &lt;input name="email" type="email" required placeholder="you@example.com"&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label for="password"&gt;Password&lt;/label&gt;
+    &lt;input name="password" type="password" required placeholder="Your password"&gt;
+  &lt;/div&gt;
+
+  &lt;button type="submit"&gt;Sign In&lt;/button&gt;
+
+  &lt;p&gt;&lt;a href="/forgot-password"&gt;Forgot password?&lt;/a&gt;&lt;/p&gt;
+  &lt;p&gt;Don't have an account? &lt;a href="/register"&gt;Create one&lt;/a&gt;&lt;/p&gt;
+&lt;/form&gt;</code></pre>
+
+    <h3>Required elements</h3>
+    <table class="schema-table">
+      <thead><tr><th>Element</th><th>Attribute</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>&lt;form&gt;</code></td><td><code>data-outpost-auth="login"</code></td><td>Identifies this as a login form</td></tr>
+        <tr><td><code>&lt;input&gt;</code></td><td><code>name="email"</code></td><td>Email or username field</td></tr>
+        <tr><td><code>&lt;input&gt;</code></td><td><code>name="password"</code></td><td>Password field</td></tr>
+        <tr><td><code>&lt;button&gt;</code></td><td><code>type="submit"</code></td><td>Submit button (text changes to "Please wait..." during submission)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Optional elements</h3>
+    <table class="schema-table">
+      <thead><tr><th>Attribute</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-auth-redirect="/"</code></td><td>Where to redirect after successful login. Defaults to <code>/</code>. Also checks for <code>?return=</code> URL param (set by Lodge redirect).</td></tr>
+        <tr><td><code>data-auth-error</code></td><td>Element to display error messages (hidden by default, shown on error)</td></tr>
+        <tr><td><code>data-auth-success</code></td><td>Element to display success messages</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Register Form</h2>
+    <pre><code>&lt;form data-outpost-auth="register" data-auth-redirect="/" class="space-y-4"&gt;
+  &lt;div data-auth-error style="display:none;"&gt;&lt;/div&gt;
+  &lt;div data-auth-success style="display:none;"&gt;&lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label&gt;Name&lt;/label&gt;
+    &lt;input name="name" type="text" required&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;label&gt;Email&lt;/label&gt;
+    &lt;input name="email" type="email" required&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;label&gt;Password&lt;/label&gt;
+    &lt;input name="password" type="password" required&gt;
+  &lt;/div&gt;
+
+  &lt;button type="submit"&gt;Create Account&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+    <p>If email verification is enabled in settings, the form hides and a success message is shown after registration. Otherwise, the user is logged in immediately and redirected.</p>
+
+    <h2>Forgot Password Form</h2>
+    <pre><code>&lt;form data-outpost-auth="forgot-password" class="space-y-4"&gt;
+  &lt;div data-auth-error style="display:none;"&gt;&lt;/div&gt;
+  &lt;div data-auth-success style="display:none;"&gt;&lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label&gt;Email&lt;/label&gt;
+    &lt;input name="email" type="email" required&gt;
+  &lt;/div&gt;
+
+  &lt;button type="submit"&gt;Send Reset Link&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+    <h2>Lodge Integration</h2>
+    <p>When Lodge is enabled and a visitor tries to access a protected route (e.g., <code>/dashboard</code>), they are redirected to the login page with a <code>?return=/dashboard</code> parameter. After successful login, the auth client reads this parameter and redirects back to the original page.</p>
+    <p>To use your custom login page instead of the built-in one, go to <strong>Members &gt; Lodge &gt; Configuration</strong> and select your login page from the dropdown.</p>
+
+    <h2>Security</h2>
+    <ul>
+      <li><strong>Rate limiting</strong> &mdash; Login: 10 attempts per minute per IP. Registration: 5 per 5 minutes. Forgot password: 3 per 5 minutes.</li>
+      <li><strong>Session-based auth</strong> &mdash; Uses HttpOnly session cookies. No tokens stored in localStorage.</li>
+      <li><strong>CSRF protection</strong> &mdash; A CSRF token is returned on login and stored as a cookie for subsequent form submissions.</li>
+      <li><strong>Password hashing</strong> &mdash; bcrypt with cost 10.</li>
+      <li><strong>Account suspension</strong> &mdash; Suspended accounts cannot log in.</li>
+      <li><strong>Email verification</strong> &mdash; Optional. When enabled, unverified accounts are blocked from login.</li>
+    </ul>
+
+    <h2>API Endpoints</h2>
+    <p>The auth client calls these endpoints on <code>/outpost/member-api.php</code>:</p>
+    <table class="schema-table">
+      <thead><tr><th>Action</th><th>Method</th><th>Body</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><code>login</code></td><td>POST</td><td><code>{ email, password }</code></td><td>Session cookie set + <code>{ success, member, csrf_token }</code></td></tr>
+        <tr><td><code>register</code></td><td>POST</td><td><code>{ username, email, password }</code></td><td><code>{ success, member }</code> or <code>{ requires_verification, message }</code></td></tr>
+        <tr><td><code>forgot-password</code></td><td>POST</td><td><code>{ email }</code></td><td><code>{ success, message }</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; You can style the form however you want. The <code>data-outpost-auth</code> attribute only controls the JS behavior. All CSS classes, layout, and structure are yours to define. The auth client JS is auto-injected when the attribute is detected &mdash; no script tags needed.</div>
+
+    <h2>Social Login (OAuth)</h2>
+    <p>OAuth support for Google, Facebook, and Apple sign-in is planned for a future release. You can add social login buttons to your form now as visual placeholders &mdash; they will be enabled when OAuth is available.</p>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>
