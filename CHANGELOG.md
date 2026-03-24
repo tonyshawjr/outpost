@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.11.4] — 2026-03-24
+
+### Fixed
+- **Compass search Enter key** — Pressing Enter in a search input with a submit button now triggers the search instead of doing nothing
+- **Compass client-side rendering** — When the API returns JSON items but no server HTML, Compass now renders results using a `<template data-compass-template>` tag in the results container. Template is cached on init so it survives innerHTML replacement.
+- **Compass dropdown counts** — Counts no longer shown in dropdown options by default. Add `data-show-counts="true"` to opt-in. Keeps dropdowns clean.
+
+---
+
 ## [4.11.3] — 2026-03-24
 
 ### Added

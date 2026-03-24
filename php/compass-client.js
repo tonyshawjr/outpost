@@ -278,8 +278,14 @@
     // ── DOM Updates ───────────────────────────────────────
 
     _updateResults(json) {
-      const html = json.html ?? '';
+      let html = json.html ?? '';
       const total = json.total ?? 0;
+      const items = json.items || json.data || [];
+
+      // If no server-rendered HTML but we have items, render client-side from a <template>
+      if (!html && total > 0 && items.length > 0 && this._clientTemplate) {
+        html = this._renderFromTemplate(this._clientTemplate, items);
+      }
 
       this.resultsEls.forEach((el) => {
         if (total === 0 || !html) {
@@ -296,6 +302,24 @@
       });
 
       this._renderPager(total);
+    }
+
+    /**
+     * Render items using a <template> string with {{field}} placeholders.
+     */
+    _renderFromTemplate(tpl, items) {
+      return items.map((item) => {
+        const d = item.data || item;
+        let out = tpl;
+        // Replace {{field}} placeholders
+        out = out.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+          if (key === 'url') return item.url || ('/' + this.collection + '/' + (item.slug || ''));
+          if (key === 'slug') return item.slug || '';
+          if (key === 'id') return item.id || '';
+          return escapeHTML(String(d[key] ?? ''));
+        });
+        return out;
+      }).join('');
     }
 
     _setLoading(on) {
@@ -522,10 +546,11 @@
                   display: typeof c === 'object' ? c.display || v : v,
                   count: typeof c === 'object' ? c.count : c,
                 }));
+            const showCounts = item.el.getAttribute('data-show-counts') === 'true';
             entries.forEach((entry) => {
               const opt = document.createElement('option');
               opt.value = entry.value;
-              opt.textContent = (entry.display || entry.value) + (entry.count != null ? ` (${entry.count})` : '');
+              opt.textContent = (entry.display || entry.value) + (showCounts && entry.count != null ? ` (${entry.count})` : '');
               item.el.appendChild(opt);
             });
             // Auto-upgrade to searchable dropdown if threshold met
@@ -623,9 +648,16 @@
       });
 
       // Results containers
+      this._clientTemplate = null;
       (this.elements['results'] || []).forEach((el) => {
         this.resultsEls.push(el);
         this._originalHTML.set(el, el.innerHTML);
+        // Cache client-side template before it gets replaced by filtering
+        const tplEl = el.querySelector('template[data-compass-template]');
+        if (tplEl && !this._clientTemplate) {
+          // Use .innerHTML — <template> content is inert HTML
+          this._clientTemplate = tplEl.innerHTML;
+        }
       });
 
       // Count elements
@@ -660,6 +692,7 @@
           if (this._hasSubmitButton) {
             this._pendingState.q = el.value.trim() || undefined;
             if (!this._pendingState.q) delete this._pendingState.q;
+            this._applyPending();
           } else {
             this.setState('q', el.value.trim() || null);
           }
