@@ -613,7 +613,7 @@ function sync_validate_file_path(string $rel_path, string $theme_name): ?string 
             $resolved[] = $part;
         }
     }
-    $normalized = implode('/', $resolved);
+    $normalized = '/' . implode('/', $resolved);
 
     // Confirmed still inside the theme directory
     $expected_base = $themes_base . '/' . $theme_name;
