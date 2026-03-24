@@ -76,6 +76,9 @@ Everything below is already built and released.
 ### v2.5 — Outpost Design System
 - ~~Sidebar reorganization~~ **Shipped v4.10.0**, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
 
+### v4.12.0 — Lodge Custom Pages (2026-03-24)
+- ~~Lodge custom login/register/forgot pages~~ **Shipped** — Page selector dropdowns in Lodge settings, front-router redirects to custom pages
+
 ### v4.11.1 — Environment Indicator (2026-03-24)
 - ~~Environment pill in top bar~~ **Shipped** — Auto-detected Local/Staging/Production indicator, color-coded, zero config
 

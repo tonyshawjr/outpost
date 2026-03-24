@@ -23,6 +23,11 @@
   let saving = $state(false);
   let lodgeSlug = $state('lodge');
   let savingSlug = $state(false);
+  let lodgeLoginPage = $state('');
+  let lodgeRegisterPage = $state('');
+  let lodgeForgotPage = $state('');
+  let savingPages = $state(false);
+  let sitePages = $state([]);
 
   const features = [
     { key: 'collections', label: 'Collections', desc: 'Content collections and items' },
@@ -50,9 +55,15 @@
     } catch (e) {}
     try {
       const data = await settingsApi.get();
-      if (data.settings?.lodge_slug) {
-        lodgeSlug = data.settings.lodge_slug;
-      }
+      if (data.settings?.lodge_slug) lodgeSlug = data.settings.lodge_slug;
+      if (data.settings?.lodge_login_page) lodgeLoginPage = data.settings.lodge_login_page;
+      if (data.settings?.lodge_register_page) lodgeRegisterPage = data.settings.lodge_register_page;
+      if (data.settings?.lodge_forgot_page) lodgeForgotPage = data.settings.lodge_forgot_page;
+    } catch (e) {}
+    try {
+      const res = await fetch('/outpost/api.php?action=pages', { credentials: 'same-origin' });
+      const data = await res.json();
+      sitePages = (data.pages || []).filter(p => p.path !== '__global__' && !p.path.startsWith('/outpost'));
     } catch (e) {}
     loading = false;
   });
@@ -68,6 +79,22 @@
       addToast(err.message, 'error');
     } finally {
       savingSlug = false;
+    }
+  }
+
+  async function saveLodgePages() {
+    savingPages = true;
+    try {
+      await settingsApi.update({
+        lodge_login_page: lodgeLoginPage,
+        lodge_register_page: lodgeRegisterPage,
+        lodge_forgot_page: lodgeForgotPage,
+      });
+      addToast('Lodge pages saved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      savingPages = false;
     }
   }
 
@@ -134,6 +161,47 @@
             />
             <button class="btn btn-secondary btn-sm" onclick={saveLodgeSlug} disabled={savingSlug}>
               {savingSlug ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+
+        <div class="lodge-config-row">
+          <div class="lodge-config-info">
+            <span class="lodge-config-label">Custom Pages</span>
+            <span class="lodge-config-desc">Assign theme pages for login, register, and forgot password. Leave blank to use the built-in Outpost pages.</span>
+          </div>
+        </div>
+        <div class="lodge-pages-grid">
+          <div class="lodge-page-field">
+            <label class="lodge-page-label">Login Page</label>
+            <select class="input" bind:value={lodgeLoginPage}>
+              <option value="">Default (Outpost built-in)</option>
+              {#each sitePages as page}
+                <option value={page.path}>{page.title || page.path}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="lodge-page-field">
+            <label class="lodge-page-label">Register Page</label>
+            <select class="input" bind:value={lodgeRegisterPage}>
+              <option value="">Default (Outpost built-in)</option>
+              {#each sitePages as page}
+                <option value={page.path}>{page.title || page.path}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="lodge-page-field">
+            <label class="lodge-page-label">Forgot Password Page</label>
+            <select class="input" bind:value={lodgeForgotPage}>
+              <option value="">Default (Outpost built-in)</option>
+              {#each sitePages as page}
+                <option value={page.path}>{page.title || page.path}</option>
+              {/each}
+            </select>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" onclick={saveLodgePages} disabled={savingPages}>
+              {savingPages ? 'Saving...' : 'Save Pages'}
             </button>
           </div>
         </div>
@@ -228,5 +296,27 @@
     height: 30px;
     font-size: 13px;
     font-family: var(--font-mono);
+  }
+
+  .lodge-pages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: var(--space-sm);
+    align-items: end;
+    margin-top: var(--space-sm);
+  }
+
+  .lodge-page-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lodge-page-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
   }
 </style>

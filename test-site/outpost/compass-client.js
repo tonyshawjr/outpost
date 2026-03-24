@@ -656,8 +656,16 @@
         // Cache client-side template before it gets replaced by filtering
         const tplEl = el.querySelector('template[data-compass-template]');
         if (tplEl && !this._clientTemplate) {
-          // Use .innerHTML — <template> content is inert HTML
-          this._clientTemplate = tplEl.innerHTML;
+          // <template> content lives in .content (DocumentFragment), not .innerHTML
+          const frag = tplEl.content;
+          if (frag && frag.children.length) {
+            const tmp = document.createElement('div');
+            tmp.appendChild(frag.cloneNode(true));
+            this._clientTemplate = tmp.innerHTML;
+          } else {
+            // Fallback for servers that render <template> as plain HTML
+            this._clientTemplate = tplEl.innerHTML;
+          }
         }
       });
 

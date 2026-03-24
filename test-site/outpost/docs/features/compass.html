@@ -477,6 +477,87 @@
 
     <p>The first page load with Compass elements triggers an initial index build if one doesn&rsquo;t exist. Subsequent updates are incremental (only re-indexing the changed item). Sub-50ms queries on 10k+ items.</p>
 
+    <h2>Browse vs. Search Mode</h2>
+
+    <p>Many explore/directory pages have two modes: a <strong>browse mode</strong> (featured content, carousels, category grid) and a <strong>search mode</strong> (filtered results). Compass handles this with a simple pattern:</p>
+
+    <ol>
+      <li>Mark browse sections with <code>data-default-section</code> and the results section with <code>data-compass-section</code></li>
+      <li>Hide the results section by default: <code>style="display:none;"</code></li>
+      <li>Toggle between them using the <code>compass:stateChange</code> event</li>
+      <li>Check URL params on page load so direct links like <code>/explore?q=pizza</code> start in search mode immediately &mdash; no flash of browse content</li>
+    </ol>
+
+    <pre><code>&lt;!-- Browse mode (visible by default) --&gt;
+&lt;section data-default-section&gt;
+  &lt;h2&gt;Featured Businesses&lt;/h2&gt;
+  &lt;!-- carousels, cards, etc. --&gt;
+&lt;/section&gt;
+
+&lt;!-- Search mode (hidden until filters are active) --&gt;
+&lt;section data-compass-section style="display:none;"&gt;
+  &lt;span data-compass="count" data-collection="business"&gt;0 results&lt;/span&gt;
+  &lt;div data-compass="results" data-collection="business"&gt;
+    &lt;template data-compass-template&gt;
+      &lt;a href="/business/{{slug}}"&gt;{{title}}&lt;/a&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- Toggle script --&gt;
+&lt;script&gt;
+(function() {
+  function toggleMode(hasFilters) {
+    document.querySelectorAll('[data-default-section]').forEach(function(el) {
+      el.style.display = hasFilters ? 'none' : '';
+    });
+    var results = document.querySelector('[data-compass-section]');
+    if (results) results.style.display = hasFilters ? '' : 'none';
+  }
+
+  // Check URL on load for direct search links
+  var params = new URLSearchParams(window.location.search);
+  var hasUrlFilters = false;
+  params.forEach(function(val) { if (val) hasUrlFilters = true; });
+  if (hasUrlFilters) toggleMode(true);
+
+  // React to Compass filter changes
+  document.addEventListener('compass:stateChange', function(e) {
+    var state = e.detail &amp;&amp; e.detail.state ? e.detail.state : {};
+    var hasFilters = Object.keys(state).some(function(k) {
+      var v = state[k];
+      return v &amp;&amp; v !== '' &amp;&amp; (!Array.isArray(v) || v.length &gt; 0);
+    });
+    toggleMode(hasFilters);
+  });
+})();
+&lt;/script&gt;</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; The <code>data-default-section</code> and <code>data-compass-section</code> attributes are not Compass features &mdash; they are conventions you define in your theme. The toggle script is yours to write however you want. Compass provides the <code>compass:stateChange</code> event; you decide what to do with it.</div>
+
+    <h2>Client-Side Result Templates</h2>
+
+    <p>When Compass filters via AJAX, it replaces the results container with new content. If your server doesn&rsquo;t return pre-rendered HTML (most setups), add a <code>&lt;template data-compass-template&gt;</code> inside your results container. Compass uses it to render each item using <code>{{field}}</code> placeholders:</p>
+
+    <pre><code>&lt;div data-compass="results" data-collection="business" class="grid grid-cols-3 gap-6"&gt;
+  &lt;template data-compass-template&gt;
+    &lt;a href="/business/{{slug}}" class="card"&gt;
+      &lt;h3&gt;{{title}}&lt;/h3&gt;
+      &lt;p&gt;{{city}}, {{state}}&lt;/p&gt;
+      &lt;p&gt;{{description}}&lt;/p&gt;
+    &lt;/a&gt;
+  &lt;/template&gt;
+
+  &lt;!-- Server-rendered initial content (replaced when filtering) --&gt;
+  &lt;outpost-each collection="business" limit="12"&gt;
+    &lt;outpost-include partial="business-card"&gt;&lt;/outpost-include&gt;
+  &lt;/outpost-each&gt;
+&lt;/div&gt;</code></pre>
+
+    <p>Available placeholders: any field from the item&rsquo;s <code>data</code> JSON (<code>{{title}}</code>, <code>{{city}}</code>, <code>{{description}}</code>, etc.), plus <code>{{slug}}</code>, <code>{{id}}</code>, and <code>{{url}}</code> (auto-generated from the collection URL pattern). All values are HTML-escaped.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The <code>&lt;template&gt;</code> tag is cached by Compass on initialization, so it survives when <code>innerHTML</code> is replaced during filtering. You write the card markup once in the template and Compass stamps it out for each result.</div>
+
     <h2>Complete Example &mdash; Business Directory</h2>
 
     <p>A full directory page with search, dropdowns, checkboxes, sort, results grid, pagination, count, and reset. Every element is your HTML with your classes:</p>

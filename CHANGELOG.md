@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.12.0] — 2026-03-24
+
+### Added
+- **Lodge custom pages** — Configure custom login, register, and forgot password pages in Settings > Features > Lodge Configuration. Dropdown selects from your theme's pages. When set, Lodge redirects unauthenticated users to your custom page instead of the built-in Outpost login. Leave blank to use the default.
+
+### Fixed
+- **Compass client-side template rendering** — Fixed `<template>` content extraction using `DocumentFragment.cloneNode()` instead of `.innerHTML` which returns empty for `<template>` elements in the browser DOM.
+
+---
+
 ## [4.11.5] — 2026-03-24
 
 ### Fixed

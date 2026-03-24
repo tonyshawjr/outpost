@@ -209,8 +209,9 @@ if ($_lodgeSlug && str_starts_with($reqPath, '/' . $_lodgeSlug)) {
 
         // All lodge routes require member auth
         if (!OutpostMember::check()) {
-            // Redirect to member login page
-            $loginPage = '/outpost/member-pages/login.php';
+            // Redirect to custom login page if configured, otherwise Outpost default
+            $loginPageRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'lodge_login_page'");
+            $loginPage = ($loginPageRow && $loginPageRow['value']) ? $loginPageRow['value'] : '/outpost/member-pages/login.php';
             $returnUrl = urlencode($reqUri);
             header("Location: {$loginPage}?return={$returnUrl}");
             exit;
