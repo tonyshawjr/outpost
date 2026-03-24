@@ -1,5 +1,5 @@
 /**
- * Outpost CMS — Site Search Client
+ * Outpost CMS -- Site Search Client
  * Auto-discovers [data-outpost-search] containers and wires up search.
  * No dependencies. Under 200 lines.
  */
@@ -55,7 +55,7 @@
     });
 
     function doSearch(query) {
-      resultsEl.innerHTML = '<div class="outpost-search-loading">Searching…</div>';
+      resultsEl.innerHTML = '<div class="outpost-search-loading">Searching...</div>';
       resultsEl.classList.add('outpost-search-loading-state');
 
       var url = API_PATH + '&q=' + encodeURIComponent(query) + '&limit=' + limit;

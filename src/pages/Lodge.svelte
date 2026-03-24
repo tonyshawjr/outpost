@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { collections as collectionsApi } from '$lib/api.js';
+  import { collections as collectionsApi, settings as settingsApi } from '$lib/api.js';
   import { addToast, navigate } from '$lib/stores.js';
 
   let lodgeCollections = $state([]);
@@ -9,6 +9,14 @@
   let loadingPending = $state(true);
   let approvingId = $state(null);
   let rejectingId = $state(null);
+
+  // Lodge configuration
+  let lodgeSlug = $state('lodge');
+  let lodgeLoginPage = $state('');
+  let lodgeRegisterPage = $state('');
+  let lodgeForgotPage = $state('');
+  let savingConfig = $state(false);
+  let sitePages = $state([]);
 
   onMount(async () => {
     // Load lodge-enabled collections
@@ -31,7 +39,42 @@
     } finally {
       loadingPending = false;
     }
+
+    // Load lodge settings
+    try {
+      const data = await settingsApi.get();
+      if (data.settings?.lodge_slug) lodgeSlug = data.settings.lodge_slug;
+      if (data.settings?.lodge_login_page) lodgeLoginPage = data.settings.lodge_login_page;
+      if (data.settings?.lodge_register_page) lodgeRegisterPage = data.settings.lodge_register_page;
+      if (data.settings?.lodge_forgot_page) lodgeForgotPage = data.settings.lodge_forgot_page;
+    } catch (e) {}
+
+    // Load pages for dropdowns
+    try {
+      const res = await fetch('./api.php?action=pages', { credentials: 'same-origin' });
+      const data = await res.json();
+      sitePages = (data.pages || []).filter(p => p.path !== '__global__' && !p.path.startsWith('/outpost'));
+    } catch (e) {}
   });
+
+  async function saveLodgeConfig() {
+    const slug = lodgeSlug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-|-$/g, '') || 'lodge';
+    lodgeSlug = slug;
+    savingConfig = true;
+    try {
+      await settingsApi.update({
+        lodge_slug: slug,
+        lodge_login_page: lodgeLoginPage,
+        lodge_register_page: lodgeRegisterPage,
+        lodge_forgot_page: lodgeForgotPage,
+      });
+      addToast('Lodge configuration saved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      savingConfig = false;
+    }
+  }
 
   async function approveItem(id) {
     approvingId = id;
@@ -192,6 +235,55 @@
         </div>
       {/if}
     </section>
+
+    <!-- Lodge Configuration -->
+    <section class="lodge-section">
+      <h2 class="lodge-section-title">Configuration</h2>
+      <p class="lodge-section-desc">Set the Lodge URL slug and assign custom pages for member authentication.</p>
+
+      <div class="lodge-config-grid">
+        <div class="lodge-config-field">
+          <label class="lodge-config-label">URL Slug</label>
+          <div class="lodge-slug-input">
+            <span class="lodge-slug-prefix">/</span>
+            <input class="input" type="text" bind:value={lodgeSlug} placeholder="lodge" style="padding-left: 24px;" />
+          </div>
+          <span class="lodge-config-hint">The front-end URL prefix (e.g., /{lodgeSlug}/dashboard)</span>
+        </div>
+        <div class="lodge-config-field">
+          <label class="lodge-config-label">Login Page</label>
+          <select class="input" bind:value={lodgeLoginPage}>
+            <option value="">Default (Outpost built-in)</option>
+            {#each sitePages as page}
+              <option value={page.path}>{page.title || page.path}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="lodge-config-field">
+          <label class="lodge-config-label">Register Page</label>
+          <select class="input" bind:value={lodgeRegisterPage}>
+            <option value="">Default (Outpost built-in)</option>
+            {#each sitePages as page}
+              <option value={page.path}>{page.title || page.path}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="lodge-config-field">
+          <label class="lodge-config-label">Forgot Password Page</label>
+          <select class="input" bind:value={lodgeForgotPage}>
+            <option value="">Default (Outpost built-in)</option>
+            {#each sitePages as page}
+              <option value={page.path}>{page.title || page.path}</option>
+            {/each}
+          </select>
+        </div>
+      </div>
+      <div style="margin-top: var(--space-md);">
+        <button class="btn btn-primary" onclick={saveLodgeConfig} disabled={savingConfig}>
+          {savingConfig ? 'Saving...' : 'Save Configuration'}
+        </button>
+      </div>
+    </section>
   </div>
 {/if}
 
@@ -347,5 +439,45 @@
     padding: 2px 8px;
     border-radius: var(--radius-sm);
     background: var(--bg-secondary);
+  }
+
+  .lodge-config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .lodge-config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lodge-config-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+  }
+
+  .lodge-config-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .lodge-slug-input {
+    position: relative;
+  }
+
+  .lodge-slug-prefix {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    pointer-events: none;
   }
 </style>

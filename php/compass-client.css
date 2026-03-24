@@ -1,7 +1,7 @@
-/* Compass v2 — Minimal styling for auto-generated elements only.
+/* Compass v2 -- Minimal styling for auto-generated elements only.
    Inputs, selects, buttons: styled by the theme. Compass never touches them. */
 
-/* ── Loading state ─────────────────────────────────── */
+/* -- Loading state ----------------------------------- */
 
 [data-compass="results"].compass-loading {
   opacity: 0.5;
@@ -9,7 +9,7 @@
   transition: opacity 0.2s ease;
 }
 
-/* ── Empty state ───────────────────────────────────── */
+/* -- Empty state ------------------------------------- */
 
 .compass-empty {
   padding: 48px 24px;
@@ -18,7 +18,7 @@
   font-size: 15px;
 }
 
-/* ── Auto-generated checkbox labels (inside containers) */
+/* -- Auto-generated checkbox labels (inside containers) */
 
 .compass-checkbox,
 .compass-radio {
@@ -35,7 +35,7 @@
   flex-shrink: 0;
 }
 
-/* ── Count badge (inside auto-generated options) ───── */
+/* -- Count badge (inside auto-generated options) ----- */
 
 .compass-count {
   display: inline-block;
@@ -48,7 +48,7 @@
   font-weight: 500;
 }
 
-/* ── A-Z buttons (auto-generated inside containers) ── */
+/* -- A-Z buttons (auto-generated inside containers) -- */
 
 .compass-az-btn {
   padding: 4px 8px;
@@ -70,7 +70,7 @@
   color: #fff;
 }
 
-/* ── Pager buttons (auto-generated) ────────────────── */
+/* -- Pager buttons (auto-generated) ------------------ */
 
 .compass-pager-btn {
   padding: 6px 12px;
@@ -99,7 +99,7 @@
   color: rgba(50, 61, 68, 0.4);
 }
 
-/* ── Selection pills (auto-generated) ──────────────── */
+/* -- Selection pills (auto-generated) ---------------- */
 
 .compass-pill {
   display: inline-flex;
@@ -129,7 +129,7 @@
 }
 .compass-pill-remove:hover { opacity: 1; }
 
-/* ── Searchable Dropdown (auto-upgrade for 15+ options) */
+/* -- Searchable Dropdown (auto-upgrade for 15+ options) */
 
 .compass-searchable-dropdown {
   position: relative;

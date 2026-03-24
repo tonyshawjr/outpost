@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.12.1] — 2026-03-24
+
+### Changed
+- **Lodge config moved to Lodge page** — URL slug, login page, register page, and forgot password page selectors moved from Settings > Features to the Lodge admin page under Members. Features page now only has the on/off toggle.
+- **Fixed Unicode encoding in client JS/CSS** — Replaced fancy Unicode characters (em dashes, box-drawing) with ASCII equivalents to prevent garbled text when served without UTF-8 headers.
+
+---
+
 ## [4.12.0] — 2026-03-24
 
 ### Added

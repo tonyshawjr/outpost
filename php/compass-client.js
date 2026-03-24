@@ -1,5 +1,5 @@
 /**
- * Outpost CMS — Compass Client v2
+ * Outpost CMS -- Compass Client v2
  * Data-attribute-driven faceted search & filtering.
  *
  * Discovery: finds all [data-compass] elements on the page,
@@ -14,9 +14,9 @@
 (function () {
   'use strict';
 
-  // ────────────────────────────────────────────────────────
+  // --------------------------------------------------------
   // Utilities
-  // ────────────────────────────────────────────────────────
+  // --------------------------------------------------------
 
   function debounce(fn, ms) {
     let timer;
@@ -52,9 +52,9 @@
     return div.innerHTML;
   }
 
-  // ────────────────────────────────────────────────────────
-  // CompassController — one per collection
-  // ────────────────────────────────────────────────────────
+  // --------------------------------------------------------
+  // CompassController -- one per collection
+  // --------------------------------------------------------
 
   class CompassController {
     constructor(collection) {
@@ -88,11 +88,11 @@
       /** Whether we use instant filtering or submit-button mode */
       this._hasSubmitButton = false;
 
-      /** Pending state (used in submit mode — accumulated before submit) */
+      /** Pending state (used in submit mode -- accumulated before submit) */
       this._pendingState = {};
     }
 
-    // ── Registration ──────────────────────────────────────
+    // -- Registration --------------------------------------
 
     register(el) {
       const type = el.getAttribute('data-compass');
@@ -100,10 +100,10 @@
       this.elements[type].push(el);
     }
 
-    // ── Lifecycle ─────────────────────────────────────────
+    // -- Lifecycle -----------------------------------------
 
     init() {
-      // Check for submit button — determines instant vs. manual mode
+      // Check for submit button -- determines instant vs. manual mode
       this._hasSubmitButton = !!(this.elements['submit'] && this.elements['submit'].length);
 
       this._bindAll();
@@ -129,7 +129,7 @@
       });
     }
 
-    // ── State ─────────────────────────────────────────────
+    // -- State ---------------------------------------------
 
     setState(name, value, opts = {}) {
       const target = this._hasSubmitButton && !opts.force
@@ -201,7 +201,7 @@
       emit(document, 'compass:reset', { collection: this.collection });
     }
 
-    // ── Filtering ─────────────────────────────────────────
+    // -- Filtering -----------------------------------------
 
     async filter() {
       if (this.loading && this._abortCtrl) {
@@ -276,7 +276,7 @@
       }
     }
 
-    // ── DOM Updates ───────────────────────────────────────
+    // -- DOM Updates ---------------------------------------
 
     _updateResults(json) {
       let html = json.html ?? '';
@@ -383,7 +383,7 @@
       }
     }
 
-    // ── Selections Display ────────────────────────────────
+    // -- Selections Display --------------------------------
 
     _updateSelections() {
       this.selectionsEls.forEach((el) => {
@@ -422,7 +422,7 @@
       });
     }
 
-    // ── Pagination ────────────────────────────────────────
+    // -- Pagination ----------------------------------------
 
     _renderPager(total) {
       const pagerEls = this.elements['pager'] || [];
@@ -480,7 +480,7 @@
       });
     }
 
-    // ── Auto-Populate ─────────────────────────────────────
+    // -- Auto-Populate -------------------------------------
     // For selects/checkbox/radio containers that are empty,
     // fetch values from the compass/values API and populate.
 
@@ -585,7 +585,7 @@
       }
     }
 
-    // ── Binding ───────────────────────────────────────────
+    // -- Binding -------------------------------------------
 
     _bindAll() {
       // Search inputs
@@ -680,14 +680,14 @@
         this.selectionsEls.push(el);
       });
 
-      // Pager — set perPage
+      // Pager -- set perPage
       (this.elements['pager'] || []).forEach((el) => {
         const pp = parseInt(el.getAttribute('data-per-page'), 10);
         if (pp) this.perPage = pp;
       });
     }
 
-    // ── Individual Binders ────────────────────────────────
+    // -- Individual Binders --------------------------------
 
     _bindSearch(el) {
       const handler = debounce(() => {
@@ -954,7 +954,7 @@
       });
     }
 
-    // ── URL ───────────────────────────────────────────────
+    // -- URL -----------------------------------------------
 
     _updateURL() {
       const params = new URLSearchParams();
@@ -1064,7 +1064,7 @@
       });
     }
 
-    // ── Helpers ───────────────────────────────────────────
+    // -- Helpers -------------------------------------------
 
     _detectApi() {
       const meta = document.querySelector('meta[name="outpost-api"]');
@@ -1073,9 +1073,9 @@
     }
   }
 
-  // ────────────────────────────────────────────────────────
+  // --------------------------------------------------------
   // Auto-initialization
-  // ────────────────────────────────────────────────────────
+  // --------------------------------------------------------
 
   const controllers = {};
 
