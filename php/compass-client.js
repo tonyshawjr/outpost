@@ -502,10 +502,11 @@
       // Fetch values for items that need populating
       for (const item of toPopulate) {
         try {
+          const facetName = (item.source || '').replace(/^(folder|field|label):/, '');
           const params = new URLSearchParams({
             action: 'compass/values',
             collection: this.collection,
-            source: item.source,
+            facet: facetName,
           });
           const res = await fetch(this.apiBase + '?' + params.toString());
           if (!res.ok) continue;

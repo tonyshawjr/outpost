@@ -22,6 +22,15 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.11.2">4.11.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-24</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Compass auto-populate broken</strong> &mdash; Dropdown and checkbox filters were sending the raw <code>data-source</code> value (e.g. <code>folder:categories</code>) to the API instead of the stripped facet name (<code>categories</code>). Fixed in <code>compass-client.js</code> &mdash; auto-populate now uses the correct <code>facet</code> parameter.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.11.1">4.11.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-24</span></h2>
 
     <h3>Added</h3>

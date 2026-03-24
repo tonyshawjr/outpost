@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.11.2] — 2026-03-24
+
+### Fixed
+- **Compass auto-populate broken** — Dropdown and checkbox filters were sending `source: "folder:categories"` to the API instead of `facet: "categories"`. The `compass-client.js` auto-populate function now strips the `folder:`/`field:`/`label:` prefix and uses the correct `facet` parameter name. This caused empty dropdowns on any page using Compass with `data-source` prefixes.
+
+---
+
 ## [4.11.1] — 2026-03-24
 
 ### Added
