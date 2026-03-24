@@ -284,8 +284,18 @@
       const items = json.items || json.data || [];
 
       // If no server-rendered HTML but we have items, render client-side from a <template>
-      if (!html && total > 0 && items.length > 0 && this._clientTemplate) {
-        html = this._renderFromTemplate(this._clientTemplate, items);
+      if (!html && total > 0 && items.length > 0) {
+        // Try cached template first
+        var tpl = this._clientTemplate;
+        // Fallback: extract template from original HTML (before any DOM replacement)
+        if (!tpl && this._originalHTML.size) {
+          var origHtml = this._originalHTML.values().next().value || '';
+          var tplMatch = origHtml.match(/<template[^>]*data-compass-template[^>]*>([\s\S]*?)<\/template>/i);
+          if (tplMatch) tpl = tplMatch[1].trim();
+        }
+        if (tpl) {
+          html = this._renderFromTemplate(tpl, items);
+        }
       }
 
       this.resultsEls.forEach((el) => {

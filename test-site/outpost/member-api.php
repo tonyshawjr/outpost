@@ -426,8 +426,23 @@ if ($action === 'register' && $method === 'POST') {
         $data['password'] ?? ''
     );
     if ($result['success']) {
-        // Record signup event for funnels
         $memberId = $result['member']['id'] ?? null;
+
+        // Store display_name if first/last name provided
+        if ($memberId && !empty($data['display_name'])) {
+            OutpostDB::update('users', ['display_name' => trim($data['display_name'])], 'id = ?', [$memberId]);
+        }
+
+        // Store custom meta fields (e.g. is_military, is_first_responder)
+        if ($memberId && !empty($data['meta']) && is_array($data['meta'])) {
+            $existing = OutpostDB::fetchOne('SELECT meta FROM users WHERE id = ?', [$memberId]);
+            $meta = ($existing && $existing['meta']) ? json_decode($existing['meta'], true) : [];
+            if (!is_array($meta)) $meta = [];
+            $meta = array_merge($meta, $data['meta']);
+            OutpostDB::update('users', ['meta' => json_encode($meta)], 'id = ?', [$memberId]);
+        }
+
+        // Record signup event for funnels
         if ($memberId) {
             _member_api_record_event($memberId, 'signup');
         }

@@ -59,6 +59,26 @@
         body.email = (form.querySelector('[name="email"]') || {}).value || '';
         body.password = (form.querySelector('[name="password"]') || {}).value || '';
 
+        // Collect display_name if separate first/last name fields exist
+        var firstName = (form.querySelector('[name="first_name"]') || {}).value || '';
+        var lastName = (form.querySelector('[name="last_name"]') || {}).value || '';
+        if (firstName || lastName) {
+          body.display_name = (firstName + ' ' + lastName).trim();
+          if (!body.username) body.username = body.display_name;
+        }
+
+        // Collect custom meta from data-auth-meta checkboxes/inputs
+        var meta = {};
+        form.querySelectorAll('[data-auth-meta]').forEach(function (el) {
+          var key = el.getAttribute('data-auth-meta');
+          if (el.type === 'checkbox') {
+            meta[key] = el.checked;
+          } else {
+            meta[key] = el.value;
+          }
+        });
+        if (Object.keys(meta).length) body.meta = meta;
+
         post('register', body, function (data) {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
           if (data.error) {

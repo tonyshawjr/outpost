@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.13.1] — 2026-03-24
+
+### Added
+- **Register API custom meta fields** -- `POST register` now accepts `display_name` (from first/last name) and `meta` object for custom profile fields (e.g. `is_military`, `is_first_responder`). Stored in the users table `meta` JSON column.
+- **Auth client meta collection** -- `data-auth-meta="key"` attribute on checkboxes/inputs in register forms. Values collected and sent as `meta` object on registration.
+
+### Fixed
+- **Compass template fallback** -- If the `<template>` DOM caching fails, Compass now extracts the template from the original HTML string as a fallback. Fixes "0 results" when items exist.
+
+---
+
 ## [4.13.0] — 2026-03-24
 
 ### Added
