@@ -294,6 +294,7 @@ match (true) {
 
     // Lodge (admin review queue)
     $action === 'lodge/pending' && $method === 'GET' => handle_lodge_pending_list(),
+    $action === 'lodge/theme-pages' && $method === 'GET' => handle_lodge_theme_pages(),
 
     // Media
     $action === 'media' && $method === 'GET' => handle_media_list(),
@@ -2787,6 +2788,43 @@ function handle_items_bulk_schedule(): void {
         dispatch_webhook('entry.scheduled', ['id' => $wh_id, 'scheduled_at' => $scheduledAt]);
     }
     json_response(['success' => true, 'count' => $count]);
+}
+
+/**
+ * Returns flat HTML pages from the active theme (root-level .html files only).
+ * Excludes collection templates, partials, and system files.
+ */
+function handle_lodge_theme_pages(): void {
+    $activeTheme = get_active_theme();
+    $themeDir = OUTPOST_THEMES_DIR . $activeTheme;
+
+    if (!is_dir($themeDir)) {
+        json_response(['pages' => []]);
+        return;
+    }
+
+    // Get collection slugs to exclude their templates
+    $collections = OutpostDB::fetchAll('SELECT slug FROM collections');
+    $collSlugs = array_column($collections, 'slug');
+
+    // Scan root-level .html files only
+    $files = glob($themeDir . '/*.html');
+    $exclude = ['index.html', '404.html'];
+    $pages = [];
+
+    foreach ($files as $file) {
+        $basename = basename($file, '.html');
+        $filename = basename($file);
+        // Skip index, 404, collection templates, and system files
+        if (in_array($filename, $exclude)) continue;
+        if (in_array($basename, $collSlugs)) continue;
+
+        $path = '/' . $basename;
+        $label = ucwords(str_replace(['-', '_'], ' ', $basename));
+        $pages[] = ['path' => $path, 'label' => $label, 'file' => $filename];
+    }
+
+    json_response(['pages' => $pages]);
 }
 
 function handle_lodge_pending_list(): void {

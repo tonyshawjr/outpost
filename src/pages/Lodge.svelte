@@ -49,11 +49,11 @@
       if (data.settings?.lodge_forgot_page) lodgeForgotPage = data.settings.lodge_forgot_page;
     } catch (e) {}
 
-    // Load all pages for dropdowns (include unscoped pages like /login)
+    // Load theme pages for auth page dropdowns
     try {
-      const res = await fetch('./api.php?action=pages&all=1', { credentials: 'same-origin' });
+      const res = await fetch('./api.php?action=lodge/theme-pages', { credentials: 'same-origin' });
       const data = await res.json();
-      sitePages = (data.pages || []).filter(p => p.path !== '__global__' && !p.path.startsWith('/outpost'));
+      sitePages = data.pages || [];
     } catch (e) {}
   });
 
@@ -255,7 +255,7 @@
           <select class="input" bind:value={lodgeLoginPage}>
             <option value="">Default (Outpost built-in)</option>
             {#each sitePages as page}
-              <option value={page.path}>{page.title || page.path}</option>
+              <option value={page.path}>{page.label} ({page.path})</option>
             {/each}
           </select>
         </div>
@@ -264,7 +264,7 @@
           <select class="input" bind:value={lodgeRegisterPage}>
             <option value="">Default (Outpost built-in)</option>
             {#each sitePages as page}
-              <option value={page.path}>{page.title || page.path}</option>
+              <option value={page.path}>{page.label} ({page.path})</option>
             {/each}
           </select>
         </div>
@@ -273,7 +273,7 @@
           <select class="input" bind:value={lodgeForgotPage}>
             <option value="">Default (Outpost built-in)</option>
             {#each sitePages as page}
-              <option value={page.path}>{page.title || page.path}</option>
+              <option value={page.path}>{page.label} ({page.path})</option>
             {/each}
           </select>
         </div>

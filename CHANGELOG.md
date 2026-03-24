@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.12.3] — 2026-03-24
+
+### Changed
+- **Lodge page selectors scan theme files** -- Dropdowns now show only flat HTML pages from the active theme (root-level .html files), excluding collection templates, partials, index, and 404. No more listing every page in the database.
+
+---
+
 ## [4.12.2] — 2026-03-24
 
 ### Fixed
