@@ -117,6 +117,34 @@
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
           showError(errorEl, 'Something went wrong. Please try again.');
         });
+
+      } else if (type === 'reset-password') {
+        // Get token from URL
+        var params = new URLSearchParams(window.location.search);
+        body.token = params.get('token') || '';
+        body.password = (form.querySelector('[name="password"]') || {}).value || '';
+
+        if (!body.token) {
+          showError(errorEl, 'Invalid or missing reset token.');
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
+          return;
+        }
+
+        post('reset', body, function (data) {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
+          if (data.error) {
+            showError(errorEl, data.error);
+            return;
+          }
+          if (successEl) {
+            successEl.textContent = 'Password reset successfully. You can now sign in.';
+            successEl.style.display = '';
+          }
+          form.style.display = 'none';
+        }, function () {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
+          showError(errorEl, 'Something went wrong. Please try again.');
+        });
       }
     });
   }

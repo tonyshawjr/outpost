@@ -15,6 +15,7 @@
   let lodgeLoginPage = $state('');
   let lodgeRegisterPage = $state('');
   let lodgeForgotPage = $state('');
+  let lodgeResetPage = $state('');
   let savingConfig = $state(false);
   let sitePages = $state([]);
 
@@ -47,6 +48,7 @@
       if (data.settings?.lodge_login_page) lodgeLoginPage = data.settings.lodge_login_page;
       if (data.settings?.lodge_register_page) lodgeRegisterPage = data.settings.lodge_register_page;
       if (data.settings?.lodge_forgot_page) lodgeForgotPage = data.settings.lodge_forgot_page;
+      if (data.settings?.lodge_reset_page) lodgeResetPage = data.settings.lodge_reset_page;
     } catch (e) {}
 
     // Load theme pages for auth page dropdowns
@@ -67,6 +69,7 @@
         lodge_login_page: lodgeLoginPage,
         lodge_register_page: lodgeRegisterPage,
         lodge_forgot_page: lodgeForgotPage,
+        lodge_reset_page: lodgeResetPage,
       });
       addToast('Lodge configuration saved', 'success');
     } catch (err) {
@@ -271,6 +274,15 @@
         <div class="lodge-config-field">
           <label class="lodge-config-label">Forgot Password Page</label>
           <select class="input" bind:value={lodgeForgotPage}>
+            <option value="">Default (Outpost built-in)</option>
+            {#each sitePages as page}
+              <option value={page.path}>{page.label} ({page.path})</option>
+            {/each}
+          </select>
+        </div>
+        <div class="lodge-config-field">
+          <label class="lodge-config-label">Reset Password Page</label>
+          <select class="input" bind:value={lodgeResetPage}>
             <option value="">Default (Outpost built-in)</option>
             {#each sitePages as page}
               <option value={page.path}>{page.label} ({page.path})</option>

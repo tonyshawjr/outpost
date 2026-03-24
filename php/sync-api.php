@@ -32,6 +32,8 @@ define('SYNC_BACKUP_RETENTION_DAYS', 30);
 define('SYNC_EXTENSIONS', [
     'php', 'html', 'htm', 'css', 'js', 'json',
     'svg', 'txt', 'md', 'yml', 'yaml', 'xml',
+    'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'ico',
+    'woff', 'woff2', 'ttf', 'eot', 'otf',
 ]);
 
 // ── Headers ───────────────────────────────────────────────

@@ -102,6 +102,37 @@
   &lt;button type="submit"&gt;Send Reset Link&lt;/button&gt;
 &lt;/form&gt;</code></pre>
 
+    <h2>Reset Password Form</h2>
+    <p>Create a <code>reset-password.html</code> page. The form reads the reset token from the <code>?token=</code> URL parameter automatically.</p>
+    <pre><code>&lt;form data-outpost-auth="reset-password" class="space-y-4"&gt;
+  &lt;div data-auth-error style="display:none;"&gt;&lt;/div&gt;
+  &lt;div data-auth-success style="display:none;"&gt;&lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label&gt;New Password&lt;/label&gt;
+    &lt;input name="password" type="password" required minlength="8"&gt;
+  &lt;/div&gt;
+
+  &lt;button type="submit"&gt;Reset Password&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+    <p>On success, the form hides and shows "Password reset successfully. You can now sign in." To use this page instead of the built-in one, set it in <strong>Members &gt; Lodge &gt; Configuration &gt; Reset Password Page</strong>. The forgot-password email will then link to your custom page.</p>
+
+    <h2>Custom Member Meta Fields</h2>
+    <p>Add <code>data-auth-meta="key"</code> to any checkbox or input in your register form to collect custom profile data. These are stored in the member's <code>meta</code> JSON column.</p>
+    <pre><code>&lt;label&gt;
+  &lt;input type="checkbox" data-auth-meta="is_military"&gt;
+  I am active duty military or a military family member
+&lt;/label&gt;
+
+&lt;label&gt;
+  &lt;input type="checkbox" data-auth-meta="is_first_responder"&gt;
+  I am a first responder
+&lt;/label&gt;</code></pre>
+    <p>The auth client collects all <code>data-auth-meta</code> values and sends them as a <code>meta</code> object in the registration request. You can access this data later via the member API (<code>GET token/me</code>) or in the admin Members list.</p>
+
+    <h2>First &amp; Last Name</h2>
+    <p>Use <code>name="first_name"</code> and <code>name="last_name"</code> inputs in your register form. The auth client combines them into <code>display_name</code> and uses them as the username if no separate <code>name</code> field exists.</p>
+
     <h2>Lodge Integration</h2>
     <p>When Lodge is enabled and a visitor tries to access a protected route (e.g., <code>/dashboard</code>), they are redirected to the login page with a <code>?return=/dashboard</code> parameter. After successful login, the auth client reads this parameter and redirects back to the original page.</p>
     <p>To use your custom login page instead of the built-in one, go to <strong>Members &gt; Lodge &gt; Configuration</strong> and select your login page from the dropdown.</p>

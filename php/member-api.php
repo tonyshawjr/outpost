@@ -172,7 +172,10 @@ if ($action === 'forgot' && $method === 'POST') {
 
         $scheme   = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $resetUrl = "{$scheme}://{$host}/outpost/member-pages/reset-password.php?token={$token}";
+        // Use custom reset page if configured, otherwise built-in
+        $resetPageRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'lodge_reset_page'");
+        $resetPage = ($resetPageRow && $resetPageRow['value']) ? $resetPageRow['value'] : '/outpost/member-pages/reset-password.php';
+        $resetUrl = "{$scheme}://{$host}{$resetPage}?token={$token}";
 
         $subject  = 'Reset your password';
         $name     = htmlspecialchars($user['username']);
