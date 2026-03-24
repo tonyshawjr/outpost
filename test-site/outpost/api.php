@@ -31,6 +31,7 @@ require_once __DIR__ . '/comments.php';
 require_once __DIR__ . '/smart-forge.php';
 require_once __DIR__ . '/shield.php';
 require_once __DIR__ . '/redirects.php';
+require_once __DIR__ . '/search.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -109,6 +110,12 @@ if (str_starts_with($action, 'content/')) {
 if (str_starts_with($action, 'compass/')) {
     require_once __DIR__ . '/compass.php';
     handle_compass_request($action, $method);
+    exit;
+}
+
+// Public site search API (search/site is public, search/reindex requires admin)
+if ($action === 'search/site') {
+    handle_search_request($action, $method);
     exit;
 }
 
@@ -197,6 +204,7 @@ ensure_collections_lodge_columns();
 ensure_editor_sessions_table();
 ensure_shield_tables();
 redirects_ensure_table();
+search_ensure_tables();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -504,6 +512,7 @@ match (true) {
 
     // Search
     $action === 'search/content' && $method === 'GET' => handle_search_content(),
+    $action === 'search/reindex' && $method === 'POST' => handle_search_reindex(),
 
     // Revisions
     $action === 'revisions' && $method === 'GET' => handle_revisions_list(),
@@ -1859,6 +1868,7 @@ function handle_cleanup_inactive_themes(): void {
 // ── Collection Handlers ──────────────────────────────────
 function handle_collections_list(): void {
     ensure_collections_require_review_column();
+    ensure_collections_syndication_columns();
     $collections = OutpostDB::fetchAll('SELECT * FROM collections ORDER BY name ASC');
     // Add item counts with status breakdown
     foreach ($collections as &$c) {
@@ -1967,8 +1977,10 @@ function handle_collection_update(): void {
     if (!$current) json_error('Collection not found', 404);
 
     ensure_collections_require_review_column();
+    ensure_collections_syndication_columns();
     $allowed = ['name', 'singular_name', 'schema', 'url_pattern', 'template_path',
-                'sort_field', 'sort_direction', 'items_per_page', 'lodge_config'];
+                'sort_field', 'sort_direction', 'items_per_page', 'lodge_config',
+                'sitemap_enabled', 'feed_enabled'];
     $update = [];
     $allowedSortFields = ['created_at', 'updated_at', 'published_at', 'slug', 'sort_order'];
     foreach ($allowed as $key) {
@@ -1979,6 +1991,8 @@ function handle_collection_update(): void {
                 $update[$key] = in_array($data[$key], $allowedSortFields) ? $data[$key] : 'created_at';
             } elseif ($key === 'sort_direction') {
                 $update[$key] = in_array(strtoupper($data[$key]), ['ASC', 'DESC']) ? strtoupper($data[$key]) : 'DESC';
+            } elseif ($key === 'sitemap_enabled' || $key === 'feed_enabled') {
+                $update[$key] = $data[$key] ? 1 : 0;
             } else {
                 $update[$key] = $data[$key];
             }
@@ -4077,6 +4091,19 @@ function ensure_collections_require_review_column(): void {
     if (!in_array('lodge_config', $colNames)) {
         $db->exec("ALTER TABLE collections ADD COLUMN lodge_config TEXT DEFAULT '{}'");
     }
+}
+
+function ensure_collections_syndication_columns(): void {
+    try {
+        $cols = OutpostDB::fetchAll("PRAGMA table_info(collections)");
+        $names = array_column($cols, 'name');
+        if (!in_array('sitemap_enabled', $names)) {
+            OutpostDB::query("ALTER TABLE collections ADD COLUMN sitemap_enabled INTEGER DEFAULT 1");
+        }
+        if (!in_array('feed_enabled', $names)) {
+            OutpostDB::query("ALTER TABLE collections ADD COLUMN feed_enabled INTEGER DEFAULT 0");
+        }
+    } catch (\Throwable $e) {}
 }
 
 function handle_users_list(): void {

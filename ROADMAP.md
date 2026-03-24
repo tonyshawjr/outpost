@@ -76,6 +76,11 @@ Everything below is already built and released.
 ### v2.5 — Outpost Design System
 - ~~Sidebar reorganization~~ **Shipped v4.10.0**, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
 
+### v4.11 — SEO & Discovery Suite (2026-03-24)
+- ~~RSS feed generator~~ **Shipped** — Site-wide and per-collection RSS 2.0 feeds with auto-discovery tags
+- ~~Site search~~ **Shipped** — `<outpost-search>` template tag, public API, search index, JS client, analytics logging
+- ~~Sitemap enhancement~~ **Shipped** — Per-collection toggle, visibility filtering, changefreq/priority, auto robots.txt
+
 ### v4.10 — URL Redirects & Sidebar Overhaul (2026-03-23)
 - ~~URL redirect manager~~ **Shipped** — 301/302/307, wildcard, regex, hit tracking, CSV import, URL tester
 - ~~Sidebar reorganization~~ **Shipped** — Content/Site/Members/Build/Tools groups, avatar dropdown, pinned favorites

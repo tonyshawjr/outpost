@@ -4,6 +4,44 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## RSS Feeds (v4.11.0)
+
+- **RSS 2.0 output** — Auto-generated feeds from published collection items with title, link, description, pubDate, and dc:creator.
+- **Site-wide feed** — `/feed.xml` (or `/feed`, `/rss`, `/rss.xml`) aggregates latest 50 items across all feed-enabled collections.
+- **Per-collection feed** — `/{collection-slug}/feed` (or `.xml`) for individual collection feeds.
+- **Per-collection toggle** — `feed_enabled` setting on each collection (default: off). Only opted-in collections appear in feeds.
+- **Auto-discovery** — `<link rel="alternate" type="application/rss+xml">` tags automatically injected in `<head>` via `cms_seo()` for all feed-enabled collections.
+- **Smart excerpts** — Strips HTML, truncates at word boundary with ellipsis, handles missing fields gracefully.
+- **Caching** — Feeds are generated on request (compatible with Boost page cache for zero-overhead serving).
+
+---
+
+## Site Search (v4.11.0)
+
+- **Template tag** — `<outpost-search placeholder="Search...">` compiles to a search widget with input + results container.
+- **Public API** — `GET api.php?action=search/site&q=keyword` — cross-collection keyword search, rate-limited (30/min/IP).
+- **Search index** — `search_index` table with title, content text (HTML stripped), URL, and image for every published page and collection item.
+- **Incremental indexing** — `search_index_page()` and `search_index_item()` for on-save updates. Full reindex via `POST search/reindex` (admin only).
+- **Auto-reindex** — If the search index is empty when a query arrives, it rebuilds automatically.
+- **Relevance ranking** — Title matches ranked higher than body matches. Results sorted by relevance then recency.
+- **Highlighted excerpts** — 200-char context window centered on first match with `<mark>` highlighted query words.
+- **Analytics integration** — Every search query logged to `analytics_searches` for the Search Analytics dashboard.
+- **JS client** — 134-line vanilla JS (no dependencies). Debounced input (300ms), Enter to search, URL state sync (?q=), loading/empty/error states.
+- **CSS client** — 78-line minimal stylesheet for auto-generated result elements only. Does not override theme styles.
+- **Admin reindex** — `POST search/reindex` endpoint for manual index rebuild.
+
+---
+
+## Sitemap Enhancement (v4.11.0)
+
+- **Per-collection toggle** — `sitemap_enabled` setting (default: on). Exclude collections from sitemap.xml.
+- **Visibility filtering** — Draft pages and member-only/paid-only pages automatically excluded from sitemap.
+- **Change frequency hints** — Homepage = daily, pages = weekly, collection items = monthly.
+- **Priority hints** — Homepage = 1.0, pages = 0.8, collection items = 0.6.
+- **Auto robots.txt** — `/robots.txt` auto-generated with sitemap reference and `/outpost/` admin blocking.
+
+---
+
 ## URL Redirects (v4.10.0)
 
 - **Redirect types** — 301 (permanent), 302 (temporary), 307 (temporary preserve method).

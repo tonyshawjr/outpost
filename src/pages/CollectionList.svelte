@@ -27,6 +27,10 @@
   let submitting = $state(false);
   let expandedFields = $state({});
 
+  // Syndication settings
+  let formFeedEnabled = $state(false);
+  let formSitemapEnabled = $state(true);
+
   // Lodge settings
   let formLodgeEnabled = $state(false);
   let formLodgeConfig = $state({
@@ -108,6 +112,8 @@
     editingColl = null;
     showCreate = false;
     expandedFields = {};
+    formFeedEnabled = false;
+    formSitemapEnabled = true;
     formLodgeEnabled = false;
     formLodgeConfig = {
       allow_create: true,
@@ -152,6 +158,8 @@
       conditions: def.conditions || [],
     }));
     if (formSchema.length === 0) formSchema = [{ name: '', type: 'text', label: '', required: false, placeholder: '', description: '', defaultValue: '', choices: '' }];
+    formFeedEnabled = !!(coll.feed_enabled);
+    formSitemapEnabled = coll.sitemap_enabled !== undefined ? !!(coll.sitemap_enabled) : true;
     formLodgeEnabled = !!(coll.lodge_enabled);
     try {
       const lc = typeof coll.lodge_config === 'string' ? JSON.parse(coll.lodge_config || '{}') : (coll.lodge_config || {});
@@ -214,6 +222,8 @@
           url_pattern: formUrlPattern || `/${formSlug}/{slug}`,
           require_review: formRequireReview ? 1 : 0,
           workflow_id: formWorkflowId || null,
+          feed_enabled: formFeedEnabled ? 1 : 0,
+          sitemap_enabled: formSitemapEnabled ? 1 : 0,
           lodge_enabled: formLodgeEnabled ? 1 : 0,
           lodge_config: formLodgeConfig,
         });
@@ -385,6 +395,21 @@
           </span>
         </div>
       {/if}
+
+      <!-- Syndication Settings -->
+      <div style="margin-top: var(--space-md);">
+        <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary);">Syndication</span>
+        <div style="margin-top: var(--space-xs); display: flex; flex-direction: column; gap: 6px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
+            <input type="checkbox" bind:checked={formFeedEnabled} style="accent-color: var(--accent);" />
+            Include in RSS feed
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
+            <input type="checkbox" bind:checked={formSitemapEnabled} style="accent-color: var(--accent);" />
+            Include in sitemap
+          </label>
+        </div>
+      </div>
 
       <!-- Lodge Settings -->
       {#if editingColl}

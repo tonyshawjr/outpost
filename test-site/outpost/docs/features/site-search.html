@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Search &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Site Search</h1>
+    <p class="lead">Simple site-wide search across all pages and collection items. Drop in a template tag, no configuration needed.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Outpost includes a built-in search system that indexes all published pages and collection items. Add the <code>&lt;outpost-search&gt;</code> tag to any template and visitors get an instant search widget with debounced input, AJAX-powered results, and highlighted excerpts. No external search services, no JavaScript frameworks, no configuration.</p>
+
+    <h2>Template tag</h2>
+    <p>The simplest way to add search is the <code>&lt;outpost-search&gt;</code> custom element:</p>
+    <pre><code>&lt;outpost-search&gt;&lt;/outpost-search&gt;</code></pre>
+    <p>The tag accepts these optional attributes:</p>
+    <table>
+      <thead>
+        <tr><th>Attribute</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>placeholder</code></td><td><code>Search&hellip;</code></td><td>Placeholder text for the search input</td></tr>
+        <tr><td><code>collection</code></td><td><em>(none)</em></td><td>Restrict results to a single collection slug</td></tr>
+        <tr><td><code>limit</code></td><td><code>20</code></td><td>Maximum results to show (max 50)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Example usage</h2>
+    <pre><code>&lt;!-- Basic search widget --&gt;
+&lt;outpost-search placeholder="Search the site..."&gt;&lt;/outpost-search&gt;
+
+&lt;!-- Restrict to a specific collection --&gt;
+&lt;outpost-search collection="post" limit="10"&gt;&lt;/outpost-search&gt;</code></pre>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Place the search tag in a partial (e.g. <code>partials/nav.html</code>) to make it available on every page, or add it to a dedicated search page template.</div>
+
+    <h2>Custom HTML</h2>
+    <p>For full control over the search markup, use data attributes instead of the custom element:</p>
+    <pre><code>&lt;div data-outpost-search data-limit="20"&gt;
+  &lt;input type="search" data-outpost-search-input placeholder="Search..."&gt;
+  &lt;div data-outpost-search-results&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    <p>The Outpost search client JS detects <code>[data-outpost-search]</code> containers and wires up the input and results automatically. You can style the container and input however you like.</p>
+
+    <h2>How it works</h2>
+    <p>Outpost maintains a search index table that stores stripped text from all published pages and collection items. When a visitor types a query:</p>
+    <ol>
+      <li>The client JS debounces input and sends a request to the search API.</li>
+      <li>The API splits the query into words and uses <strong>AND logic</strong> &mdash; all words must match.</li>
+      <li><strong>Title matches are ranked higher</strong> than body matches.</li>
+      <li>Results include the page/item URL, a text excerpt with <code>&lt;mark&gt;</code>-highlighted matching terms, and the featured image if available.</li>
+      <li>Results are rendered into the results container as HTML.</li>
+    </ol>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Search is case-insensitive. Partial word matching is supported &mdash; searching for &ldquo;deploy&rdquo; will match &ldquo;deployment&rdquo; and &ldquo;deploying&rdquo;.</div>
+
+    <h2>Search API</h2>
+    <p>The search endpoint is public (no authentication required):</p>
+    <pre><code>GET /outpost/api.php?action=search/site&amp;q=keyword&amp;limit=20&amp;offset=0</code></pre>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>q</code></td><td>Yes</td><td>Search query string</td></tr>
+        <tr><td><code>limit</code></td><td>No</td><td>Max results (default 20, max 50)</td></tr>
+        <tr><td><code>offset</code></td><td>No</td><td>Pagination offset (default 0)</td></tr>
+      </tbody>
+    </table>
+    <p>Response format:</p>
+    <pre><code>{
+  "results": [
+    {
+      "url": "/post/my-article",
+      "title": "My Article",
+      "excerpt": "...matched text with &lt;mark&gt;keyword&lt;/mark&gt;...",
+      "image": "/outpost/content/uploads/hero.jpg",
+      "type": "collection_item",
+      "collection": "post"
+    }
+  ],
+  "total": 42,
+  "query": "keyword"
+}</code></pre>
+
+    <div class="callout callout-warn"><strong>Rate limit</strong> &mdash; The search API is rate limited to <strong>30 requests per minute per IP</strong>. Exceeding this returns a <code>429 Too Many Requests</code> response.</div>
+
+    <h2>Search index</h2>
+    <p>The search index is built and maintained automatically:</p>
+    <ul>
+      <li><strong>Auto-build</strong> &mdash; if the index is empty on the first search query, it builds automatically from all published content</li>
+      <li><strong>Incremental updates</strong> &mdash; when a page or collection item is saved/published, its index entry is updated immediately</li>
+      <li><strong>Manual rebuild</strong> &mdash; <code>POST /outpost/api.php?action=search/reindex</code> (admin authentication required) rebuilds the entire index from scratch</li>
+    </ul>
+    <p>The index stores stripped plain text (no HTML) from titles, body content, and excerpt fields.</p>
+
+    <h2>Search analytics</h2>
+    <p>Every search query is logged to the <code>analytics_searches</code> table. You can view search analytics in the <strong>Analytics</strong> dashboard under the <strong>Search Analytics</strong> section. This shows:</p>
+    <ul>
+      <li>Top search queries</li>
+      <li>Queries with zero results (content gaps)</li>
+      <li>Search volume over time</li>
+    </ul>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Use the &ldquo;zero results&rdquo; report to identify content your visitors are looking for but cannot find. This is a powerful signal for what content to create next.</div>
+
+    <h2>URL state</h2>
+    <p>Search queries are reflected in the <code>?q=</code> URL parameter. This means:</p>
+    <ul>
+      <li>Search results pages are shareable &mdash; copy the URL and send it to someone</li>
+      <li>On page load, if <code>?q=</code> is present in the URL, the search runs automatically and results are displayed</li>
+      <li>Browser back/forward navigation works with search history</li>
+    </ul>
+
+    <h2>Styling</h2>
+    <p>The search widget injects minimal CSS automatically. You can override any styles by targeting these classes in your theme&rsquo;s CSS:</p>
+    <table>
+      <thead>
+        <tr><th>Selector</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>.outpost-search</code></td><td>The search widget container</td></tr>
+        <tr><td><code>.outpost-search-input</code></td><td>The search input field</td></tr>
+        <tr><td><code>.outpost-search-results</code></td><td>The results container</td></tr>
+        <tr><td><code>.outpost-search-result</code></td><td>Individual result item</td></tr>
+        <tr><td><code>.outpost-search-result-title</code></td><td>Result title</td></tr>
+        <tr><td><code>.outpost-search-result-excerpt</code></td><td>Result excerpt text</td></tr>
+        <tr><td><code>.outpost-search-result-excerpt mark</code></td><td>Highlighted matching terms within excerpts</td></tr>
+        <tr><td><code>.outpost-search-result-image</code></td><td>Result thumbnail image</td></tr>
+        <tr><td><code>.outpost-search-empty</code></td><td>&ldquo;No results found&rdquo; message</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The injected CSS uses low-specificity selectors so your theme styles take precedence automatically. You do not need <code>!important</code> to override them.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

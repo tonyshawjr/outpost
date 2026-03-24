@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.11.0] — 2026-03-24
+
+### Added
+- **RSS Feed Generator** — Auto-generated RSS 2.0 feeds for collections. Site-wide feed at `/feed.xml` and per-collection feeds at `/{collection}/feed`. Per-collection `feed_enabled` toggle. Auto-discovery `<link>` tags injected in `<head>` via `cms_seo()`. Handles excerpt generation, XML escaping, missing fields gracefully.
+- **Site Search** — Full-text site-wide search across all pages and collection items. New `<outpost-search>` template tag compiles to a search widget with debounced input, AJAX results, and URL state sync. Public API at `search/site` with rate limiting (30/min). Search index with incremental updates on publish. Results ranked by title relevance with highlighted excerpts. Search queries logged to analytics. Vanilla JS client (134 lines, no dependencies) with minimal CSS.
+- **Sitemap Enhancement** — Per-collection `sitemap_enabled` toggle to exclude collections from sitemap.xml. Draft pages and member-only/paid-only pages now properly excluded. Added `<changefreq>` and `<priority>` hints. Auto-generated `/robots.txt` with sitemap reference and admin path blocking.
+
+### Security
+- **Search excerpt XSS prevention** — HTML-escapes excerpt text before injecting `<mark>` highlight tags
+- **Feed open redirect protection** — Collection slug sanitized to alphanumeric/hyphens only
+
+---
+
 ## [4.10.0] — 2026-03-23
 
 ### Added

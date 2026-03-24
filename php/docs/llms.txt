@@ -1792,9 +1792,144 @@ REST API channels support two pagination modes for APIs that return paginated da
 
 **`channel_sync_log`:** `id`, `channel_id` (FK → channels.id CASCADE), `status`, `items_synced`, `items_added`, `items_updated`, `items_removed`, `duration_ms`, `error_message`, `synced_at`
 
-## Sitemap
+## Sitemap (v4.11.0)
 
-Auto-generated at `/sitemap.xml`. No configuration needed. Includes all CMS pages and published collection items with `<lastmod>` dates. Base URL auto-detected from HTTP request (or from `OUTPOST_SITE_URL`).
+Auto-generated at `/sitemap.xml`. No configuration needed. Includes all CMS pages and published collection items.
+
+Each entry includes:
+- `<loc>` — full URL (base URL auto-detected from HTTP request or `OUTPOST_SITE_URL`)
+- `<lastmod>` — ISO 8601 date of last update
+- `<changefreq>` — homepage: daily, pages: weekly, collection items: monthly
+- `<priority>` — homepage: 1.0, pages: 0.8, collection items: 0.6
+
+**Excluded automatically:** Draft pages, member-only pages (`visibility = 'members'`), paid-only pages (`visibility = 'paid'`), admin paths (`/outpost/`).
+
+**Per-collection control:** Each collection has a `sitemap_enabled` setting (default: on). Toggle off in collection settings to exclude that collection's items from the sitemap.
+
+**Auto robots.txt:** Outpost auto-generates `/robots.txt` with:
+```
+User-agent: *
+Allow: /
+Disallow: /outpost/
+
+Sitemap: https://yourdomain.com/sitemap.xml
+```
+
+## RSS Feeds (v4.11.0)
+
+Auto-generated RSS 2.0 feeds for any collection. Visitors can subscribe via any feed reader (Feedly, NetNewsWire, Inoreader, etc.).
+
+### Feed URLs
+
+| URL | Description |
+|-----|-------------|
+| `/feed.xml` | Site-wide feed (latest 50 items from all feed-enabled collections) |
+| `/feed`, `/rss`, `/rss.xml` | Aliases for the site-wide feed |
+| `/{collection-slug}/feed` | Per-collection feed (e.g., `/post/feed`) |
+| `/{collection-slug}/feed.xml` | Per-collection feed with `.xml` extension |
+
+### Enabling Feeds
+
+Each collection has a `feed_enabled` setting (default: off). Toggle on in collection settings to include that collection in feeds. The site-wide feed only aggregates items from feed-enabled collections.
+
+### Feed Content
+
+Each `<item>` includes:
+- `<title>` — item title (falls back to slug)
+- `<link>` and `<guid>` — full URL from collection URL pattern
+- `<pubDate>` — RFC 2822 date of publication
+- `<description>` — excerpt or first 500 chars of body (HTML stripped, truncated at word boundary)
+- `<dc:creator>` — author field (if present)
+
+Feed metadata: RSS 2.0 with `atom:link` self-reference, `dc:` namespace, generator = "Outpost CMS".
+
+### Auto-Discovery
+
+When `<outpost-seo>` or `<outpost-meta>` is in your template, Outpost automatically injects `<link rel="alternate" type="application/rss+xml">` tags in `<head>` for:
+- The site-wide feed (`/feed.xml`)
+- Each feed-enabled collection's individual feed
+
+No manual template changes needed.
+
+## Site Search (v4.11.0)
+
+Full-text site-wide search across all pages and collection items. Drop a tag, get search.
+
+### Template Tag
+
+```html
+<!-- Basic search widget -->
+<outpost-search placeholder="Search the site..." />
+
+<!-- Restrict to a specific collection -->
+<outpost-search collection="post" limit="10" />
+```
+
+Attributes:
+- `placeholder` — input placeholder text (default: "Search…")
+- `collection` — optional, restrict results to one collection slug
+- `limit` — max results (default: 20, max: 50)
+
+### Custom HTML
+
+For full control over the search markup, use data attributes:
+
+```html
+<div data-outpost-search data-limit="20">
+  <input type="search" data-outpost-search-input placeholder="Search...">
+  <div data-outpost-search-results></div>
+</div>
+```
+
+The JS client auto-discovers `[data-outpost-search]` containers and wires up behavior.
+
+### Search API
+
+`GET api.php?action=search/site&q=keyword&limit=20&offset=0`
+
+Public endpoint, no auth required. Rate limited: 30 requests per minute per IP.
+
+Response:
+```json
+{
+  "results": [
+    {
+      "type": "collection_item",
+      "id": 42,
+      "collection_slug": "post",
+      "title": "My Blog Post",
+      "url": "/post/my-blog-post",
+      "image": "/uploads/hero.jpg",
+      "excerpt": "...text with <mark>matching</mark> words..."
+    }
+  ],
+  "total": 15,
+  "query": "keyword"
+}
+```
+
+### Search Index
+
+- Table: `search_index` — stores title, content_text (HTML stripped), URL, image for every published page and collection item
+- **Auto-reindex:** If index is empty when a query arrives, rebuilds automatically
+- **Incremental updates:** `search_index_page()` and `search_index_item()` called on save
+- **Manual rebuild:** `POST api.php?action=search/reindex` (admin auth required)
+- **Relevance:** Title matches ranked higher than body matches
+
+### Search Analytics
+
+Every search query is logged to `analytics_searches` (same table used by the Analytics dashboard's Search tab). Tracks query text, result count, and session ID.
+
+### URL State
+
+Queries reflected in `?q=` URL parameter. Shareable: visiting a URL with `?q=keyword` auto-runs the search on page load.
+
+### Client Assets
+
+- **JS:** `/outpost/search-client.js` — 134 lines, vanilla JS, no dependencies. Debounced input (300ms), Enter to search, loading/empty/error states.
+- **CSS:** `/outpost/search-client.css` — 78 lines, minimal styles for auto-generated content only. Override with your own CSS targeting `.outpost-search-result`, `.outpost-search-result-title`, `.outpost-search-result-excerpt mark`, etc.
+
+Both are auto-injected when `data-outpost-search` is detected in the rendered page.
 
 ## Analytics
 

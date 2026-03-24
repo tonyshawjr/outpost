@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sitemap — Outpost CMS</title>
+  <title>Sitemap &mdash; Outpost CMS</title>
   <base href="/outpost/docs/">
   <link rel="stylesheet" href="assets/docs.css">
 </head>
@@ -14,26 +14,42 @@
 <main class="main">
   <div class="page-hero">
     <h1>Sitemap</h1>
-    <p class="lead">Outpost automatically generates an XML sitemap at <code>/sitemap.xml</code>. No configuration or template changes needed — it updates itself as you publish content.</p>
+    <p class="lead">Outpost automatically generates an XML sitemap at <code>/sitemap.xml</code> and a <code>/robots.txt</code> file. No configuration or template changes needed &mdash; both update themselves as you publish content.</p>
   </div>
   <div class="content">
 
     <h2>Auto-generation</h2>
     <p>A sitemap is available at <code>/sitemap.xml</code> from the moment your site is running. The first request generates and caches the sitemap; subsequent requests serve the cached version. The cache is invalidated automatically when pages or collection items are published or updated.</p>
 
-    <div class="callout callout-note"><strong>Note</strong> — Visit <code>/sitemap.xml</code> on your site to verify it is generating correctly before submitting it to search engines.</div>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Visit <code>/sitemap.xml</code> on your site to verify it is generating correctly before submitting it to search engines.</div>
 
     <h2>What is included</h2>
     <p>The sitemap contains all publicly accessible, published content:</p>
     <ul>
       <li>All CMS <strong>pages</strong> with <code>status = 'published'</code></li>
-      <li>All <strong>collection items</strong> with <code>status = 'published'</code></li>
+      <li>All <strong>collection items</strong> with <code>status = 'published'</code> from collections that have <code>sitemap_enabled</code> turned on (the default)</li>
     </ul>
     <p>Each entry in the sitemap includes:</p>
     <ul>
-      <li><code>&lt;loc&gt;</code> — the full URL of the page (base URL auto-detected from the HTTP request host)</li>
-      <li><code>&lt;lastmod&gt;</code> — the ISO 8601 timestamp of when the content was last updated</li>
+      <li><code>&lt;loc&gt;</code> &mdash; the full URL of the page (base URL auto-detected from the HTTP request host)</li>
+      <li><code>&lt;lastmod&gt;</code> &mdash; the ISO 8601 timestamp of when the content was last updated</li>
+      <li><code>&lt;changefreq&gt;</code> &mdash; a hint to crawlers about how often the content changes (see table below)</li>
+      <li><code>&lt;priority&gt;</code> &mdash; a relative priority hint for crawlers (see table below)</li>
     </ul>
+
+    <h2>Change frequency and priority</h2>
+    <p>Outpost assigns <code>&lt;changefreq&gt;</code> and <code>&lt;priority&gt;</code> values automatically based on content type:</p>
+    <table>
+      <thead>
+        <tr><th>Content type</th><th>changefreq</th><th>priority</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Homepage (<code>/</code>)</td><td><code>daily</code></td><td><code>1.0</code></td></tr>
+        <tr><td>Pages</td><td><code>weekly</code></td><td><code>0.8</code></td></tr>
+        <tr><td>Collection items</td><td><code>monthly</code></td><td><code>0.6</code></td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; These values are hints, not directives. Search engines may crawl pages more or less frequently regardless of the values you set. Google has stated that it largely ignores <code>&lt;changefreq&gt;</code> and <code>&lt;priority&gt;</code>, but other crawlers (Bing, Yandex) may use them.</div>
 
     <h2>What is excluded</h2>
     <ul>
@@ -41,9 +57,37 @@
       <li>Admin paths (<code>/outpost/</code>)</li>
       <li>Dynamically generated pages not managed in the CMS</li>
       <li>Member-only and paid-only pages (visibility set to <code>members</code> or <code>paid</code>)</li>
+      <li>Collections with <code>sitemap_enabled</code> toggled off in collection settings</li>
     </ul>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — The sitemap base URL is auto-detected from the incoming HTTP request. If your site is behind a reverse proxy or load balancer that modifies the <code>Host</code> header, verify the URLs in your generated sitemap are correct.</div>
+    <h2>Per-collection control</h2>
+    <p>Each collection has a <code>sitemap_enabled</code> setting that controls whether its items appear in the sitemap. This is enabled by default for all collections.</p>
+    <p>To exclude a collection from the sitemap:</p>
+    <ol>
+      <li>Go to <strong>Collections</strong> and open the collection you want to exclude.</li>
+      <li>Open <strong>Collection Settings</strong> (the gear icon or settings tab).</li>
+      <li>Toggle <strong>Include in sitemap</strong> off.</li>
+      <li>Save. The sitemap cache is automatically invalidated.</li>
+    </ol>
+    <p>This is useful for collections that hold internal data, draft-only content, or items that should not be indexed by search engines.</p>
+
+    <div class="callout callout-warn"><strong>Warning</strong> &mdash; The sitemap base URL is auto-detected from the incoming HTTP request. If your site is behind a reverse proxy or load balancer that modifies the <code>Host</code> header, verify the URLs in your generated sitemap are correct.</div>
+
+    <h2>robots.txt</h2>
+    <p>Outpost automatically generates a <code>/robots.txt</code> file at your site root. The generated file:</p>
+    <ul>
+      <li>Allows all user agents to crawl the site</li>
+      <li>Blocks crawling of the <code>/outpost/</code> admin directory</li>
+      <li>Includes a <code>Sitemap:</code> directive pointing to your <code>/sitemap.xml</code></li>
+    </ul>
+    <p>The generated <code>robots.txt</code> looks like this:</p>
+    <pre><code>User-agent: *
+Allow: /
+Disallow: /outpost/
+
+Sitemap: https://yourdomain.com/sitemap.xml</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The <code>robots.txt</code> is generated dynamically by Outpost&rsquo;s front router. No manual file creation is needed. The Sitemap URL uses the auto-detected base URL from the current request.</div>
 
     <h2>Submitting to Google Search Console</h2>
     <ol>
@@ -51,7 +95,7 @@
       <li>Go to <a href="https://search.google.com/search-console" target="_blank" rel="noopener">Google Search Console</a>.</li>
       <li>Select your property.</li>
       <li>Navigate to <strong>Sitemaps</strong> in the left sidebar.</li>
-      <li>Enter <code>sitemap.xml</code> in the "Add a new sitemap" field and click <strong>Submit</strong>.</li>
+      <li>Enter <code>sitemap.xml</code> in the &ldquo;Add a new sitemap&rdquo; field and click <strong>Submit</strong>.</li>
     </ol>
     <p>Google will crawl the sitemap and report any errors. Resubmit after major content changes if you want to prompt a faster re-crawl, though Google will also recrawl automatically on its own schedule.</p>
 
@@ -63,19 +107,10 @@
       <li>Enter your full sitemap URL: <code>https://yourdomain.com/sitemap.xml</code> and click <strong>Submit</strong>.</li>
     </ol>
 
-    <h2>robots.txt</h2>
-    <p>Adding a reference to your sitemap in <code>robots.txt</code> helps search engines discover it without a manual submission. Create a <code>robots.txt</code> file at the root of your web server (not inside the <code>outpost/</code> directory):</p>
-    <pre><code>User-agent: *
-Allow: /
-
-Sitemap: https://yourdomain.com/sitemap.xml</code></pre>
-
-    <div class="callout callout-note"><strong>Note</strong> — Outpost does not create a <code>robots.txt</code> file automatically. You must create it manually and place it at your web root. On Apache, this is typically the same directory as your <code>index.php</code> or <code>.htaccess</code> file.</div>
-
     <h2>Excluding published pages from the sitemap</h2>
-    <p>Draft pages are excluded automatically. If you need a page to be publicly accessible but absent from the sitemap — for example, a thank-you page or a login page — this requires a code modification to <code>outpost/sitemap.php</code>. Add the page's slug or path to the exclusion list in that file.</p>
+    <p>Draft pages are excluded automatically. If you need a page to be publicly accessible but absent from the sitemap &mdash; for example, a thank-you page or a login page &mdash; this requires a code modification to <code>outpost/sitemap.php</code>. Add the page&rsquo;s slug or path to the exclusion list in that file.</p>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — For pages that should be completely hidden from search engines (not just the sitemap), add a <code>&lt;meta name="robots" content="noindex"&gt;</code> tag to that page's <code>&lt;head&gt;</code> section in addition to excluding it from the sitemap.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; For pages that should be completely hidden from search engines (not just the sitemap), add a <code>&lt;meta name="robots" content="noindex"&gt;</code> tag to that page&rsquo;s <code>&lt;head&gt;</code> section in addition to excluding it from the sitemap.</div>
 
   </div>
 </main>

@@ -799,6 +799,20 @@ function cms_seo(): void {
 
     echo '  <link rel="canonical" href="' . $e($canonical) . "\">\n";
 
+    // RSS feed auto-discovery
+    try {
+        $feedCollections = OutpostDB::fetchAll("SELECT slug, name FROM collections WHERE feed_enabled = 1");
+        if (!empty($feedCollections)) {
+            $feedSiteName = $siteName ?: 'Feed';
+            echo '  <link rel="alternate" type="application/rss+xml" title="' . $e($feedSiteName) . ' — Feed" href="' . $e($siteUrl . '/feed.xml') . "\">\n";
+            foreach ($feedCollections as $fc) {
+                echo '  <link rel="alternate" type="application/rss+xml" title="' . $e($feedSiteName . ' — ' . $fc['name']) . '" href="' . $e($siteUrl . '/' . $fc['slug'] . '/feed.xml') . "\">\n";
+            }
+        }
+    } catch (\Throwable $e2) {
+        // feed_enabled column may not exist yet
+    }
+
     // Open Graph
     echo '  <meta property="og:type" content="' . ($isArticle ? 'article' : 'website') . "\">\n";
     echo '  <meta property="og:title" content="' . $e($fullTitle) . "\">\n";
@@ -1176,6 +1190,16 @@ function outpost_cache_output(string $buffer): string {
         $compassAssets = '<link rel="stylesheet" href="/outpost/compass-client.css">' . "\n"
             . '<script src="/outpost/compass-client.js"></script>';
         $buffer = preg_replace('/<\/body>/i', $compassAssets . "\n</body>", $buffer, 1);
+    }
+
+    // 2c. Inject Search assets when search elements are present on the page
+    if (strpos($buffer, 'data-outpost-search') !== false && stripos($buffer, '</body>') !== false) {
+        $searchCss = '<link rel="stylesheet" href="/outpost/search-client.css">';
+        $searchJs = '<script src="/outpost/search-client.js"></script>';
+        if (stripos($buffer, '</head>') !== false) {
+            $buffer = preg_replace('/<\/head>/i', $searchCss . "\n</head>", $buffer, 1);
+        }
+        $buffer = preg_replace('/<\/body>/i', $searchJs . "\n</body>", $buffer, 1);
     }
 
     // 3. Inject frontend editor overlay + admin bar before </body> (never cached — admin only, skip in customizer preview)

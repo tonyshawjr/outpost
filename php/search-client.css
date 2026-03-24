@@ -1,0 +1,77 @@
+/* Outpost CMS — Site Search Client Styles
+   Minimal styling for auto-generated search elements only. */
+
+.outpost-search-result {
+  border-bottom: 1px solid rgba(50, 61, 68, 0.1);
+  padding: 16px 0;
+}
+.outpost-search-result:last-child {
+  border-bottom: none;
+}
+.outpost-search-result a {
+  display: flex;
+  gap: 16px;
+  text-decoration: none;
+  color: inherit;
+}
+.outpost-search-result a:hover .outpost-search-result-title {
+  color: #365a73;
+}
+.outpost-search-result-image {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.outpost-search-result-body {
+  flex: 1;
+  min-width: 0;
+}
+.outpost-search-result-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  transition: color 0.15s;
+}
+.outpost-search-result-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(50, 61, 68, 0.45);
+  margin-top: 2px;
+}
+.outpost-search-result-excerpt {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(50, 61, 68, 0.7);
+  margin-top: 4px;
+}
+.outpost-search-result-excerpt mark {
+  background: rgba(255, 220, 80, 0.4);
+  color: inherit;
+  padding: 1px 2px;
+  border-radius: 2px;
+}
+.outpost-search-loading {
+  padding: 24px 0;
+  color: rgba(50, 61, 68, 0.45);
+  font-size: 14px;
+}
+.outpost-search-loading-state {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+.outpost-search-empty,
+.outpost-search-error {
+  padding: 32px 0;
+  text-align: center;
+  color: rgba(50, 61, 68, 0.45);
+  font-size: 14px;
+}
+.outpost-search-more {
+  padding: 12px 0;
+  font-size: 12px;
+  color: rgba(50, 61, 68, 0.4);
+  text-align: center;
+}

@@ -97,7 +97,7 @@ class OutpostTemplateV2 {
         // Step 1: Process includes first (recursive, depth-limited)
         $html = self::processIncludes($html, 0);
         // Clean up any orphaned closing tags from custom elements
-        $html = preg_replace('/<\/outpost-(?:include|meta|seo|pagination|form)>/i', '', $html);
+        $html = preg_replace('/<\/outpost-(?:include|meta|seo|pagination|form|search)>/i', '', $html);
 
         // Step 2: Process <outpost-seo /> and <outpost-meta> tags
         $html = self::compileSeo($html);
@@ -126,6 +126,9 @@ class OutpostTemplateV2 {
 
         // Step 6c: Process <outpost-compass*> elements (smart filtering)
         $html = self::compileCompass($html, $editorMode);
+
+        // Step 6d: Process <outpost-search> elements (site search)
+        $html = self::compileSearch($html, $editorMode);
 
         // Step 7: Process <outpost-if> elements
         $html = self::compileConditionals($html, $editorMode);
@@ -1706,6 +1709,38 @@ class OutpostTemplateV2 {
 
         // Clean up orphaned closing tags
         $html = preg_replace('/<\/outpost-compass(?:-results|-count|-reset|-selections|-sort)?>/i', '', $html);
+
+        return $html;
+    }
+
+    // ─── Search ──────────────────────────────────────────────
+
+    /**
+     * Compile <outpost-search /> into a search widget (input + results container).
+     */
+    private static function compileSearch(string $html, bool $editorMode): string {
+        // Self-closing and paired: <outpost-search ... /> or <outpost-search ...></outpost-search>
+        $html = preg_replace_callback(
+            '/<outpost-search\s*([^>]*?)\/?>(.*?)(?:<\/outpost-search>)?/is',
+            function ($m) {
+                $attrs = self::parseAttributes($m[1]);
+                $placeholder = $attrs['placeholder'] ?? 'Search…';
+                $collection = $attrs['collection'] ?? '';
+                $limit = $attrs['limit'] ?? '20';
+
+                $colAttr = $collection ? ' data-collection="' . htmlspecialchars($collection, ENT_QUOTES) . '"' : '';
+                $limitAttr = ' data-limit="' . htmlspecialchars($limit, ENT_QUOTES) . '"';
+
+                return '<div data-outpost-search' . $colAttr . $limitAttr . '>'
+                     . '<input type="search" data-outpost-search-input placeholder="' . htmlspecialchars($placeholder, ENT_QUOTES) . '">'
+                     . '<div data-outpost-search-results></div>'
+                     . '</div>';
+            },
+            $html
+        );
+
+        // Clean up orphaned closing tags
+        $html = preg_replace('/<\/outpost-search>/i', '', $html);
 
         return $html;
     }

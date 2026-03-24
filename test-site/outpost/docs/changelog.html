@@ -22,6 +22,24 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.11.0">4.11.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-24</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>RSS Feed Generator</strong> &mdash; Auto-generated RSS 2.0 feeds for collections. Site-wide feed at <code>/feed.xml</code> (also <code>/feed</code>, <code>/rss</code>, <code>/rss.xml</code>) and per-collection feeds at <code>/{collection}/feed</code>. Per-collection <code>feed_enabled</code> toggle in collection settings (default: off). Auto-discovery <code>&lt;link rel="alternate"&gt;</code> tags injected in <code>&lt;head&gt;</code> via <code>cms_seo()</code> / <code>&lt;outpost-seo&gt;</code>. Handles excerpt generation, XML escaping, and missing fields gracefully.</li>
+      <li><strong>Site Search</strong> &mdash; Full-text site-wide search across all pages and collection items. New <code>&lt;outpost-search&gt;</code> template tag compiles to a search widget with debounced input, AJAX results, and URL state sync (<code>?q=</code> parameter). Public API at <code>search/site</code> with rate limiting (30/min/IP). Search index with incremental updates on publish. Results ranked by title relevance with highlighted excerpts. Search queries logged to analytics. Vanilla JS client with minimal CSS.</li>
+      <li><strong>Sitemap Enhancement</strong> &mdash; Per-collection <code>sitemap_enabled</code> toggle to exclude collections from <code>sitemap.xml</code>. Added <code>&lt;changefreq&gt;</code> and <code>&lt;priority&gt;</code> hints (homepage: daily/1.0, pages: weekly/0.8, items: monthly/0.6). Auto-generated <code>/robots.txt</code> with sitemap reference and admin path blocking. Draft and member-only/paid-only pages properly excluded.</li>
+    </ul>
+
+    <h3>Security</h3>
+    <ul>
+      <li><strong>Search excerpt XSS prevention</strong> &mdash; HTML-escapes excerpt text before injecting <code>&lt;mark&gt;</code> highlight tags</li>
+      <li><strong>Feed open redirect protection</strong> &mdash; Collection slug sanitized to alphanumeric/hyphens only</li>
+    </ul>
+    <p><a href="features/rss-feeds.html">RSS Feeds documentation &rarr;</a> | <a href="features/site-search.html">Site Search documentation &rarr;</a> | <a href="features/sitemap.html">Sitemap documentation &rarr;</a></p>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.10.0">4.10.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-23</span></h2>
 
     <h3>Added</h3>

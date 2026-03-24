@@ -120,10 +120,30 @@ if (!boost_is_bypassed() && $_boostConfig['page_cache']) {
     boost_start_output_buffer();
 }
 
+// ── Robots.txt ──────────────────────────────────────────
+if ($path === '/robots.txt') {
+    require_once $outpostDir . '/sitemap.php';
+    outpost_generate_robots();
+    return true;
+}
+
 // ── Sitemap ──────────────────────────────────────────────
 if ($path === '/sitemap.xml') {
     require_once $outpostDir . '/sitemap.php';
     outpost_generate_sitemap();
+    return true;
+}
+
+// ── RSS Feeds ──────────────────────────────────────────
+if ($path === '/feed' || $path === '/feed.xml' || $path === '/rss' || $path === '/rss.xml') {
+    require_once $outpostDir . '/feed.php';
+    outpost_generate_feed();
+    return true;
+}
+// Per-collection feed: /{collection-slug}/feed
+if (preg_match('#^/([a-z0-9_-]+)/feed(?:\.xml)?$#', $path, $feedMatch)) {
+    require_once $outpostDir . '/feed.php';
+    outpost_generate_feed($feedMatch[1]);
     return true;
 }
 

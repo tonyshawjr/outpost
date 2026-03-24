@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSS Feeds &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>RSS Feeds</h1>
+    <p class="lead">Outpost auto-generates RSS 2.0 feeds for any collection. Visitors can subscribe in any feed reader &mdash; no configuration or template changes needed.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Outpost generates valid RSS 2.0 XML feeds for your site content. A site-wide feed aggregates items from all feed-enabled collections, and each collection with feeds enabled gets its own dedicated feed. Feeds update automatically whenever content is published or updated.</p>
+
+    <h2>Feed URLs</h2>
+    <p>Outpost responds to several URL patterns for feeds:</p>
+    <table>
+      <thead>
+        <tr><th>URL</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/feed.xml</code></td><td>Site-wide feed (all feed-enabled collections)</td></tr>
+        <tr><td><code>/feed</code></td><td>Alias for <code>/feed.xml</code></td></tr>
+        <tr><td><code>/rss</code></td><td>Alias for <code>/feed.xml</code></td></tr>
+        <tr><td><code>/rss.xml</code></td><td>Alias for <code>/feed.xml</code></td></tr>
+        <tr><td><code>/{collection-slug}/feed</code></td><td>Per-collection feed (e.g. <code>/post/feed</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Use <code>/feed.xml</code> as the canonical feed URL when sharing or submitting to directories. The other aliases exist for convenience and compatibility.</div>
+
+    <h2>Enabling feeds</h2>
+    <p>Feeds are controlled per-collection with a <code>feed_enabled</code> toggle. By default, feeds are <strong>off</strong> for all collections.</p>
+    <p>To enable a feed for a collection:</p>
+    <ol>
+      <li>Go to <strong>Collections</strong> and open the collection.</li>
+      <li>Open <strong>Collection Settings</strong>.</li>
+      <li>Toggle <strong>Enable RSS feed</strong> on.</li>
+      <li>Save.</li>
+    </ol>
+    <p>The site-wide feed at <code>/feed.xml</code> only includes items from collections that have feeds enabled. If no collections have feeds enabled, the site-wide feed returns an empty channel.</p>
+
+    <h2>Feed content</h2>
+    <p>Each item in the feed includes:</p>
+    <ul>
+      <li><code>&lt;title&gt;</code> &mdash; the item&rsquo;s title field</li>
+      <li><code>&lt;link&gt;</code> &mdash; the full URL to the item on your site</li>
+      <li><code>&lt;guid&gt;</code> &mdash; a permanent unique identifier (the item URL)</li>
+      <li><code>&lt;pubDate&gt;</code> &mdash; the publication date in RFC 2822 format</li>
+      <li><code>&lt;description&gt;</code> &mdash; the item&rsquo;s excerpt if available, otherwise the first 500 characters of the body field with HTML stripped</li>
+      <li><code>&lt;dc:creator&gt;</code> &mdash; the item&rsquo;s author field, if present</li>
+    </ul>
+    <p>Only <strong>published</strong> items are included. The feed returns the <strong>latest 50 items</strong>, sorted by publication date (newest first).</p>
+
+    <h2>Auto-discovery</h2>
+    <p>When feeds are enabled, Outpost automatically injects <code>&lt;link rel="alternate"&gt;</code> tags into the <code>&lt;head&gt;</code> of your pages via <code>cms_seo()</code> / <code>&lt;outpost-seo&gt;</code>:</p>
+    <pre><code>&lt;link rel="alternate" type="application/rss+xml"
+      title="Site Name &mdash; Feed"
+      href="https://yourdomain.com/feed.xml"&gt;</code></pre>
+    <p>No manual template changes are needed. Feed readers and browsers that support RSS auto-discovery will detect your feeds automatically.</p>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Auto-discovery tags are only injected when at least one collection has <code>feed_enabled</code> turned on.</div>
+
+    <h2>Feed metadata</h2>
+    <p>The feed channel metadata is derived from your site settings:</p>
+    <ul>
+      <li><strong>Feed title</strong> &mdash; &ldquo;Site Name &mdash; Collection Name&rdquo; for per-collection feeds, or just &ldquo;Site Name&rdquo; for the site-wide feed</li>
+      <li><strong>Feed description</strong> &mdash; your site tagline (from globals), or the collection name if no tagline is set</li>
+      <li><strong>Feed link</strong> &mdash; your site&rsquo;s base URL</li>
+      <li><strong>Language</strong> &mdash; <code>en</code> (derived from site settings)</li>
+    </ul>
+
+    <h2>RSS readers</h2>
+    <p>Outpost feeds are standard RSS 2.0 XML and work with any feed reader, including:</p>
+    <ul>
+      <li><a href="https://feedly.com" target="_blank" rel="noopener">Feedly</a></li>
+      <li><a href="https://netnewswire.com" target="_blank" rel="noopener">NetNewsWire</a> (macOS / iOS)</li>
+      <li><a href="https://www.inoreader.com" target="_blank" rel="noopener">Inoreader</a></li>
+      <li><a href="https://newsblur.com" target="_blank" rel="noopener">NewsBlur</a></li>
+      <li>Any other RSS 2.0 compatible reader</li>
+    </ul>
+
+    <h2>Customization</h2>
+    <p>Feed output is generated by the CMS engine and does not use theme templates. The content included in each feed item is determined automatically:</p>
+    <ul>
+      <li><strong>Description</strong> &mdash; uses the <code>excerpt</code> field if present, otherwise strips HTML from the <code>body</code> field and truncates to 500 characters</li>
+      <li><strong>Author</strong> &mdash; uses the <code>author</code> field if present on the collection item</li>
+      <li><strong>Title</strong> &mdash; uses the <code>title</code> field</li>
+    </ul>
+    <p>To control what appears in your feed descriptions, add an <code>excerpt</code> field to your collection schema. Items with a dedicated excerpt will show that text instead of the auto-truncated body.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you want to exclude a collection from the site-wide feed but still want its dedicated feed URL to work, that is not currently supported &mdash; the <code>feed_enabled</code> toggle controls both. If you need a per-collection feed, it will also contribute to the site-wide feed.</div>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>
