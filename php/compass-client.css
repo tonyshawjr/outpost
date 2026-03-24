@@ -128,3 +128,86 @@
   padding: 0;
 }
 .compass-pill-remove:hover { opacity: 1; }
+
+/* ── Searchable Dropdown (auto-upgrade for 15+ options) */
+
+.compass-searchable-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.compass-sd-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  border: 1px solid #d8d6ce;
+  border-radius: 8px;
+  color: #323d44;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+.compass-sd-trigger:hover,
+.compass-sd-trigger:focus {
+  border-color: #365a73;
+  outline: none;
+}
+.compass-sd-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.compass-sd-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #d8d6ce;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+  overflow: hidden;
+}
+.compass-sd-search {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  border: none;
+  border-bottom: 1px solid #eceae4;
+  outline: none;
+  background: #fafaf8;
+  color: #323d44;
+  box-sizing: border-box;
+}
+.compass-sd-search::placeholder {
+  color: rgba(50, 61, 68, 0.4);
+}
+.compass-sd-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.compass-sd-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #323d44;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.compass-sd-item:hover {
+  background: rgba(54, 90, 115, 0.06);
+}
+.compass-sd-item-active {
+  background: rgba(54, 90, 115, 0.1);
+  font-weight: 500;
+}

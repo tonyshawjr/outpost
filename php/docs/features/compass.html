@@ -74,7 +74,7 @@
       <thead><tr><th>Attribute</th><th>Element</th><th>Description</th></tr></thead>
       <tbody>
         <tr><td><code>data-compass="search"</code></td><td><code>&lt;input&gt;</code></td><td>Text search, debounced 300ms.</td></tr>
-        <tr><td><code>data-compass="dropdown"</code></td><td><code>&lt;select&gt;</code></td><td>Single-select filter. Auto-populates options if the <code>&lt;select&gt;</code> is empty (aside from a placeholder <code>&lt;option&gt;</code>).</td></tr>
+        <tr><td><code>data-compass="dropdown"</code></td><td><code>&lt;select&gt;</code></td><td>Single-select filter. Auto-populates options if the <code>&lt;select&gt;</code> is empty (aside from a placeholder <code>&lt;option&gt;</code>). Automatically upgrades to a searchable dropdown when 15+ options are present (configurable).</td></tr>
         <tr><td><code>data-compass="checkbox"</code></td><td><code>&lt;div&gt;</code></td><td>Multi-select checkboxes. Auto-fills checkbox inputs from the data source.</td></tr>
         <tr><td><code>data-compass="radio"</code></td><td><code>&lt;div&gt;</code></td><td>Single-select radio buttons. Auto-fills radio inputs from the data source.</td></tr>
         <tr><td><code>data-compass="range-min"</code></td><td><code>&lt;input type="range"&gt;</code></td><td>Low end of a numeric range filter.</td></tr>
@@ -177,6 +177,36 @@
 &lt;select data-compass="dropdown" data-collection="business" data-source="field:city"&gt;
   &lt;option value=""&gt;All Cities&lt;/option&gt;
 &lt;/select&gt;</code></pre>
+
+    <h4>Searchable Dropdowns</h4>
+
+    <p>When a dropdown has <strong>15 or more options</strong>, Compass automatically upgrades it to a searchable dropdown &mdash; a custom widget with a type-to-filter input, scrollable option list, and keyboard support. The original <code>&lt;select&gt;</code> is hidden and kept in sync.</p>
+
+    <p>You can control this behavior with the <code>data-searchable</code> attribute:</p>
+
+    <table class="schema-table">
+      <thead><tr><th>Attribute</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><em>(no attribute)</em></td><td>Auto-upgrade when 15+ options (default)</td></tr>
+        <tr><td><code>data-searchable="true"</code></td><td>Always upgrade, even with few options</td></tr>
+        <tr><td><code>data-searchable="false"</code></td><td>Never upgrade, always plain <code>&lt;select&gt;</code></td></tr>
+        <tr><td><code>data-searchable-threshold="20"</code></td><td>Custom threshold (upgrade at 20+ instead of 15)</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>&lt;!-- Force searchable on a small list --&gt;
+&lt;select data-compass="dropdown" data-collection="business"
+        data-source="folder:categories" data-searchable="true"&gt;
+  &lt;option value=""&gt;All Categories&lt;/option&gt;
+&lt;/select&gt;
+
+&lt;!-- Keep as plain select even with many options --&gt;
+&lt;select data-compass="dropdown" data-collection="business"
+        data-source="field:city" data-searchable="false"&gt;
+  &lt;option value=""&gt;All Cities&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The searchable dropdown inherits the width and positioning of the original <code>&lt;select&gt;</code>. All CSS classes on the <code>&lt;select&gt;</code> are copied to the wrapper. Override styles by targeting <code>.compass-searchable-dropdown</code>, <code>.compass-sd-trigger</code>, <code>.compass-sd-panel</code>, and <code>.compass-sd-item</code>.</div>
 
     <h3>Checkbox</h3>
 

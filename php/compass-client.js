@@ -528,6 +528,8 @@
               opt.textContent = (entry.display || entry.value) + (entry.count != null ? ` (${entry.count})` : '');
               item.el.appendChild(opt);
             });
+            // Auto-upgrade to searchable dropdown if threshold met
+            this._maybeUpgradeDropdown(item.el, entries, facetName);
           } else if (item.type === 'checkbox') {
             const entries = Array.isArray(values) ? values : Object.entries(values).map(([v, c]) => ({
               value: v, display: typeof c === 'object' ? c.display || v : v, count: typeof c === 'object' ? c.count : c
@@ -672,6 +674,119 @@
 
       el.addEventListener('change', () => {
         this.setState(name, el.value || null);
+      });
+    }
+
+    /**
+     * Upgrade a <select> to a searchable dropdown if:
+     * - data-searchable="true" is set, OR
+     * - options exceed threshold (15) and data-searchable is not "false"
+     */
+    _maybeUpgradeDropdown(sel, entries, facetName) {
+      const attr = sel.getAttribute('data-searchable');
+      const threshold = parseInt(sel.getAttribute('data-searchable-threshold')) || 15;
+      const shouldUpgrade = attr === 'true' || (attr !== 'false' && sel.options.length > threshold);
+      if (!shouldUpgrade) return;
+
+      // Hide original select
+      sel.style.display = 'none';
+
+      // Build custom searchable dropdown
+      const wrap = document.createElement('div');
+      wrap.className = 'compass-searchable-dropdown';
+      // Copy width-related classes from the original select
+      const cls = sel.className.replace(/\binput\b/, '').trim();
+      if (cls) wrap.className += ' ' + cls;
+
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'compass-sd-trigger';
+      const defaultText = sel.options[0] ? sel.options[0].textContent : 'Select...';
+      trigger.innerHTML = '<span class="compass-sd-label">' + escapeHTML(defaultText) + '</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+
+      const panel = document.createElement('div');
+      panel.className = 'compass-sd-panel';
+      panel.style.display = 'none';
+
+      const searchInput = document.createElement('input');
+      searchInput.type = 'text';
+      searchInput.className = 'compass-sd-search';
+      searchInput.placeholder = 'Type to filter...';
+
+      const list = document.createElement('div');
+      list.className = 'compass-sd-list';
+
+      // "All" option
+      const allItem = document.createElement('div');
+      allItem.className = 'compass-sd-item compass-sd-item-active';
+      allItem.setAttribute('data-value', '');
+      allItem.textContent = defaultText;
+      list.appendChild(allItem);
+
+      // Build option items
+      entries.forEach((entry) => {
+        const item = document.createElement('div');
+        item.className = 'compass-sd-item';
+        item.setAttribute('data-value', entry.value);
+        item.textContent = (entry.display || entry.value) + (entry.count != null ? ' (' + entry.count + ')' : '');
+        list.appendChild(item);
+      });
+
+      panel.appendChild(searchInput);
+      panel.appendChild(list);
+      wrap.appendChild(trigger);
+      wrap.appendChild(panel);
+      sel.parentNode.insertBefore(wrap, sel.nextSibling);
+
+      // Toggle panel
+      let open = false;
+      const togglePanel = () => {
+        open = !open;
+        panel.style.display = open ? '' : 'none';
+        if (open) { searchInput.value = ''; filterList(''); searchInput.focus(); }
+      };
+      trigger.addEventListener('click', togglePanel);
+
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (open && !wrap.contains(e.target)) {
+          open = false;
+          panel.style.display = 'none';
+        }
+      });
+
+      // Filter list
+      const filterList = (q) => {
+        const lower = q.toLowerCase();
+        list.querySelectorAll('.compass-sd-item').forEach((item) => {
+          const val = item.getAttribute('data-value');
+          if (val === '') { item.style.display = ''; return; } // always show "All"
+          item.style.display = item.textContent.toLowerCase().includes(lower) ? '' : 'none';
+        });
+      };
+      searchInput.addEventListener('input', () => filterList(searchInput.value));
+
+      // Select item
+      list.addEventListener('click', (e) => {
+        const item = e.target.closest('.compass-sd-item');
+        if (!item) return;
+        const val = item.getAttribute('data-value');
+        // Update active state
+        list.querySelectorAll('.compass-sd-item').forEach((i) => i.classList.remove('compass-sd-item-active'));
+        item.classList.add('compass-sd-item-active');
+        // Update trigger label
+        trigger.querySelector('.compass-sd-label').textContent = val ? item.textContent : defaultText;
+        // Update hidden select
+        sel.value = val;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        // Close
+        open = false;
+        panel.style.display = 'none';
+      });
+
+      // Keyboard: Escape closes
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { open = false; panel.style.display = 'none'; trigger.focus(); }
       });
     }
 

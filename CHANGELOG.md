@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.11.3] — 2026-03-24
+
+### Added
+- **Compass searchable dropdowns** — Dropdowns with 15+ options are automatically upgraded to a searchable dropdown with a type-to-filter input, scrollable option list, and keyboard support. Theme developers control this with `data-searchable="true"` (force on), `data-searchable="false"` (force off), or no attribute (auto at 15+ options). Custom threshold via `data-searchable-threshold="20"`. No extra markup needed — Compass enhances the standard `<select>`.
+
+---
+
 ## [4.11.2] — 2026-03-24
 
 ### Fixed
