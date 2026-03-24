@@ -16,6 +16,11 @@ test-site/outpost/uploads
 test-site/outpost/themes
 test-site/outpost/cache/
 
+# Scripts with secrets (API keys, credentials)
+scripts/google_places_import.py
+**/api_key*
+**/credentials*
+
 # Deployed copies (not source code)
 Outpost\ Website/
 
