@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.11.5] — 2026-03-24
+
+### Fixed
+- **Compass URL state restore** — Visiting a page with filter params in the URL (e.g. `?q=woodland`) now auto-triggers the search on page load. Previously required clicking the submit button manually. Fires `compass:stateChange` event so page-level scripts (carousel/results toggles) react immediately.
+- **Compass auto-populate timing** — URL state is now restored after dropdown auto-populate completes, preventing race conditions where filters were applied before options were loaded.
+
+### Changed
+- **Compass asset cache-busting** — `compass-client.js` and `compass-client.css` are now injected with `?v=` version query string to prevent stale browser cache after updates.
+
+---
+
 ## [4.11.4] — 2026-03-24
 
 ### Fixed

@@ -107,8 +107,9 @@
       this._hasSubmitButton = !!(this.elements['submit'] && this.elements['submit'].length);
 
       this._bindAll();
-      this._autoPopulate();
-      this._restoreFromURL();
+      this._autoPopulate().then(() => {
+        this._restoreFromURL();
+      });
 
       // Listen for popstate
       window.addEventListener('popstate', (e) => {
@@ -986,6 +987,11 @@
       if (Object.keys(urlState).length) {
         this.state = urlState;
         this._syncUIFromState();
+        // Emit stateChange so page-level scripts (e.g. toggle carousels/results) react
+        emit(document, 'compass:stateChange', {
+          collection: this.collection,
+          state: { ...this.state },
+        });
         this.filter();
       }
     }

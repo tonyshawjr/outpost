@@ -22,6 +22,20 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.11.5">4.11.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-24</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Compass URL state restore</strong> &mdash; Visiting a page with filter params in the URL (e.g. <code>?q=woodland</code>) now auto-triggers the search on page load. Fires <code>compass:stateChange</code> event so page-level scripts react immediately.</li>
+      <li><strong>Compass auto-populate timing</strong> &mdash; URL state restored after dropdown auto-populate completes, preventing race conditions.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Compass asset cache-busting</strong> &mdash; JS and CSS injected with <code>?v=</code> version string to prevent stale browser cache after updates.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.11.4">4.11.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-24</span></h2>
 
     <h3>Fixed</h3>

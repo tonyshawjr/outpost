@@ -1187,8 +1187,9 @@ function outpost_cache_output(string $buffer): string {
 
     // 2b. Inject Compass assets before </body> when compass tags are present on the page
     if (strpos($buffer, 'data-compass') !== false && stripos($buffer, '</body>') !== false) {
-        $compassAssets = '<link rel="stylesheet" href="/outpost/compass-client.css">' . "\n"
-            . '<script src="/outpost/compass-client.js"></script>';
+        $compassBust = '?v=' . OUTPOST_VERSION;
+        $compassAssets = '<link rel="stylesheet" href="/outpost/compass-client.css' . $compassBust . '">' . "\n"
+            . '<script src="/outpost/compass-client.js' . $compassBust . '"></script>';
         $buffer = preg_replace('/<\/body>/i', $compassAssets . "\n</body>", $buffer, 1);
     }
 
