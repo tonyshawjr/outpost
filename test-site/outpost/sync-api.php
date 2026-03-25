@@ -264,12 +264,20 @@ function handle_sync_push(): void {
     // Optional content push — db_file (binary) takes priority over legacy db_snapshot
     if ($push_content) {
         if (!empty($body['db_file'])) {
+            // Preserve the server's active_theme before replacing DB
+            $server_active_theme = sync_get_setting('active_theme');
+
             // Full database replace — local is truth
             $db_data = base64_decode($body['db_file'], true);
             if ($db_data !== false && strlen($db_data) > 0) {
                 file_put_contents(OUTPOST_DB_PATH, $db_data, LOCK_EX);
                 // Re-open the DB connection with the new file
                 OutpostDB::reconnect();
+
+                // Restore the server's active_theme — push must not change which theme is active
+                if ($server_active_theme) {
+                    sync_set_setting('active_theme', $server_active_theme);
+                }
             }
         } elseif (!empty($body['db_snapshot'])) {
             sync_apply_content($body['db_snapshot']);
@@ -580,10 +588,11 @@ function sync_validate_file_path(string $rel_path, string $theme_name): ?string 
 
     // Must start with themes/ prefix (any theme, not just the active one)
     if (!str_starts_with($rel_path, 'themes/')) return null;
-    // Extract the theme name from the path for validation
+    // Extract the actual theme name from the file path
     $parts = explode('/', $rel_path, 3);
     if (count($parts) < 3 || !preg_match('/^[a-zA-Z0-9_-]+$/', $parts[1])) return null;
-    $prefix = 'themes/' . $parts[1] . '/';
+    $path_theme = $parts[1]; // Use the theme from the path, NOT the $theme_name param
+    $prefix = 'themes/' . $path_theme . '/';
 
     // Reject any traversal attempt before normalization
     if (str_contains($rel_path, '..')) return null;
@@ -601,7 +610,7 @@ function sync_validate_file_path(string $rel_path, string $theme_name): ?string 
         (realpath(OUTPOST_THEMES_DIR) ?: rtrim(OUTPOST_THEMES_DIR, '/')),
         '/'
     );
-    $target_raw = $themes_base . '/' . $theme_name . '/' . $file_rel;
+    $target_raw = $themes_base . '/' . $path_theme . '/' . $file_rel;
 
     // Resolve . and .. segments
     $parts    = explode('/', $target_raw);
@@ -616,10 +625,10 @@ function sync_validate_file_path(string $rel_path, string $theme_name): ?string 
     $normalized = '/' . implode('/', $resolved);
 
     // Confirmed still inside the theme directory
-    $expected_base = $themes_base . '/' . $theme_name;
+    $expected_base = $themes_base . '/' . $path_theme;
     if (!str_starts_with($normalized, $expected_base . '/')) return null;
 
-    return $theme_name . '/' . $file_rel;
+    return $path_theme . '/' . $file_rel;
 }
 
 /**
@@ -799,7 +808,7 @@ function sync_build_db_snapshot(): array {
  */
 function sync_apply_content(array $snapshot): void {
     // Settings — safe keys only, never credentials or sync key
-    $safe_settings = ['site_name', 'site_url', 'active_theme', 'cache_enabled'];
+    $safe_settings = ['site_name', 'site_url', 'cache_enabled'];
     foreach ($safe_settings as $key) {
         if (isset($snapshot['settings'][$key])) {
             sync_set_setting($key, (string) $snapshot['settings'][$key]);

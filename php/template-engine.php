@@ -274,6 +274,20 @@ class OutpostTemplate {
      * Compile template source to PHP.
      */
     public static function compile(string $source, string $filename = ''): string {
+        // Protect <template data-compass-template> blocks from compilation.
+        // Their {{field}} placeholders are for client-side Compass rendering,
+        // not Liquid/Outpost template syntax.
+        $compassTemplates = [];
+        $source = preg_replace_callback(
+            '/<template([^>]*data-compass-template[^>]*)>([\s\S]*?)<\/template>/i',
+            function ($m) use (&$compassTemplates) {
+                $key = '<!--COMPASS_TPL_' . count($compassTemplates) . '-->';
+                $compassTemplates[$key] = '<template' . $m[1] . '>' . $m[2] . '</template>';
+                return $key;
+            },
+            $source
+        );
+
         // Inject line markers before compilation so they survive regex transforms
         $lines = explode("\n", $source);
         $marked = [];
@@ -814,6 +828,11 @@ class OutpostTemplate {
 
         // Prepend engine include
         $php = "<?php require_once '" . addslashes(OUTPOST_DIR) . "engine.php'; ?>\n" . $php;
+
+        // Restore protected <template data-compass-template> blocks
+        foreach ($compassTemplates as $placeholder => $original) {
+            $php = str_replace($placeholder, $original, $php);
+        }
 
         return $php;
     }

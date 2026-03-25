@@ -295,6 +295,8 @@
         }
         if (tpl) {
           html = this._renderFromTemplate(tpl, items);
+        } else {
+          console.warn('[Compass] ' + items.length + ' items returned but no client template found. Add <template data-compass-template> inside your results container.');
         }
       }
 
