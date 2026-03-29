@@ -50,6 +50,7 @@ define('OUTPOST_CACHE_ENABLED', true);
 
 // Code editor
 define('OUTPOST_CODE_EXTENSIONS', ['html', 'htm', 'css', 'js', 'json', 'xml', 'svg', 'txt', 'md', 'yml', 'yaml']);
+define('OUTPOST_ASSET_EXTENSIONS', ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'avif', 'pdf', 'woff', 'woff2', 'ttf', 'otf', 'eot', 'mp4', 'webm', 'mp3']);
 
 // ── Auto-migrate old directory layout to content/ ──
 (function() {

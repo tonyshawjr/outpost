@@ -99,7 +99,8 @@ function code_build_tree(string $base, string $prefix): array {
 
     foreach ($entries as $entry) {
         if ($entry === '.' || $entry === '..') continue;
-        if ($entry === '.htaccess') continue;
+        // Skip dotfiles and dotdirs (.htaccess, .well-known, .git, etc.)
+        if (str_starts_with($entry, '.')) continue;
 
         $full = $base . '/' . $entry;
         $rel = $prefix ? $prefix . '/' . $entry : $entry;
@@ -115,12 +116,19 @@ function code_build_tree(string $base, string $prefix): array {
                 'children' => code_build_tree($full, $rel),
             ];
         } else {
-            if (!code_allowed_extension($entry)) continue;
-            $files[] = [
-                'name' => $entry,
-                'path' => $rel,
-                'type' => 'file',
-            ];
+            if (code_allowed_extension($entry)) {
+                $files[] = [
+                    'name' => $entry,
+                    'path' => $rel,
+                    'type' => 'file',
+                ];
+            } elseif (defined('OUTPOST_ASSET_EXTENSIONS') && in_array(strtolower(pathinfo($entry, PATHINFO_EXTENSION)), OUTPOST_ASSET_EXTENSIONS, true)) {
+                $files[] = [
+                    'name' => $entry,
+                    'path' => $rel,
+                    'type' => 'asset',
+                ];
+            }
         }
     }
 
