@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.13.7] — 2026-03-29
+
+### Added
+- **Auto-inject client assets** -- Compass, Search, and Auth CSS/JS are automatically injected into rendered HTML when their data attributes are detected. Themes no longer need manual `<script>`/`<link>` tags.
+- **Member auth conditionals** -- `<outpost-if member="logged-in">` and `<outpost-if member="logged-out">` show/hide template content based on member login state.
+
+### Security
+- **Fix duplicate asset injection** -- `str_ireplace` replaced all `</body>` occurrences causing duplicate script tags. Now uses single-pass `strripos` injection targeting the last tag only.
+- **Fail-closed member conditionals** -- Invalid `member` attribute values (e.g. `member="paid"`) now hide content instead of showing it to everyone.
+- **Attribute-context detection** -- Asset injection now checks for data attributes in HTML attribute context (not plain text), preventing user content from triggering unwanted script loads.
+- **Buffer cleanup on error** -- Catch block now cleans all output buffers on error instead of just one, preventing partial HTML leaks before the 503 page.
+- **Remove error suppression** -- Removed `@` on `require_once` for members.php to surface errors during development.
+
+---
+
 ## [4.13.1] — 2026-03-24
 
 ### Added

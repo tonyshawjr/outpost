@@ -456,8 +456,13 @@ if ($_outpost_review_inject) {
     outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
 }
 
+// Flush output buffers to trigger outpost_cache_output and boost callbacks
+while (ob_get_level() > 0) {
+    ob_end_flush();
+}
+
 } catch (\Throwable $e) {
-    if (ob_get_level()) ob_end_clean();
+    while (ob_get_level() > 0) ob_end_clean();
     http_response_code(503);
     error_log('Outpost front-router error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
 

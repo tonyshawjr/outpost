@@ -2697,6 +2697,8 @@ function outpost_detect_engine_version(string $themeDir): bool {
 function outpost_render_template(string $templateFile, string $themeDir, bool $editorMode = false): void {
     $useV2 = outpost_detect_engine_version($themeDir);
 
+    // Capture rendered output so we can inject client assets
+    ob_start();
     if ($useV2) {
         if (!class_exists('OutpostTemplateV2')) {
             require_once __DIR__ . '/template-engine-v2.php';
@@ -2708,6 +2710,46 @@ function outpost_render_template(string $templateFile, string $themeDir, bool $e
         }
         OutpostTemplate::render($templateFile, $themeDir);
     }
+    $html = ob_get_clean();
+    if ($html === false) $html = '';
+
+    // Collect client assets to inject (single-pass to avoid duplicate tags)
+    $vBust = defined('OUTPOST_VERSION') ? '?v=' . urlencode(OUTPOST_VERSION) : '';
+    $headAssets = [];
+    $bodyAssets = [];
+
+    // Compass — detect attribute context, not plain text
+    if (preg_match('/\sdata-compass[\s=>]/i', $html)) {
+        $headAssets[] = '<link rel="stylesheet" href="/outpost/compass-client.css' . $vBust . '">';
+        $bodyAssets[] = '<script src="/outpost/compass-client.js' . $vBust . '"></script>';
+    }
+
+    // Search
+    if (preg_match('/\sdata-outpost-search[\s=>]/i', $html)) {
+        $headAssets[] = '<link rel="stylesheet" href="/outpost/search-client.css' . $vBust . '">';
+        $bodyAssets[] = '<script src="/outpost/search-client.js' . $vBust . '"></script>';
+    }
+
+    // Auth
+    if (preg_match('/\sdata-outpost-auth[\s=>]/i', $html)) {
+        $bodyAssets[] = '<script src="/outpost/auth-client.js' . $vBust . '"></script>';
+    }
+
+    // Inject into last </head> and </body> only
+    if ($headAssets) {
+        $pos = strripos($html, '</head>');
+        if ($pos !== false) {
+            $html = substr_replace($html, implode("\n", $headAssets) . "\n</head>", $pos, 7);
+        }
+    }
+    if ($bodyAssets) {
+        $pos = strripos($html, '</body>');
+        if ($pos !== false) {
+            $html = substr_replace($html, implode("\n", $bodyAssets) . "\n</body>", $pos, 7);
+        }
+    }
+
+    echo $html;
 }
 
 // ── Auto-init ────────────────────────────────────────────

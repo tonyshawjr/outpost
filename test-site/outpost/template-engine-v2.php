@@ -1018,6 +1018,19 @@ class OutpostTemplateV2 {
             function ($m) {
                 $attrs = self::parseAttributes($m[1]);
                 $inner = $m[2];
+                // Member auth conditional: <outpost-if member="logged-in"> or <outpost-if member="logged-out">
+                if (isset($attrs['member'])) {
+                    $memberCheck = $attrs['member'];
+                    $memberInit = '<?php if (!class_exists("OutpostMember")) { require_once(OUTPOST_DIR . "members.php"); } ?>';
+                    if ($memberCheck === 'logged-in') {
+                        return $memberInit . '<?php if (class_exists("OutpostMember") && OutpostMember::check()) { ?>' . $inner . '<?php } ?>';
+                    } elseif ($memberCheck === 'logged-out') {
+                        return $memberInit . '<?php if (!class_exists("OutpostMember") || !OutpostMember::check()) { ?>' . $inner . '<?php } ?>';
+                    }
+                    // Unknown member value — fail closed (hide content)
+                    return '<!-- outpost: unknown member condition "' . htmlspecialchars($memberCheck, ENT_QUOTES, 'UTF-8') . '" -->';
+                }
+
                 $field = $attrs['field'] ?? '';
                 if (!$field) return $inner; // no field = show unconditionally
 
