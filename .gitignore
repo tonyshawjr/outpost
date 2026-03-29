@@ -36,3 +36,6 @@ Thumbs.db
 # Claude Code auto-memory (local only)
 memory/
 .claude/
+
+# Client site workspaces (contain credentials)
+sites/

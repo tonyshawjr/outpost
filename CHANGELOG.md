@@ -22,6 +22,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.13.6] — 2026-03-29
+
+### Fixed
+- **Compass template destroyed by Liquid compilation** — Fixed Liquid engine corrupting Compass templates during render.
+
+---
+
+## [4.13.5] — 2026-03-29
+
+### Fixed
+- **Builder push file corruption** — Fixed file corruption during Builder push operations, preserved active_theme setting.
+
+---
+
+## [4.13.4] — 2026-03-29
+
+### Fixed
+- **index.php front controller for v2 template engine** — Fixed front controller routing for v2 data-attribute templates.
+
+---
+
+## [4.13.3] — 2026-03-28
+
+### Fixed
+- **Sync path validation stripping leading slash** — Fixed path validation that incorrectly stripped the leading slash from sync paths.
+
+---
+
+## [4.13.2] — 2026-03-28
+
+### Changed
+- **Sync API allows images and fonts** — Sync API now accepts image and font file types. Builder walks all asset types.
+
+---
+
 ## [4.13.1] — 2026-03-24
 
 ### Added

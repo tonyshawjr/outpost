@@ -22,6 +22,57 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="4.13.7">4.13.7 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Auto-inject client assets</strong> &mdash; Compass, Search, and Auth CSS/JS are automatically injected into rendered HTML when their data attributes are detected. Themes no longer need manual <code>&lt;script&gt;</code>/<code>&lt;link&gt;</code> tags.</li>
+      <li><strong>Member auth conditionals</strong> &mdash; <code>&lt;outpost-if member="logged-in"&gt;</code> and <code>&lt;outpost-if member="logged-out"&gt;</code> show/hide template content based on member login state.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li><strong>Fix duplicate asset injection</strong> &mdash; Switched from <code>str_ireplace</code> (replaced all <code>&lt;/body&gt;</code> occurrences) to single-pass <code>strripos</code> injection targeting only the last tag.</li>
+      <li><strong>Fail-closed member conditionals</strong> &mdash; Invalid <code>member</code> attribute values now hide content instead of showing it to everyone.</li>
+      <li><strong>Attribute-context detection</strong> &mdash; Asset injection checks for data attributes in HTML attribute context, preventing plain-text content from triggering script loads.</li>
+      <li><strong>Buffer cleanup on error</strong> &mdash; Catch block now cleans all output buffers on error instead of just one.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.13.6">4.13.6 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Compass template destroyed by Liquid compilation</strong> &mdash; Fixed Liquid engine corrupting Compass templates during render.</li>
+    </ul>
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.13.5">4.13.5 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Builder push file corruption</strong> &mdash; Fixed file corruption during Builder push operations, preserved <code>active_theme</code> setting.</li>
+    </ul>
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.13.4">4.13.4 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>index.php front controller</strong> &mdash; Fixed front controller routing for v2 data-attribute templates.</li>
+    </ul>
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.13.3">4.13.3 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-28</span></h2>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Sync path validation</strong> &mdash; Fixed path validation that incorrectly stripped the leading slash from sync paths.</li>
+    </ul>
+    <hr style="margin: 40px 0;">
+
+    <h2 id="4.13.2">4.13.2 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-28</span></h2>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Sync API allows images and fonts</strong> &mdash; Sync API now accepts image and font file types. Builder walks all asset types.</li>
+    </ul>
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.13.1">4.13.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-24</span></h2>
     <h3>Added</h3>
     <ul>

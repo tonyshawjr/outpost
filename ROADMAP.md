@@ -76,6 +76,11 @@ Everything below is already built and released.
 ### v2.5 — Outpost Design System
 - ~~Sidebar reorganization~~ **Shipped v4.10.0**, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
 
+### v4.13.7 — Auto-Inject Client Assets & Member Conditionals (2026-03-29)
+- ~~Auto-inject client assets~~ **Shipped** — Compass, Search, and Auth CSS/JS automatically injected when data attributes detected. No manual `<script>`/`<link>` tags needed in themes.
+- ~~Member auth conditionals~~ **Shipped** — `<outpost-if member="logged-in">` and `<outpost-if member="logged-out">` for showing/hiding template content based on login state.
+- ~~Security hardening~~ **Shipped** — Single-pass asset injection, fail-closed member conditionals, attribute-context detection, full buffer cleanup on error.
+
 ### v4.13 — Auth Forms & OAuth Roadmap (2026-03-24)
 - ~~Auth client JS~~ **Shipped** — `data-outpost-auth` attribute for theme login/register/forgot-password forms with auto member API wiring
 - **OAuth Social Login** — Planned: Google, Facebook, and Apple sign-in. Provider configuration in settings, server-side callback handlers, account linking.

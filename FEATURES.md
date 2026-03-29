@@ -4,6 +4,21 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Auto-Inject Client Assets (v4.13.7)
+
+- **Automatic asset injection** — Compass, Search, and Auth CSS/JS automatically injected into rendered HTML when `data-compass`, `data-outpost-search`, or `data-outpost-auth` attributes are detected. Themes no longer need manual `<script>`/`<link>` tags.
+- **Single-pass injection** — All assets collected and injected once at the last `</head>` and `</body>` tags. No duplicate tags.
+- **Attribute-context detection** — Uses regex to check for attributes in HTML context, not plain text.
+
+## Member Auth Conditionals (v4.13.7)
+
+- **`<outpost-if member="logged-in">`** — Shows enclosed content only to logged-in members.
+- **`<outpost-if member="logged-out">`** — Shows enclosed content only to logged-out visitors.
+- **Fail-closed** — Unknown `member` attribute values hide content by default.
+- **Graceful degradation** — If `members.php` is missing, `logged-in` hides content, `logged-out` shows it.
+
+---
+
 ## RSS Feeds (v4.11.0)
 
 - **RSS 2.0 output** — Auto-generated feeds from published collection items with title, link, description, pubDate, and dc:creator.
