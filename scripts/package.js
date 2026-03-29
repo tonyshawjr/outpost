@@ -81,7 +81,7 @@ console.log('  Created content/uploads/.htaccess');
 const themesSrc = resolve(PHP_DIR, 'themes');
 if (existsSync(themesSrc)) {
   cpSync(themesSrc, resolve(CONTENT_DIR, 'themes'), { recursive: true });
-  console.log('  Copied content/themes/ (starter + personal)');
+  console.log('  Copied content/themes/ (forge-playground)');
 
   // Generate .outpost-manifest.json for managed themes
   const themesDestDir = resolve(CONTENT_DIR, 'themes');

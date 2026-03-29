@@ -41,7 +41,7 @@ function search_ensure_tables(): void {
  */
 function search_get_active_theme(): string {
     $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    return $row ? $row['value'] : 'starter';
+    return $row ? $row['value'] : 'forge-playground';
 }
 
 /**

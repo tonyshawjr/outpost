@@ -3,14 +3,9 @@
 
   const themes = [
     {
-      slug: 'starter',
-      name: 'Starter',
-      desc: 'Multi-page business site with features and contact.',
-    },
-    {
       slug: 'forge-playground',
       name: 'Forge Playground',
-      desc: 'Starter theme for learning the Forge visual tag builder.',
+      desc: 'A complete starter theme with blocks, collections, and all Outpost features.',
     },
   ];
 

@@ -120,7 +120,7 @@ switch ($_sync_action) {
  */
 function handle_sync_pull(): void {
     $outpost_base = sync_outpost_base_url();
-    $active_theme = sync_get_setting('active_theme') ?: 'starter';
+    $active_theme = sync_get_setting('active_theme') ?: 'forge-playground';
 
     // All themes — walk every subdirectory of themes/
     $theme_files  = [];

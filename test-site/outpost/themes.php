@@ -12,7 +12,7 @@ require_once __DIR__ . '/config.php';
  */
 function get_active_theme(): string {
     $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    return $row ? $row['value'] : 'starter';
+    return $row ? $row['value'] : 'forge-playground';
 }
 
 /**

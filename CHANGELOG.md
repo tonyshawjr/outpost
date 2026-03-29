@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.13.8] — 2026-03-29
+
+### Changed
+- **Ship only Forge Playground theme** — Removed Starter and Personal themes from the distribution. Forge Playground is now the only bundled theme.
+- **Updated default theme fallback** — All PHP files that defaulted to `'starter'` or `'personal'` now default to `'forge-playground'`.
+
+---
+
 ## [4.13.7] — 2026-03-29
 
 ### Added

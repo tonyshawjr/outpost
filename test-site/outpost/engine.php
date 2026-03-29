@@ -40,7 +40,7 @@ function outpost_init(): void {
 
     // Read active theme from settings
     $themeRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    $_outpost_active_theme = $themeRow ? $themeRow['value'] : 'starter';
+    $_outpost_active_theme = $themeRow ? $themeRow['value'] : 'forge-playground';
 
     // Determine current page path
     $_outpost_page_path = outpost_current_path();

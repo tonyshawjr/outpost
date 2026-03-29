@@ -149,7 +149,7 @@ if (preg_match('#^/([a-z0-9_-]+)/feed(?:\.xml)?$#', $path, $feedMatch)) {
 
 // Resolve active theme
 $themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-$activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'starter';
+$activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'forge-playground';
 $themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
 
 // ── PHP theme (legacy) ────────────────────────────────────

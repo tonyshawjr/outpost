@@ -1510,7 +1510,7 @@ function ranger_tool_get_site_info(): array {
         ];
     }
 
-    $activeTheme = $settings['active_theme'] ?? 'personal';
+    $activeTheme = $settings['active_theme'] ?? 'forge-playground';
     $themeJsonPath = OUTPOST_THEMES_DIR . $activeTheme . '/theme.json';
     $themeInfo = null;
     if (file_exists($themeJsonPath)) {
@@ -1681,7 +1681,7 @@ function ranger_tool_list_themes(): array {
     }
 
     $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    return ['themes' => $themes, 'active_theme' => $activeTheme['value'] ?? 'personal'];
+    return ['themes' => $themes, 'active_theme' => $activeTheme['value'] ?? 'forge-playground'];
 }
 
 function ranger_validate_theme_path(string $path): string {
@@ -3073,7 +3073,7 @@ function ranger_get_site_context(): array {
     }
 
     return [
-        'active_theme' => $activeTheme['value'] ?? 'personal',
+        'active_theme' => $activeTheme['value'] ?? 'forge-playground',
         'collections' => $collectionsSummary,
         'pages' => $pages,
         'menus' => $menus,
