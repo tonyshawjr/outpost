@@ -1991,8 +1991,8 @@ HTACCESS;
             );
             file_put_contents($htaccessPath, $existing, LOCK_EX);
         } else {
-            // Append block
-            file_put_contents($htaccessPath, "\n\n" . $block . "\n", FILE_APPEND | LOCK_EX);
+            // Prepend block — Outpost rules must run first to catch .html files
+            file_put_contents($htaccessPath, $block . "\n\n" . $existing, LOCK_EX);
         }
     } else {
         file_put_contents($htaccessPath, $block . "\n", LOCK_EX);
