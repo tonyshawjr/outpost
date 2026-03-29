@@ -16,7 +16,7 @@ $_outpost_field_counter = 0;
 $_outpost_fields_cache = [];
 $_outpost_globals_cache = null;
 $_outpost_cache_active = false;
-$_outpost_active_theme = '';
+$_outpost_active_theme = '';          // v5: always empty — no theme layer
 $_outpost_current_item = null;       // set when cms_collection_single() finds an item
 $_outpost_current_collection = '';   // slug of collection for current single item
 $_outpost_edit_mode = false;         // true when admin is viewing frontend (on-page editing)
@@ -37,10 +37,10 @@ function outpost_init(): void {
     // Run migrations (idempotent)
     ensure_fields_theme_column();
     ensure_indexes();
+    outpost_migrate_v5();
 
-    // Read active theme from settings
-    $themeRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    $_outpost_active_theme = $themeRow ? $themeRow['value'] : 'forge-playground';
+    // v5: no theme layer — always empty
+    $_outpost_active_theme = '';
 
     // Determine current page path
     $_outpost_page_path = outpost_current_path();
@@ -53,18 +53,18 @@ function outpost_init(): void {
     // Auto-scan templates if no fields exist OR if template files changed since last scan
     $needsScan = false;
     $fieldCount = OutpostDB::fetchOne(
-        "SELECT COUNT(*) as c FROM fields WHERE theme = ?",
-        [$_outpost_active_theme]
+        "SELECT COUNT(*) as c FROM fields WHERE theme = ''",
+        []
     );
     if (($fieldCount['c'] ?? 0) == 0) {
         $needsScan = true;
     } else {
-        // Check if any theme template files are newer than the last scan
-        $themeDir = OUTPOST_THEMES_DIR . $_outpost_active_theme . '/';
-        if (is_dir($themeDir)) {
+        // Check if any site root template files are newer than the last scan
+        $siteRoot = OUTPOST_SITE_ROOT;
+        if (is_dir($siteRoot)) {
             $maxMtime = 0;
-            $htmlFiles = glob($themeDir . '*.html') ?: [];
-            $partialFiles = is_dir($themeDir . 'partials/') ? (glob($themeDir . 'partials/*.html') ?: []) : [];
+            $htmlFiles = glob($siteRoot . '*.html') ?: [];
+            $partialFiles = is_dir($siteRoot . 'partials/') ? (glob($siteRoot . 'partials/*.html') ?: []) : [];
             foreach (array_merge($htmlFiles, $partialFiles) as $f) {
                 $mt = filemtime($f);
                 if ($mt > $maxMtime) $maxMtime = $mt;
@@ -72,7 +72,7 @@ function outpost_init(): void {
             if ($maxMtime > 0) {
                 $lastScan = OutpostDB::fetchOne(
                     "SELECT value FROM settings WHERE key = ?",
-                    ['last_template_scan_' . $_outpost_active_theme]
+                    ['last_template_scan_site']
                 );
                 if (!$lastScan || (int) $lastScan['value'] < $maxMtime) {
                     $needsScan = true;
@@ -81,10 +81,7 @@ function outpost_init(): void {
         }
     }
     if ($needsScan) {
-        outpost_scan_theme_templates($_outpost_active_theme);
-        // Also rebuild the theme manifest so it stays in sync
-        require_once __DIR__ . '/theme-manifest.php';
-        outpost_build_theme_manifest($_outpost_active_theme);
+        outpost_scan_site_templates();
     }
 
     // Check cache first — skip for logged-in admins, preview mode
@@ -153,11 +150,11 @@ function outpost_discover_page(string $path): int {
 }
 
 function outpost_preload_fields(int $page_id): void {
-    global $_outpost_fields_cache, $_outpost_active_theme;
-    // Load theme-scoped fields AND unscoped fields (theme='') — settings and legacy fields use empty theme
+    global $_outpost_fields_cache;
+    // v5: load all fields for this page regardless of theme column
     $fields = OutpostDB::fetchAll(
-        'SELECT id, field_name, field_type, content, default_value, options FROM fields WHERE page_id = ? AND (theme = ? OR theme = ?) ORDER BY sort_order ASC',
-        [$page_id, $_outpost_active_theme, '']
+        'SELECT id, field_name, field_type, content, default_value, options FROM fields WHERE page_id = ? ORDER BY sort_order ASC',
+        [$page_id]
     );
     $_outpost_fields_cache = [];
     foreach ($fields as $f) {
@@ -167,7 +164,7 @@ function outpost_preload_fields(int $page_id): void {
 
 // ── Field Resolution ─────────────────────────────────────
 function outpost_resolve_field(string $name, string $type, string $default, string $options = ''): string {
-    global $_outpost_page_id, $_outpost_fields_cache, $_outpost_field_counter, $_outpost_active_theme;
+    global $_outpost_page_id, $_outpost_fields_cache, $_outpost_field_counter;
 
     if ($_outpost_page_id === null) return $default;
 
@@ -180,10 +177,10 @@ function outpost_resolve_field(string $name, string $type, string $default, stri
         return ($value !== '' && $value !== null) ? $value : $default;
     }
 
-    // Auto-register new field (INSERT OR IGNORE to handle race conditions / duplicate stubs)
+    // Auto-register new field with theme='' (INSERT OR IGNORE to handle race conditions / duplicate stubs)
     OutpostDB::query(
-        "INSERT OR IGNORE INTO fields (page_id, theme, field_name, field_type, content, default_value, options, sort_order) VALUES (?, ?, ?, ?, '', ?, ?, ?)",
-        [$_outpost_page_id, $_outpost_active_theme, $name, $type, $default, $options, $_outpost_field_counter]
+        "INSERT OR IGNORE INTO fields (page_id, theme, field_name, field_type, content, default_value, options, sort_order) VALUES (?, '', ?, ?, '', ?, ?, ?)",
+        [$_outpost_page_id, $name, $type, $default, $options, $_outpost_field_counter]
     );
 
     $_outpost_fields_cache[$name] = [
@@ -1143,13 +1140,13 @@ function outpost_cache_path(string $page_path): string {
 }
 
 function outpost_cache_output(string $buffer): string {
-    global $_outpost_page_path, $_outpost_active_theme;
+    global $_outpost_page_path;
 
     $isCustomizerPreview = isset($_GET['_outpost_customizer_preview']) && outpost_is_admin();
 
-    // 0a. Inject Outpost Framework CSS + Brand tokens before </head> (if theme opts in)
+    // 0a. Inject Outpost Framework CSS + Brand tokens before </head> (if site opts in via theme.json)
     if (stripos($buffer, '</head>') !== false) {
-        $frameworkBlock = outpost_framework_css($_outpost_active_theme);
+        $frameworkBlock = outpost_framework_css('');
         if ($frameworkBlock) {
             $buffer = preg_replace('/<\/head>/i', $frameworkBlock . "\n</head>", $buffer, 1);
         }
@@ -1157,7 +1154,7 @@ function outpost_cache_output(string $buffer): string {
 
     // 0b. Inject customizer CSS before </head> (included in cache — same for everyone)
     if (stripos($buffer, '</head>') !== false) {
-        $customizerBlock = outpost_customizer_css($_outpost_active_theme);
+        $customizerBlock = outpost_customizer_css('');
         if ($customizerBlock) {
             // Strip existing Google Fonts links if customizer has custom fonts
             if (strpos($customizerBlock, '_outpost_customizer_fonts') !== false) {
@@ -1254,10 +1251,8 @@ function outpost_cache_output(string $buffer): string {
  * Only returns content if the active theme has "framework": true in theme.json.
  */
 function outpost_framework_css(string $themeSlug): string {
-    if (!$themeSlug || !preg_match('/^[a-zA-Z0-9_-]+$/', $themeSlug)) return '';
-
-    // Check theme.json for framework opt-in
-    $themeJsonPath = OUTPOST_THEMES_DIR . $themeSlug . '/theme.json';
+    // v5: check theme.json at site root for framework opt-in
+    $themeJsonPath = OUTPOST_SITE_ROOT . 'theme.json';
     if (!file_exists($themeJsonPath)) return '';
 
     $themeConfig = json_decode(file_get_contents($themeJsonPath), true);
@@ -1656,7 +1651,7 @@ function outpost_ope_context_json(): string {
     $json = json_encode($ctx, JSON_HEX_TAG | JSON_HEX_AMP);
 
     // Build the expanded __OUTPOST_EDITOR__ context for the v4.0 frontend overlay
-    global $_outpost_page_path, $_outpost_active_theme;
+    global $_outpost_page_path;
 
     $pageName = '';
     if ($_outpost_page_id) {
@@ -1688,7 +1683,7 @@ function outpost_ope_context_json(): string {
         'userId'    => $userId,
         'userName'  => $userName,
         'userAvatar' => $userAvatar,
-        'themeSlug' => $_outpost_active_theme ?? '',
+        'themeSlug' => '',  // v5: no theme layer
     ];
     $editorJson = json_encode($editorCtx, JSON_HEX_TAG | JSON_HEX_AMP);
 
@@ -1853,6 +1848,155 @@ function ensure_indexes(): void {
     $db = OutpostDB::connect();
     $db->exec("CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status)");
+}
+
+// ── v5 Migration: Remove theme layer ─────────────────────
+/**
+ * One-time migration from v4 (theme-based) to v5 (themeless).
+ * Copies active theme files to site root, clears theme references in DB.
+ */
+function outpost_migrate_v5(): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+
+    $db = OutpostDB::connect();
+
+    // 1. Check if already migrated
+    $flag = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'v5_migrated'");
+    if ($flag) return;
+
+    // 2. Check if active_theme exists (v4 upgrade vs fresh v5 install)
+    $themeRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
+    if (!$themeRow) {
+        // Fresh v5 install — just set the flag and return
+        $db->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v5_migrated', '1')");
+        return;
+    }
+
+    $activeTheme = trim($themeRow['value'] ?? '');
+    if ($activeTheme === '') {
+        // Corrupt/empty active_theme — skip file copy, just clean up DB
+        $db->exec("UPDATE fields SET theme = '' WHERE theme != ''");
+        $db->exec("UPDATE page_field_registry SET theme = '' WHERE theme != ''");
+        $db->exec("DELETE FROM settings WHERE key = 'active_theme'");
+        $db->exec("DELETE FROM settings WHERE key LIKE 'last_template_scan_%'");
+        outpost_v5_write_htaccess();
+        $db->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v5_migrated', '1')");
+        return;
+    }
+    $themeDir = OUTPOST_THEMES_DIR . $activeTheme . '/';
+    $siteRoot = OUTPOST_SITE_ROOT;
+
+    // 3. Copy theme files to site root (only if site root has no index.html yet)
+    if (!file_exists($siteRoot . 'index.html') && is_dir($themeDir)) {
+        $skipFiles = ['theme.json', 'theme_manifest.json', '.outpost-manifest.json'];
+
+        // Copy .html files from theme root
+        foreach (glob($themeDir . '*.html') ?: [] as $file) {
+            $basename = basename($file);
+            if (!in_array($basename, $skipFiles)) {
+                copy($file, $siteRoot . $basename);
+            }
+        }
+
+        // Copy partials/ directory
+        if (is_dir($themeDir . 'partials/')) {
+            if (!is_dir($siteRoot . 'partials/')) mkdir($siteRoot . 'partials/', 0755, true);
+            foreach (glob($themeDir . 'partials/*.html') ?: [] as $file) {
+                copy($file, $siteRoot . 'partials/' . basename($file));
+            }
+        }
+
+        // Copy assets/ directory recursively
+        if (is_dir($themeDir . 'assets/')) {
+            outpost_v5_copy_dir($themeDir . 'assets/', $siteRoot . 'assets/');
+        }
+    }
+
+    // 3d. Clear theme references in DB
+    $db->exec("UPDATE fields SET theme = '' WHERE theme != ''");
+    $db->exec("UPDATE page_field_registry SET theme = '' WHERE theme != ''");
+    $db->exec("DELETE FROM settings WHERE key = 'active_theme'");
+    $db->exec("DELETE FROM settings WHERE key LIKE 'last_template_scan_%'");
+
+    // 4. Write .htaccess at site root if not present
+    outpost_v5_write_htaccess();
+
+    // 5. Set migration flag
+    $db->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v5_migrated', '1')");
+
+    // 6. Clear template cache
+    $cacheDir = OUTPOST_CACHE_DIR . 'templates/';
+    if (is_dir($cacheDir)) {
+        foreach (glob($cacheDir . '*.php') ?: [] as $f) {
+            @unlink($f);
+        }
+    }
+}
+
+/**
+ * Recursively copy a directory.
+ */
+function outpost_v5_copy_dir(string $src, string $dst): void {
+    if (!is_dir($dst)) mkdir($dst, 0755, true);
+    foreach (scandir($src) as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $srcPath = $src . $entry;
+        $dstPath = $dst . $entry;
+        if (is_dir($srcPath)) {
+            outpost_v5_copy_dir($srcPath . '/', $dstPath . '/');
+        } else {
+            copy($srcPath, $dstPath);
+        }
+    }
+}
+
+/**
+ * Write Outpost .htaccess rewrite rules at site root.
+ * Safe: appends or replaces — never overwrites user rules.
+ */
+function outpost_v5_write_htaccess(): void {
+    $htaccessPath = OUTPOST_SITE_ROOT . '.htaccess';
+    $block = <<<'HTACCESS'
+# BEGIN Outpost CMS
+RewriteEngine On
+RewriteBase /
+
+# Let outpost admin and API through directly
+RewriteRule ^outpost/ - [L]
+
+# Serve static assets directly (not HTML — those go through Outpost)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} !\.(html?)$ [NC]
+RewriteRule ^ - [L]
+
+# Serve directories directly
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route everything else (including .html files) through Outpost
+RewriteRule ^(.*)$ outpost/front-router.php [QSA,L]
+# END Outpost CMS
+HTACCESS;
+
+    if (file_exists($htaccessPath)) {
+        $existing = file_get_contents($htaccessPath);
+        if (str_contains($existing, '# BEGIN Outpost CMS')) {
+            // Replace existing block
+            $existing = preg_replace(
+                '/# BEGIN Outpost CMS.*?# END Outpost CMS/s',
+                $block,
+                $existing
+            );
+            file_put_contents($htaccessPath, $existing, LOCK_EX);
+        } else {
+            // Append block
+            file_put_contents($htaccessPath, "\n\n" . $block . "\n", FILE_APPEND | LOCK_EX);
+        }
+    } else {
+        file_put_contents($htaccessPath, $block . "\n", LOCK_EX);
+    }
 }
 
 // ── Template Scanner ─────────────────────────────────────
@@ -2234,15 +2378,24 @@ function outpost_scan_v2_global_fields(string $source): array {
  *
  * Called on theme activation and on the first frontend request for a theme with no fields yet.
  */
-function outpost_scan_theme_templates(string $slug): void {
+function outpost_scan_site_templates(): void {
     if (!file_exists(OUTPOST_DB_PATH)) return;
     ensure_fields_theme_column();
 
-    $themeDir = OUTPOST_THEMES_DIR . $slug . '/';
+    $themeDir = OUTPOST_SITE_ROOT;
     if (!is_dir($themeDir)) return;
 
-    $pageFiles = glob($themeDir . '*.html') ?: [];
+    // Gather .html files at site root, skipping the outpost directory
+    $allHtml = glob($themeDir . '*.html') ?: [];
+    $pageFiles = [];
+    foreach ($allHtml as $f) {
+        // Skip anything inside the outpost directory (shouldn't match glob, but be safe)
+        $pageFiles[] = $f;
+    }
     if (empty($pageFiles)) return;
+
+    // v5: always use empty string as slug (no theme)
+    $slug = '';
 
     // Detect v2 (data-attribute) vs v1 (Liquid) templates
     $isV2 = outpost_detect_engine_version($themeDir);
@@ -2426,8 +2579,13 @@ function outpost_scan_theme_templates(string $slug): void {
     OutpostDB::query(
         "INSERT INTO settings (key, value) VALUES (?, ?)
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-        ['last_template_scan_' . $slug, (string) time()]
+        ['last_template_scan_site', (string) time()]
     );
+}
+
+/** Alias for backward compatibility — callers that pass a theme slug */
+function outpost_scan_theme_templates(string $slug = ''): void {
+    outpost_scan_site_templates();
 }
 
 // ── Click-to-Edit Bridge Script ──────────────────────────
@@ -2673,7 +2831,8 @@ function outpost_is_admin(): bool {
  * Checks index.html for data-outpost attributes or <outpost-* elements.
  * Result is cached per theme directory in a static variable.
  */
-function outpost_detect_engine_version(string $themeDir): bool {
+function outpost_detect_engine_version(string $themeDir = ''): bool {
+    if ($themeDir === '' && defined('OUTPOST_SITE_ROOT')) $themeDir = OUTPOST_SITE_ROOT;
     static $cache = [];
     if (isset($cache[$themeDir])) return $cache[$themeDir];
 

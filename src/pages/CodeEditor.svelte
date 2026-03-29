@@ -18,7 +18,7 @@
   import ForgeMeta       from '$components/ce/ForgeMeta.svelte';
   import ForgeForm       from '$components/ce/ForgeForm.svelte';
   import ForgeMenuLoop   from '$components/ce/ForgeMenuLoop.svelte';
-  import ForgeTheme      from '$components/ce/ForgeTheme.svelte';
+
   import TemplateRefPanel from '$components/ce/TemplateRefPanel.svelte';
   import ForgeComponent  from '$components/ce/ForgeComponent.svelte';
   import ForgeAsset      from '$components/ce/ForgeAsset.svelte';
@@ -68,7 +68,6 @@
   let forgeMenu       = $state(null);  // { x, y, from, to, text, detection }
   let forgePopover    = $state(null);  // { type, x, y, from, to, text, detection }
   let forgeContext    = $state(null);  // { globals, collections, forms, menus, folders }
-  let forgeThemeWizard = $state(null); // { folder } or null
   let smartForging    = $state(false);
   let smartForgeResult = $state(null);
   let forgeAiAvailable = $state(false);
@@ -192,13 +191,6 @@
     if (!activeTab) return '';
     const parts = activeTab.path.split('/');
     return parts.length > 1 ? parts[0] : '';
-  });
-
-  let hasThemeJson = $derived.by(() => {
-    if (!activeThemeFolder) return true;
-    const themeDir = tree.find(n => n.type === 'directory' && n.name === activeThemeFolder);
-    if (!themeDir?.children) return true;
-    return themeDir.children.some(c => c.name === 'theme.json');
   });
 
   // List of existing partial names (without .html) for the active theme
@@ -764,21 +756,9 @@
     openFile({ path: filePath, name, type: 'file' }, null, true);
   }
 
-  function handleForgeThemeOpen() {
-    forgeMenu = null;
-    forgePopover = null;
-    forgeThemeWizard = { folder: activeThemeFolder };
-  }
-
-  async function handleForgeThemeCreated(folder) {
-    forgeThemeWizard = null;
-    await loadTree();
-    addToast(`Theme created! Activate it in Settings → Themes.`, 'success');
-  }
-
   async function handleForgeReset() {
     if (!activeThemeFolder) return;
-    if (!confirm(`Reset "${activeThemeFolder}" to its original state? This will undo all your changes and remove theme.json.`)) return;
+    if (!confirm(`Reset "${activeThemeFolder}" to its original state? This will undo all your changes.`)) return;
     try {
       await codeApi.reset(activeThemeFolder);
       // Close all tabs from this folder
@@ -789,11 +769,6 @@
     } catch (err) {
       addToast(err.message || 'Reset failed', 'error');
     }
-  }
-
-  function handleForgeThemeClose() {
-    forgeThemeWizard = null;
-    editorView?.focus();
   }
 
   const forgePopoverTitles = {
@@ -910,16 +885,6 @@
       </div>
     </div>
 
-    <!-- Forge a Theme banner — shown when file's folder has no theme.json -->
-    {#if activeTab && !hasThemeJson && activeThemeFolder}
-      <div class="forge-banner">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        <span>This folder has HTML files but no <code>theme.json</code>. Ready to make it a theme?</span>
-        <button class="forge-banner-link" onclick={handleForgeReset}>Reset</button>
-        <button class="forge-banner-btn" onclick={handleForgeThemeOpen}>Forge Theme</button>
-      </div>
-    {/if}
-
     <!-- Editor wrap — always in DOM so editorView.dom stays attached -->
     <div class="ce-editor-wrap" class:hidden={!activeTab} bind:this={editorContainer}></div>
 
@@ -962,7 +927,7 @@
 </div>
 
 <!-- Forge context menu -->
-<ForgeMenu menu={forgeMenu} showForgeTheme={!hasThemeJson && !!activeThemeFolder} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={handleForgeThemeOpen} onComponent={() => { forgeMenu = null; showComponentBrowser = true; }} onAsset={() => { forgeMenu = null; showAssetBrowser = true; }} onClose={() => forgeMenu = null} />
+<ForgeMenu menu={forgeMenu} showForgeTheme={false} onSelect={handleForgeMenuSelect} onUsePartial={handleUsePartial} onForgeTheme={() => {}} onComponent={() => { forgeMenu = null; showComponentBrowser = true; }} onAsset={() => { forgeMenu = null; showAssetBrowser = true; }} onClose={() => forgeMenu = null} />
 
 <!-- Forge popovers -->
 {#if forgePopover}
@@ -1025,22 +990,6 @@
         onCancel={handleForgeClose}
       />
     {/if}
-  </ForgePopover>
-{/if}
-
-<!-- Forge Theme wizard -->
-{#if forgeThemeWizard}
-  <ForgePopover
-    x={Math.round(window.innerWidth / 2 - 160)}
-    y={120}
-    title="Forge Theme"
-    onClose={handleForgeThemeClose}
-  >
-    <ForgeTheme
-      themeFolder={forgeThemeWizard.folder}
-      onCreated={handleForgeThemeCreated}
-      onCancel={handleForgeThemeClose}
-    />
   </ForgePopover>
 {/if}
 

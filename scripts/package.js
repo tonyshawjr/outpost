@@ -7,11 +7,10 @@
  * Or:    npm run package
  */
 
-import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync, symlinkSync, statSync } from 'fs';
-import { resolve, dirname, relative, join } from 'path';
+import { cpSync, mkdirSync, existsSync, writeFileSync, rmSync, readdirSync, readFileSync, symlinkSync } from 'fs';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import { createHash } from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -77,61 +76,17 @@ writeFileSync(
 );
 console.log('  Created content/uploads/.htaccess');
 
-// content/themes/ — copy starter themes
-const themesSrc = resolve(PHP_DIR, 'themes');
-if (existsSync(themesSrc)) {
-  cpSync(themesSrc, resolve(CONTENT_DIR, 'themes'), { recursive: true });
-  console.log('  Copied content/themes/ (forge-playground)');
-
-  // Generate .outpost-manifest.json for managed themes
-  const themesDestDir = resolve(CONTENT_DIR, 'themes');
-  for (const themeSlug of readdirSync(themesDestDir)) {
-    const themeDir = resolve(themesDestDir, themeSlug);
-    if (!statSync(themeDir).isDirectory()) continue;
-
-    const themeJsonPath = resolve(themeDir, 'theme.json');
-    if (!existsSync(themeJsonPath)) continue;
-
-    const themeJson = JSON.parse(readFileSync(themeJsonPath, 'utf8'));
-    if (!themeJson.managed) continue;
-
-    // Hash all files in the theme directory
-    const manifest = {};
-    function hashDir(dir, base) {
-      for (const entry of readdirSync(dir)) {
-        if (entry === '.outpost-manifest.json') continue;
-        const fullPath = resolve(dir, entry);
-        const relPath = relative(base, fullPath);
-        if (statSync(fullPath).isDirectory()) {
-          hashDir(fullPath, base);
-        } else {
-          const hash = createHash('md5').update(readFileSync(fullPath)).digest('hex');
-          manifest[relPath] = hash;
-        }
-      }
-    }
-    hashDir(themeDir, themeDir);
-
-    writeFileSync(resolve(themeDir, '.outpost-manifest.json'), JSON.stringify(manifest, null, 2));
-    console.log(`  Generated .outpost-manifest.json for ${themeSlug} (${Object.keys(manifest).length} files)`);
-  }
-} else {
-  mkdirSync(resolve(CONTENT_DIR, 'themes'), { recursive: true });
-  console.warn('  Warning: themes/ not found, created empty content/themes/');
-}
-
 // content/backups/ — backup storage, deny all web access
 mkdirSync(resolve(CONTENT_DIR, 'backups'), { recursive: true });
 writeFileSync(resolve(CONTENT_DIR, 'backups', '.htaccess'), 'Deny from all\n');
 console.log('  Created content/backups/.htaccess');
 
-// URL-compatible symlinks: outpost/uploads → outpost/content/uploads, outpost/themes → outpost/content/themes
+// URL-compatible symlink: outpost/uploads → outpost/content/uploads
 try {
   symlinkSync('content/uploads', resolve(DIST_DIR, 'uploads'));
-  symlinkSync('content/themes', resolve(DIST_DIR, 'themes'));
-  console.log('  Created symlinks: uploads → content/uploads, themes → content/themes');
+  console.log('  Created symlink: uploads → content/uploads');
 } catch (err) {
-  console.warn('  Warning: Could not create symlinks (may need admin privileges on Windows)');
+  console.warn('  Warning: Could not create symlink (may need admin privileges on Windows)');
 }
 
 // cache/ — compiled templates, deny all web access (outside content/)

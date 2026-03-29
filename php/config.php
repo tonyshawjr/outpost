@@ -3,10 +3,11 @@
  * Outpost CMS — Configuration
  */
 
-define('OUTPOST_VERSION', '4.13.8');
+define('OUTPOST_VERSION', '5.0.0');
 
 // Paths (resolved relative to this file's location)
 define('OUTPOST_DIR', __DIR__ . '/');
+define('OUTPOST_SITE_ROOT', dirname(OUTPOST_DIR) . '/');
 
 // Content directory (user data)
 define('OUTPOST_CONTENT_DIR', OUTPOST_DIR . 'content/');

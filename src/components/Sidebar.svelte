@@ -305,14 +305,6 @@
         {#if showSettings}
           <button
             class="sidebar-item"
-            class:active={route === 'themes' || route === 'theme-customizer'}
-            onclick={() => nav('themes')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            Themes
-          </button>
-          <button
-            class="sidebar-item"
             class:active={route === 'brand'}
             onclick={() => nav('brand')}
           >

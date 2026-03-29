@@ -15,7 +15,17 @@ $path    = parse_url($uri, PHP_URL_PATH);
 $docRoot = $_SERVER['DOCUMENT_ROOT'];
 
 // ── 1. Static assets — serve directly (non-PHP only) ─────
-if ($path !== '/' && file_exists($docRoot . $path) && is_file($docRoot . $path)) {
+// SECURITY: Never serve sensitive outpost engine files as static assets.
+// On Apache, .htaccess Deny rules protect these; on PHP built-in server,
+// we must block them here since return false would serve them raw.
+// Case-insensitive check to handle case-insensitive filesystems (macOS HFS+)
+$_sensitiveOutpostDirs = ['/outpost/content/', '/outpost/data/', '/outpost/cache/', '/outpost/backups/'];
+$_isSensitiveOutpost = false;
+$_pathLower = strtolower($path);
+foreach ($_sensitiveOutpostDirs as $_sd) {
+    if (str_starts_with($_pathLower, $_sd)) { $_isSensitiveOutpost = true; break; }
+}
+if ($path !== '/' && !$_isSensitiveOutpost && file_exists($docRoot . $path) && is_file($docRoot . $path)) {
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     if ($ext !== 'php') {
         // Set Boost browser caching headers on static assets
@@ -33,9 +43,9 @@ if ($path !== '/' && file_exists($docRoot . $path) && is_file($docRoot . $path))
 }
 
 // ── 2. /outpost/ admin paths ──────────────────────────────
-if (str_starts_with($path, '/outpost') || $path === '/outpost') {
+if (str_starts_with($_pathLower, '/outpost') || $_pathLower === '/outpost') {
     // Redirect bare /outpost → /outpost/ so relative asset paths resolve correctly
-    if ($path === '/outpost') {
+    if ($_pathLower === '/outpost') {
         header('Location: /outpost/');
         exit;
     }
@@ -147,24 +157,18 @@ if (preg_match('#^/([a-z0-9_-]+)/feed(?:\.xml)?$#', $path, $feedMatch)) {
     return true;
 }
 
-// Resolve active theme
-$themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-$activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'forge-playground';
-$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
+// Resolve site root (v5: no theme layer — site root is the content source)
+$themeDir = OUTPOST_SITE_ROOT;
 
-// ── PHP theme (legacy) ────────────────────────────────────
-if (file_exists($themeDir . '/index.php')) {
-    require $themeDir . '/index.php';
-    return true;
-}
-
-// ── HTML theme (.html files via template engine) ─────────
-if (!file_exists($themeDir . '/index.html')) {
+// ── HTML templates at site root ──────────────────────────
+if (!file_exists($themeDir . 'index.html')) {
     http_response_code(503);
-    echo '<h1>Theme not found</h1>';
-    echo '<p>Active theme <code>' . htmlspecialchars($activeTheme) . '</code> has no <code>index.html</code> or <code>index.php</code>.</p>';
+    echo '<h1>index.html not found at site root</h1>';
+    echo '<p>Expected <code>index.html</code> at <code>' . htmlspecialchars(rtrim($themeDir, '/')) . '</code>.</p>';
     return true;
 }
+// Normalize: ensure $themeDir does NOT have trailing slash for path concatenation
+$themeDir = rtrim($themeDir, '/');
 
 require_once $outpostDir . '/engine.php';
 

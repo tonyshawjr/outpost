@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.0] — 2026-03-29
+
+### Changed
+- **BREAKING: Removed theme layer** — Site root is now the content source. Outpost is just a `/outpost/` folder alongside your HTML files. No more `content/themes/`, no `active_theme` setting, no theme switching.
+- **Code editor scoped to site root** — Shows all files at site root, excludes `outpost/` engine directory.
+- **Forge scans site root** — Smart Forge operates on HTML files at site root instead of theme directories.
+- **Updater simplified** — Updates only touch `outpost/` core files. User site files are never modified by the updater.
+- **Sync API v2** — Pull/push operates on site root files. Paths are relative to root (e.g., `index.html` not `themes/slug/index.html`).
+- **Installer writes `.htaccess`** — Rewrite rules route HTML through Outpost while serving static assets directly.
+- **Auto-migration** — Existing v4 sites automatically migrate: active theme files copied to site root, field data unified, `.htaccess` created.
+
+### Removed
+- **Themes page** — No theme management UI (create, duplicate, upload, activate, delete, export).
+- **Customizer** — Removed entirely. CSS variables managed by developers directly.
+- **Theme Gallery** — Removed from roadmap.
+- **Managed theme updates** — No `.outpost-manifest.json` conflict detection.
+
+### Security
+- Block sensitive outpost paths on PHP dev server (database file disclosure)
+- Case-insensitive filesystem bypass protection for `/outpost/` routing
+- Null byte injection protection in code editor and Ranger path validation
+- Precise prefix matching prevents false positives on `outpost-*` sibling directories
+- Dot-segment bypass protection for `outpost/` checks
+- Empty active_theme guard in v5 migration
+
+---
+
 ## [4.13.8] — 2026-03-29
 
 ### Changed

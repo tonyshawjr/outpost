@@ -762,7 +762,7 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
         // ── All roles ──
         [
             'name' => 'get_site_info',
-            'description' => 'Get site settings, collections list, active theme, and other site information.',
+            'description' => 'Get site settings, collections list, and other site information.',
             'parameters' => ['type' => 'object', 'properties' => new \stdClass(), 'required' => []],
             'required_capability' => null,
         ],
@@ -838,18 +838,12 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
 
         // ── Developer+ (code.*) ──
         [
-            'name' => 'list_themes',
-            'description' => 'List all installed themes with their metadata.',
-            'parameters' => ['type' => 'object', 'properties' => new \stdClass(), 'required' => []],
-            'required_capability' => 'code.*',
-        ],
-        [
             'name' => 'read_file',
-            'description' => 'Read a file from the themes directory. Path is relative to the themes root.',
+            'description' => 'Read a file from the site root. Path is relative to site root (e.g. "index.html", "css/style.css"). Cannot read files inside outpost/.',
             'parameters' => [
                 'type' => 'object',
                 'properties' => [
-                    'path' => ['type' => 'string', 'description' => 'File path relative to themes directory (e.g. "my-theme/index.html")'],
+                    'path' => ['type' => 'string', 'description' => 'File path relative to site root (e.g. "index.html", "partials/nav.html")'],
                 ],
                 'required' => ['path'],
             ],
@@ -857,11 +851,11 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
         ],
         [
             'name' => 'write_file',
-            'description' => 'Write or update a file in the themes directory. Creates parent directories if needed.',
+            'description' => 'Write or update a file in the site root. Creates parent directories if needed. Cannot write to outpost/.',
             'parameters' => [
                 'type' => 'object',
                 'properties' => [
-                    'path' => ['type' => 'string', 'description' => 'File path relative to themes directory'],
+                    'path' => ['type' => 'string', 'description' => 'File path relative to site root'],
                     'content' => ['type' => 'string', 'description' => 'File content to write'],
                 ],
                 'required' => ['path', 'content'],
@@ -870,11 +864,11 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
         ],
         [
             'name' => 'delete_file',
-            'description' => 'Delete a file from the themes directory.',
+            'description' => 'Delete a file from the site root. Cannot delete files inside outpost/.',
             'parameters' => [
                 'type' => 'object',
                 'properties' => [
-                    'path' => ['type' => 'string', 'description' => 'File path relative to themes directory'],
+                    'path' => ['type' => 'string', 'description' => 'File path relative to site root'],
                 ],
                 'required' => ['path'],
             ],
@@ -1067,21 +1061,6 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
                     'folder_id' => ['type' => 'integer'],
                     'name' => ['type' => 'string'],
                     'slug' => ['type' => 'string'],
-                ],
-                'required' => ['action'],
-            ],
-            'required_capability' => 'settings.*',
-        ],
-        [
-            'name' => 'manage_theme',
-            'description' => 'Create, duplicate, activate, or delete a theme.',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'action' => ['type' => 'string', 'enum' => ['create', 'activate', 'duplicate', 'delete']],
-                    'name' => ['type' => 'string'],
-                    'slug' => ['type' => 'string'],
-                    'source' => ['type' => 'string', 'description' => 'Source theme slug for duplicate action'],
                 ],
                 'required' => ['action'],
             ],
@@ -1329,7 +1308,7 @@ function ranger_get_tools(array $userCaps, string $intent = 'full'): array {
     if ($intent !== 'full') {
         $intentTools = [
             'ui' => ['frontend_action', 'get_site_info', 'update_settings'],
-            'build' => ['get_site_info', 'list_content', 'search_docs', 'list_themes', 'read_file', 'write_file', 'delete_file', 'clear_cache', 'manage_theme', 'upload_media', 'create_collection', 'create_item', 'manage_menu', 'frontend_action', 'debug_template', 'manage_channel', 'forge_scan'],
+            'build' => ['get_site_info', 'list_content', 'search_docs', 'read_file', 'write_file', 'delete_file', 'clear_cache', 'upload_media', 'create_collection', 'create_item', 'manage_menu', 'frontend_action', 'debug_template', 'manage_channel', 'forge_scan'],
             'content' => ['get_site_info', 'list_content', 'create_item', 'update_item', 'manage_items_bulk', 'update_fields', 'create_collection', 'manage_collection', 'list_folders', 'manage_folder', 'manage_label', 'search_docs', 'frontend_action', 'manage_email', 'manage_releases', 'manage_workflows', 'manage_comments'],
         ];
         $allowed = $intentTools[$intent] ?? null;
@@ -1409,8 +1388,6 @@ function ranger_execute_tool(string $name, mixed $input): array {
                 return ranger_tool_update_item($input);
             case 'search_docs':
                 return ranger_tool_search_docs($input);
-            case 'list_themes':
-                return ranger_tool_list_themes();
             case 'read_file':
                 return ranger_tool_read_file($input);
             case 'write_file':
@@ -1437,8 +1414,6 @@ function ranger_execute_tool(string $name, mixed $input): array {
                 return ranger_tool_manage_folder($input);
             case 'manage_label':
                 return ranger_tool_manage_label($input);
-            case 'manage_theme':
-                return ranger_tool_manage_theme($input);
             case 'list_forms':
                 return ranger_tool_list_forms();
             case 'manage_form':
@@ -1510,19 +1485,10 @@ function ranger_tool_get_site_info(): array {
         ];
     }
 
-    $activeTheme = $settings['active_theme'] ?? 'forge-playground';
-    $themeJsonPath = OUTPOST_THEMES_DIR . $activeTheme . '/theme.json';
-    $themeInfo = null;
-    if (file_exists($themeJsonPath)) {
-        $themeInfo = json_decode(file_get_contents($themeJsonPath), true);
-    }
-
     return [
         'version' => OUTPOST_VERSION,
         'settings' => $settings,
         'collections' => $collectionsSummary,
-        'active_theme' => $activeTheme,
-        'theme_info' => $themeInfo,
     ];
 }
 
@@ -1662,40 +1628,35 @@ function ranger_tool_search_docs(array $input): array {
     return ['results' => $results];
 }
 
-function ranger_tool_list_themes(): array {
-    $themesDir = OUTPOST_THEMES_DIR;
-    if (!is_dir($themesDir)) return ['themes' => []];
+// Theme listing removed — v5.0 uses site root directly, no theme layer.
 
-    $themes = [];
-    foreach (scandir($themesDir) as $dir) {
-        if ($dir === '.' || $dir === '..') continue;
-        $themeDir = $themesDir . $dir;
-        if (!is_dir($themeDir)) continue;
-        $meta = ['slug' => $dir];
-        $jsonPath = $themeDir . '/theme.json';
-        if (file_exists($jsonPath)) {
-            $json = json_decode(file_get_contents($jsonPath), true);
-            if ($json) $meta = array_merge($meta, $json);
-        }
-        $themes[] = $meta;
-    }
-
-    $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    return ['themes' => $themes, 'active_theme' => $activeTheme['value'] ?? 'forge-playground'];
-}
-
-function ranger_validate_theme_path(string $path): string {
+function ranger_validate_site_path(string $path): string {
     $path = str_replace('\\', '/', $path);
+    if (str_contains($path, "\x00")) {
+        throw new RuntimeException('Invalid path');
+    }
     if (str_contains($path, '..') || str_starts_with($path, '/')) {
         throw new RuntimeException('Invalid path: directory traversal not allowed');
     }
-    $fullPath = OUTPOST_THEMES_DIR . $path;
-    $realBase = realpath(OUTPOST_THEMES_DIR);
+    // Normalize ./segments to prevent bypass
+    $path = preg_replace('#(^|/)\./#', '$1', $path);
+    // Reject paths targeting outpost/ directory
+    if (str_starts_with($path, 'outpost/') || $path === 'outpost') {
+        throw new RuntimeException('Cannot access the outpost/ directory');
+    }
+    $fullPath = OUTPOST_SITE_ROOT . $path;
+    $realBase = realpath(OUTPOST_SITE_ROOT);
     // For new files, check parent
     $checkPath = file_exists($fullPath) ? $fullPath : dirname($fullPath);
     $realCheck = realpath($checkPath);
-    if ($realBase === false || $realCheck === false || !str_starts_with($realCheck, $realBase)) {
-        throw new RuntimeException('Path is outside the themes directory');
+    $realBase = $realBase ? rtrim($realBase, '/') : false;
+    if ($realBase === false || $realCheck === false || (!str_starts_with($realCheck, $realBase . '/') && $realCheck !== $realBase)) {
+        throw new RuntimeException('Path is outside the site root');
+    }
+    // Double-check resolved path is not inside outpost/
+    $outpostDir = $realBase . '/outpost';
+    if (str_starts_with($realCheck, $outpostDir . '/') || $realCheck === $outpostDir) {
+        throw new RuntimeException('Cannot access the outpost/ directory');
     }
     return $fullPath;
 }
@@ -1704,7 +1665,7 @@ function ranger_tool_read_file(array $input): array {
     $path = $input['path'] ?? '';
     if (!$path) return ['error' => 'path is required'];
 
-    $fullPath = ranger_validate_theme_path($path);
+    $fullPath = ranger_validate_site_path($path);
     if (!file_exists($fullPath)) return ['error' => "File not found: $path"];
     if (!is_file($fullPath)) return ['error' => "Not a file: $path"];
 
@@ -1727,7 +1688,7 @@ function ranger_tool_write_file(array $input): array {
         return ['error' => 'File content exceeds 1MB limit'];
     }
 
-    $fullPath = ranger_validate_theme_path($path);
+    $fullPath = ranger_validate_site_path($path);
     $dir = dirname($fullPath);
     if (!is_dir($dir)) {
         mkdir($dir, 0755, true);
@@ -1743,7 +1704,7 @@ function ranger_tool_delete_file(array $input): array {
     $path = $input['path'] ?? '';
     if (!$path) return ['error' => 'path is required'];
 
-    $fullPath = ranger_validate_theme_path($path);
+    $fullPath = ranger_validate_site_path($path);
     if (!file_exists($fullPath)) return ['error' => "File not found: $path"];
     if (!is_file($fullPath)) return ['error' => "Not a file: $path"];
 
@@ -2046,112 +2007,7 @@ function ranger_tool_manage_label(array $input): array {
     }
 }
 
-function ranger_tool_manage_theme(array $input): array {
-    $action = $input['action'] ?? '';
-
-    // Validate slugs to prevent path traversal
-    $slug = $input['slug'] ?? '';
-    if ($slug && !preg_match('/^[a-z0-9][a-z0-9-]*$/', $slug)) {
-        return ['error' => 'Invalid theme slug. Use lowercase letters, numbers, and hyphens only.'];
-    }
-    $source = $input['source'] ?? '';
-    if ($source && !preg_match('/^[a-z0-9][a-z0-9-]*$/', $source)) {
-        return ['error' => 'Invalid source slug.'];
-    }
-
-    switch ($action) {
-        case 'create':
-            $name = $input['name'] ?? '';
-            $slug = $input['slug'] ?? '';
-            if (!$name || !$slug) return ['error' => 'name and slug are required'];
-            $themeDir = OUTPOST_THEMES_DIR . $slug . '/';
-            if (is_dir($themeDir)) return ['error' => "Theme '$slug' already exists"];
-            mkdir($themeDir, 0755, true);
-            mkdir($themeDir . 'partials', 0755);
-            mkdir($themeDir . 'assets', 0755);
-            // Create theme.json
-            $themeJson = ['name' => $name, 'version' => '1.0.0', 'author' => ''];
-            file_put_contents($themeDir . 'theme.json', json_encode($themeJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            // Create minimal index.html
-            file_put_contents($themeDir . 'index.html', "<outpost-include partial=\"head\" />\n<outpost-include partial=\"nav\" />\n\n<main>\n  <h1 data-outpost=\"heading\">Welcome</h1>\n</main>\n\n<outpost-include partial=\"footer\" />\n");
-            // Create minimal partials
-            file_put_contents($themeDir . 'partials/head.html', "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <outpost-seo />\n  <link rel=\"stylesheet\" href=\"/outpost/themes/$slug/assets/style.css\">\n</head>\n<body>\n");
-            file_put_contents($themeDir . 'partials/nav.html', "<nav>\n  <a href=\"/\">Home</a>\n</nav>\n");
-            file_put_contents($themeDir . 'partials/footer.html', "<footer>\n  <p>&copy; <span data-outpost=\"site_name\" data-scope=\"global\">Site Name</span></p>\n</footer>\n</body>\n</html>\n");
-            file_put_contents($themeDir . 'assets/style.css', "/* Theme styles */\n* { margin: 0; padding: 0; box-sizing: border-box; }\nbody { font-family: system-ui, sans-serif; line-height: 1.6; }\n");
-            return ['success' => true, 'slug' => $slug];
-
-        case 'activate':
-            $slug = $input['slug'] ?? '';
-            if (!$slug) return ['error' => 'slug is required'];
-            if (!is_dir(OUTPOST_THEMES_DIR . $slug)) return ['error' => "Theme '$slug' not found"];
-            OutpostDB::query("INSERT OR REPLACE INTO settings (key, value) VALUES ('active_theme', ?)", [$slug]);
-            return ['success' => true, 'active_theme' => $slug];
-
-        case 'duplicate':
-            $source = $input['source'] ?? '';
-            $slug = $input['slug'] ?? '';
-            $name = $input['name'] ?? $slug;
-            if (!$source || !$slug) return ['error' => 'source and slug are required'];
-            $srcDir = OUTPOST_THEMES_DIR . $source;
-            $dstDir = OUTPOST_THEMES_DIR . $slug;
-            if (!is_dir($srcDir)) return ['error' => "Source theme '$source' not found"];
-            if (is_dir($dstDir)) return ['error' => "Theme '$slug' already exists"];
-            // Recursive copy
-            ranger_copy_dir($srcDir, $dstDir);
-            // Update theme.json name
-            $jsonPath = $dstDir . '/theme.json';
-            if (file_exists($jsonPath)) {
-                $json = json_decode(file_get_contents($jsonPath), true) ?? [];
-                $json['name'] = $name;
-                unset($json['managed']); // Duplicated themes are not managed
-                file_put_contents($jsonPath, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            }
-            return ['success' => true, 'slug' => $slug];
-
-        case 'delete':
-            $slug = $input['slug'] ?? '';
-            if (!$slug) return ['error' => 'slug is required'];
-            $themeDir = OUTPOST_THEMES_DIR . $slug;
-            if (!is_dir($themeDir)) return ['error' => "Theme '$slug' not found"];
-            // Don't delete active theme
-            $active = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-            if ($active && $active['value'] === $slug) return ['error' => 'Cannot delete the active theme'];
-            ranger_delete_dir($themeDir);
-            return ['success' => true, 'deleted' => $slug];
-
-        default:
-            return ['error' => "Invalid action: $action"];
-    }
-}
-
-function ranger_copy_dir(string $src, string $dst): void {
-    if (!is_dir($dst)) mkdir($dst, 0755, true);
-    foreach (scandir($src) as $item) {
-        if ($item === '.' || $item === '..') continue;
-        $s = $src . '/' . $item;
-        $d = $dst . '/' . $item;
-        if (is_dir($s)) {
-            ranger_copy_dir($s, $d);
-        } else {
-            copy($s, $d);
-        }
-    }
-}
-
-function ranger_delete_dir(string $dir): void {
-    if (!is_dir($dir)) return;
-    foreach (scandir($dir) as $item) {
-        if ($item === '.' || $item === '..') continue;
-        $path = $dir . '/' . $item;
-        if (is_dir($path)) {
-            ranger_delete_dir($path);
-        } else {
-            unlink($path);
-        }
-    }
-    rmdir($dir);
-}
+// Theme CRUD removed — v5.0 uses site root directly, no theme layer.
 
 function ranger_tool_list_forms(): array {
     $forms = OutpostDB::fetchAll('SELECT id, name, slug, fields, created_at FROM forms_builder ORDER BY name');
@@ -2610,7 +2466,7 @@ function ranger_tool_debug_template(array $input): array {
             // Read the template file and run it through the validator
             $path = $input['path'] ?? '';
             if (!$path) return ['error' => 'path is required'];
-            $fullPath = ranger_validate_theme_path($path);
+            $fullPath = ranger_validate_site_path($path);
             if (!file_exists($fullPath)) return ['error' => "File not found: $path"];
             $source = file_get_contents($fullPath);
 
@@ -2831,34 +2687,27 @@ Settings output as CSS vars (--bg-color, etc.) and data attributes on the next e
 In the frontend editor, the preview iframe loads pages with ?_outpost_editor=1. This keeps data-outpost attributes in the output and injects bridge JS before </body>. The bridge enables click-to-edit: hover shows field outlines, click jumps to the field in the sidebar. This is automatic — no developer action needed.
 
 ## Image Handling
-IMPORTANT — Images in themes/collections must use LOCAL uploads:
+IMPORTANT — Images in templates/collections must use LOCAL uploads:
   You HAVE the upload_media tool — use it to download images from URLs (Unsplash, etc) and upload them to the media library.
   Workflow: 1. upload_media with URL → local path  2. Store path in image fields  3. Template renders it
   ALWAYS upload images to the media library. Never use raw external URLs in templates or collection items.
 
-## Theme Architecture
-themes/slug/ → index.html, about.html, blog.html, post.html (single), partials/ (head.html, nav.html, footer.html), assets/ (style.css, main.js), theme.json
+## Site Architecture
+Site root contains templates directly — NO theme layer:
+site-root/ → index.html, about.html, blog.html, post.html (single), partials/ (head.html, nav.html, footer.html), assets/ (style.css, main.js)
+The outpost/ directory is the CMS engine — never write files there.
 Routing: / → index.html | /about → about.html | /blog/{slug} → post.html (via collection url_pattern)
 CRITICAL — Asset & Image URLs:
-  CSS:    /outpost/themes/THEME-SLUG/assets/style.css
-  JS:     /outpost/themes/THEME-SLUG/assets/main.js
+  CSS:    /assets/style.css (or /css/style.css — relative to site root)
+  JS:     /assets/main.js (or /js/main.js — relative to site root)
   Images: /outpost/uploads/filename.jpg
-  Favicon: /outpost/themes/THEME-SLUG/assets/favicon.ico
+  Favicon: /assets/favicon.ico
 
-WRONG (do NOT use these):
-  ❌ /outpost/content/themes/ — wrong path
-  ❌ Any dynamic variable for theme paths — none exist
-
-RIGHT:
-  ✅ /outpost/themes/my-theme/assets/style.css — hardcoded path with theme slug
-  ✅ /outpost/themes/my-theme/assets/main.js
-When creating a NEW theme, use that theme's slug in the path.
-
-## Theme Building Expertise
-When building themes, you are a senior front-end developer. You write production-quality code.
+## Site Building Expertise
+When building sites, you are a senior front-end developer. You write production-quality code.
 
 ### Structure Rules
-- ALWAYS create: theme.json, assets/style.css, assets/main.js, partials/head.html, partials/nav.html, partials/footer.html, then page templates
+- ALWAYS create: assets/style.css, assets/main.js, partials/head.html, partials/nav.html, partials/footer.html, then page templates
 - head.html: DOCTYPE, charset, viewport, <outpost-seo />, CSS link, Google Fonts if needed
 - nav.html: <outpost-menu name="main"> with link/label fields, mobile hamburger, logo via data-outpost="site_logo" data-type="image" data-scope="global"
 - footer.html: <outpost-menu name="footer">, <p data-outpost="footer_text" data-scope="global">, closing body/html tags
@@ -2971,7 +2820,7 @@ Outpost has built-in WP XML import (Settings > Import). It converts:
 - Categories/tags → folders/labels
 - Media → uploaded to Outpost media library
 - Content HTML preserved
-After import: create a theme, build templates that use the imported collections.
+After import: build templates at site root that use the imported collections.
 
 ### Content Strategy
 When creating collections, think about:
@@ -3016,10 +2865,10 @@ Built-in privacy-friendly analytics (no cookies, no external scripts):
 
 ## Admin Panel Navigation
 Navigate users with frontend_action tool, action "navigate":
-dashboard, analytics, calendar, pages, page-editor, media, globals, navigation, forms, collections, collection-items, collection-editor, channels, channel-builder, form-builder, folder-manager, themes, theme-customizer, brand, code-editor, template-reference, settings, backups, user-profile
+dashboard, analytics, calendar, pages, page-editor, media, globals, navigation, forms, collections, collection-items, collection-editor, channels, channel-builder, form-builder, folder-manager, brand, code-editor, template-reference, settings, backups, user-profile
 
 ## Current Site State
-Theme: {$siteContext['active_theme']} | Role: {$siteContext['user_role']}
+Role: {$siteContext['user_role']}
 Collections:
 {$collections}Pages:
 {$pages}Menus:
@@ -3027,24 +2876,23 @@ Collections:
 {$globals}
 
 ## Rules
-- Data-attribute templates only, never raw PHP in themes.
+- Data-attribute templates only, never raw PHP in site templates.
 - Always <outpost-include partial="name" /> for head, nav, footer.
 - Confirm before destructive actions.
-- Clear cache after theme file changes.
-- CRITICAL: Always finish what you start. Write ALL files (theme.json, CSS, JS, all partials, all pages). NEVER stop halfway.
-- File order: theme.json → assets/style.css → assets/main.js → partials/head.html → partials/nav.html → partials/footer.html → page templates.
+- Clear cache after template file changes.
+- CRITICAL: Always finish what you start. Write ALL files (CSS, JS, all partials, all pages). NEVER stop halfway.
+- File order: assets/style.css → assets/main.js → partials/head.html → partials/nav.html → partials/footer.html → page templates.
 - frontend_action: set_dark_mode {enabled:true/false}, toggle_dark_mode, navigate {page:"dashboard"}, refresh_page.
 - You ARE the product expert. Answer with authority.
 - NEVER invent or guess template variables, tags, or URL patterns. If something isn't documented in this prompt, use search_docs BEFORE writing code. Getting syntax wrong breaks the site. When in doubt, search first.
-- Before building a theme, ALWAYS use read_file to check an existing theme's head.html to see the correct asset URL pattern. Don't assume.
+- Before building a site, ALWAYS use read_file to check the existing head.html to see the correct asset URL pattern. Don't assume.
+- NEVER write files into the outpost/ directory. That is the CMS engine — off limits.
 PROMPT;
 }
 
 // ── Site Context Builder ────────────────────────────────
 
 function ranger_get_site_context(): array {
-    $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-
     $collections = OutpostDB::fetchAll('SELECT id, slug, name, singular_name, url_pattern, schema FROM collections ORDER BY name');
     $collectionsSummary = [];
     foreach ($collections as $c) {
@@ -3073,7 +2921,6 @@ function ranger_get_site_context(): array {
     }
 
     return [
-        'active_theme' => $activeTheme['value'] ?? 'forge-playground',
         'collections' => $collectionsSummary,
         'pages' => $pages,
         'menus' => $menus,

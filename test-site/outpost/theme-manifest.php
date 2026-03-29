@@ -1,8 +1,8 @@
 <?php
 /**
- * Outpost CMS — Theme Manifest Builder
+ * Outpost CMS — Site Manifest Builder
  *
- * Scans all template files in a theme and builds a manifest of:
+ * Scans all template files at OUTPOST_SITE_ROOT and builds a manifest of:
  * - Page fields used (per template file / page path)
  * - Global fields used (@prefixed)
  * - Collections referenced
@@ -14,17 +14,15 @@
 require_once __DIR__ . '/config.php';
 
 /**
- * Build a theme manifest by scanning all template files.
+ * Build a site manifest by scanning all template files at OUTPOST_SITE_ROOT.
  *
- * @param string $themeSlug  The theme directory name
  * @return array  The manifest structure
  */
-function outpost_build_theme_manifest(string $themeSlug): array {
-    $themeDir = OUTPOST_THEMES_DIR . $themeSlug . '/';
-    if (!is_dir($themeDir)) return [];
+function outpost_build_site_manifest(): array {
+    $siteRoot = OUTPOST_SITE_ROOT;
+    if (!is_dir($siteRoot)) return [];
 
     $manifest = [
-        'theme' => $themeSlug,
         'pages' => [],
         'globals' => [],
         'collections' => [],
@@ -35,7 +33,7 @@ function outpost_build_theme_manifest(string $themeSlug): array {
     ];
 
     // Collect all .html files
-    $files = outpost_manifest_glob_html($themeDir);
+    $files = outpost_manifest_glob_html($siteRoot);
 
     // First pass: scan all files including partials
     $partialFields = [];   // Fields found in partials (global scope)
@@ -46,7 +44,7 @@ function outpost_build_theme_manifest(string $themeSlug): array {
     $partialBlocks = [];   // Blocks found in partials (global scope — nav, footer, etc.)
 
     foreach ($files as $relPath) {
-        $fullPath = $themeDir . $relPath;
+        $fullPath = $siteRoot . $relPath;
         if (!file_exists($fullPath)) continue;
 
         $source = file_get_contents($fullPath);
@@ -117,8 +115,8 @@ function outpost_build_theme_manifest(string $themeSlug): array {
     $manifest['menus'] = array_values(array_unique($allMenus));
     $manifest['partials'] = array_values(array_unique($manifest['partials']));
 
-    // Save to theme directory
-    $manifestPath = $themeDir . 'theme_manifest.json';
+    // Save to site root as dotfile
+    $manifestPath = $siteRoot . '.outpost-site-manifest.json';
     file_put_contents(
         $manifestPath,
         json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
@@ -128,14 +126,23 @@ function outpost_build_theme_manifest(string $themeSlug): array {
     return $manifest;
 }
 
+/**
+ * Legacy alias — calls outpost_build_site_manifest().
+ * Kept for backward compatibility with code that still passes a theme slug.
+ *
+ * @param string $themeSlug  Ignored in v5 (no theme layer)
+ * @return array  The manifest structure
+ */
+function outpost_build_theme_manifest(string $themeSlug = ''): array {
+    return outpost_build_site_manifest();
+}
+
 
 /**
- * Get the current active theme's manifest (load from file or build on the fly).
+ * Get the site manifest (load from file or build on the fly).
  */
 function outpost_get_theme_manifest(): array {
-    require_once __DIR__ . '/themes.php';
-    $activeTheme = get_active_theme();
-    $manifestPath = OUTPOST_THEMES_DIR . $activeTheme . '/theme_manifest.json';
+    $manifestPath = OUTPOST_SITE_ROOT . '.outpost-site-manifest.json';
 
     if (file_exists($manifestPath)) {
         $data = json_decode(file_get_contents($manifestPath), true);
@@ -143,7 +150,7 @@ function outpost_get_theme_manifest(): array {
     }
 
     // Build on the fly if missing
-    return outpost_build_theme_manifest($activeTheme);
+    return outpost_build_site_manifest();
 }
 
 
@@ -458,8 +465,8 @@ function outpost_manifest_glob_html(string $dir, string $prefix = ''): array {
         $relPath = $prefix ? $prefix . '/' . $entry : $entry;
 
         if (is_dir($fullPath)) {
-            // Skip assets, node_modules, etc.
-            if (in_array($entry, ['assets', 'node_modules', '.git'])) continue;
+            // Skip assets, node_modules, outpost dir, etc.
+            if (in_array($entry, ['assets', 'node_modules', '.git', 'outpost'])) continue;
             $files = array_merge($files, outpost_manifest_glob_html($fullPath . '/', $relPath));
         } elseif (pathinfo($entry, PATHINFO_EXTENSION) === 'html') {
             $files[] = $relPath;

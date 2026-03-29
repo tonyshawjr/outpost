@@ -1,6 +1,6 @@
 {
   "name": "outpost-cms",
-  "version": "4.13.8",
+  "version": "5.0.0",
   "private": true,
   "type": "module",
   "scripts": {

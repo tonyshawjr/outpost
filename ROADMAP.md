@@ -76,10 +76,18 @@ Everything below is already built and released.
 ### v2.5 — Outpost Design System
 - ~~Sidebar reorganization~~ **Shipped v4.10.0**, Brand page (colors, typography, logo), CSS Framework, 20 HTML components, Template Reference panel
 
+### v5.0 — Kill the Theme Layer (2026-03-29)
+- ~~Remove theme layer~~ **Shipped** — Site root IS the content. Outpost is just a `/outpost/` folder alongside your HTML files. Drop it in, scan, edit.
+- ~~Remove customizer~~ **Shipped** — CSS variables managed by developers, not a CMS UI.
+- ~~Code editor re-scoped~~ **Shipped** — Shows site root files, excludes `outpost/` engine directory.
+- ~~Installer writes `.htaccess`~~ **Shipped** — Routes HTML through template engine, serves static assets directly.
+- ~~Auto-migration~~ **Shipped** — v4 sites migrate automatically on first load.
+- ~~Updater simplified~~ **Shipped** — Only touches `outpost/` core files, never site content.
+- ~~Security audit~~ **Shipped** — 6 hardening fixes: dev server path disclosure, case-insensitive bypass, null byte injection, prefix matching, dot-segment bypass, migration edge cases.
+
 ### v4.13.7 — Auto-Inject Client Assets & Member Conditionals (2026-03-29)
-- ~~Auto-inject client assets~~ **Shipped** — Compass, Search, and Auth CSS/JS automatically injected when data attributes detected. No manual `<script>`/`<link>` tags needed in themes.
-- ~~Member auth conditionals~~ **Shipped** — `<outpost-if member="logged-in">` and `<outpost-if member="logged-out">` for showing/hiding template content based on login state.
-- ~~Security hardening~~ **Shipped** — Single-pass asset injection, fail-closed member conditionals, attribute-context detection, full buffer cleanup on error.
+- ~~Auto-inject client assets~~ **Shipped** — Compass, Search, and Auth CSS/JS automatically injected when data attributes detected.
+- ~~Member auth conditionals~~ **Shipped** — `<outpost-if member="logged-in">` and `<outpost-if member="logged-out">`.
 
 ### v4.13 — Auth Forms & OAuth Roadmap (2026-03-24)
 - ~~Auth client JS~~ **Shipped** — `data-outpost-auth` attribute for theme login/register/forgot-password forms with auto member API wiring
@@ -164,23 +172,7 @@ Everything below is already built and released.
 
 ---
 
-## v3.4 — Theme Gallery + New Themes
-
-**More starting points, less blank-page anxiety.** Ship 4–5 polished, production-ready themes with full customizer support, content packs, and documentation.
-
-- **Theme gallery overhaul** — WordPress-style cards with screenshots, live preview, theme details panel
-- **Device preview** — fullscreen overlay with desktop/tablet/mobile toggle to see how themes respond
-- **Business theme** — homepage with hero, services grid, team section, testimonials carousel, contact form, about page, blog
-- **Portfolio theme** — masonry project grid, case study pages with image galleries, about page with skills/experience, filterable categories
-- **Blog theme** — clean reading experience, category pages, author pages, related posts, newsletter signup
-- **Documentation theme** — sidebar navigation with search, code blocks with syntax highlighting, versioned sections, breadcrumbs
-- **Landing page theme** — single-page marketing site with hero, feature sections, pricing table, CTA blocks, FAQ accordion, footer
-- All themes use the Design System framework, ship with content packs and Unsplash images
-- Each theme includes a setup guide and customizer reference
-
----
-
-## v3.5 — Multi-Language (i18n)
+## v5.1 — Multi-Language (i18n)
 
 **Field-level translations for international sites.** Huge for agencies with clients in multiple markets — manage all languages from one admin panel.
 
@@ -197,7 +189,7 @@ Everything below is already built and released.
 
 ---
 
-## v3.6 — Headless-First
+## v5.2 — Headless-First
 
 **Position Outpost as the zero-config headless CMS.** Strapi and Payload own headless but require Node.js and a database server. Outpost's gap is "headless + zero config, runs on a $5/month host."
 
@@ -211,7 +203,7 @@ Everything below is already built and released.
 
 ---
 
-## v3.7 — Collaborative Editing
+## v5.3 — Collaborative Editing
 
 **Real-time multi-user editing on the same page or collection item.** See who's editing what, watch changes appear live, never overwrite someone's work.
 

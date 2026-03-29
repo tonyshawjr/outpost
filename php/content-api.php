@@ -464,10 +464,8 @@ function handle_content_schema(): void {
         ];
     }
 
-    // Pages with their fields — derived from theme template files
-    $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    $activeThemeSlug = $activeTheme ? $activeTheme['value'] : '';
-    $themeDir = OUTPOST_THEMES_DIR . $activeThemeSlug;
+    // Pages with their fields — derived from site root template files
+    $themeDir = rtrim(OUTPOST_SITE_ROOT, '/');
 
     $pages = OutpostDB::fetchAll(
         "SELECT id, path, title FROM pages WHERE path != '__global__' AND (visibility IS NULL OR visibility = 'public') ORDER BY path ASC"
@@ -475,7 +473,7 @@ function handle_content_schema(): void {
 
     $pageData = [];
     foreach ($pages as $p) {
-        $templateFile = $activeThemeSlug ? resolveTemplateFile($p['path'], $themeDir) : null;
+        $templateFile = resolveTemplateFile($p['path'], $themeDir);
         $refs = $templateFile ? extractAllTemplateReferences($templateFile, $themeDir) : [
             'fields' => [], 'globals' => [], 'collections' => [],
             'singles' => [], 'galleries' => [], 'repeaters' => [],
@@ -518,8 +516,8 @@ function handle_content_schema(): void {
         ];
     }
 
-    // Globals — derived from all theme template files
-    $globalFields = $activeThemeSlug ? extractAllGlobalFields($themeDir) : [];
+    // Globals — derived from all site root template files
+    $globalFields = extractAllGlobalFields($themeDir);
 
     content_response([
         'collections' => $collectionData,

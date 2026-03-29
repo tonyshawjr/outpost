@@ -22,6 +22,35 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="5.0.0">5.0.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>BREAKING: Removed theme layer</strong> &mdash; Site root is the content source. Outpost is a <code>/outpost/</code> folder alongside your HTML files. No more themes directory or theme switching.</li>
+      <li><strong>Code editor scoped to site root</strong> &mdash; Shows all site files, excludes <code>outpost/</code> engine directory.</li>
+      <li><strong>Forge scans site root</strong> &mdash; Smart Forge operates on HTML files at site root.</li>
+      <li><strong>Updater simplified</strong> &mdash; Only touches <code>outpost/</code> core files. User site files never modified.</li>
+      <li><strong>Sync API v2</strong> &mdash; Pull/push operates on site root files with paths relative to root.</li>
+      <li><strong>Installer writes <code>.htaccess</code></strong> &mdash; Routes HTML through Outpost, serves static assets directly.</li>
+      <li><strong>Auto-migration</strong> &mdash; v4 sites migrate automatically on first load.</li>
+    </ul>
+    <h3>Removed</h3>
+    <ul>
+      <li><strong>Themes page</strong> &mdash; No theme management UI.</li>
+      <li><strong>Customizer</strong> &mdash; Removed entirely.</li>
+      <li><strong>Managed theme updates</strong> &mdash; No <code>.outpost-manifest.json</code> conflict detection.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Block sensitive outpost paths on PHP dev server</li>
+      <li>Case-insensitive filesystem bypass protection</li>
+      <li>Null byte injection protection in code editor and Ranger</li>
+      <li>Precise prefix matching for <code>outpost/</code> exclusion</li>
+      <li>Dot-segment bypass protection</li>
+      <li>Empty active_theme guard in migration</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="4.13.8">4.13.8 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
     <h3>Changed</h3>
     <ul>

@@ -3,22 +3,15 @@
   import { setup as setupApi } from '$lib/api.js';
   import { setupCompleted, navigate, addToast } from '$lib/stores.js';
   import WizardStepName from './setup/WizardStepName.svelte';
-  import WizardStepTheme from './setup/WizardStepTheme.svelte';
   import WizardStepContent from './setup/WizardStepContent.svelte';
   import WizardStepComplete from './setup/WizardStepComplete.svelte';
 
   let step = $state(1);
   let siteName = $state('');
-  let selectedTheme = $state('');
   let selectedPack = $state('');
   let packs = $state([]);
   let applying = $state(false);
   let summary = $state(null);
-
-  // Filter packs by selected theme
-  let filteredPacks = $derived(
-    packs.filter(p => !p.themes || p.themes.includes(selectedTheme))
-  );
 
   onMount(async () => {
     try {
@@ -27,15 +20,15 @@
     } catch (e) {
       // Packs endpoint may not exist yet on older installs
       packs = [
-        { id: 'blank', name: 'Start from scratch', description: 'Just the theme — no sample content.', icon: 'plus', themes: [] }
+        { id: 'blank', name: 'Start from scratch', description: 'No sample content.', icon: 'plus', themes: [] }
       ];
     }
   });
 
   function nextStep() {
-    if (step === 3 && !applying) {
+    if (step === 2 && !applying) {
       applySetup();
-    } else if (step < 3) {
+    } else if (step < 2) {
       step++;
     }
   }
@@ -49,12 +42,11 @@
     try {
       const data = await setupApi.apply({
         site_name: siteName.trim(),
-        theme: selectedTheme,
         pack: selectedPack,
       });
       summary = data.summary || null;
       setupCompleted.set(true);
-      step = 4;
+      step = 3;
     } catch (e) {
       addToast(e.message, 'error');
     } finally {
@@ -82,14 +74,14 @@
 <div class="wizard-shell">
   <div class="wizard-container">
     <!-- Skip link -->
-    {#if step < 4}
+    {#if step < 3}
       <button class="wizard-skip" onclick={skip}>Skip setup</button>
     {/if}
 
     <!-- Progress dots -->
-    {#if step < 4}
+    {#if step < 3}
       <div class="wizard-progress">
-        {#each [1, 2, 3] as n}
+        {#each [1, 2] as n}
           <div class="dot" class:active={step === n} class:done={step > n}></div>
         {/each}
       </div>
@@ -100,17 +92,15 @@
       {#if step === 1}
         <WizardStepName bind:siteName onNext={nextStep} />
       {:else if step === 2}
-        <WizardStepTheme bind:selectedTheme onNext={nextStep} onBack={prevStep} />
-      {:else if step === 3}
         {#if applying}
           <div class="wizard-loading">
             <div class="spinner"></div>
             <p class="wizard-loading-text">Setting up your site...</p>
           </div>
         {:else}
-          <WizardStepContent packs={filteredPacks} bind:selectedPack onNext={nextStep} onBack={prevStep} />
+          <WizardStepContent packs={packs} bind:selectedPack onNext={nextStep} onBack={prevStep} />
         {/if}
-      {:else if step === 4}
+      {:else if step === 3}
         <WizardStepComplete {summary} onFinish={finish} />
       {/if}
     </div>

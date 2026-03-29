@@ -64,23 +64,18 @@ if (preg_match('#^/([a-z0-9_-]+)/feed(?:\.xml)?$#', $reqPath_, $feedMatch)) {
     exit;
 }
 
-$themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-$activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'starter';
-$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
+// v5: site root is the content source — no theme layer
+$themeDir = OUTPOST_SITE_ROOT;
 
-// PHP theme (legacy)
-if (file_exists($themeDir . '/index.php')) {
-    require $themeDir . '/index.php';
-    exit;
-}
-
-if (!file_exists($themeDir . '/index.html')) {
+if (!file_exists($themeDir . 'index.html')) {
     http_response_code(503);
-    echo '<h1>Theme not configured</h1>';
-    echo '<p>Active theme <code>' . htmlspecialchars($activeTheme) . '</code> has no <code>index.html</code>.</p>';
+    echo '<h1>index.html not found at site root</h1>';
+    echo '<p>Expected <code>index.html</code> at <code>' . htmlspecialchars(rtrim($themeDir, '/')) . '</code>.</p>';
     echo '<p><a href="/outpost/">Go to admin</a></p>';
     exit;
 }
+// Normalize: ensure $themeDir does NOT have trailing slash for path concatenation
+$themeDir = rtrim($themeDir, '/');
 
 require_once $outpostDir . '/engine.php';
 

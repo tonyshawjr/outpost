@@ -348,44 +348,6 @@ export const code = {
     request('code/assets', { params: { theme } }),
 };
 
-// Themes
-export const themes = {
-  list: () =>
-    request('themes'),
-  get: (slug) =>
-    request('themes', { params: { slug } }),
-  activate: (slug) =>
-    request('themes/activate', { method: 'PUT', body: { slug } }),
-  duplicate: (source, name) =>
-    request('themes/duplicate', { method: 'POST', body: { source, name } }),
-  create: (name) =>
-    request('themes/create', { method: 'POST', body: { name } }),
-  upload: (file) => {
-    const formData = new FormData();
-    formData.append('theme', file);
-    formData.append('csrf_token', csrfToken);
-    return request('themes/upload', { method: 'POST', body: formData });
-  },
-  exportUrl: (slug) =>
-    `${apiBase}?action=themes/export&slug=${encodeURIComponent(slug)}`,
-  delete: (slug) =>
-    request('themes', { method: 'DELETE', params: { slug } }),
-};
-
-// Theme Customizer
-export const customizer = {
-  get: () =>
-    request('customizer'),
-  save: (values) =>
-    request('customizer', { method: 'PUT', body: values }),
-  reset: () =>
-    request('customizer/reset', { method: 'POST', body: {} }),
-  exportPreset: () =>
-    request('customizer/export'),
-  importPreset: (values) =>
-    request('customizer/import', { method: 'POST', body: { values } }),
-};
-
 export const brand = {
   get: () =>
     request('brand'),

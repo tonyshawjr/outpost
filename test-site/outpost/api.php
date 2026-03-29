@@ -161,7 +161,7 @@ OutpostAuth::requireAuth();
 // CSRF check on mutations (skip for API key auth — CSRF only protects browser sessions)
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
     if (!OutpostAuth::isApiKeyAuth()) {
-        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore' && $action !== 'themes/upload') {
+        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore') {
             OutpostAuth::validateCsrf();
         }
     }
@@ -215,7 +215,6 @@ $cap_map = [
     'code' => 'code.*',
     'cache' => 'cache.*',
     'members' => 'members.*',
-    'themes' => 'settings.*',
     'sync'    => 'settings.*',
     'cron'    => 'settings.*',
     'apikeys' => 'settings.*',
@@ -223,7 +222,6 @@ $cap_map = [
     'channels' => 'settings.*',
     'updates'  => 'settings.*',
     'backup'   => 'settings.*',
-    'customizer' => 'settings.*',
     'setup'      => 'settings.*',
     'brand'      => 'settings.*',
     'fonts'      => 'settings.*',
@@ -363,20 +361,9 @@ match (true) {
     $action === 'members' && $method === 'PUT' && isset($_GET['id']) => handle_member_update(),
     $action === 'members' && $method === 'DELETE' && isset($_GET['id']) => handle_member_delete(),
 
-    // Themes
-    $action === 'themes' && $method === 'GET' && !isset($_GET['slug']) => handle_themes_list(),
-    $action === 'themes/activate' && $method === 'PUT' => handle_theme_activate(),
-    $action === 'themes/duplicate' && $method === 'POST' => handle_theme_duplicate(),
-    $action === 'themes/create' && $method === 'POST' => handle_theme_create(),
-    $action === 'themes/upload' && $method === 'POST' => handle_theme_upload(),
-    $action === 'themes/export' && $method === 'GET' && isset($_GET['slug']) => handle_theme_export(),
-    $action === 'themes' && $method === 'DELETE' && isset($_GET['slug']) => handle_theme_delete(),
-
-    // Theme Manifest
+    // Site Manifest (v5.0: replaces theme/manifest)
     $action === 'theme/manifest' && $method === 'GET' => handle_theme_manifest_get(),
-
-    // Cleanup
-    $action === 'cleanup/inactive-themes' && $method === 'POST' => handle_cleanup_inactive_themes(),
+    $action === 'site/manifest' && $method === 'GET' => handle_theme_manifest_get(),
 
     // Dashboard
     $action === 'dashboard/stats'    && $method === 'GET' => handle_dashboard_stats(),
@@ -543,12 +530,7 @@ match (true) {
     $action === 'setup/checklist' && $method === 'GET' => handle_setup_checklist(),
     $action === 'setup/checklist/dismiss' && $method === 'POST' => handle_setup_checklist_dismiss(),
 
-    // Theme Customizer
-    $action === 'customizer'        && $method === 'GET'  => handle_customizer_get(),
-    $action === 'customizer'        && $method === 'PUT'  => handle_customizer_save(),
-    $action === 'customizer/reset'  && $method === 'POST' => handle_customizer_reset(),
-    $action === 'customizer/export' && $method === 'GET'  => handle_customizer_export(),
-    $action === 'customizer/import' && $method === 'POST' => handle_customizer_import(),
+    // v5.0: Theme customizer removed
 
     // Brand (site-wide identity)
     $action === 'brand' && $method === 'GET'  => handle_brand_get(),
@@ -1427,7 +1409,7 @@ function handle_totp_status(): void {
 function handle_pages_list(): void {
     $search = $_GET['search'] ?? '';
     $showAll = isset($_GET['all']) && $_GET['all'] === '1';
-    $activeTheme = get_active_theme();
+    $activeTheme = ''; // v5.0: no theme layer
 
     // all=1: return every page without theme-field filtering (used by Lodge page selectors)
     if ($showAll && !$search) {
@@ -1512,7 +1494,7 @@ function handle_page_get(): void {
     $page = OutpostDB::fetchOne('SELECT * FROM pages WHERE id = ?', [$id]);
     if (!$page) json_error('Page not found', 404);
 
-    $activeTheme = get_active_theme();
+    $activeTheme = ''; // v5.0: no theme layer
 
     // Load fields scoped to the active theme
     $fields = OutpostDB::fetchAll(
@@ -1666,13 +1648,12 @@ function handle_page_delete(): void {
 
     $label = $page['title'] ?: $page['path'];
 
-    // Delete template file from active theme (with path containment check)
-    $activeTheme = get_active_theme();
+    // Delete template file from site root (with path containment check)
     $filename = ($page['path'] === '/') ? 'index.html' : ltrim($page['path'], '/') . '.html';
-    $templatePath = OUTPOST_THEMES_DIR . $activeTheme . '/' . $filename;
-    $themeBase = realpath(OUTPOST_THEMES_DIR . $activeTheme);
+    $templatePath = OUTPOST_SITE_ROOT . $filename;
+    $siteBase = realpath(OUTPOST_SITE_ROOT);
     $resolved = realpath($templatePath);
-    if ($themeBase && $resolved && str_starts_with($resolved, $themeBase . '/') && file_exists($resolved)) {
+    if ($siteBase && $resolved && str_starts_with($resolved, $siteBase . '/') && file_exists($resolved)) {
         unlink($resolved);
     }
 
@@ -1753,7 +1734,7 @@ function handle_fields_bulk_update(): void {
     foreach (array_keys($snapshot_page_ids) as $pid) {
         $page = OutpostDB::fetchOne('SELECT * FROM pages WHERE id = ?', [$pid]);
         if (!$page || $page['path'] === '__global__') continue;
-        $activeTheme = get_active_theme();
+        $activeTheme = ''; // v5.0: no theme layer
         $allFields = OutpostDB::fetchAll(
             "SELECT field_name, content FROM fields WHERE page_id = ? AND (theme = ? OR theme = '') ORDER BY theme DESC",
             [$pid, $activeTheme]
@@ -1822,7 +1803,7 @@ function handle_globals_get(): void {
         ));
     } else {
         // Fallback to registry-based filtering if no manifest globals
-        $activeTheme = get_active_theme();
+        $activeTheme = ''; // v5.0: no theme layer
         $registryNames = array_column(
             OutpostDB::fetchAll(
                 "SELECT field_name FROM page_field_registry WHERE theme = ? AND path = '__global__'",
@@ -1848,33 +1829,7 @@ function handle_theme_manifest_get(): void {
 }
 
 // ── Cleanup Endpoints ────────────────────────────────────
-function handle_cleanup_inactive_themes(): void {
-    outpost_require_cap('settings.*');
-
-    $activeTheme = get_active_theme();
-    $db = OutpostDB::connect();
-
-    // Delete fields from inactive themes (but NOT globals — those have theme='')
-    $stmt = $db->prepare("DELETE FROM fields WHERE theme != '' AND theme != ? AND theme IS NOT NULL");
-    $stmt->execute([$activeTheme]);
-    $fieldsDeleted = $stmt->rowCount();
-
-    // Also clean up page_field_registry for inactive themes
-    $stmt2 = $db->prepare("DELETE FROM page_field_registry WHERE theme != '' AND theme != ? AND theme IS NOT NULL");
-    $stmt2->execute([$activeTheme]);
-    $registryDeleted = $stmt2->rowCount();
-
-    // Clean up orphaned pages
-    OutpostDB::query(
-        "DELETE FROM pages WHERE id NOT IN (SELECT DISTINCT page_id FROM fields WHERE page_id IS NOT NULL) AND path != '__global__'"
-    );
-
-    json_response([
-        'success' => true,
-        'fields_deleted' => $fieldsDeleted,
-        'registry_deleted' => $registryDeleted,
-    ]);
-}
+// v5.0: handle_cleanup_inactive_themes() removed — no theme layer
 
 // ── Collection Handlers ──────────────────────────────────
 function handle_collections_list(): void {
@@ -2795,10 +2750,9 @@ function handle_items_bulk_schedule(): void {
  * Excludes collection templates, partials, and system files.
  */
 function handle_lodge_theme_pages(): void {
-    $activeTheme = get_active_theme();
-    $themeDir = OUTPOST_THEMES_DIR . $activeTheme;
+    $siteDir = OUTPOST_SITE_ROOT;
 
-    if (!is_dir($themeDir)) {
+    if (!is_dir($siteDir)) {
         json_response(['pages' => []]);
         return;
     }
@@ -2808,7 +2762,7 @@ function handle_lodge_theme_pages(): void {
     $collSlugs = array_column($collections, 'slug');
 
     // Scan root-level .html files only
-    $files = glob($themeDir . '/*.html');
+    $files = glob($siteDir . '*.html');
     $exclude = ['index.html', '404.html'];
     $pages = [];
 
@@ -4776,7 +4730,7 @@ function handle_analytics_seo(): void {
     }
 
     // Only show pages from the active theme (same pattern as handle_pages_list)
-    $activeTheme = get_active_theme();
+    $activeTheme = ''; // v5.0: no theme layer
     $hasThemeFields = OutpostDB::fetchOne(
         "SELECT COUNT(*) as c FROM fields WHERE theme = ?",
         [$activeTheme]
@@ -5483,7 +5437,7 @@ function handle_search_content(): void {
     // have real content for the active theme are returned. Ghost rows (old collection
     // item paths, renamed slugs, etc.) have no field entries and are naturally excluded
     // regardless of what the current collection slug is.
-    $activeTheme = get_active_theme();
+    $activeTheme = ''; // v5.0: no theme layer
     $hasThemeFields = OutpostDB::fetchOne(
         "SELECT COUNT(*) as c FROM fields WHERE theme = ?", [$activeTheme]
     );
@@ -6038,7 +5992,7 @@ function handle_revision_restore(): void {
         // Snapshot current state first
         $page = OutpostDB::fetchOne('SELECT * FROM pages WHERE id = ?', [$entityId]);
         if (!$page) json_error('Page not found', 404);
-        $activeTheme = get_active_theme();
+        $activeTheme = ''; // v5.0: no theme layer
         $allFields = OutpostDB::fetchAll(
             "SELECT field_name, content, theme FROM fields WHERE page_id = ? AND (theme = ? OR theme = '') ORDER BY theme DESC",
             [$entityId, $activeTheme]
@@ -7255,7 +7209,7 @@ function ensure_backups_dir(): void {
 }
 
 /**
- * Create a backup zip containing the database, uploads, and themes.
+ * Create a backup zip containing the database, uploads, and site root templates.
  * Shared by handle_backup_create() and maybe_run_auto_backup().
  */
 function create_backup_zip(string $path): bool {
@@ -7289,7 +7243,20 @@ function create_backup_zip(string $path): bool {
     };
 
     $addDir(OUTPOST_UPLOADS_DIR, 'uploads/');
-    $addDir(OUTPOST_THEMES_DIR, 'themes/');
+
+    // v5.0: Backup site root HTML files (no theme layer)
+    $siteRootFiles = glob(OUTPOST_SITE_ROOT . '*.html') ?: [];
+    foreach ($siteRootFiles as $htmlFile) {
+        $zip->addFile($htmlFile, 'site/' . basename($htmlFile));
+    }
+    // Also backup partials/ and assets/ directories from site root
+    $siteSubDirs = ['partials', 'assets'];
+    foreach ($siteSubDirs as $subDir) {
+        $subDirPath = OUTPOST_SITE_ROOT . $subDir . '/';
+        if (is_dir($subDirPath)) {
+            $addDir($subDirPath, 'site/' . $subDir . '/');
+        }
+    }
 
     return $zip->close();
 }
@@ -7424,9 +7391,17 @@ function handle_backup_restore(): void {
             if (str_starts_with($name, 'uploads/')) {
                 $relPath = substr($name, strlen('uploads/'));
                 $destPath = OUTPOST_UPLOADS_DIR . $relPath;
+            } elseif (str_starts_with($name, 'site/')) {
+                // v5.0: restore site root HTML/assets
+                $relPath = substr($name, strlen('site/'));
+                $destPath = OUTPOST_SITE_ROOT . $relPath;
             } elseif (str_starts_with($name, 'themes/')) {
+                // Legacy backup compat: restore themes to site root
                 $relPath = substr($name, strlen('themes/'));
-                $destPath = OUTPOST_THEMES_DIR . $relPath;
+                // Skip the theme slug directory level — flatten into site root
+                $parts = explode('/', $relPath, 2);
+                if (count($parts) < 2 || $parts[1] === '') continue;
+                $destPath = OUTPOST_SITE_ROOT . $parts[1];
             } else {
                 continue;
             }
@@ -7889,12 +7864,7 @@ function handle_updates_apply(): void {
             }
         }
 
-        // Update managed themes (after core files, before cache clear)
-        $themeResults = [];
-        $sourceThemesDir = $sourceDir . '/content/themes';
-        if (is_dir($sourceThemesDir)) {
-            $themeResults = outpost_update_managed_themes($sourceThemesDir);
-        }
+        // v5.0: No managed theme updates — only core outpost/ files are updated
 
         // Update root index.php (front controller, lives one level above outpost/)
         $sourceIndex = dirname($sourceDir) . '/index.php';
@@ -7920,7 +7890,6 @@ function handle_updates_apply(): void {
         json_response([
             'success' => true,
             'updated_files' => $updatedFiles,
-            'theme_updates' => $themeResults,
             'message' => 'Update applied successfully. Refresh the page to load the new version.',
         ]);
     } catch (\Throwable $e) {
@@ -7998,208 +7967,8 @@ function outpost_rmdir_recursive(string $dir): void {
     rmdir($dir);
 }
 
-/**
- * Update shipped themes from a package's content/themes/ directory.
- * Any theme in the update zip is considered managed — no flag required.
- * Returns an array of results per theme: installed, updated, skipped, conflicts.
- */
-function outpost_update_managed_themes(string $sourceThemesDir): array {
-    $results = [];
-    $installedThemesDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/';
-
-    $entries = scandir($sourceThemesDir);
-    foreach ($entries as $slug) {
-        if ($slug === '.' || $slug === '..') continue;
-        // Validate slug is a safe directory name
-        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) continue;
-
-        $srcThemeDir = $sourceThemesDir . '/' . $slug;
-        if (is_link($srcThemeDir) || !is_dir($srcThemeDir)) continue;
-
-        try {
-            // Read theme.json from the package (optional for new themes)
-            $srcManifestFile = $srcThemeDir . '/theme.json';
-            $srcManifest = [];
-            if (file_exists($srcManifestFile)) {
-                $srcManifest = json_decode(file_get_contents($srcManifestFile), true) ?: [];
-            }
-
-            $destThemeDir = $installedThemesDir . $slug;
-
-            // Fresh install — theme doesn't exist on site → always install
-            if (!is_dir($destThemeDir)) {
-                outpost_copy_recursive($srcThemeDir, $destThemeDir);
-                $results[] = [
-                    'theme' => $slug,
-                    'action' => 'installed',
-                    'version' => $srcManifest['version'] ?? '0.0.0',
-                ];
-                continue;
-            }
-
-            // Theme exists on site but has no theme.json in the package → skip updates
-            if (empty($srcManifest)) {
-                $results[] = [
-                    'theme' => $slug,
-                    'action' => 'skipped',
-                    'reason' => 'no_manifest',
-                ];
-                continue;
-            }
-
-            // Read installed theme.json for version comparison
-            $destManifestFile = $destThemeDir . '/theme.json';
-            $destManifest = [];
-            if (file_exists($destManifestFile)) {
-                $destManifest = json_decode(file_get_contents($destManifestFile), true) ?: [];
-            }
-
-            // Compare versions — skip if installed is same or newer
-            $srcVersion = $srcManifest['version'] ?? '0.0.0';
-            $destVersion = $destManifest['version'] ?? '0.0.0';
-            if (version_compare($srcVersion, $destVersion, '<=')) {
-                $results[] = [
-                    'theme' => $slug,
-                    'action' => 'skipped',
-                    'reason' => 'up_to_date',
-                    'version' => $destVersion,
-                ];
-                continue;
-            }
-
-            // Perform update with conflict detection
-            $conflicts = outpost_theme_update_with_conflicts($srcThemeDir, $destThemeDir);
-
-            $result = [
-                'theme' => $slug,
-                'action' => 'updated',
-                'from_version' => $destVersion,
-                'to_version' => $srcVersion,
-            ];
-            if (!empty($conflicts)) {
-                $result['conflicts'] = $conflicts;
-            }
-            $results[] = $result;
-        } catch (\Throwable $e) {
-            $results[] = [
-                'theme' => $slug,
-                'action' => 'error',
-                'message' => $e->getMessage(),
-            ];
-        }
-    }
-
-    return $results;
-}
-
-/**
- * Update a managed theme with hash-based conflict detection.
- * Uses .outpost-manifest.json to determine which files the user has modified.
- * Returns array of conflict file paths (files preserved because user modified them).
- */
-function outpost_theme_update_with_conflicts(string $srcDir, string $destDir): array {
-    $conflicts = [];
-
-    // Load the existing manifest (hashes of files as they were last shipped)
-    $existingManifestFile = $destDir . '/.outpost-manifest.json';
-    $existingManifest = [];
-    if (file_exists($existingManifestFile)) {
-        $existingManifest = json_decode(file_get_contents($existingManifestFile), true) ?: [];
-    }
-
-    // Load the new manifest from the package
-    $newManifestFile = $srcDir . '/.outpost-manifest.json';
-    $newManifest = [];
-    if (file_exists($newManifestFile)) {
-        $newManifest = json_decode(file_get_contents($newManifestFile), true) ?: [];
-    }
-
-    // Get all files in source package
-    $srcFiles = outpost_list_files_recursive($srcDir);
-
-    foreach ($srcFiles as $relPath) {
-        // Always copy the manifest itself
-        if ($relPath === '.outpost-manifest.json') continue;
-
-        $srcFile = $srcDir . '/' . $relPath;
-        $destFile = $destDir . '/' . $relPath;
-
-        // New file — doesn't exist in installed theme → copy
-        if (!file_exists($destFile)) {
-            $destFileDir = dirname($destFile);
-            if (!is_dir($destFileDir)) mkdir($destFileDir, 0755, true);
-            copy($srcFile, $destFile);
-            continue;
-        }
-
-        // File exists — check if user has modified it
-        $installedHash = md5_file($destFile);
-        $shippedHash = $existingManifest[$relPath] ?? null;
-        $newHash = $newManifest[$relPath] ?? md5_file($srcFile);
-
-        if ($shippedHash !== null) {
-            // We have a manifest from the previous install
-            if ($installedHash === $shippedHash) {
-                // User hasn't modified this file → safe to replace
-                copy($srcFile, $destFile);
-            } elseif ($newHash === ($existingManifest[$relPath] ?? null)) {
-                // Update didn't change this file → keep user's version (no conflict)
-            } else {
-                // User modified AND update changed → conflict
-                $conflicts[] = $relPath;
-            }
-        } else {
-            // No previous manifest (first update for this theme)
-            if ($installedHash === $newHash) {
-                // Files are identical — skip
-            } else {
-                // Files differ with no manifest to compare → conflict
-                $conflicts[] = $relPath;
-            }
-        }
-    }
-
-    // Clean up files that were removed upstream (only if user hasn't modified them)
-    if (!empty($existingManifest)) {
-        $removedFiles = array_diff(array_keys($existingManifest), array_keys($newManifest));
-        foreach ($removedFiles as $relPath) {
-            $destFile = $destDir . '/' . $relPath;
-            if (file_exists($destFile) && !is_link($destFile)) {
-                $installedHash = md5_file($destFile);
-                if ($installedHash === $existingManifest[$relPath]) {
-                    unlink($destFile);
-                }
-            }
-        }
-    }
-
-    // Always install the new manifest for future updates
-    if (file_exists($newManifestFile)) {
-        copy($newManifestFile, $destDir . '/.outpost-manifest.json');
-    }
-
-    return $conflicts;
-}
-
-/**
- * Recursively list all files in a directory, returning paths relative to that directory.
- */
-function outpost_list_files_recursive(string $dir, string $prefix = ''): array {
-    $files = [];
-    $entries = scandir($dir);
-    foreach ($entries as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-        $path = $dir . '/' . $entry;
-        if (is_link($path)) continue; // Never follow symlinks
-        $relPath = $prefix ? $prefix . '/' . $entry : $entry;
-        if (is_dir($path)) {
-            $files = array_merge($files, outpost_list_files_recursive($path, $relPath));
-        } else {
-            $files[] = $relPath;
-        }
-    }
-    return $files;
-}
+// v5.0: Managed theme update functions removed — no theme layer.
+// The updater only copies core outpost/ files (PHP, admin/, docs/, etc.).
 
 // ── Setup Wizard ─────────────────────────────────────────
 
@@ -8278,23 +8047,13 @@ function handle_setup_apply(): void {
             );
         }
 
-        // 2. Activate theme
-        if ($themeSlug) {
-            $themePath = OUTPOST_THEMES_DIR . $themeSlug;
-            if (is_dir($themePath)) {
-                OutpostDB::query(
-                    "INSERT OR REPLACE INTO settings (key, value) VALUES ('active_theme', ?)",
-                    [$themeSlug]
-                );
-                // Scan theme templates
-                require_once __DIR__ . '/engine.php';
-                ensure_fields_theme_column();
-                outpost_scan_theme_templates($themeSlug);
-                // Count discovered pages
-                $pageCount = OutpostDB::fetchOne("SELECT COUNT(*) as c FROM pages WHERE path != '__global__'");
-                $summary['pages'] = (int) ($pageCount['c'] ?? 0);
-            }
-        }
+        // 2. Scan site root templates (v5.0: no theme activation needed)
+        require_once __DIR__ . '/engine.php';
+        ensure_fields_theme_column();
+        outpost_scan_theme_templates('');
+        // Count discovered pages
+        $pageCount = OutpostDB::fetchOne("SELECT COUNT(*) as c FROM pages WHERE path != '__global__'");
+        $summary['pages'] = (int) ($pageCount['c'] ?? 0);
 
         // 3. Load content pack
         if ($packId !== 'blank') {
@@ -8485,11 +8244,8 @@ function handle_setup_checklist(): void {
     $menuWithItems = OutpostDB::fetchOne("SELECT id FROM menus WHERE items != '[]' AND items != '' AND items IS NOT NULL LIMIT 1");
     $checklist['setup_navigation'] = !empty($menuWithItems);
 
-    // customize_theme: customizer.json exists in active theme
-    $activeTheme = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    $themeSlug = $activeTheme['value'] ?? '';
-    $customizerPath = OUTPOST_THEMES_DIR . $themeSlug . '/customizer.json';
-    $checklist['customize_theme'] = file_exists($customizerPath);
+    // v5.0: customize_theme check removed (no theme customizer)
+    $checklist['customize_theme'] = true;
 
     // Dismissed?
     $dismissedRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'setup_checklist_dismissed'");

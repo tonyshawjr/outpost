@@ -3,12 +3,12 @@
  * Outpost CMS — Sync API
  *
  * Authenticated endpoint for Outpost Builder (local dev tool).
- * Handles pull snapshots, theme pushes, and backup management.
+ * Handles pull snapshots, site file pushes, and backup management.
  *
  * Auth:    X-Outpost-Key header (64-char hex)
  * Endpoints:
- *   GET  ?action=pull            — full site snapshot (theme files + DB)
- *   POST ?action=push            — deploy theme files to live server
+ *   GET  ?action=pull            — full site snapshot (site files + DB)
+ *   POST ?action=push            — deploy site files to live server
  *   GET  ?action=backup/list     — list server-side backups
  *   POST ?action=backup/restore  — restore a backup by ID
  */
@@ -116,26 +116,17 @@ switch ($_sync_action) {
 
 /**
  * GET ?action=pull
- * Returns full snapshot: all theme files (base64), upload list, DB snapshot.
+ * Returns full snapshot: site files (base64), upload list, DB snapshot.
+ * Walks OUTPOST_SITE_ROOT excluding the outpost/ directory.
  */
 function handle_sync_pull(): void {
     $outpost_base = sync_outpost_base_url();
-    $active_theme = sync_get_setting('active_theme') ?: 'forge-playground';
 
-    // All themes — walk every subdirectory of themes/
-    $theme_files  = [];
-    $theme_names  = [];
-    if (is_dir(OUTPOST_THEMES_DIR)) {
-        foreach (scandir(OUTPOST_THEMES_DIR) as $entry) {
-            if ($entry === '.' || $entry === '..') continue;
-            $theme_path = OUTPOST_THEMES_DIR . $entry . '/';
-            if (!is_dir($theme_path)) continue;
-            $theme_names[] = $entry;
-            $walked = sync_walk_directory($theme_path, 'themes/' . $entry . '/');
-            foreach ($walked as $path => $content) {
-                $theme_files[$path] = $content;
-            }
-        }
+    // Walk site root, excluding outpost/ directory
+    $site_files = [];
+    $site_root  = OUTPOST_SITE_ROOT;
+    if (is_dir($site_root)) {
+        $site_files = sync_walk_site_root($site_root);
     }
 
     // Uploads — paths + URLs (no binary; Electron downloads separately)
@@ -166,44 +157,31 @@ function handle_sync_pull(): void {
         'outpost_version' => OUTPOST_VERSION,
         'site_url'        => $outpost_base,
         'pulled_at'       => gmdate('c'),
-        'theme' => [
-            'active' => $active_theme,
-            'all'    => $theme_names,
-            'files'  => $theme_files,
-        ],
-        'uploads'     => $uploads,
-        'db_snapshot' => sync_build_db_snapshot(),
-        'db_file'     => file_exists(OUTPOST_DB_PATH) ? base64_encode(file_get_contents(OUTPOST_DB_PATH)) : null,
+        'site_files'      => $site_files,
+        'uploads'         => $uploads,
+        'db_snapshot'     => sync_build_db_snapshot(),
+        'db_file'         => file_exists(OUTPOST_DB_PATH) ? base64_encode(file_get_contents(OUTPOST_DB_PATH)) : null,
     ]);
 }
 
 /**
  * POST ?action=push
- * Receives theme files, auto-backs up, applies, clears cache.
- * Body: { "theme": { "name": "...", "files": { "themes/x/file.php": "<base64>" } }, "push_content": false }
+ * Receives site files, auto-backs up, applies, clears cache.
+ * Body: { "files": { "index.html": "<base64>", "css/style.css": "<base64>" }, "push_content": false }
+ * Files are relative to site root. Targeting outpost/ is rejected.
  */
 function handle_sync_push(): void {
     $body = sync_parse_body();
 
-    // Validate payload
-    $theme_name = trim($body['theme']['name'] ?? '');
-    if ($theme_name === '') {
-        sync_error(400, 'theme.name is required');
-    }
-    if (empty($body['theme']['files']) || !is_array($body['theme']['files'])) {
-        sync_error(400, 'theme.files must be a non-empty object');
-    }
-
-    // Theme name: only safe characters
-    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $theme_name)) {
-        sync_error(400, 'Invalid theme name — use letters, numbers, hyphens, underscores only');
+    if (empty($body['files']) || !is_array($body['files'])) {
+        sync_error(400, 'files must be a non-empty object');
     }
 
     $push_content = !empty($body['push_content']);
-    $theme_dir    = OUTPOST_THEMES_DIR . $theme_name . '/';
+    $site_root    = OUTPOST_SITE_ROOT;
 
     // Auto-backup — push is blocked if backup fails
-    $backup_id = sync_make_backup($theme_name, $theme_dir);
+    $backup_id = sync_make_backup('site', $site_root);
     if ($backup_id === null) {
         sync_error(500, 'Backup failed — push aborted. Check server write permissions.');
     }
@@ -211,9 +189,9 @@ function handle_sync_push(): void {
     // Apply files
     $diff = ['added' => [], 'modified' => [], 'skipped' => []];
 
-    foreach ($body['theme']['files'] as $rel_path => $encoded) {
-        // Validate path stays within this theme
-        $validated_rel = sync_validate_file_path($rel_path, $theme_name);
+    foreach ($body['files'] as $rel_path => $encoded) {
+        // Validate path stays within site root and outside outpost/
+        $validated_rel = sync_validate_file_path($rel_path);
         if ($validated_rel === null) {
             $diff['skipped'][] = ['path' => $rel_path, 'reason' => 'invalid path'];
             continue;
@@ -240,7 +218,7 @@ function handle_sync_push(): void {
         }
 
         // Full disk path
-        $full_path = OUTPOST_THEMES_DIR . $validated_rel;
+        $full_path = $site_root . $validated_rel;
 
         // Track diff type
         if (file_exists($full_path)) {
@@ -264,20 +242,12 @@ function handle_sync_push(): void {
     // Optional content push — db_file (binary) takes priority over legacy db_snapshot
     if ($push_content) {
         if (!empty($body['db_file'])) {
-            // Preserve the server's active_theme before replacing DB
-            $server_active_theme = sync_get_setting('active_theme');
-
             // Full database replace — local is truth
             $db_data = base64_decode($body['db_file'], true);
             if ($db_data !== false && strlen($db_data) > 0) {
                 file_put_contents(OUTPOST_DB_PATH, $db_data, LOCK_EX);
                 // Re-open the DB connection with the new file
                 OutpostDB::reconnect();
-
-                // Restore the server's active_theme — push must not change which theme is active
-                if ($server_active_theme) {
-                    sync_set_setting('active_theme', $server_active_theme);
-                }
             }
         } elseif (!empty($body['db_snapshot'])) {
             sync_apply_content($body['db_snapshot']);
@@ -335,7 +305,7 @@ function handle_backup_list(): void {
 
         $backups[] = [
             'id'         => $entry,
-            'theme'      => $manifest['theme'] ?? '',
+            'source'     => $manifest['source'] ?? $manifest['theme'] ?? 'site',
             'created_at' => $manifest['created_at'] ?? '',
             'file_count' => $manifest['file_count'] ?? 0,
             'size_bytes' => $size,
@@ -374,16 +344,11 @@ function handle_backup_restore(): void {
     }
 
     $manifest   = json_decode(file_get_contents($manifest_path), true);
-    $theme_name = $manifest['theme'] ?? '';
-
-    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $theme_name)) {
-        sync_error(500, 'Invalid theme in manifest');
-    }
-
-    $theme_dir = OUTPOST_THEMES_DIR . $theme_name . '/';
+    $source     = $manifest['source'] ?? $manifest['theme'] ?? 'site';
+    $site_root  = OUTPOST_SITE_ROOT;
 
     // Snapshot current state before restoring
-    sync_make_backup($theme_name, $theme_dir);
+    sync_make_backup('site', $site_root);
 
     // Restore backup files
     $files_dir = $backup_dir . 'files/';
@@ -405,7 +370,11 @@ function handle_backup_restore(): void {
 
         $rel  = ltrim(substr($file_real, strlen($files_real)), '/\\');
         $rel  = str_replace('\\', '/', $rel);
-        $dest = $theme_dir . $rel;
+
+        // Never restore into outpost/ directory
+        if (str_starts_with($rel, 'outpost/') || $rel === 'outpost') continue;
+
+        $dest = $site_root . $rel;
         $dir  = dirname($dest);
 
         if (!is_dir($dir)) mkdir($dir, 0755, true);
@@ -418,7 +387,7 @@ function handle_backup_restore(): void {
     sync_json([
         'success'  => true,
         'restored' => $restored,
-        'theme'    => $theme_name,
+        'source'   => $source,
     ]);
 }
 
@@ -546,6 +515,45 @@ function sync_outpost_base_url(): string {
 }
 
 /**
+ * Walk the site root, returning [ 'rel/path' => 'base64content' ]
+ * Excludes the outpost/ directory entirely.
+ */
+function sync_walk_site_root(string $site_root): array {
+    $files     = [];
+    $root_real = realpath($site_root);
+    if ($root_real === false || !is_dir($root_real)) return $files;
+
+    $root_real = rtrim($root_real, '/');
+    $outpost_prefix = $root_real . '/outpost';
+
+    $iter = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($root_real, RecursiveDirectoryIterator::SKIP_DOTS)
+    );
+
+    foreach ($iter as $file) {
+        if (!$file->isFile()) continue;
+
+        $file_real = realpath($file->getPathname());
+        if ($file_real === false) continue;
+
+        // Skip anything inside outpost/
+        if (str_starts_with($file_real, $outpost_prefix . '/') || $file_real === $outpost_prefix) continue;
+
+        if ($file->getSize() > SYNC_MAX_FILE_SIZE) continue;
+
+        $ext = strtolower($file->getExtension());
+        if (!in_array($ext, SYNC_EXTENSIONS, true)) continue;
+
+        $rel_path = ltrim(substr($file_real, strlen($root_real)), '/\\');
+        $rel_path = str_replace('\\', '/', $rel_path);
+
+        $files[$rel_path] = base64_encode(file_get_contents($file_real));
+    }
+
+    return $files;
+}
+
+/**
  * Recursively walk a directory, returning [ 'rel/path' => 'base64content' ]
  * Only includes files with allowed extensions and under the size cap.
  */
@@ -579,38 +587,32 @@ function sync_walk_directory(string $abs_dir, string $rel_prefix): array {
 
 /**
  * Validate an incoming push file path.
- * Returns the path relative to OUTPOST_THEMES_DIR (e.g. "starter/index.php"),
- * or null if the path is invalid / attempts traversal.
+ * Returns the sanitized path relative to OUTPOST_SITE_ROOT,
+ * or null if the path is invalid / attempts traversal / targets outpost/.
  */
-function sync_validate_file_path(string $rel_path, string $theme_name): ?string {
+function sync_validate_file_path(string $rel_path): ?string {
     // Null byte injection
     if (str_contains($rel_path, "\x00")) return null;
 
-    // Must start with themes/ prefix (any theme, not just the active one)
-    if (!str_starts_with($rel_path, 'themes/')) return null;
-    // Extract the actual theme name from the file path
-    $parts = explode('/', $rel_path, 3);
-    if (count($parts) < 3 || !preg_match('/^[a-zA-Z0-9_-]+$/', $parts[1])) return null;
-    $path_theme = $parts[1]; // Use the theme from the path, NOT the $theme_name param
-    $prefix = 'themes/' . $path_theme . '/';
-
-    // Reject any traversal attempt before normalization
+    // Reject any traversal attempt
     if (str_contains($rel_path, '..')) return null;
 
-    // Normalize slashes, strip leading/trailing slashes from the inner segment
-    $file_rel = substr($rel_path, strlen($prefix));
-    $file_rel = str_replace('\\', '/', $file_rel);
-    $file_rel = preg_replace('/\/+/', '/', $file_rel);
-    $file_rel = trim($file_rel, '/');
+    // Normalize slashes
+    $rel_path = str_replace('\\', '/', $rel_path);
+    $rel_path = preg_replace('/\/+/', '/', $rel_path);
+    $rel_path = trim($rel_path, '/');
 
-    if ($file_rel === '') return null;
+    if ($rel_path === '') return null;
+
+    // SECURITY: reject any path targeting the outpost/ directory
+    if (str_starts_with($rel_path, 'outpost/') || $rel_path === 'outpost') return null;
 
     // Manual path normalization (realpath won't work for non-existent files)
-    $themes_base = rtrim(
-        (realpath(OUTPOST_THEMES_DIR) ?: rtrim(OUTPOST_THEMES_DIR, '/')),
+    $site_base = rtrim(
+        (realpath(OUTPOST_SITE_ROOT) ?: rtrim(OUTPOST_SITE_ROOT, '/')),
         '/'
     );
-    $target_raw = $themes_base . '/' . $path_theme . '/' . $file_rel;
+    $target_raw = $site_base . '/' . $rel_path;
 
     // Resolve . and .. segments
     $parts    = explode('/', $target_raw);
@@ -624,18 +626,22 @@ function sync_validate_file_path(string $rel_path, string $theme_name): ?string 
     }
     $normalized = '/' . implode('/', $resolved);
 
-    // Confirmed still inside the theme directory
-    $expected_base = $themes_base . '/' . $path_theme;
-    if (!str_starts_with($normalized, $expected_base . '/')) return null;
+    // Confirmed still inside the site root
+    if (!str_starts_with($normalized, $site_base . '/')) return null;
 
-    return $path_theme . '/' . $file_rel;
+    // Double-check: must not resolve into outpost/
+    $result_rel = ltrim(substr($normalized, strlen($site_base)), '/');
+    if (str_starts_with($result_rel, 'outpost/') || $result_rel === 'outpost') return null;
+
+    return $rel_path;
 }
 
 /**
- * Copy current theme files into a timestamped backup directory.
+ * Copy current site files into a timestamped backup directory.
+ * Excludes outpost/ directory from backups.
  * Returns the backup ID on success, null on failure.
  */
-function sync_make_backup(string $theme_name, string $theme_dir): ?string {
+function sync_make_backup(string $source_name, string $source_dir): ?string {
     if (!is_dir(SYNC_BACKUPS_DIR) && !mkdir(SYNC_BACKUPS_DIR, 0755, true)) {
         return null;
     }
@@ -648,18 +654,24 @@ function sync_make_backup(string $theme_name, string $theme_dir): ?string {
 
     $file_count = 0;
 
-    if (is_dir($theme_dir)) {
-        $theme_real = realpath($theme_dir);
-        if ($theme_real) {
+    if (is_dir($source_dir)) {
+        $source_real = realpath($source_dir);
+        if ($source_real) {
+            $source_real = rtrim($source_real, '/');
+            $outpost_prefix = $source_real . '/outpost';
+
             $iter = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($theme_real, RecursiveDirectoryIterator::SKIP_DOTS)
+                new RecursiveDirectoryIterator($source_real, RecursiveDirectoryIterator::SKIP_DOTS)
             );
             foreach ($iter as $file) {
                 if (!$file->isFile()) continue;
                 $file_real = realpath($file->getPathname());
                 if (!$file_real) continue;
 
-                $rel  = ltrim(substr($file_real, strlen($theme_real)), '/\\');
+                // Skip outpost/ directory
+                if (str_starts_with($file_real, $outpost_prefix . '/') || $file_real === $outpost_prefix) continue;
+
+                $rel  = ltrim(substr($file_real, strlen($source_real)), '/\\');
                 $rel  = str_replace('\\', '/', $rel);
                 $dest = $files_dir . $rel;
                 $dir  = dirname($dest);
@@ -672,7 +684,7 @@ function sync_make_backup(string $theme_name, string $theme_dir): ?string {
 
     file_put_contents($backup_dir . 'manifest.json', json_encode([
         'id'         => $backup_id,
-        'theme'      => $theme_name,
+        'source'     => $source_name,
         'created_at' => gmdate('c'),
         'file_count' => $file_count,
     ], JSON_UNESCAPED_SLASHES));

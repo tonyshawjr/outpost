@@ -9,11 +9,10 @@
   let loading = $state(true);
 
   let items = $derived(checklist ? [
-    { key: 'add_logo', label: 'Upload your logo', route: 'theme-customizer', done: checklist.add_logo },
+    { key: 'add_logo', label: 'Upload your logo', route: 'brand', done: checklist.add_logo },
     { key: 'edit_homepage', label: 'Edit your homepage', route: 'page-editor', params: homePageId ? { pageId: homePageId } : {}, done: checklist.edit_homepage },
     { key: 'create_post', label: 'Create your first post', route: 'collections', done: checklist.create_post },
     { key: 'setup_navigation', label: 'Set up your navigation', route: 'navigation', done: checklist.setup_navigation },
-    { key: 'customize_theme', label: 'Customize your theme', route: 'theme-customizer', done: checklist.customize_theme },
   ] : []);
 
   let completedCount = $derived(items.filter(i => i.done).length);

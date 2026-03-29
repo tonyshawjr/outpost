@@ -109,11 +109,58 @@ function do_install(string $username, string $password, string $email): array {
         // Write lock file
         file_put_contents(OUTPOST_DATA_DIR . '.installed', date('Y-m-d H:i:s'));
 
+        // Write .htaccess rewrite rules at site root
+        outpost_install_htaccess();
+
     } catch (Exception $e) {
         $errors[] = 'Database error: ' . $e->getMessage();
     }
 
     return $errors;
+}
+
+// ── Write .htaccess rewrite rules at site root ───────────
+function outpost_install_htaccess(): void {
+    $htaccessPath = OUTPOST_SITE_ROOT . '.htaccess';
+    $block = <<<'HTACCESS'
+# BEGIN Outpost CMS
+RewriteEngine On
+RewriteBase /
+
+# Let outpost admin and API through directly
+RewriteRule ^outpost/ - [L]
+
+# Serve static assets directly (not HTML — those go through Outpost)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} !\.(html?)$ [NC]
+RewriteRule ^ - [L]
+
+# Serve directories directly
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route everything else (including .html files) through Outpost
+RewriteRule ^(.*)$ outpost/front-router.php [QSA,L]
+# END Outpost CMS
+HTACCESS;
+
+    if (file_exists($htaccessPath)) {
+        $existing = file_get_contents($htaccessPath);
+        if (str_contains($existing, '# BEGIN Outpost CMS')) {
+            // Replace existing block
+            $existing = preg_replace(
+                '/# BEGIN Outpost CMS.*?# END Outpost CMS/s',
+                $block,
+                $existing
+            );
+            file_put_contents($htaccessPath, $existing, LOCK_EX);
+        } else {
+            // Append block
+            file_put_contents($htaccessPath, "\n\n" . $block . "\n", FILE_APPEND | LOCK_EX);
+        }
+    } else {
+        file_put_contents($htaccessPath, $block . "\n", LOCK_EX);
+    }
 }
 
 // ── Handle POST ──────────────────────────────────────────

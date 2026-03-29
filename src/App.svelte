@@ -40,7 +40,7 @@
   import CodeEditor from '$pages/CodeEditor.svelte';
   import TemplateReference from '$pages/TemplateReference.svelte';
   import Brand from '$pages/Brand.svelte';
-  import Themes from '$pages/Themes.svelte';
+
   import Globals from '$pages/Globals.svelte';
   import Navigation from '$pages/Navigation.svelte';
   import Forms from '$pages/Forms.svelte';
@@ -51,7 +51,7 @@
   import ChannelsList from '$pages/ChannelsList.svelte';
   import ChannelBuilder from '$pages/ChannelBuilder.svelte';
   import Backups from '$pages/Backups.svelte';
-  import ThemeCustomizer from '$pages/ThemeCustomizer.svelte';
+
   import Calendar from '$pages/Calendar.svelte';
   import SetupWizard from '$pages/SetupWizard.svelte';
   import Releases from '$pages/Releases.svelte';
@@ -160,7 +160,7 @@
     <Sidebar />
     <div class="app-main">
       <TopBar />
-      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'theme-customizer'}>
+      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
           {#if hasCodeAccess}
             <Analytics />
@@ -237,18 +237,6 @@
           {:else}
             <AccessDenied />
           {/if}
-        {:else if route === 'themes'}
-          {#if hasSettingsAccess}
-            <Themes />
-          {:else}
-            <AccessDenied />
-          {/if}
-        {:else if route === 'theme-customizer'}
-          {#if hasSettingsAccess}
-            <ThemeCustomizer />
-          {:else}
-            <AccessDenied />
-          {/if}
         {:else if route === 'brand'}
           {#if hasSettingsAccess}
             <Brand />
@@ -295,7 +283,7 @@
           <Dashboard />
         {/if}
 
-        {#if route !== 'collection-editor' && route !== 'template-reference' && route !== 'code-editor' && route !== 'theme-customizer'}
+        {#if route !== 'collection-editor' && route !== 'template-reference' && route !== 'code-editor'}
           <!-- Watermark Footer -->
           <div class="watermark-footer">
             <div class="watermark-text">Handcrafted with 🫀 in Wilmington, NC</div>

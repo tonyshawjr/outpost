@@ -2173,15 +2173,20 @@ function handle_forge_scan(): void {
         // Direct HTML input
         $html = $body['html'];
     } elseif (!empty($body['path'])) {
-        // Read from theme file
+        // Read from site root file
         $path = $body['path'];
-        // Validate path — must be within themes directory
-        $fullPath = OUTPOST_THEMES_DIR . $path;
+        // Validate path — must be within site root, not inside outpost/
+        $fullPath = OUTPOST_SITE_ROOT . ltrim($path, '/');
         $realPath = realpath($fullPath);
-        $realThemes = realpath(OUTPOST_THEMES_DIR);
+        $realSiteRoot = realpath(OUTPOST_SITE_ROOT);
 
-        if (!$realPath || !$realThemes || !str_starts_with($realPath, $realThemes)) {
+        if (!$realPath || !$realSiteRoot || !str_starts_with($realPath, rtrim($realSiteRoot, '/'))) {
             json_error('Invalid file path');
+        }
+        // Block access to outpost engine files
+        $realOutpost = realpath(OUTPOST_DIR);
+        if ($realOutpost && (str_starts_with($realPath, rtrim($realOutpost, '/') . '/') || $realPath === rtrim($realOutpost, '/'))) {
+            json_error('Cannot access outpost engine files');
         }
         if (!file_exists($realPath)) {
             json_error('File not found');
@@ -2213,27 +2218,28 @@ function handle_forge_apply(): void {
     $pageId = (int)($body['page_id'] ?? 0);
 
     if (!$template) json_error('Template content is required');
-    if (!$themePath) json_error('Theme file path is required');
+    if (!$themePath) json_error('File path is required');
 
-    // Validate path
-    $fullPath = OUTPOST_THEMES_DIR . $themePath;
-    $realThemes = realpath(OUTPOST_THEMES_DIR);
+    // Validate path — must be within site root, not inside outpost/
+    $fullPath = OUTPOST_SITE_ROOT . ltrim($themePath, '/');
+    $realSiteRoot = realpath(OUTPOST_SITE_ROOT);
     // Allow new files — use dirname for validation
     $dir = dirname($fullPath);
     if (!is_dir($dir)) {
-        json_error('Theme directory not found');
+        json_error('Directory not found');
     }
     $realDir = realpath($dir);
-    if (!$realDir || !str_starts_with($realDir, $realThemes)) {
+    if (!$realDir || !str_starts_with($realDir, rtrim($realSiteRoot, '/'))) {
         json_error('Invalid file path');
     }
-
-    // Determine the active theme slug from the path (e.g. "personal/about.html" → "personal")
-    $pathParts = explode('/', ltrim($themePath, '/'));
-    $themeSlug = $pathParts[0] ?? '';
+    // Block access to outpost engine files
+    $realOutpost = realpath(OUTPOST_DIR);
+    if ($realOutpost && (str_starts_with($realDir, rtrim($realOutpost, '/') . '/') || $realDir === rtrim($realOutpost, '/'))) {
+        json_error('Cannot access outpost engine files');
+    }
 
     // If no page_id provided, derive from the template filename → page path
-    if ($pageId <= 0 && $themeSlug) {
+    if ($pageId <= 0) {
         $templateFile = basename($themePath, '.html');
         // Skip partials — they don't map to pages
         $isPartial = str_contains($themePath, '/partials/');
@@ -2249,19 +2255,18 @@ function handle_forge_apply(): void {
         }
     }
 
-    // 1. Write the Liquid template
+    // 1. Write the template file
     $written = file_put_contents($fullPath, $template);
     if ($written === false) {
         json_error('Failed to write template file');
     }
 
-    // 2. Register fields in the database
+    // 2. Register fields in the database (theme = '' — no theme layer)
     $fieldCount = 0;
     if ($pageId > 0 && !empty($fields)) {
         $db = OutpostDB::connect();
 
-        // Use the active theme slug so fields match what the frontend loads
-        $fieldTheme = $themeSlug;
+        $fieldTheme = '';
 
         foreach ($fields as $field) {
             $name = $field['name'] ?? '';
@@ -2272,7 +2277,7 @@ function handle_forge_apply(): void {
 
             if (!$name) continue;
 
-            // Check if field already exists for this page + theme
+            // Check if field already exists for this page
             $existing = OutpostDB::fetchOne(
                 "SELECT id FROM fields WHERE page_id = ? AND theme = ? AND field_name = ?",
                 [$pageId, $fieldTheme, $name]
@@ -2285,7 +2290,7 @@ function handle_forge_apply(): void {
                     [$selector, $sectionName, $type, $existing['id']]
                 );
             } else {
-                // Insert new field with default value and correct theme
+                // Insert new field with default value
                 OutpostDB::query(
                     "INSERT INTO fields (page_id, field_name, content, field_type, theme, default_value, css_selector, section_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     [$pageId, $name, $defaultValue, $type, $fieldTheme, $defaultValue, $selector, $sectionName]
@@ -2306,10 +2311,17 @@ function handle_forge_apply(): void {
         }
     }
 
-    // Rebuild manifest since template has changed
+    // Rebuild site manifest since template has changed
     require_once __DIR__ . '/theme-manifest.php';
-    if ($themeSlug) {
-        outpost_build_theme_manifest($themeSlug);
+    if (function_exists('outpost_build_site_manifest')) {
+        outpost_build_site_manifest();
+    } elseif (function_exists('outpost_build_theme_manifest')) {
+        // Fallback: use legacy theme manifest builder with active theme
+        require_once __DIR__ . '/themes.php';
+        $activeTheme = get_active_theme();
+        if ($activeTheme) {
+            outpost_build_theme_manifest($activeTheme);
+        }
     }
 
     json_response([
@@ -2326,12 +2338,7 @@ function handle_editor_field_map(): void {
     $pageId = (int)($_GET['page_id'] ?? 0);
     if (!$pageId) json_error('page_id required');
 
-    // Get the active theme
-    $activeTheme = '';
-    $themeRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    if ($themeRow) $activeTheme = $themeRow['value'];
-
-    // Load the manifest for the active theme
+    // Load the site manifest
     require_once __DIR__ . '/theme-manifest.php';
     $manifest = outpost_get_theme_manifest();
     $manifestGlobals = $manifest['globals'] ?? [];
@@ -2346,8 +2353,9 @@ function handle_editor_field_map(): void {
         $manifestBlocks = $manifest['pages'][$pagePath]['blocks'] ?? [];
     }
 
-    // Return fields for this page. Try Smart-Forge fields first (have css_selector + theme),
-    // then fall back to template-engine fields (theme='', no css_selector).
+    // Return fields for this page. Try Smart-Forge fields first (have css_selector),
+    // then fall back to template-engine fields (no css_selector).
+    // All fields use theme = '' (no theme layer).
     // Exclude meta fields (those go in SEO panel).
     $fields = OutpostDB::fetchAll(
         "SELECT field_name, css_selector, section_name, field_type, content, default_value
@@ -2355,25 +2363,13 @@ function handle_editor_field_map(): void {
          WHERE page_id = ?
            AND css_selector IS NOT NULL
            AND css_selector != ''
-           AND theme = ?
+           AND theme = ''
            AND field_type NOT IN ('meta_title', 'meta_description')
          ORDER BY sort_order ASC, id ASC",
-        [$pageId, $activeTheme]
+        [$pageId]
     );
 
     // If no Smart Forge fields found, fall back to template-engine fields
-    // Try theme-scoped fields first (v2 scanner stores with theme name), then theme='' (v1)
-    if (empty($fields)) {
-        $fields = OutpostDB::fetchAll(
-            "SELECT field_name, css_selector, section_name, field_type, content, default_value
-             FROM fields
-             WHERE page_id = ?
-               AND theme = ?
-               AND field_type NOT IN ('meta_title', 'meta_description')
-             ORDER BY sort_order ASC, id ASC",
-            [$pageId, $activeTheme]
-        );
-    }
     if (empty($fields)) {
         $fields = OutpostDB::fetchAll(
             "SELECT field_name, css_selector, section_name, field_type, content, default_value
@@ -2390,8 +2386,8 @@ function handle_editor_field_map(): void {
         // Enrich with section info from page_field_registry if available
         if (!empty($fields)) {
             $regEntries = OutpostDB::fetchAll(
-                "SELECT field_name, field_type FROM page_field_registry WHERE theme = ? AND path = ?",
-                [$activeTheme, $pagePath]
+                "SELECT field_name, field_type FROM page_field_registry WHERE theme = '' AND path = ?",
+                [$pagePath]
             );
             $regMap = [];
             foreach ($regEntries as $r) {
@@ -2420,18 +2416,18 @@ function handle_editor_field_map(): void {
 
     // Extract data-label attributes from the template HTML for human-readable labels
     $templateLabels = [];
-    if ($pagePath && $activeTheme) {
-        $themesDir = defined('OUTPOST_THEMES_DIR') ? OUTPOST_THEMES_DIR : __DIR__ . '/content/themes';
+    if ($pagePath) {
+        $siteRoot = OUTPOST_SITE_ROOT;
         $templateFile = '';
         if ($pagePath === '/') {
-            $templateFile = $themesDir . '/' . $activeTheme . '/index.html';
+            $templateFile = $siteRoot . 'index.html';
         } else {
-            $templateFile = $themesDir . '/' . $activeTheme . '/' . ltrim($pagePath, '/') . '.html';
+            $templateFile = $siteRoot . ltrim($pagePath, '/') . '.html';
         }
         if ($templateFile && file_exists($templateFile)) {
             $templateHtml = file_get_contents($templateFile);
             // Also check partials
-            $partialsDir = $themesDir . '/' . $activeTheme . '/partials';
+            $partialsDir = $siteRoot . 'partials';
             if (is_dir($partialsDir)) {
                 foreach (glob($partialsDir . '/*.html') as $partial) {
                     $templateHtml .= "\n" . file_get_contents($partial);
@@ -2642,19 +2638,14 @@ function handle_editor_block_settings_get(): void {
     $pageId = (int)($_GET['page_id'] ?? 0);
     if (!$pageId) json_error('page_id required');
 
-    // Get active theme
-    $themeRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    $activeTheme = $themeRow ? $themeRow['value'] : '';
-    if (!$activeTheme) json_error('No active theme');
-
     // Get page path to find template file
     $page = OutpostDB::fetchOne("SELECT path FROM pages WHERE id = ?", [$pageId]);
     if (!$page) json_error('Page not found');
     $pagePath = $page['path'];
 
-    // Map page path to template file
+    // Map page path to template file (site root)
     $templateFile = ($pagePath === '/') ? 'index.html' : ltrim($pagePath, '/') . '.html';
-    $templateFullPath = OUTPOST_THEMES_DIR . $activeTheme . '/' . $templateFile;
+    $templateFullPath = OUTPOST_SITE_ROOT . $templateFile;
 
     $allSettings = [];
     $loopSettings = [];
@@ -2671,7 +2662,7 @@ function handle_editor_block_settings_get(): void {
         // Also parse included partials for settings
         if (preg_match_all('/\{%\s*include\s+[\'"]([^"\']+)[\'"]\s*%\}/', $html, $includes)) {
             foreach ($includes[1] as $partial) {
-                $partialPath = OUTPOST_THEMES_DIR . $activeTheme . '/partials/' . $partial . '.html';
+                $partialPath = OUTPOST_SITE_ROOT . 'partials/' . $partial . '.html';
                 if (file_exists($partialPath)) {
                     $partialHtml = file_get_contents($partialPath);
                     $partialSettings = _parse_template_block_settings($partialHtml);
@@ -2682,10 +2673,10 @@ function handle_editor_block_settings_get(): void {
             }
         }
 
-        // Also check for v2 template includes: {% include 'partial' %} (no .html extension)
+        // Also check for v2 template includes: <outpost-include partial="...">
         if (preg_match_all('/<\s*include\s+src=[\'"]([^"\']+)[\'"]\s*\/?>/i', $html, $v2includes)) {
             foreach ($v2includes[1] as $partial) {
-                $partialPath = OUTPOST_THEMES_DIR . $activeTheme . '/partials/' . $partial;
+                $partialPath = OUTPOST_SITE_ROOT . 'partials/' . $partial;
                 if (!str_ends_with($partialPath, '.html')) $partialPath .= '.html';
                 if (file_exists($partialPath)) {
                     $partialHtml = file_get_contents($partialPath);
@@ -2986,13 +2977,17 @@ function ranger_tool_forge_scan(array $input): array {
     $path = $input['path'] ?? '';
     if (!$path) return ['error' => 'path is required'];
 
-    // Validate path
-    $fullPath = OUTPOST_THEMES_DIR . $path;
+    // Validate path — must be within site root, not inside outpost/
+    $fullPath = OUTPOST_SITE_ROOT . ltrim($path, '/');
     $realPath = realpath($fullPath);
-    $realThemes = realpath(OUTPOST_THEMES_DIR);
+    $realSiteRoot = realpath(OUTPOST_SITE_ROOT);
 
-    if (!$realPath || !$realThemes || !str_starts_with($realPath, $realThemes)) {
+    if (!$realPath || !$realSiteRoot || !str_starts_with($realPath, rtrim($realSiteRoot, '/'))) {
         return ['error' => 'Invalid file path'];
+    }
+    $realOutpost = realpath(OUTPOST_DIR);
+    if ($realOutpost && (str_starts_with($realPath, rtrim($realOutpost, '/') . '/') || $realPath === rtrim($realOutpost, '/'))) {
+        return ['error' => 'Cannot access outpost engine files'];
     }
     if (!file_exists($realPath)) {
         return ['error' => 'File not found: ' . $path];

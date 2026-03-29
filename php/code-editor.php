@@ -1,34 +1,58 @@
 <?php
 /**
- * Outpost CMS — Code Editor (scoped to themes/)
+ * Outpost CMS — Code Editor (scoped to site root, excludes outpost/)
  */
 
 require_once __DIR__ . '/config.php';
 
 /**
- * Validate that a path is safely inside OUTPOST_THEMES_DIR.
+ * Validate that a path is safely inside OUTPOST_SITE_ROOT but NOT inside the outpost/ directory.
  * Returns the resolved real path or exits with 403.
  */
 function code_validate_path(string $relative): string {
+    // Reject null byte injection
+    if (str_contains($relative, "\x00")) {
+        json_error('Invalid path', 403);
+    }
+
     // Reject path traversal attempts
     if (str_contains($relative, '..')) {
         json_error('Invalid path', 403);
     }
 
-    $full = OUTPOST_THEMES_DIR . ltrim($relative, '/');
+    // Reject any path that starts with outpost/ — engine files are off-limits
+    $normalized = ltrim($relative, '/');
+    // Normalize ./segments to prevent bypass (e.g. ./outpost/config.php)
+    $normalized = preg_replace('#(^|/)\./#', '$1', $normalized);
+    if (str_starts_with($normalized, 'outpost/') || $normalized === 'outpost') {
+        json_error('Cannot access outpost engine files', 403);
+    }
+
+    $full = OUTPOST_SITE_ROOT . $normalized;
     $real = realpath($full);
+    $realSiteRoot = rtrim(realpath(OUTPOST_SITE_ROOT), '/');
+    $realOutpost = realpath(OUTPOST_DIR);
 
     // For write operations the file may not exist yet — validate parent
     if ($real === false) {
         $parent = realpath(dirname($full));
-        if ($parent === false || !str_starts_with($parent, rtrim(realpath(OUTPOST_THEMES_DIR), '/'))) {
-            json_error('Path outside themes directory', 403);
+        if ($parent === false || !str_starts_with($parent, $realSiteRoot)) {
+            json_error('Path outside site root', 403);
+        }
+        // Double-check parent is not inside outpost/
+        if ($realOutpost && (str_starts_with($parent, rtrim($realOutpost, '/') . '/') || $parent === rtrim($realOutpost, '/'))) {
+            json_error('Cannot access outpost engine files', 403);
         }
         return $full;
     }
 
-    if (!str_starts_with($real, rtrim(realpath(OUTPOST_THEMES_DIR), '/'))) {
-        json_error('Path outside themes directory', 403);
+    if (!str_starts_with($real, $realSiteRoot)) {
+        json_error('Path outside site root', 403);
+    }
+
+    // Block any resolved path inside the outpost/ directory
+    if ($realOutpost && (str_starts_with($real, rtrim($realOutpost, '/') . '/') || $real === rtrim($realOutpost, '/'))) {
+        json_error('Cannot access outpost engine files', 403);
     }
 
     return $real;
@@ -46,21 +70,21 @@ function code_allowed_extension(string $filename): bool {
  * Directories to skip when building the file tree.
  */
 function code_skip_dir(string $name): bool {
-    return in_array($name, ['node_modules', '.git', '.svn', 'vendor', '__pycache__', '.forge-snapshot'], true);
+    return in_array($name, ['outpost', 'node_modules', '.git', '.svn', 'vendor', '__pycache__', '.forge-snapshot'], true);
 }
 
 /**
- * GET code/files — Recursive file tree inside themes/
+ * GET code/files — Recursive file tree inside site root (excludes outpost/)
  */
 function handle_code_files(): void {
     outpost_require_cap('code.*');
 
-    if (!is_dir(OUTPOST_THEMES_DIR)) {
+    if (!is_dir(OUTPOST_SITE_ROOT)) {
         json_response(['tree' => []]);
         return;
     }
 
-    $tree = code_build_tree(OUTPOST_THEMES_DIR, '');
+    $tree = code_build_tree(OUTPOST_SITE_ROOT, '');
     json_response(['tree' => $tree]);
 }
 
@@ -75,6 +99,7 @@ function code_build_tree(string $base, string $prefix): array {
 
     foreach ($entries as $entry) {
         if ($entry === '.' || $entry === '..') continue;
+        if ($entry === '.htaccess') continue;
 
         $full = $base . '/' . $entry;
         $rel = $prefix ? $prefix . '/' . $entry : $entry;
@@ -270,7 +295,7 @@ function code_delete_recursive(string $dir): void {
 }
 
 /**
- * GET code/search?q=term — Full-text search across theme files
+ * GET code/search?q=term — Full-text search across site root files (excludes outpost/)
  */
 function handle_code_search(): void {
     outpost_require_cap('code.*');
@@ -279,7 +304,7 @@ function handle_code_search(): void {
     if (!$q || strlen($q) < 2) json_error('Query too short');
 
     $results = [];
-    code_search_dir(OUTPOST_THEMES_DIR, '', $q, $results);
+    code_search_dir(OUTPOST_SITE_ROOT, '', $q, $results);
 
     json_response(['results' => $results, 'query' => $q]);
 }
@@ -444,7 +469,7 @@ function handle_code_reset(): void {
         json_error('Invalid folder name');
     }
 
-    $themeDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/' . $folder;
+    $themeDir = rtrim(OUTPOST_SITE_ROOT, '/') . '/' . $folder;
     $snapshotDir = $themeDir . '/.forge-snapshot';
 
     if (!is_dir($themeDir) || !is_dir($snapshotDir)) {
@@ -483,17 +508,12 @@ function handle_code_reset(): void {
  * Recursively copy files from snapshot back to the target directory.
  */
 /**
- * GET code/assets — List all files in a theme's assets/ directory (including images).
+ * GET code/assets — List all asset files in the site root assets/ directory (including images).
  */
 function handle_code_assets(): void {
     outpost_require_cap('code.*');
 
-    $theme = $_GET['theme'] ?? '';
-    if (!$theme || !preg_match('/^[a-zA-Z0-9_-]+$/', $theme)) {
-        json_error('Invalid theme slug', 400);
-    }
-
-    $assetsDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/' . $theme . '/assets';
+    $assetsDir = rtrim(OUTPOST_SITE_ROOT, '/') . '/assets';
     if (!is_dir($assetsDir)) {
         json_response(['files' => []]);
         return;

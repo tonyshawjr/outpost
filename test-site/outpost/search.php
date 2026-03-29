@@ -38,10 +38,10 @@ function search_ensure_tables(): void {
 
 /**
  * Get the active theme slug from settings.
+ * v5: always returns '' — no theme layer.
  */
 function search_get_active_theme(): string {
-    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-    return $row ? $row['value'] : 'forge-playground';
+    return '';
 }
 
 /**
