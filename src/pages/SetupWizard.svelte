@@ -1,40 +1,18 @@
 <script>
-  import { onMount } from 'svelte';
   import { setup as setupApi } from '$lib/api.js';
   import { setupCompleted, navigate, addToast } from '$lib/stores.js';
   import WizardStepName from './setup/WizardStepName.svelte';
-  import WizardStepContent from './setup/WizardStepContent.svelte';
   import WizardStepComplete from './setup/WizardStepComplete.svelte';
 
   let step = $state(1);
   let siteName = $state('');
-  let selectedPack = $state('');
-  let packs = $state([]);
   let applying = $state(false);
   let summary = $state(null);
 
-  onMount(async () => {
-    try {
-      const data = await setupApi.packs();
-      packs = data.packs || [];
-    } catch (e) {
-      // Packs endpoint may not exist yet on older installs
-      packs = [
-        { id: 'blank', name: 'Start from scratch', description: 'No sample content.', icon: 'plus', themes: [] }
-      ];
-    }
-  });
-
   function nextStep() {
-    if (step === 2 && !applying) {
+    if (step === 1 && !applying) {
       applySetup();
-    } else if (step < 2) {
-      step++;
     }
-  }
-
-  function prevStep() {
-    if (step > 1) step--;
   }
 
   async function applySetup() {
@@ -42,11 +20,10 @@
     try {
       const data = await setupApi.apply({
         site_name: siteName.trim(),
-        pack: selectedPack,
       });
       summary = data.summary || null;
       setupCompleted.set(true);
-      step = 3;
+      step = 2;
     } catch (e) {
       addToast(e.message, 'error');
     } finally {
@@ -60,7 +37,6 @@
       setupCompleted.set(true);
       navigate('dashboard');
     } catch (e) {
-      // Fallback — just go to dashboard
       setupCompleted.set(true);
       navigate('dashboard');
     }
@@ -73,34 +49,21 @@
 
 <div class="wizard-shell">
   <div class="wizard-container">
-    <!-- Skip link -->
-    {#if step < 3}
+    {#if step < 2}
       <button class="wizard-skip" onclick={skip}>Skip setup</button>
     {/if}
 
-    <!-- Progress dots -->
-    {#if step < 3}
-      <div class="wizard-progress">
-        {#each [1, 2] as n}
-          <div class="dot" class:active={step === n} class:done={step > n}></div>
-        {/each}
-      </div>
-    {/if}
-
-    <!-- Steps -->
     <div class="wizard-body">
       {#if step === 1}
-        <WizardStepName bind:siteName onNext={nextStep} />
-      {:else if step === 2}
         {#if applying}
           <div class="wizard-loading">
             <div class="spinner"></div>
             <p class="wizard-loading-text">Setting up your site...</p>
           </div>
         {:else}
-          <WizardStepContent packs={packs} bind:selectedPack onNext={nextStep} onBack={prevStep} />
+          <WizardStepName bind:siteName onNext={nextStep} />
         {/if}
-      {:else if step === 3}
+      {:else if step === 2}
         <WizardStepComplete {summary} onFinish={finish} />
       {/if}
     </div>
