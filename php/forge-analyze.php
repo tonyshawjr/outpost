@@ -1039,7 +1039,9 @@ function forge_analyze_extract_footer_menu(string $footerHtml): array {
     $footer = forge_analyze_find_element($doc, 'footer', 0);
     if (!$footer) return [];
 
-    // Look for a <nav> inside the footer first
+    // ONLY extract menus from <nav> elements inside the footer.
+    // If the developer wants footer links managed by Outpost's menu system,
+    // they wrap them in <nav>. Otherwise they stay as static HTML.
     $footerNav = forge_analyze_find_element_in($footer, 'nav', 0);
     if ($footerNav) {
         $container = forge_analyze_find_link_container($footerNav);
@@ -1049,44 +1051,16 @@ function forge_analyze_extract_footer_menu(string $footerHtml): array {
         return forge_analyze_parse_flat_links($footerNav, $doc);
     }
 
-    // Look for a <ul> with multiple links (common footer pattern)
-    $uls = $footer->getElementsByTagName('ul');
-    foreach ($uls as $ul) {
-        if (!($ul instanceof DOMElement)) continue;
-        $links = $ul->getElementsByTagName('a');
-        if ($links->length >= 2) {
-            return forge_analyze_parse_link_container($ul, $doc);
-        }
-    }
+    // No <nav> in footer — no footer menu. Links stay as regular content.
+    return [];
+}
 
-    // Look for a div with nav-like class (footer-links, footer-nav, footer-menu)
-    $navDivPatterns = ['footer-links', 'footer-nav', 'footer-menu', 'quick-links', 'site-links', 'page-links'];
-    $xpath = new DOMXPath($doc);
-    $divs = $xpath->query('//footer//div');
-
-    foreach ($divs as $div) {
-        if (!($div instanceof DOMElement)) continue;
-
-        // Priority: look for a div specifically classed as a nav/links container
-        if (forge_analyze_class_contains($div, $navDivPatterns)) {
-            $links = $div->getElementsByTagName('a');
-            $navLinks = [];
-            foreach ($links as $link) {
-                if (!($link instanceof DOMElement)) continue;
-                $href = trim($link->getAttribute('href'));
-                // Only include internal page links (relative .html, /, or relative paths)
-                if (!$href || $href === '#') continue;
-                if (str_starts_with($href, 'tel:') || str_starts_with($href, 'mailto:')) continue;
-                if (preg_match('/facebook|twitter|instagram|linkedin|youtube|tiktok|pinterest|maps\.app|maps\.google|smugmug/i', $href)) continue;
-                $item = forge_analyze_link_to_item($link);
-                if ($item) $navLinks[] = $item;
-            }
-            if (count($navLinks) >= 2) {
-                return $navLinks;
-            }
-        }
-    }
-
+/**
+ * REMOVED: Generic div-based footer menu extraction.
+ * Menus are only extracted from <nav> elements. This is the developer contract:
+ * wrap your navigation links in <nav> if you want them managed by Outpost.
+ */
+function _forge_analyze_extract_footer_menu_legacy(): array {
     return [];
 }
 
