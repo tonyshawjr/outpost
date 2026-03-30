@@ -1524,18 +1524,30 @@ function smart_forge_walk(DOMNode $node, DOMDocument $doc, SmartForgeState $stat
     // ── Check for richtext: container with multiple consecutive <p> children ──
     // This catches groups like: <div><p>...</p><p>...</p><p>...</p></div>
     // Combines them into one richtext field instead of separate text fields
+    // BUT: skip if the <p> elements have distinct semantic classes (subtitle, label, etc.)
+    //       — those should be separate editable fields
     if (in_array($tag, ['div', 'article', 'section', 'main'])) {
         $pCount = 0;
         $totalHtml = '';
         $pNodes = [];
+        $hasSemanticClasses = false;
+        $semanticPatterns = ['subtitle', 'label', 'tagline', 'caption', 'meta', 'category', 'date', 'author', 'badge', 'heading', 'subheading'];
         foreach ($node->childNodes as $child) {
             if ($child instanceof DOMElement && strtolower($child->nodeName) === 'p') {
                 $pCount++;
                 $totalHtml .= '<p>' . trim($child->textContent) . '</p>';
                 $pNodes[] = $child;
+                // Check if this <p> has a semantic class
+                $pClass = strtolower($child->getAttribute('class'));
+                foreach ($semanticPatterns as $sp) {
+                    if (str_contains($pClass, $sp)) {
+                        $hasSemanticClasses = true;
+                        break;
+                    }
+                }
             }
         }
-        if ($pCount >= 2 && mb_strlen(strip_tags($totalHtml)) >= 30) {
+        if ($pCount >= 2 && !$hasSemanticClasses && mb_strlen(strip_tags($totalHtml)) >= 30) {
             // Check that these paragraphs aren't already forged (v1 Liquid or v2 data-outpost)
             $alreadyForged = false;
             foreach ($pNodes as $pn) {
