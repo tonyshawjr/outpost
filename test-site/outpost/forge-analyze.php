@@ -2231,40 +2231,9 @@ function handle_forge_analyze(): void {
  */
 function handle_forge_analyze_apply(): void {
     $body = get_json_body();
+    $doBackup = $body['backup'] ?? true;
 
-    $pages        = $body['pages'] ?? [];
-    $partials     = $body['partials'] ?? [];
-    $globalFields = $body['global_fields'] ?? [];
-    $menus        = $body['menus'] ?? [];
-    $options      = $body['options'] ?? [];
-
-    // Defaults
-    $doBackup     = $options['backup'] ?? true;
-    $doWrite      = $options['write_templates'] ?? true;
-    $doRegister   = $options['register_db'] ?? true;
-    $doPartials   = $options['create_partials_dir'] ?? true;
-
-    $siteRoot = OUTPOST_SITE_ROOT;
-    $siteRoot = rtrim($siteRoot, '/') . '/';
-
-    // Security: validate all file paths are within the site root.
-    // Client-supplied 'file' fields could be manipulated to read/write arbitrary paths.
-    foreach ($pages as $page) {
-        $file = $page['file'] ?? '';
-        if (!$file) continue;
-        $realFile = realpath($file);
-        $realRoot = realpath(rtrim($siteRoot, '/'));
-        if (!$realFile || !$realRoot || !str_starts_with($realFile, $realRoot . '/')) {
-            json_error('Invalid file path: path is outside site root', 403);
-            return;
-        }
-        // Block paths inside the outpost directory (admin, data, config, etc.)
-        $outpostDir = defined('OUTPOST_DIR') ? realpath(OUTPOST_DIR) : realpath($siteRoot . 'outpost');
-        if ($outpostDir && str_starts_with($realFile, $outpostDir . '/')) {
-            json_error('Invalid file path: cannot modify files inside outpost directory', 403);
-            return;
-        }
-    }
+    $siteRoot = rtrim(OUTPOST_SITE_ROOT, '/') . '/';
 
     $result = [
         'backup_path'      => null,
@@ -2275,6 +2244,21 @@ function handle_forge_analyze_apply(): void {
     ];
 
     try {
+        set_time_limit(120);
+
+        // Re-run the full analysis server-side (don't trust client data)
+        $analysis = forge_analyze_site($siteRoot);
+
+        $pages        = $analysis['pages'] ?? [];
+        $partials     = $analysis['partials'] ?? [];
+        $globalFields = $analysis['global_fields'] ?? [];
+        $menus        = $analysis['menus'] ?? [];
+
+        if (empty($pages)) {
+            json_response(['error' => 'No pages found to process']);
+            return;
+        }
+
         // ── Backup originals ──
         if ($doBackup) {
             $filePaths = [];
@@ -2291,97 +2275,84 @@ function handle_forge_analyze_apply(): void {
 
         // ── Create partials directory ──
         $partialsDir = $siteRoot . 'partials/';
-        if ($doPartials && !is_dir($partialsDir)) {
+        if (!is_dir($partialsDir)) {
             mkdir($partialsDir, 0755, true);
         }
 
-        // ── Build partials lookup (name => data) ──
+        // ── Write partials ──
+        foreach ($partials as $pData) {
+            $name = $pData['name'] ?? '';
+            $partialHtml = $pData['html'] ?? '';
+            if (!$name || !$partialHtml) continue;
+
+            $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '', $name);
+            if (!$safeName) continue;
+
+            $rewritten = forge_analyze_rewrite_partial($partialHtml, $safeName, $globalFields);
+            $rewritten = preg_replace('/<\?(?:php|=)?/i', '&lt;?', $rewritten);
+
+            $partialPath = $partialsDir . $safeName . '.html';
+            $written = file_put_contents($partialPath, $rewritten);
+            if ($written !== false) {
+                $result['partials_written'][] = $safeName . '.html';
+            } else {
+                $result['errors'][] = "Failed to write partial: {$safeName}.html";
+            }
+        }
+
+        // ── Build partials lookup for page rewriting ──
         $partialsMap = [];
         foreach ($partials as $p) {
             $name = $p['name'] ?? '';
-            if ($name) {
-                $partialsMap[$name] = $p;
+            if ($name) $partialsMap[$name] = $p;
+        }
+
+        // ── Rewrite and write page templates ──
+        foreach ($pages as $page) {
+            $file = $page['file'] ?? '';
+            if (!$file || !file_exists($file)) continue;
+
+            // Security: verify path is inside site root and outside outpost/
+            $realFile = realpath($file);
+            $realRoot = realpath(rtrim($siteRoot, '/'));
+            $outpostDir = defined('OUTPOST_DIR') ? realpath(OUTPOST_DIR) : null;
+            if (!$realFile || !$realRoot || !str_starts_with($realFile, $realRoot . '/')) continue;
+            if ($outpostDir && str_starts_with($realFile, rtrim($outpostDir, '/') . '/')) continue;
+
+            $originalHtml = file_get_contents($file);
+            $scanResult   = $page['scan_result'] ?? [];
+            $headClass    = $page['head_class'] ?? [];
+            $filePartials = $page['file_partials'] ?? [];
+            $pagePath     = $page['path'] ?? '/';
+
+            $rewritten = forge_analyze_rewrite_page(
+                $originalHtml, $filePartials, $scanResult, $headClass, $pagePath
+            );
+            $rewritten = preg_replace('/<\?(?:php|=)?/i', '&lt;?', $rewritten);
+
+            $written = file_put_contents($file, $rewritten);
+            if ($written !== false) {
+                $result['files_written'][] = basename($file);
+            } else {
+                $result['errors'][] = "Failed to write: " . basename($file);
             }
         }
 
-        // ── Phase 7: Rewrite and write partials ──
-        if ($doWrite) {
-            foreach ($partialsMap as $name => $pData) {
-                $partialHtml = $pData['html'] ?? '';
-                if (!$partialHtml) continue;
-
-                // Security: sanitize partial name to prevent directory traversal
-                // Only allow alphanumeric, hyphens, and underscores
-                $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', $name);
-                if (!$name) {
-                    $result['errors'][] = "Invalid partial name — skipped";
-                    continue;
-                }
-
-                // Rewrite the partial with Outpost annotations
-                $rewrittenPartial = forge_analyze_rewrite_partial($partialHtml, $name, $globalFields);
-
-                // Security: strip PHP tags from partial content
-                $rewrittenPartial = preg_replace('/<\?(?:php|=)?/i', '&lt;?', $rewrittenPartial);
-
-                // Write to partials directory
-                $partialPath = $partialsDir . $name . '.html';
-                $written = file_put_contents($partialPath, $rewrittenPartial);
-                if ($written !== false) {
-                    $result['partials_written'][] = $partialPath;
-                } else {
-                    $result['errors'][] = "Failed to write partial: {$name}.html";
-                }
-            }
-
-            // ── Phase 7: Rewrite and write page templates ──
-            foreach ($pages as $page) {
-                $file = $page['file'] ?? '';
-                if (!$file) continue;
-
-                $originalHtml    = file_get_contents($file);
-                $scanResult      = $page['scan_result'] ?? [];
-                $headClass       = $page['head_class'] ?? [];
-                $filePartials    = $page['file_partials'] ?? [];
-                $pagePath        = $page['path'] ?? '/';
-
-                // Rewrite the page template
-                $rewrittenPage = forge_analyze_rewrite_page(
-                    $originalHtml,
-                    $filePartials,
-                    $scanResult,
-                    $headClass,
-                    $pagePath
-                );
-
-                // Security: strip any PHP tags that could have been injected through
-                // the HTML source files. The template engine compiles .html to .php,
-                // so any <?php tags would execute as server-side code.
-                $rewrittenPage = preg_replace('/<\?(?:php|=)?/i', '&lt;?', $rewrittenPage);
-
-                // Write the rewritten template
-                $written = file_put_contents($file, $rewrittenPage);
-                if ($written !== false) {
-                    $result['files_written'][] = $file;
-                } else {
-                    $result['errors'][] = "Failed to write page: " . basename($file);
-                }
-            }
+        // ── Database registration ──
+        $dbPages = [];
+        foreach ($pages as $page) {
+            $dbPages[] = [
+                'path'   => $page['path'] ?? '',
+                'title'  => $page['title'] ?? '',
+                'fields' => $page['fields'] ?? [],
+            ];
         }
+        $result['db_summary'] = forge_analyze_register_all($dbPages, $globalFields, $menus);
 
-        // ── Phase 8: Database registration ──
-        if ($doRegister) {
-            // Prepare page data for registration
-            $dbPages = [];
-            foreach ($pages as $page) {
-                $dbPages[] = [
-                    'path'   => $page['path'] ?? '',
-                    'title'  => $page['title'] ?? '',
-                    'fields' => $page['fields'] ?? [],
-                ];
-            }
-
-            $result['db_summary'] = forge_analyze_register_all($dbPages, $globalFields, $menus);
+        // Clear template cache
+        $cacheDir = OUTPOST_CACHE_DIR . 'templates/';
+        if (is_dir($cacheDir)) {
+            foreach (glob($cacheDir . '*.php') as $f) @unlink($f);
         }
 
         json_response($result);

@@ -136,7 +136,8 @@
   }
 
   function finish() {
-    navigate('dashboard');
+    // Go to the live site so user sees their site with Outpost active
+    window.location.href = '/';
   }
 
   function formatPageName(file) {
@@ -495,13 +496,13 @@
                 {/if}
               </div>
             {:else}
-              <p class="complete-desc">Start editing content from your dashboard.</p>
+              <p class="complete-desc">Your site is ready. Go see it live.</p>
             {/if}
           </div>
 
           <div class="complete-action" class:visible={showButton}>
             <button class="btn-primary btn-large" onclick={finish}>
-              Go to Dashboard
+              View Your Site
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
