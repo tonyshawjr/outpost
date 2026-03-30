@@ -884,7 +884,17 @@ function smart_forge_element_role(DOMElement $el, string $tag, string $typeHint)
             return $typeHint ?: 'text';
 
         case 'span':
-            return 'label';
+            // Check parent context for better role naming
+            if ($el->parentNode instanceof DOMElement) {
+                $parentClass = strtolower($el->parentNode->getAttribute('class'));
+                if (str_contains($parentClass, 'time') || str_contains($parentClass, 'schedule') || str_contains($parentClass, 'hours')) {
+                    return 'schedule';
+                }
+                if (str_contains($parentClass, 'social')) return 'social';
+                if (str_contains($parentClass, 'contact')) return 'contact';
+                if (str_contains($parentClass, 'price') || str_contains($parentClass, 'cost')) return 'price';
+            }
+            return $typeHint ?: 'label';
 
         case 'div':
             // Use the typeHint from the walk function (label, name, role, badge, date)
@@ -1985,7 +1995,13 @@ function smart_forge_add_attr_to_img(string $html, string $src, string $fieldNam
  */
 function smart_forge_add_attr_to_element(string $html, string $text, string $fieldName, string $type): string {
     // Skip if this element already has a data-outpost attribute (prevent duplicates)
+    // Try both decoded text AND HTML-encoded version (e.g., & vs &amp;)
     $escaped = preg_quote($text, '/');
+    $escapedHtmlEncoded = preg_quote(htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'), '/');
+    // Build pattern that matches either version
+    if ($escaped !== $escapedHtmlEncoded) {
+        $escaped = '(?:' . $escaped . '|' . $escapedHtmlEncoded . ')';
+    }
     $typeAttr = ($type !== 'text') ? ' data-type="' . $type . '"' : '';
 
     // Find an element whose opening tag is immediately followed by this text
