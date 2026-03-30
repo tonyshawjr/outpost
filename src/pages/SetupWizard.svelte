@@ -141,17 +141,19 @@
 
   function formatPageName(file) {
     if (!file) return 'Page';
-    const name = file.replace(/\.html$/, '').replace(/[_-]/g, ' ');
+    // Handle full server paths — extract just the filename
+    const basename = file.split('/').pop();
+    const name = basename.replace(/\.html$/, '').replace(/[_-]/g, ' ');
     if (name === 'index') return 'Home';
     return name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   }
 
   function formatSectionName(section) {
     if (!section) return '';
-    // Strip "section:" prefix and slash variants
-    const clean = section.replace(/^(\/)?section:/, '').replace(/^\//, '');
+    // Strip all variants: "section:hero", "/section:hero", "Section:Hero"
+    let clean = section.replace(/^\/?(s|S)ection:/i, '').replace(/^\//, '');
     // Convert kebab-case / snake_case to title case
-    return clean.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return clean.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
   }
 
   function formatPartialName(partial) {
@@ -300,7 +302,7 @@
                               <polyline points="14 2 14 8 20 8"/>
                             </svg>
                           </div>
-                          <span class="page-card-name">{formatPageName(page.file)}</span>
+                          <span class="page-card-name">{page.title || formatPageName(page.filename || page.file)}</span>
                           <div class="page-card-meta">
                             {#if page.sections?.length}
                               <span>{page.sections.length} {page.sections.length === 1 ? 'section' : 'sections'}</span>

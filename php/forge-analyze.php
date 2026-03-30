@@ -2074,6 +2074,15 @@ function forge_analyze_site(string $siteRoot): array {
 
     // ── Phase 4: Use extracted partials directly (keyed by name) ──
     $partials = [];
+
+    // Add head partial from classification
+    if (!empty($headClassification['shared_html'])) {
+        $partials['head'] = [
+            'html'        => $headClassification['shared_html'],
+            'match_count' => count($htmlFiles),
+        ];
+    }
+
     foreach (['nav', 'footer', 'mobile_menu'] as $pKey) {
         if (!empty($extractedPartials[$pKey])) {
             $name = str_replace('_', '-', $pKey); // mobile_menu -> mobile-menu
