@@ -137,6 +137,9 @@ class SmartForgeState {
     /** @var array<string,array> Map node path → replacement info for template generation */
     public array $replacements = [];
 
+    /** @var array<array{name:string,line:int}> Section elements with line numbers for position-based lookup */
+    public array $sectionElements = [];
+
     /** @var array Front matter field definitions parsed from {#--- ... ---#} or data-outpost attrs */
     public array $frontMatterFields = [];
 
@@ -171,6 +174,16 @@ class SmartForgeState {
         }
         $this->usedNames[$name] = 1;
         return $name;
+    }
+
+    /**
+     * Register a section mapping, storing both the path and line number.
+     */
+    public function addSection(string $name, string $path, ?DOMElement $el = null): void {
+        $this->sections[] = $name;
+        $this->sectionMap[$path] = $name;
+        $line = ($el instanceof DOMElement) ? $el->getLineNo() : 0;
+        $this->sectionElements[] = ['name' => $name, 'line' => $line];
     }
 
     /**
@@ -373,6 +386,39 @@ function smart_forge_is_worth_editing(DOMElement $node, string $text): bool {
     // Emoji-only
     if (preg_match('/^[\x{1F000}-\x{1FFFF}\x{2600}-\x{27BF}\x{FE00}-\x{FE0F}\x{200D}\s]+$/u', $text)) return false;
 
+    // ── Skip decorative / structural elements ──
+
+    // aria-hidden elements are decorative
+    if ($node->getAttribute('aria-hidden') === 'true') return false;
+
+    // role="presentation" or role="none" — decorative
+    $role = $node->getAttribute('role');
+    if ($role === 'presentation' || $role === 'none') return false;
+
+    // Common decorative text content: "Scroll", divider chars, arrows, bullets, etc.
+    $decorativeTexts = ['scroll', 'scroll down', 'scroll up', 'back to top',
+        '—', '–', '•', '·', '|', '/', '\\', '→', '←', '↑', '↓',
+        '...', '···', '***', '---', '___', '+++', 'menu', 'close',
+        'toggle', 'hamburger', 'open', 'x'];
+    if (in_array(strtolower($text), $decorativeTexts)) return false;
+
+    // Skip elements whose class strongly suggests decorative/structural role
+    $classes = strtolower($node->getAttribute('class'));
+    if (preg_match('/\b(scroll[-_]?(indicator|down|up|to|hint)|divider|separator|spacer|decorator|ornament|decoration|overlay|backdrop|curtain|loader|spinner|skeleton|placeholder|sr[-_]only|visually[-_]hidden|screen[-_]reader)\b/', $classes)) {
+        return false;
+    }
+
+    // Skip elements inside a decorative/structural parent
+    $parent = $node->parentNode;
+    while ($parent && $parent instanceof DOMElement) {
+        $pClasses = strtolower($parent->getAttribute('class'));
+        if (preg_match('/\b(scroll[-_]?(indicator|down|up|hint)|divider|separator|decorator|ornament|decoration)\b/', $pClasses)) {
+            return false;
+        }
+        if ($parent->getAttribute('aria-hidden') === 'true') return false;
+        $parent = $parent->parentNode;
+    }
+
     // Check if inside <nav> <ul> — skip nav menu links only (not CTAs, logos, taglines)
     $tag = strtolower($node->nodeName);
     $isInsideNavList = false;
@@ -555,8 +601,7 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
     $explicit = $xpath->query('//*[@data-outpost-section]');
     foreach ($explicit as $el) {
         $sectionName = $el->getAttribute('data-outpost-section');
-        $state->sections[] = $sectionName;
-        $state->sectionMap[smart_forge_node_path($el)] = $sectionName;
+        $state->addSection($sectionName, smart_forge_node_path($el), $el);
     }
 
     // 1b. HTML comments like <!-- Hero Section --> name the next sibling section
@@ -578,8 +623,7 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
                     $path = smart_forge_node_path($next);
                     if (!isset($state->sectionMap[$path])) {
                         $name = smart_forge_humanize($sectionLabel);
-                        $state->sections[] = $name;
-                        $state->sectionMap[$path] = $name;
+                        $state->addSection($name, $path, $next);
                     }
                 }
             }
@@ -600,15 +644,44 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
             if ($id) {
                 $name = smart_forge_humanize($id);
             } else {
-                $classes = array_filter(explode(' ', $el->getAttribute('class')), fn($c) => trim($c) !== '');
+                // Filter out utility/animation/layout classes to find the semantic section name
+                $classes = array_filter(explode(' ', $el->getAttribute('class')), function($c) {
+                    $c = trim($c);
+                    if ($c === '' || strlen($c) < 3) return false;
+                    // Skip animation, transition, layout, and utility classes
+                    if (preg_match('/^(fade|slide|animate|transition|delay|duration|ease|scale|rotate|translate|opacity|transform|overflow|relative|absolute|fixed|sticky|col|row|flex|grid|block|inline|hidden|visible|container|wrapper|inner|outer|d|p|m|w|h|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|bg|text|show|hide|no|has|is|wp|elementor|swiper|slick|aos|gsap|wow|hs|webflow|lottie|jarallax)\-?/i', $c)) return false;
+                    return true;
+                });
                 if (!empty($classes)) {
-                    $name = smart_forge_humanize(reset($classes));
+                    // Try to find a class that describes content, not structure
+                    $bestClass = null;
+                    foreach ($classes as $cls) {
+                        // Prefer classes with semantic words
+                        if (preg_match('/\b(hero|banner|about|feature|service|team|testimonial|contact|cta|pricing|faq|gallery|portfolio|blog|news|welcome|intro|overview|showcase|stats|counter|partner|client|brand|footer|header|nav|menu|sidebar)\b/i', $cls)) {
+                            $bestClass = $cls;
+                            break;
+                        }
+                    }
+                    if (!$bestClass) $bestClass = reset($classes);
+                    $name = smart_forge_humanize($bestClass);
                 }
             }
             if (!$name) $name = 'Section';
 
-            $state->sections[] = $name;
-            $state->sectionMap[$path] = $name;
+            // Try to derive a better name from the first heading inside this section
+            if ($name === 'Section' || strlen($name) <= 3) {
+                $headingXpath = new DOMXPath($doc);
+                $headings = $headingXpath->query('.//h1|.//h2|.//h3', $el);
+                if ($headings->length > 0) {
+                    $headingText = trim($headings->item(0)->textContent);
+                    if ($headingText && mb_strlen($headingText) >= 3 && mb_strlen($headingText) <= 40) {
+                        $name = smart_forge_humanize(preg_replace('/[^a-zA-Z0-9\s]/', '', $headingText));
+                        if (strlen($name) > 30) $name = substr($name, 0, 30);
+                    }
+                }
+            }
+
+            $state->addSection($name, $path, $el);
         }
 
         // 3. Landmark elements
@@ -621,8 +694,7 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
 
                 $id = $el->getAttribute('id');
                 $name = $id ? smart_forge_humanize($id) : $defaultName;
-                $state->sections[] = $name;
-                $state->sectionMap[$path] = $name;
+                $state->addSection($name, $path, $el);
             }
         }
 
@@ -634,11 +706,10 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
                 if ($text) {
                     $name = smart_forge_humanize($text);
                     if (strlen($name) > 30) $name = substr($name, 0, 30);
-                    $state->sections[] = $name;
                     // Map the h2's parent as the section
                     $parent = $el->parentNode;
                     if ($parent && $parent instanceof DOMElement) {
-                        $state->sectionMap[smart_forge_node_path($parent)] = $name;
+                        $state->addSection($name, smart_forge_node_path($parent), $parent);
                     }
                 }
             }
@@ -662,6 +733,7 @@ function smart_forge_humanize(string $raw): string {
 // ── Section Lookup ──────────────────────────────────────
 
 function smart_forge_get_section(DOMNode $node, SmartForgeState $state): string {
+    // Walk up from the node to find its containing section
     $current = $node;
     while ($current) {
         if ($current instanceof DOMElement) {
@@ -672,6 +744,25 @@ function smart_forge_get_section(DOMNode $node, SmartForgeState $state): string 
         }
         $current = $current->parentNode;
     }
+
+    // No ancestor is a mapped section — use sectionElements (stored during detection)
+    // to find the nearest preceding section by line number
+    if (!empty($state->sectionElements)) {
+        $nodeLine = $node->getLineNo();
+        if ($nodeLine > 0) {
+            $bestSection = null;
+            $bestLine = 0;
+            foreach ($state->sectionElements as $entry) {
+                $secLine = $entry['line'];
+                if ($secLine <= $nodeLine && $secLine > $bestLine) {
+                    $bestLine = $secLine;
+                    $bestSection = $entry['name'];
+                }
+            }
+            if ($bestSection) return $bestSection;
+        }
+    }
+
     // Return the first section or Content
     return $state->sections[0] ?? 'Content';
 }
@@ -694,25 +785,42 @@ function smart_forge_field_name(DOMElement $el, string $section, string $typeHin
         return $state->uniqueName($name);
     }
 
-    // 2. Check classes for meaningful name — prefix with section slug
+    // 2. Check classes for a SEMANTIC name — prefix with section slug
+    //    Skip utility, layout, animation, and presentational classes entirely
     $classes = array_filter(explode(' ', $el->getAttribute('class')), function ($c) {
         $c = trim($c);
         if ($c === '' || strlen($c) < 3) return false;
-        // Skip very generic utility classes
-        if (preg_match('/^(col|row|d|p|m|w|h|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|g|gap|text|bg|flex|grid|block|inline|hidden|visible|container|wrapper|inner|outer)\-?/', $c)) return false;
+        // Skip utility/layout/animation/presentational classes that produce gibberish names
+        if (preg_match('/^(col|row|d|p|m|w|h|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|g|gap|text|bg|flex|grid|block|inline|hidden|visible|container|wrapper|inner|outer|fade|slide|animate|transition|delay|duration|ease|scale|rotate|translate|opacity|transform|overflow|relative|absolute|fixed|sticky|static|float|clear|z|top|bottom|left|right|rounded|border|shadow|leading|tracking|font|uppercase|lowercase|capitalize|truncate|whitespace|break|cursor|pointer|select|resize|sr|lg|md|sm|xl|xs|xxl|show|hide|collapse|expanded|active|disabled|focus|hover|group|peer|dark|light|mobile|desktop|tablet|no|has|is|not|wp|elementor|swiper|slick|aos|gsap|wow|hs|webflow|lottie|jarallax)\-?/i', $c)) return false;
+        // Skip classes that are just element-type descriptions (times-bar-time, hero-btn, etc.)
+        // These produce names like "times_bar_time" which are not semantic
         return true;
     });
-    if (!empty($classes)) {
-        $best = smart_forge_sanitize_name(reset($classes));
+
+    // Among remaining classes, prefer ones that suggest CONTENT role over layout role
+    $semanticClass = null;
+    foreach ($classes as $cls) {
+        $sanitized = smart_forge_sanitize_name($cls);
+        if (!$sanitized || strlen($sanitized) < 3) continue;
+        // Skip class names that are just the section name repeated
+        if ($sectionSlug && $sanitized === $sectionSlug) continue;
+        // Skip class names that are purely structural (describing HTML structure, not content)
+        if (preg_match('/^(item|card|box|wrap|cell|slot|panel|block|module|component|widget|section|region|area|zone|part|piece|chunk|segment|unit|col_|row_)/', $sanitized)) continue;
+        $semanticClass = $sanitized;
+        break;
+    }
+
+    if ($semanticClass) {
         // If the class already starts with the section slug, use it as-is
-        if ($sectionSlug && str_starts_with($best, $sectionSlug . '_')) {
-            return $state->uniqueName($best);
+        if ($sectionSlug && str_starts_with($semanticClass, $sectionSlug . '_')) {
+            return $state->uniqueName($semanticClass);
         }
-        $name = $sectionSlug ? $sectionSlug . '_' . $best : $best;
+        $name = $sectionSlug ? $sectionSlug . '_' . $semanticClass : $semanticClass;
         return $state->uniqueName($name);
     }
 
     // 3. Section + element type (always prefixed with block name)
+    //    This produces clean names like hero_heading, about_body, cta_link
     $name = $sectionSlug ? $sectionSlug . '_' . $typeHint : $typeHint;
     return $state->uniqueName($name);
 }
@@ -1455,16 +1563,24 @@ function smart_forge_generate_template(string $originalHtml, DOMDocument $doc, S
     }
 
     // Apply field replacements — inject data-outpost="name" (+ data-type for non-text)
-    // into the original HTML element's opening tag
+    // into the original HTML element's opening tag.
+    // Track which default values have been annotated to prevent duplicate attributes.
+    $annotatedValues = [];
     foreach ($state->fields as $field) {
         $name = $field['name'];
         $type = $field['type'];
         $defaultVal = $field['default_value'];
 
+        // Skip if this exact value was already annotated (prevents duplicate data-outpost)
+        $dedupeKey = $type . '::' . $defaultVal;
+        if (isset($annotatedValues[$dedupeKey])) continue;
+
         if ($type === 'image') {
             // Add data-outpost + data-type="image" to the <img> tag that has this src
             if ($defaultVal && strpos($template, $defaultVal) !== false) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_img($template, $defaultVal, $name);
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         } elseif ($type === 'link') {
             // Links are handled via the replacements map below
@@ -1472,14 +1588,18 @@ function smart_forge_generate_template(string $originalHtml, DOMDocument $doc, S
         } elseif ($type === 'richtext') {
             // Add data-outpost + data-type="richtext" to the element containing this text
             if ($defaultVal) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_element($template, $defaultVal, $name, 'richtext');
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         } elseif ($type === 'text') {
             // Skip alt text fields (handled with image) and URL fields
             if (str_ends_with($name, '_alt') || str_ends_with($name, '_url')) continue;
 
             if ($defaultVal) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_element($template, $defaultVal, $name, 'text');
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         }
     }
@@ -1491,16 +1611,25 @@ function smart_forge_generate_template(string $originalHtml, DOMDocument $doc, S
             $href = $node->getAttribute('href');
             $text = trim($node->textContent);
             $fieldName = $info['name'];
+            // Skip if already annotated
+            $dedupeKey = 'link::' . $href;
+            if (isset($annotatedValues[$dedupeKey])) continue;
             // Add data-outpost="name" data-type="link" to the <a> tag
             if ($href) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_link($template, $href, $text, $fieldName);
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         } elseif (($info['type'] ?? '') === 'button') {
             $node = $info['node'];
             $text = trim($node->textContent);
             $labelName = $info['name_label'] ?? '';
             if ($text && $labelName) {
-                $template = smart_forge_add_attr_to_element($template, $text, $labelName, 'text');
+                $dedupeKey = 'text::' . $text;
+                if (!isset($annotatedValues[$dedupeKey])) {
+                    $template = smart_forge_add_attr_to_element($template, $text, $labelName, 'text');
+                    $annotatedValues[$dedupeKey] = true;
+                }
             }
         }
     }
@@ -1693,12 +1822,19 @@ function smart_forge_insert_section_comments(string $template, DOMDocument $doc,
 function smart_forge_add_attr_to_img(string $html, string $src, string $fieldName): string {
     $escaped = preg_quote($src, '/');
     // Find <img ... src="value" ...> and inject data-outpost + data-type before >
+    // Use callback to avoid backreference issues and prevent duplicate attributes
     $pattern = '/(<img\b[^>]*?\bsrc=["\'])(' . $escaped . ')(["\'][^>]*?)(\/?>)/i';
-    return preg_replace(
+    $matched = false;
+    return preg_replace_callback(
         $pattern,
-        '$1$2$3 data-outpost="' . $fieldName . '" data-type="image"$4',
-        $html,
-        1
+        function ($m) use ($fieldName, &$matched) {
+            if ($matched) return $m[0];
+            // Skip if already annotated
+            if (str_contains($m[1] . $m[3], 'data-outpost="')) return $m[0];
+            $matched = true;
+            return $m[1] . $m[2] . $m[3] . ' data-outpost="' . $fieldName . '" data-type="image"' . $m[4];
+        },
+        $html
     );
 }
 
@@ -1707,17 +1843,25 @@ function smart_forge_add_attr_to_img(string $html, string $src, string $fieldNam
  * that contains the given text content.
  */
 function smart_forge_add_attr_to_element(string $html, string $text, string $fieldName, string $type): string {
+    // Skip if this element already has a data-outpost attribute (prevent duplicates)
     $escaped = preg_quote($text, '/');
+    $typeAttr = ($type !== 'text') ? ' data-type="' . $type . '"' : '';
 
     // Find an element whose opening tag is immediately followed by this text
     // Pattern: <tag ...>text — inject data-outpost before the >
-    $typeAttr = ($type !== 'text') ? ' data-type="' . $type . '"' : '';
+    // Use preg_replace_callback to avoid backreference ambiguity (e.g. $2 followed by digit from text)
     $pattern = '/(<(?:h[1-6]|p|span|div|li|td|th|dt|dd|figcaption|blockquote|label|small|strong|em|time|address|article|section|cite|mark)\b[^>]*?)(>)\s*' . $escaped . '/i';
-    $result = preg_replace(
+    $matched = false;
+    $result = preg_replace_callback(
         $pattern,
-        '$1 data-outpost="' . $fieldName . '"' . $typeAttr . '$2' . $text,
-        $html,
-        1
+        function ($m) use ($fieldName, $typeAttr, $text, &$matched) {
+            if ($matched) return $m[0]; // Only replace first occurrence
+            // Skip if element already has data-outpost
+            if (str_contains($m[1], 'data-outpost="')) return $m[0];
+            $matched = true;
+            return $m[1] . ' data-outpost="' . $fieldName . '"' . $typeAttr . $m[2] . $text;
+        },
+        $html
     );
     if ($result !== null && $result !== $html) {
         return $result;
@@ -1725,11 +1869,16 @@ function smart_forge_add_attr_to_element(string $html, string $text, string $fie
 
     // Fallback: try matching any element with this exact text
     $pattern2 = '/(<[a-z][a-z0-9]*\b[^>]*?)(>)\s*' . $escaped . '\s*</i';
-    $result2 = preg_replace(
+    $matched2 = false;
+    $result2 = preg_replace_callback(
         $pattern2,
-        '$1 data-outpost="' . $fieldName . '"' . $typeAttr . '$2' . $text . '<',
-        $html,
-        1
+        function ($m) use ($fieldName, $typeAttr, $text, &$matched2) {
+            if ($matched2) return $m[0];
+            if (str_contains($m[1], 'data-outpost="')) return $m[0];
+            $matched2 = true;
+            return $m[1] . ' data-outpost="' . $fieldName . '"' . $typeAttr . $m[2] . $text . '<';
+        },
+        $html
     );
     if ($result2 !== null && $result2 !== $html) {
         return $result2;
@@ -1744,12 +1893,19 @@ function smart_forge_add_attr_to_element(string $html, string $text, string $fie
 function smart_forge_add_attr_to_link(string $html, string $href, string $text, string $fieldName): string {
     $escapedHref = preg_quote($href, '/');
     // Find <a ... href="value" ...> and inject data-outpost + data-type="link"
+    // Use callback to avoid backreference issues and prevent duplicate attributes
     $pattern = '/(<a\b[^>]*?\bhref=["\'])(' . $escapedHref . ')(["\'][^>]*?)(>)/i';
-    return preg_replace(
+    $matched = false;
+    return preg_replace_callback(
         $pattern,
-        '$1$2$3 data-outpost="' . $fieldName . '" data-type="link"$4',
-        $html,
-        1
+        function ($m) use ($fieldName, &$matched) {
+            if ($matched) return $m[0];
+            // Skip if already annotated
+            if (str_contains($m[1] . $m[3], 'data-outpost="')) return $m[0];
+            $matched = true;
+            return $m[1] . $m[2] . $m[3] . ' data-outpost="' . $fieldName . '" data-type="link"' . $m[4];
+        },
+        $html
     );
 }
 
@@ -1766,12 +1922,18 @@ function smart_forge_apply_repeater_template(string $html, DOMDocument $doc, arr
 function smart_forge_replace_bg_image(string $html, string $url, string $fieldName): string {
     $escaped = preg_quote($url, '/');
     // Add data-outpost + data-type="image" to the element with this background-image style
+    // Use callback to avoid backreference issues and prevent duplicate attributes
     $pattern = '/(<[a-z][a-z0-9]*\b[^>]*?style=["\'][^"\']*background(?:-image)?\s*:\s*url\([\'"]?)' . $escaped . '([\'"]?\)[^"\']*["\'][^>]*?)(>)/i';
-    return preg_replace(
+    $matched = false;
+    return preg_replace_callback(
         $pattern,
-        '$1' . $url . '$2 data-outpost="' . $fieldName . '" data-type="image"$3',
-        $html,
-        1
+        function ($m) use ($url, $fieldName, &$matched) {
+            if ($matched) return $m[0];
+            if (str_contains($m[1] . $m[2], 'data-outpost="')) return $m[0];
+            $matched = true;
+            return $m[1] . $url . $m[2] . ' data-outpost="' . $fieldName . '" data-type="image"' . $m[3];
+        },
+        $html
     );
 }
 
