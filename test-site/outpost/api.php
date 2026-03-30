@@ -526,6 +526,7 @@ match (true) {
     $action === 'updates/apply' && $method === 'POST' => handle_updates_apply(),
 
     // Setup Wizard
+    $action === 'site/detect' && $method === 'GET' => handle_site_detect(),
     $action === 'setup/packs' && $method === 'GET' => handle_setup_packs(),
     $action === 'setup/apply' && $method === 'POST' => handle_setup_apply(),
     $action === 'setup/checklist' && $method === 'GET' => handle_setup_checklist(),
@@ -7993,6 +7994,34 @@ function ensure_setup_completed_setting(): void {
             []
         );
     }
+}
+
+function handle_site_detect(): void {
+    $indexPath = OUTPOST_SITE_ROOT . 'index.html';
+    $siteName = '';
+
+    if (file_exists($indexPath)) {
+        $html = file_get_contents($indexPath);
+        if ($html !== false && preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $m)) {
+            $raw = trim(strip_tags($m[1]));
+            // Strip common suffixes: " | Company", " - Tagline", " — Description"
+            $parts = preg_split('/\s*[|–—]\s*/', $raw, 2);
+            if ($parts) {
+                $siteName = trim($parts[0]);
+            }
+            // Also handle " - " dash separator
+            if ($siteName === $raw && strpos($raw, ' - ') !== false) {
+                $parts = explode(' - ', $raw, 2);
+                $siteName = trim($parts[0]);
+            }
+            // If we ended up with nothing, use the full raw title
+            if (!$siteName) {
+                $siteName = $raw;
+            }
+        }
+    }
+
+    json_response(['site_name' => $siteName]);
 }
 
 function handle_setup_packs(): void {

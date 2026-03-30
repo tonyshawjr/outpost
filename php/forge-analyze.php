@@ -326,7 +326,17 @@ function forge_analyze_extract_partials(array $files): array {
             // Strip active-state classes before hashing — these vary per page
             // but the nav structure is identical
             $forHash = preg_replace('/\s*\b(nav-active|active|current|current-menu-item|current_page_item)\b/', '', $normalized);
-            $forHash = preg_replace('/class="\s*"/', '', $forHash); // clean empty class attrs
+            // Strip aria-current attributes (vary per page)
+            $forHash = preg_replace('/\s*aria-current="[^"]*"/', '', $forHash);
+            // Collapse multiple spaces inside class attribute values
+            $forHash = preg_replace_callback('/class="([^"]*)"/', function($m) {
+                $val = trim(preg_replace('/\s+/', ' ', $m[1]));
+                return $val === '' ? '' : 'class="' . $val . '"';
+            }, $forHash);
+            // Clean up any residual whitespace before > from removed attributes
+            $forHash = preg_replace('/\s+>/', '>', $forHash);
+            // Collapse any double spaces left behind
+            $forHash = preg_replace('/\s{2,}/', ' ', $forHash);
             $hash = md5($forHash);
 
             $navByFile[$file['path']] = $hash;
@@ -432,7 +442,16 @@ function forge_analyze_extract_partials(array $files): array {
 
             $html = forge_analyze_serialize_node($div, $doc);
             $normalized = forge_analyze_normalize_whitespace($html);
-            $hash = md5($normalized);
+            // Strip active-state classes (same as nav normalization)
+            $forHash = preg_replace('/\s*\b(nav-active|active|current|current-menu-item|current_page_item)\b/', '', $normalized);
+            $forHash = preg_replace('/\s*aria-current="[^"]*"/', '', $forHash);
+            $forHash = preg_replace_callback('/class="([^"]*)"/', function($m) {
+                $val = trim(preg_replace('/\s+/', ' ', $m[1]));
+                return $val === '' ? '' : 'class="' . $val . '"';
+            }, $forHash);
+            $forHash = preg_replace('/\s+>/', '>', $forHash);
+            $forHash = preg_replace('/\s{2,}/', ' ', $forHash);
+            $hash = md5($forHash);
 
             if (!isset($mobileHashes[$hash])) {
                 $mobileHashes[$hash] = ['html' => $html, 'count' => 0];

@@ -609,6 +609,11 @@ export const workflows = {
     request('workflows/for-collection', { params: { collection_id: collectionId } }),
 };
 
+// Site Detection
+export const site = {
+  detect: () => request('site/detect'),
+};
+
 // Setup Wizard
 export const setup = {
   packs: () => request('setup/packs'),
