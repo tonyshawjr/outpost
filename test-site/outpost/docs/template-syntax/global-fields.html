@@ -14,7 +14,7 @@
 <main class="main">
  <div class="page-hero">
  <h1>Global Fields</h1>
- <p class="lead">Global fields hold site-wide values — the same content available on every page and every template. Managed in Admin &rarr; Globals, referenced in templates with the <code>@</code> prefix.</p>
+ <p class="lead">Global fields hold site-wide values — the same content available on every page and every template. Managed in Admin &rarr; Globals, referenced in templates with the <code>data-scope="global"</code> attribute.</p>
  </div>
  <div class="content">
 
@@ -30,9 +30,12 @@
  <p>If you find yourself copying the same value into multiple pages, that value belongs in a global field.</p>
 
  <h2>Syntax</h2>
- <p>Global fields use the <code>@</code> prefix inside double curly braces:</p>
- 
- <p>The same filters available to page fields work with global fields:</p>
+ <p>Global fields use the <code>data-scope="global"</code> attribute alongside <code>data-outpost</code>:</p>
+ <pre><code>&lt;span data-outpost="site_name" data-scope="global"&gt;My Site&lt;/span&gt;</code></pre>
+ <p>The same field types available to page fields work with global fields:</p>
+ <pre><code>&lt;img data-outpost="logo" data-scope="global" data-type="image" src="logo.png"&gt;
+&lt;a data-outpost="twitter_url" data-scope="global" data-type="link" href="#"&gt;Twitter&lt;/a&gt;
+&lt;div data-outpost="about_body" data-scope="global" data-type="richtext"&gt;&lt;/div&gt;</code></pre>
  
 
  <h2>Auto-scaffolding</h2>
@@ -40,7 +43,7 @@
  <div class="callout callout-tip"><strong>Tip</strong> — This means you can design your template first and fill in content later. Add <code>data-outpost="site_name" data-scope="global"</code> to your nav partial, deploy, and the field will appear in Globals automatically.</div>
 
  <h2>Auto-migration</h2>
- <p>If you move content from a page field to a global, rename it with the <code>@</code> prefix in your template. Outpost detects the change and automatically migrates the existing value from the page field to the global field on the next page load. No data is lost.</p>
+ <p>If you move content from a page field to a global, add <code>data-scope="global"</code> to the element in your template. Outpost detects the change and automatically migrates the existing value from the page field to the global field on the next page load. No data is lost.</p>
  
 
  <h2>Checking for a Value</h2>

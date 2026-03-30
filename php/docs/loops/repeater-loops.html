@@ -59,7 +59,7 @@
  </tr>
  <tr>
  <td>Richtext</td>
- <td><code>data-outpost="body" data-type="raw"</code></td>
+ <td><code>data-outpost="body" data-type="richtext"</code></td>
  <td>Outputs HTML as-is. Only use <code>| raw</code> for trusted editor content.</td>
  </tr>
  <tr>
@@ -288,7 +288,7 @@ details[open] .faq-question::after { content: "2"; }
  </thead>
  <tbody>
  <tr><td>Text</td><td><code>&lt;span data-outpost="label"&gt;Default&lt;/span&gt;</code></td></tr>
- <tr><td>Richtext</td><td><code>&lt;div data-outpost="body" data-type="raw"&gt;&lt;/div&gt;</code></td></tr>
+ <tr><td>Richtext</td><td><code>&lt;div data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;</code></td></tr>
  <tr><td>Image</td><td><code>&lt;img data-outpost="icon" data-type="image"&gt;</code></td></tr>
  <tr><td>Link</td><td><code>&lt;a data-outpost="cta_url" data-type="link"&gt;...&lt;/a&gt;</code></td></tr>
  <tr><td>Textarea</td><td><code>&lt;p data-outpost="description" data-type="textarea"&gt;&lt;/p&gt;</code></td></tr>
@@ -298,14 +298,14 @@ details[open] .faq-question::after { content: "2"; }
  <h3>FAQ Accordion </h3>
  <pre><code>&lt;outpost-single collection="service"&gt;
  &lt;h1 data-outpost="title"&gt;Service Title&lt;/h1&gt;
- &lt;div data-outpost="description" data-type="raw"&gt;Description&lt;/div&gt;
+ &lt;div data-outpost="description" data-type="richtext"&gt;Description&lt;/div&gt;
 
  &lt;section class="faq-section"&gt;
  &lt;h2&gt;Frequently Asked Questions&lt;/h2&gt;
  &lt;outpost-each repeat="faqs"&gt;
  &lt;details class="faq-item"&gt;
  &lt;summary class="faq-question" data-outpost="question"&gt;Question?&lt;/summary&gt;
- &lt;div class="faq-answer" data-outpost="answer" data-type="raw"&gt;Answer&lt;/div&gt;
+ &lt;div class="faq-answer" data-outpost="answer" data-type="richtext"&gt;Answer&lt;/div&gt;
  &lt;/details&gt;
  &lt;/outpost-each&gt;
  &lt;/section&gt;
@@ -334,7 +334,7 @@ details[open] .faq-question::after { content: "2"; }
  <pre><code>&lt;outpost-single collection="product"&gt;
  &lt;h1 data-outpost="title"&gt;Product Name&lt;/h1&gt;
  &lt;p class="price" data-outpost="price"&gt;$0&lt;/p&gt;
- &lt;div data-outpost="description" data-type="raw"&gt;Description&lt;/div&gt;
+ &lt;div data-outpost="description" data-type="richtext"&gt;Description&lt;/div&gt;
 
  &lt;table class="spec-table"&gt;
  &lt;thead&gt;

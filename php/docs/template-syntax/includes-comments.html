@@ -21,7 +21,7 @@
  <h2>Includes</h2>
  <p>The <code>&lt;outpost-include /&gt;</code> element inserts another template file inline. It is the primary way to keep themes DRY — header, navigation, and footer markup is written once and shared across every page template.</p>
  
- <p>This loads <code>partials/partial-name.html</code> from the current theme directory. Do not include the file extension in the tag name.</p>
+ <p>This loads <code>partials/partial-name.html</code> from the site root directory. Do not include the file extension in the tag name.</p>
 
  <h3>Standard Partial Names</h3>
  <p>By convention, themes use these partial names. Sticking to these names makes themes easier to understand and share.</p>
@@ -57,8 +57,8 @@
  </tbody>
  </table>
 
- <h3>Subdirectory Partials</h3>
- <p>Partial names can include path segments to organize components into subdirectories. Forward slashes map to subdirectories inside <code>partials/</code>.</p>
+ <h3>Partial Name Restrictions</h3>
+ <p>Partial names must be simple file names without path separators. Forward slashes, backslashes, and <code>..</code> are rejected for security. All partials must live directly in the <code>partials/</code> directory.</p>
  
 
  <h3>Context Inheritance</h3>

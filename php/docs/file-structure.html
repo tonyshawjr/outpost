@@ -19,34 +19,33 @@
   <div class="content">
 
     <h2>Complete Directory Tree</h2>
-    <p>A full Outpost installation looks like this. Everything relevant to the CMS lives inside <code>outpost/</code>. The only file outside that directory is <code>index.php</code> at the web root, which acts as the front controller for Apache and Nginx.</p>
+    <p>A full Outpost installation looks like this. Your HTML files live in the site root alongside the <code>outpost/</code> directory. The CMS engine is entirely contained inside <code>outpost/</code> — it never modifies your site files.</p>
 
-    <pre><code>your-site/
-  outpost/
-    content/              &larr; everything the user owns
+    <pre><code>your-site/                    &larr; site root (OUTPOST_SITE_ROOT)
+  index.html                  &larr; your homepage
+  about.html                  &larr; your about page
+  blog.html                   &larr; collection archive page
+  post.html                   &larr; collection single item
+  contact.html                &larr; any custom page
+  404.html                    &larr; optional error page
+  partials/
+    head.html                 &larr; &lt;!DOCTYPE html&gt; through &lt;body&gt;
+    nav.html                  &larr; site navigation
+    footer.html               &larr; closing &lt;/body&gt;&lt;/html&gt;
+  css/
+    style.css
+  images/
+  js/
+    main.js
+  .htaccess                   &larr; rewrite rules (created by installer)
+  index.php                   &larr; front controller (created by installer)
+  outpost/                    &larr; CMS engine
+    content/                  &larr; everything the user owns
       data/
         cms.db
       uploads/
-      themes/
-        my-theme/
-          index.html
-          about.html
-          blog.html
-          post.html
-          contact.html
-          404.html
-          partials/
-            head.html
-            nav.html
-            footer.html
-            [other].html
-          assets/
-            style.css
-            main.js
-          theme.json
       backups/
     uploads &rarr; content/uploads  (symlink)
-    themes &rarr; content/themes    (symlink)
     admin/
     cache/
       templates/
@@ -55,6 +54,7 @@
     front-router.php
     engine.php
     template-engine.php
+    config.php
     mailer.php
     members.php
     form.php
@@ -69,10 +69,9 @@
       reset-password.php
       verify-email.php
       logout.php
-      profile.php
-  index.php</code></pre>
+      profile.php</code></pre>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — The <code>content/</code> directory contains everything you own: database, uploads, themes, and backups. Back up this single folder and you have your entire site. The <code>uploads</code> and <code>themes</code> symlinks at the outpost root preserve existing URLs like <code>/outpost/uploads/photo.jpg</code> and <code>/outpost/themes/my-theme/assets/style.css</code>.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> — Your HTML files, CSS, images, and JavaScript live in the site root — exactly where you put them. The <code>outpost/content/</code> directory contains the CMS database, uploads, and backups. Back up your site root and <code>outpost/content/</code> and you have your entire site.</div>
 
     <h2>Deploy Safety Reference</h2>
     <p>Before diving into individual files, here is the most important information for anyone deploying updates to a live site:</p>
@@ -89,7 +88,12 @@
         <tr>
           <td><code>outpost/content/</code></td>
           <td><strong>PRESERVE — never overwrite</strong></td>
-          <td>Contains all user data: database, uploads, themes, backups</td>
+          <td>Contains all user data: database, uploads, backups</td>
+        </tr>
+        <tr>
+          <td>Site root HTML files</td>
+          <td><strong>PRESERVE — never overwrite</strong></td>
+          <td>Your site's HTML templates, CSS, images, and JavaScript</td>
         </tr>
         <tr>
           <td><code>outpost/cache/</code></td>
@@ -114,7 +118,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Never delete or overwrite <code>outpost/content/</code> when deploying. This directory contains your database, uploads, themes, and backups. Everything else can be replaced safely. The auto-updater already skips <code>content/</code> automatically.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Never delete or overwrite <code>outpost/content/</code> when deploying CMS updates. This directory contains your database, uploads, and backups. The auto-updater only touches files inside <code>outpost/</code> and never modifies your site root HTML files.</div>
 
     <h2>outpost/admin/</h2>
     <p>The pre-built Svelte 5 admin single-page application. This directory contains:</p>
@@ -128,13 +132,11 @@
 
     <p>The hashed filenames in <code>admin/assets/</code> change on every build. This is intentional — it busts browser caches automatically. When deploying a new admin build, you <em>must</em> copy <code>index.html</code> along with the new asset files, because <code>index.html</code> contains the references to the current hash. If you copy only the JS file and leave the old <code>index.html</code>, browsers will continue loading the old bundle.</p>
 
-    <h2>outpost/themes/</h2>
-    <p>All themes live here. Each theme is a subdirectory named by its slug. The active theme is tracked in the database — you can switch themes from Admin &rarr; Themes without touching any files.</p>
+    <h2>Site Root HTML Files</h2>
+    <p>Your HTML files live in the site root — the parent directory of <code>outpost/</code>. There are no themes. The <code>OUTPOST_SITE_ROOT</code> constant points to this directory, and the router maps URLs directly to HTML files here.</p>
 
-    <p>You can have multiple themes installed simultaneously. Only the active theme is used to serve the public site.</p>
-
-    <h3>Theme template files (.html)</h3>
-    <p>Template files in the theme root map directly to URL paths. The filename (without extension) becomes the URL path component:</p>
+    <h3>Template files (.html)</h3>
+    <p>HTML files in the site root map directly to URL paths. The filename (without extension) becomes the URL path component:</p>
 
     <table>
       <thead>
@@ -178,12 +180,12 @@
       </tbody>
     </table>
 
-    <p>The URL-to-template mapping is direct: a request for <code>/portfolio</code> will render <code>portfolio.html</code> if it exists. Collection single-item URLs (e.g. <code>/post/my-title</code>) are detected by comparing the URL prefix to registered collection URL patterns and routing to the appropriate template.</p>
+    <p>The URL-to-template mapping is direct: a request for <code>/portfolio</code> will render <code>portfolio.html</code> if it exists in the site root. Collection single-item URLs (e.g. <code>/post/my-title</code>) are detected by comparing the URL prefix to registered collection URL patterns and routing to the appropriate template.</p>
 
     <h3>partials/</h3>
-    <p>Partials are reusable template fragments included from other templates using <code>{% include 'partial-name' %}</code>. They live in <code>partials/</code> inside the theme directory.</p>
+    <p>Partials are reusable template fragments included from other templates using <code>&lt;outpost-include partial="name"&gt;&lt;/outpost-include&gt;</code>. They live in <code>partials/</code> inside the site root.</p>
 
-    <p>Three partials are standard across all Outpost themes:</p>
+    <p>Three partials are standard:</p>
 
     <table>
       <thead>
@@ -214,59 +216,55 @@
 
     <p>You can create as many additional partials as you need. Common examples: <code>partials/hero.html</code>, <code>partials/post-card.html</code>, <code>partials/sidebar.html</code>. Reference them in templates with:</p>
 
-    <pre><code>{% include 'hero' %}
-{% include 'post-card' %}</code></pre>
+    <pre><code>&lt;outpost-include partial="hero"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="post-card"&gt;&lt;/outpost-include&gt;</code></pre>
 
     <div class="callout callout-note"><strong>Note</strong> — Partials are compiled and cached independently. Modifying a partial file invalidates its cached version and triggers recompilation on the next request that uses it.</div>
 
-    <h3>assets/</h3>
-    <p>Static assets for the theme: CSS, JavaScript, fonts, and images used by the theme itself (not uploaded media). These files are served directly by the web server without going through PHP.</p>
+    <h3>CSS, images, and JavaScript</h3>
+    <p>Static assets live in the site root in whatever directory structure you prefer — <code>css/</code>, <code>images/</code>, <code>js/</code>, <code>assets/</code>, or any other layout. These files are served directly by the web server without going through PHP.</p>
 
-    <p>Reference assets in templates using a root-relative path or a path relative to the theme's assets directory. A common pattern is to reference them from <code>head.html</code>:</p>
+    <p>Reference assets in your HTML using standard root-relative or relative paths:</p>
 
-    <pre><code>&lt;link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css"&gt;
-&lt;script src="/outpost/themes/my-theme/assets/main.js" defer&gt;&lt;/script&gt;</code></pre>
+    <pre><code>&lt;link rel="stylesheet" href="/css/style.css"&gt;
+&lt;script src="/js/main.js" defer&gt;&lt;/script&gt;</code></pre>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — You can use any CSS or JavaScript in theme assets — vanilla, bundled, or from a CDN. Outpost imposes no build requirements on theme assets. Just write CSS and link it.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> — You can use any CSS or JavaScript — vanilla, bundled, or from a CDN. Outpost imposes no build requirements on your assets. Just write CSS and link it.</div>
 
-    <h3>theme.json</h3>
-    <p>A JSON metadata file for the theme. At minimum it contains:</p>
+    <h3>Section comments</h3>
+    <p>Use <code>&lt;!-- outpost:sectionname --&gt;</code> comments in your HTML to define editable content sections. Forge discovers these during site analysis and groups the fields within each section in the admin editor.</p>
 
-    <pre><code>{
-  "name": "My Theme",
-  "version": "1.0.0",
-  "description": "A clean personal blog theme.",
-  "author": "Your Name"
-}</code></pre>
-
-    <p>This file is read by the admin's Themes page to display theme information. See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
+    <pre><code>&lt;!-- outpost:hero --&gt;
+&lt;section class="hero"&gt;
+  &lt;h1 data-outpost="hero_title"&gt;Welcome&lt;/h1&gt;
+  &lt;p data-outpost="hero_subtitle"&gt;Subtitle here&lt;/p&gt;
+&lt;/section&gt;
+&lt;!-- /outpost:hero --&gt;</code></pre>
 
     <h2>outpost/content/</h2>
-    <p>The <code>content/</code> directory holds everything you own. It contains four subdirectories:</p>
+    <p>The <code>content/</code> directory holds the CMS data. It contains three subdirectories:</p>
     <ul>
       <li><code>content/data/</code> — SQLite database (<code>cms.db</code>) with all your content, settings, users, and configuration</li>
       <li><code>content/uploads/</code> — all uploaded media files, organized by year and month</li>
-      <li><code>content/themes/</code> — your theme templates, CSS, and assets</li>
       <li><code>content/backups/</code> — backup zip files created from Admin &rarr; Settings &rarr; Backups</li>
     </ul>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Back up the <code>content/</code> directory regularly. This single folder is your entire site. Losing it means losing all pages, posts, media, themes, settings, and user accounts.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Back up the <code>content/</code> directory regularly. Combined with your site root HTML files, this is your entire site. Losing it means losing all content data, media, settings, and user accounts.</div>
 
     <p>The database is created automatically on first boot. Outpost runs all schema migrations on startup, so updates to the CMS engine that require new columns or tables are applied automatically without any manual SQL.</p>
 
     <h3>URL Symlinks</h3>
-    <p>Outpost creates symlinks at the <code>outpost/</code> root so that existing URLs continue to work:</p>
+    <p>Outpost creates a symlink at the <code>outpost/</code> root so that upload URLs work:</p>
     <ul>
       <li><code>outpost/uploads</code> &rarr; <code>outpost/content/uploads</code></li>
-      <li><code>outpost/themes</code> &rarr; <code>outpost/content/themes</code></li>
     </ul>
-    <p>URLs like <code>/outpost/uploads/photo.jpg</code> and <code>/outpost/themes/my-theme/assets/style.css</code> work exactly as before. The symlinks are created automatically during installation or migration.</p>
+    <p>URLs like <code>/outpost/uploads/photo.jpg</code> work directly. The symlink is created automatically during installation.</p>
 
     <h2>outpost/cache/</h2>
     <p>Outpost uses two levels of caching:</p>
 
     <h3>cache/templates/</h3>
-    <p>Compiled PHP versions of theme template files. When Outpost renders a template for the first time, it compiles the <code>.html</code> template file to a plain <code>.php</code> file and saves it here. On subsequent requests, the compiled PHP is loaded directly, skipping the compilation step.</p>
+    <p>Compiled PHP versions of your HTML template files. When Outpost renders a template for the first time, it compiles the <code>.html</code> file to a plain <code>.php</code> file and saves it here. On subsequent requests, the compiled PHP is loaded directly, skipping the compilation step.</p>
 
     <p>Outpost checks the modification time of the source <code>.html</code> file against the cached <code>.php</code> file. If the source is newer, the cache is automatically invalidated and recompiled. You never need to manually clear this during development.</p>
 
@@ -284,7 +282,7 @@
     <p>The core CMS functions library. Contains all the functions that theme templates compile down to: <code>cms_text()</code>, <code>cms_richtext()</code>, <code>cms_image()</code>, <code>cms_global()</code>, <code>cms_collection_list()</code>, <code>cms_collection_single()</code>, <code>cms_meta_title()</code>, <code>outpost_init()</code>, and many more. This file is included at the top of every compiled template.</p>
 
     <h3>template-engine.php</h3>
-    <p>The template compiler. Contains the <code>OutpostTemplate</code> class with its <code>render()</code> and <code>compile()</code> methods. When a request comes in, the router calls <code>OutpostTemplate::render($templateFile, $themeDir)</code>, which handles cache checking, compilation, and execution.</p>
+    <p>The template compiler. Contains the <code>OutpostTemplate</code> class with its <code>render()</code> and <code>compile()</code> methods. When a request comes in, the router calls <code>OutpostTemplate::render($templateFile, $siteRoot)</code>, which handles cache checking, compilation, and execution.</p>
 
     <h3>front-router.php</h3>
     <p>The PHP built-in server router. When you run <code>php -S localhost:8080 -t . outpost/front-router.php</code>, this file handles every request. It serves static files directly, routes admin requests to the admin SPA, and calls the template engine for all other requests.</p>
@@ -368,13 +366,13 @@
       </tbody>
     </table>
 
-    <p>These pages include your theme's <code>head.html</code> and <code>footer.html</code> partials automatically, so they inherit your site's styles without any extra configuration.</p>
+    <p>These pages include your site's <code>partials/head.html</code> and <code>partials/footer.html</code> automatically, so they inherit your site's styles without any extra configuration.</p>
 
     <h2>outpost/docs/</h2>
     <p>This documentation site. A set of static HTML files served directly by the web server — no PHP required. Accessible at <code>/outpost/docs/</code>.</p>
 
-    <h2>index.php (web root)</h2>
-    <p>The Apache and Nginx front controller. This file sits at your web root (one level above <code>outpost/</code>) and handles all requests that reach PHP. It performs the same routing logic as <code>front-router.php</code> but is designed for Apache/Nginx rather than the PHP built-in server.</p>
+    <h2>index.php (site root)</h2>
+    <p>The Apache and Nginx front controller. This file sits in the site root alongside your HTML files and the <code>outpost/</code> directory. It handles all requests that reach PHP. It performs the same routing logic as <code>front-router.php</code> but is designed for Apache/Nginx rather than the PHP built-in server. The installer creates this file automatically along with <code>.htaccess</code> rewrite rules.</p>
 
     <p>Specifically, <code>index.php</code>:</p>
     <ul>

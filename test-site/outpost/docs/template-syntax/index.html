@@ -184,14 +184,14 @@
           <td><code>&lt;outpost-each collection="post" paginate="10"&gt;</code></td>
         </tr>
         <tr>
-          <td><code>filteredby="param"</code></td>
-          <td>Filter items by a URL query parameter value.</td>
-          <td><code>&lt;outpost-each collection="post" filteredby="category"&gt;</code></td>
+          <td><code>filter="param"</code></td>
+          <td>Filter items by a URL query parameter matching a folder label slug.</td>
+          <td><code>&lt;outpost-each collection="post" filter="category"&gt;</code></td>
         </tr>
         <tr>
-          <td><code>related="var"</code></td>
-          <td>Show items related to the current single item.</td>
-          <td><code>&lt;outpost-each collection="post" related="post" limit="3"&gt;</code></td>
+          <td><code>related</code></td>
+          <td>Show items related to the current single item (shares folder labels).</td>
+          <td><code>&lt;outpost-each collection="post" related limit="3"&gt;</code></td>
         </tr>
         <tr>
           <td><code>&lt;outpost-each ... empty&gt;</code></td>
@@ -303,24 +303,24 @@
           <td><code>&lt;outpost-if field="twitter_url" scope="global" exists&gt;...&lt;/outpost-if&gt;</code></td>
         </tr>
         <tr>
-          <td><code>equals="value"</code></td>
+          <td><code>is="value"</code> / <code>equals="value"</code></td>
           <td>Strict string equality check.</td>
-          <td><code>&lt;outpost-if field="category" equals="featured"&gt;</code></td>
+          <td><code>&lt;outpost-if field="category" is="featured"&gt;</code></td>
         </tr>
         <tr>
-          <td><code>not-equals="value"</code></td>
+          <td><code>not="value"</code></td>
           <td>String inequality check.</td>
-          <td><code>&lt;outpost-if field="status" not-equals="archived"&gt;</code></td>
+          <td><code>&lt;outpost-if field="status" not="archived"&gt;</code></td>
         </tr>
         <tr>
-          <td><code>&lt;outpost-if admin&gt;</code></td>
-          <td>True only when a logged-in admin is previewing the page.</td>
-          <td><code>&lt;outpost-if admin&gt;&lt;div class="hint"&gt;...&lt;/div&gt;&lt;/outpost-if&gt;</code></td>
+          <td><code>empty</code></td>
+          <td>True when a field is empty or has no value (negation of <code>exists</code>).</td>
+          <td><code>&lt;outpost-if field="featured_image" empty&gt;&lt;p&gt;No image.&lt;/p&gt;&lt;/outpost-if&gt;</code></td>
         </tr>
         <tr>
-          <td><code>&lt;outpost-else&gt;</code></td>
-          <td>Else branch inside any <code>&lt;outpost-if&gt;</code> block.</td>
-          <td><code>&lt;outpost-else&gt;&lt;p&gt;No image.&lt;/p&gt;&lt;/outpost-else&gt;</code></td>
+          <td><code>member="logged-in"</code></td>
+          <td>True when a member is logged in. Use <code>member="logged-out"</code> for the inverse.</td>
+          <td><code>&lt;outpost-if member="logged-in"&gt;Welcome back!&lt;/outpost-if&gt;</code></td>
         </tr>
       </tbody>
     </table>

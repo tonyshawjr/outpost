@@ -23,7 +23,7 @@
     <p>This simplicity is intentional. Outpost prioritizes:</p>
     <ul>
       <li>One-click deploy to any PHP host</li>
-      <li>No build step for themes</li>
+      <li>No build step for templates</li>
       <li>No package manager dependencies</li>
       <li>Self-contained — everything in one directory</li>
     </ul>
@@ -32,7 +32,7 @@
     <p>Every front-end request follows this path:</p>
     <ol>
       <li><strong>Web server</strong> receives the request. Static files (CSS, JS, images) are served directly — PHP never sees them.</li>
-      <li><strong>Router</strong> (<code>front-router.php</code> or <code>index.php</code>) maps the URL to a template file in the active theme.</li>
+      <li><strong>Router</strong> (<code>front-router.php</code> or <code>index.php</code>) maps the URL to an HTML template file at the site root.</li>
       <li><strong>Template engine</strong> compiles the <code>.html</code> template to PHP (cached in <code>cache/templates/</code>), then executes it.</li>
       <li><strong>Engine functions</strong> (<code>engine.php</code>) resolve field values from SQLite, render collection loops, evaluate conditionals.</li>
       <li><strong>HTML page cache</strong> (optional) stores the fully rendered output for subsequent requests.</li>
@@ -67,7 +67,7 @@ echo json_encode(['items' => $items]);
 ?&gt;</code></pre>
 
     <h3>PHP partial in a template</h3>
-    <p>Create a <code>.php</code> file in your theme's <code>partials/</code> directory and include it in a template. PHP partials execute server-side before the template output is sent:</p>
+    <p>Create a <code>.php</code> file in your site's <code>partials/</code> directory and include it in a template. PHP partials execute server-side before the template output is sent:</p>
     <pre><code>&lt;?php
 // partials/weather-widget.php
 $weather = json_decode(file_get_contents('https://api.example.com/weather?city=nyc'), true);
@@ -83,7 +83,7 @@ $weather = json_decode(file_get_contents('https://api.example.com/weather?city=n
 0 * * * * php /var/www/my-task.php</code></pre>
 
     <h3>JavaScript on the front end</h3>
-    <p>For interactive features (dynamic filtering, search, real-time updates), use JavaScript in your theme's <code>assets/main.js</code>. Call Outpost's <a href="api/content-api.html">Public Content API</a> for data:</p>
+    <p>For interactive features (dynamic filtering, search, real-time updates), use JavaScript in your site's <code>assets/main.js</code>. Call Outpost's <a href="api/content-api.html">Public Content API</a> for data:</p>
     <pre><code>// Fetch published blog posts via the public API
 const res = await fetch('/outpost/api.php?action=content/items&amp;collection=blog');
 const data = await res.json();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theme Updates — Outpost CMS</title>
+  <title>Theme Updates (Removed) — Outpost CMS</title>
   <base href="/outpost/docs/">
   <link rel="stylesheet" href="assets/docs.css">
 </head>
@@ -14,130 +14,38 @@
 <main class="main">
   <div class="page-hero">
     <h1>Theme Updates</h1>
-    <p class="lead">Managed themes stay in sync with Outpost releases automatically. Your customizations are detected and preserved through a hash-based conflict system.</p>
+    <p class="lead">This feature has been removed in Outpost v5.0.</p>
   </div>
   <div class="content">
 
-    <h2>What are managed themes?</h2>
-    <p>Managed themes are official themes bundled with Outpost and maintained by the Outpost team. They are identified by the <code>"managed": true</code> flag in their <code><a href="themes/theme-json.html">theme.json</a></code> file. The bundled <em>Personal</em> and <em>Starter</em> themes are both managed.</p>
-    <p>In the admin theme browser (Admin &rarr; Themes), managed themes display a small &ldquo;Managed&rdquo; badge on their card. This badge indicates that the theme participates in the automatic update system.</p>
-    <p>Themes you create yourself, or themes you duplicate from a managed original, are <strong>not</strong> managed and will never be modified by the updater.</p>
+    <div class="callout callout-note">
+      <strong>Removed in v5.0</strong> — In v5.0, themes are no longer a concept. The auto-updater only touches the <code>outpost/</code> engine directory — your site files are never modified by updates.
+    </div>
 
-    <hr style="margin: 40px 0;">
-
-    <h2>How theme updates work</h2>
-    <p>When you update Outpost via <strong>Settings &rarr; Updates</strong>, the update package may include new versions of managed themes. The updater processes them automatically after the core CMS files are updated:</p>
-
-    <ol>
-      <li><strong>Check for managed themes in the package.</strong> The updater looks for theme directories inside the update package that have <code>"managed": true</code> in their <code>theme.json</code>.</li>
-      <li><strong>Compare against installed themes.</strong> For each managed theme in the package:
-        <ul>
-          <li>If the theme does not exist on your site, it is installed as a fresh copy.</li>
-          <li>If the theme exists but its <code>theme.json</code> does not have <code>"managed": true</code>, it is skipped entirely. (This handles the case where you duplicated a managed theme and later removed the managed flag.)</li>
-          <li>If the installed version is the same or newer than the package version, it is skipped.</li>
-        </ul>
-      </li>
-      <li><strong>Update with conflict detection.</strong> If an update is needed, each file is compared using the <code>.outpost-manifest.json</code> hash file to detect user modifications before replacing anything. See the Conflict Detection section below.</li>
-    </ol>
-
-    <div class="callout callout-note"><strong>Note</strong> &mdash; Theme updates happen as part of the CMS update. There is no separate &ldquo;update themes&rdquo; button. When you click &ldquo;Update now&rdquo; in Settings &rarr; Updates, both the core CMS and any managed themes are updated in a single operation.</div>
-
-    <hr style="margin: 40px 0;">
-
-    <h2>Conflict detection</h2>
-    <p>The updater is designed to never silently overwrite your changes. It uses a hash-based manifest system to detect which files you have edited.</p>
-
-    <h3>The .outpost-manifest.json file</h3>
-    <p>Every managed theme ships with a hidden <code>.outpost-manifest.json</code> file at the theme root. This file records the MD5 hash of every file as it was originally shipped:</p>
-    <pre><code>{
-  "index.html": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
-  "post.html": "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3",
-  "assets/style.css": "1234abcd5678ef901234abcd5678ef90",
-  "partials/head.html": "abcd1234efgh5678abcd1234efgh5678"
-}</code></pre>
-
-    <h3>How files are compared</h3>
-    <p>For each file in the update package, the updater makes a three-way comparison:</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Installed file matches manifest?</th>
-          <th>Update changes this file?</th>
-          <th>Result</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Yes (unmodified)</td>
-          <td>Yes</td>
-          <td>File is replaced with the new version.</td>
-        </tr>
-        <tr>
-          <td>Yes (unmodified)</td>
-          <td>No</td>
-          <td>File is replaced (identical content anyway).</td>
-        </tr>
-        <tr>
-          <td>No (you edited it)</td>
-          <td>No</td>
-          <td>Your version is kept. No conflict.</td>
-        </tr>
-        <tr>
-          <td>No (you edited it)</td>
-          <td>Yes</td>
-          <td><strong>Conflict.</strong> Your version is preserved. The file path is reported in the update results.</td>
-        </tr>
-        <tr>
-          <td>File does not exist</td>
-          <td>&mdash;</td>
-          <td>New file is copied in.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>After the update completes, the new <code>.outpost-manifest.json</code> replaces the old one, so future updates compare against the latest shipped version.</p>
-
-    <hr style="margin: 40px 0;">
-
-    <h2>What conflicts mean and how to resolve them</h2>
-    <p>A conflict means that both you and the Outpost team changed the same file. The updater preserves your version to avoid losing your work, and reports the file path so you can review it.</p>
-
-    <h3>Viewing conflicts</h3>
-    <p>After an update, the results screen shows a <strong>Theme Updates</strong> section. If any themes had conflicts, they are listed with the specific file paths:</p>
+    <h2>What changed</h2>
+    <p>In previous versions, Outpost bundled "managed themes" that were updated alongside the CMS engine via a hash-based conflict detection system. In v5.0:</p>
     <ul>
-      <li><strong>&ldquo;Updated (1.0.0 &rarr; 2.0.0)&rdquo;</strong> &mdash; theme updated cleanly, no conflicts</li>
-      <li><strong>&ldquo;Updated with conflicts&rdquo;</strong> &mdash; theme updated, but some files were preserved. The conflicting paths are shown (e.g. <code>assets/style.css</code>, <code>partials/nav.html</code>).</li>
+      <li>There are no managed themes. Your HTML templates, CSS, JavaScript, and images live at the site root and are fully owned by you.</li>
+      <li>The updater only replaces files inside <code>outpost/</code> — the PHP engine, admin panel, and documentation.</li>
+      <li>Your site files are never read, compared, or modified by the update process.</li>
+      <li>There is no conflict detection because there is nothing to conflict with.</li>
     </ul>
 
-    <h3>Resolving conflicts</h3>
-    <p>When you see conflicts, you have a few options:</p>
+    <h2>How updates work now</h2>
+    <p>When you update Outpost via <strong>Settings &rarr; Updates</strong>:</p>
     <ol>
-      <li><strong>Do nothing.</strong> Your modified files are already in place and working. The rest of the theme was updated around them. This is fine if your changes are still compatible.</li>
-      <li><strong>Review and merge manually.</strong> Open the conflicting files in the Code Editor (Admin &rarr; Code Editor) and compare your version against the latest shipped version. You can view the original by checking the Outpost release notes or the GitHub repository.</li>
-      <li><strong>Accept the new version.</strong> If you no longer need your customizations for a specific file, delete it and re-run the update (or manually copy the file from a fresh download).</li>
+      <li>The update package is downloaded from GitHub.</li>
+      <li>Core PHP files in <code>outpost/</code> are replaced (engine, API, config, etc.).</li>
+      <li>The <code>outpost/admin/</code> directory is replaced with the new admin SPA build.</li>
+      <li>The <code>outpost/docs/</code> directory is replaced with updated documentation.</li>
+      <li>Template cache is cleared so recompiled templates pick up engine changes.</li>
     </ol>
+    <p>Everything outside <code>outpost/</code> is untouched.</p>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Most conflicts happen in <code>assets/style.css</code> where users add custom styles. Consider putting your custom CSS in a separate file and including it via the theme&rsquo;s <code>head.html</code> partial to avoid future conflicts entirely.</div>
-
-    <hr style="margin: 40px 0;">
-
-    <h2>User-created themes are never touched</h2>
-    <p>Any theme without <code>"managed": true</code> in its <code>theme.json</code> is completely invisible to the update system. This includes:</p>
+    <h2>Related docs</h2>
     <ul>
-      <li>Themes you build from scratch</li>
-      <li>Themes you duplicate from a managed theme (the <code>managed</code> flag is stripped automatically on duplicate)</li>
-      <li>Third-party themes you install manually</li>
-    </ul>
-    <p>The updater will never read, modify, or delete files in a non-managed theme, regardless of what the update package contains.</p>
-
-    <hr style="margin: 40px 0;">
-
-    <h2>Best practices</h2>
-    <ul>
-      <li><strong>Duplicate before customizing.</strong> If you want to make structural changes to a managed theme (editing templates, adding partials, changing layouts), duplicate it first. The duplicate is yours to edit freely and will never be touched by updates.</li>
-      <li><strong>Use the Theme Customizer for visual tweaks.</strong> Colors, fonts, logos, and favicons can be changed via Admin &rarr; Customize without editing any files. Customizer values are stored in <code>content/data/customizer.json</code> and survive all updates.</li>
-      <li><strong>Keep custom CSS separate.</strong> If you must add CSS to a managed theme, create a new file (e.g. <code>assets/custom.css</code>) and include it in the <code>head.html</code> partial. New files added by you are never overwritten because they do not exist in the update package.</li>
-      <li><strong>Check update results.</strong> After every update, review the Theme Updates section to see if any conflicts were reported. Address them promptly to ensure your theme stays compatible with the latest engine changes.</li>
+      <li><a href="features/auto-updater.html">Auto-Updater</a> — how the update system works in v5.0</li>
+      <li><a href="themes/">Site Structure</a> — how site root files work with Outpost</li>
     </ul>
 
   </div>

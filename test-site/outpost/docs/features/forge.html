@@ -172,7 +172,7 @@
  
  <p><strong>Smart nav detection:</strong> When you extract a <code>&lt;nav&gt;</code> element that contains 2 or more links, Forge offers a &ldquo;Connect to admin menu&rdquo; checkbox. When enabled, it wraps the navigation links in an <code>&lt;outpost-menu&gt;</code> loop before saving the partial, so the nav is immediately dynamic.</p>
 
- <p><strong>Apply to all pages:</strong> After extracting a partial, Forge scans other HTML files in the same theme for the same content. If found, it offers to replace matching blocks in all pages at once &mdash; so you don&rsquo;t have to manually add <code>&lt;outpost-include /&gt;</code> to each file.</p>
+ <p><strong>Apply to all pages:</strong> After extracting a partial, Forge scans other HTML files in the site root for the same content. If found, it offers to replace matching blocks in all pages at once &mdash; so you don&rsquo;t have to manually add <code>&lt;outpost-include /&gt;</code> to each file.</p>
 
  <p><strong>Use Existing Partial:</strong> If you right-click a <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, or <code>&lt;footer&gt;</code> and a partial with that name already exists (e.g. <code>partials/nav.html</code>), Forge shows &ldquo;Use Partial: nav&rdquo; at the top of the context menu. Clicking it instantly replaces the selection with the include tag &mdash; no form needed.</p>
 
@@ -203,7 +203,7 @@
  
 
  <h3>Insert Asset</h3>
- <p>Opens a searchable modal that lists all files in the theme&rsquo;s <code>assets/</code> directory &mdash; CSS, JavaScript, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position.</p>
+ <p>Opens a searchable modal that lists all files in the site&rsquo;s <code>assets/</code> directory &mdash; CSS, JavaScript, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position.</p>
  <p><strong>No selection needed.</strong> Right-click anywhere in an HTML file (even without selecting text) to see &ldquo;Insert Asset&rdquo; in the Forge menu.</p>
 
  <p><strong>What gets inserted:</strong></p>
@@ -217,15 +217,15 @@
  <tbody>
  <tr>
  <td><code>.css</code></td>
- <td><code>&lt;link rel="stylesheet" href="/outpost/content/themes/{theme}/assets/{file}"&gt;</code></td>
+ <td><code>&lt;link rel="stylesheet" href="/assets/{file}"&gt;</code></td>
  </tr>
  <tr>
  <td><code>.js</code></td>
- <td><code>&lt;script src="/outpost/content/themes/{theme}/assets/{file}"&gt;&lt;/script&gt;</code></td>
+ <td><code>&lt;script src="/assets/{file}"&gt;&lt;/script&gt;</code></td>
  </tr>
  <tr>
  <td><code>.png</code>, <code>.jpg</code>, <code>.svg</code>, <code>.webp</code>, etc.</td>
- <td><code>&lt;img src="/outpost/content/themes/{theme}/assets/{file}" alt=""&gt;</code></td>
+ <td><code>&lt;img src="/assets/{file}" alt=""&gt;</code></td>
  </tr>
  </tbody>
  </table>
@@ -244,7 +244,7 @@
  </ul>
 
  <h2>Forge Playground</h2>
- <p>Outpost ships with a 6-page demo website in <code>themes/forge-playground/</code> — a marketing site for Forge itself, built with pure HTML and CSS. It&rsquo;s designed as a hands-on tutorial:</p>
+ <p>The Forge Playground is a hands-on tutorial site. Drop its HTML files into your site root and use the Code Editor to practice tagging them with Forge. The Playground includes:</p>
  <ul>
  <li><strong>index.html</strong> &mdash; Hero, feature grid, how-it-works steps, testimonials</li>
  <li><strong>features.html</strong> &mdash; Deep dive into each Forge action</li>
@@ -253,8 +253,6 @@
  <li><strong>about.html</strong> &mdash; Team grid, values section</li>
  <li><strong>contact.html</strong> &mdash; Contact form for practicing Form action</li>
  </ul>
- <p>The Playground ships without a <code>theme.json</code> &mdash; it&rsquo;s just flat HTML. When you open it in the Code Editor, a banner prompts you to &ldquo;Forge a Theme&rdquo; which guides you through creating the <code>theme.json</code> file.</p>
- <p>After you&rsquo;re done experimenting, click <strong>Reset</strong> to restore all files to their pristine state. This removes <code>theme.json</code>, all template tags, and any partials you created.</p>
 
  <h2>Preview tabs</h2>
  <p>Single-clicking a file in the file tree opens it as a <strong>preview tab</strong> (shown with italic text). If you click another file without editing, the preview tab is replaced. To keep a tab open permanently:</p>
@@ -264,41 +262,12 @@
  </ul>
  <p>Files opened from Find in Files, the command palette, or newly created files are always pinned.</p>
 
- <h2>Template Engine — Forge compatibility</h2>
- <p>Smart Forge currently produces <strong> template syntax</strong> (<code>data-outpost="field"</code>, <code>&lt;outpost-include /&gt;</code>, <code>&lt;outpost-each&gt;</code>, etc.). Support for generating data-attribute syntax (<code>data-outpost="field"</code>, <code>&lt;outpost-include /&gt;</code>) is planned for a future update.</p>
+ <h2>Template Engine</h2>
+ <p>Forge produces <strong>v2 data-attribute syntax</strong> natively (<code>data-outpost="field"</code>, <code>&lt;outpost-include /&gt;</code>, <code>&lt;outpost-each&gt;</code>, etc.). This is the standard Outpost template syntax and requires no manual conversion.</p>
 
- <p>In the meantime, you can use Forge to tag a theme with syntax and then manually convert the output to syntax. The conversion is straightforward:</p>
- <table>
- <thead>
- <tr><th>Forge output</th><th>Manual conversion </th></tr>
- </thead>
- <tbody>
- <tr>
- <td><code>data-outpost="headline"</code></td>
- <td><code>&lt;h1 data-outpost="headline"&gt;...&lt;/h1&gt;</code></td>
- </tr>
- <tr>
- <td><code>data-outpost="body" data-type="raw"</code></td>
- <td><code>&lt;div data-outpost="body" data-type="richtext"&gt;...&lt;/div&gt;</code></td>
- </tr>
- <tr>
- <td><code>data-outpost="hero" data-type="image"</code></td>
- <td><code>&lt;img data-outpost="hero" data-type="image" /&gt;</code></td>
- </tr>
- <tr>
- <td><code>&lt;outpost-include partial="nav" /&gt;</code></td>
- <td><code>&lt;outpost-include partial="nav" /&gt;</code></td>
- </tr>
- <tr>
- <td><code>&lt;outpost-seo /&gt;</code></td>
- <td><code>&lt;outpost-seo /&gt;</code></td>
- </tr>
- </tbody>
- </table>
 
- 
 
- <div class="callout callout-tip"><strong>Tip</strong> — Forge is designed for quick tagging during theme development. For a full reference of all available template tags and filters, see <a href="template-syntax/">Template Syntax</a>.</div>
+ <div class="callout callout-tip"><strong>Tip</strong> — Forge is designed for quick tagging during site development. For a full reference of all available template tags and filters, see <a href="template-syntax/">Template Syntax</a>.</div>
 
  </div>
 </main>

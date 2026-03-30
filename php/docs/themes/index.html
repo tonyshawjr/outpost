@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Theme Architecture — Outpost CMS</title>
+ <title>Site Structure — Outpost CMS</title>
  <base href="/outpost/docs/">
  <link rel="stylesheet" href="assets/docs.css">
 </head>
@@ -13,116 +13,132 @@
 
 <main class="main">
  <div class="page-hero">
- <h1>Theme Architecture</h1>
- <p class="lead">Outpost themes are directories of <code>.html</code> template files. There is no PHP in themes — you write plain HTML with template tags, and Outpost compiles it.</p>
+ <h1>Site Structure</h1>
+ <p class="lead">In Outpost v5.0, your site's HTML files live at the root of your project — not inside a theme directory. The <code>outpost/</code> directory is the engine. Everything else is your site.</p>
  </div>
  <div class="content">
 
- <h2>How themes work</h2>
- 
+ <h2>How it works</h2>
+ <p>Your site is a directory of <code>.html</code> files. Outpost reads them, compiles the template tags, and serves the result. There are no themes to select, no theme directories to manage, and no <code>theme.json</code> to maintain. The site root <em>is</em> the content source.</p>
 
- <h3>Why ?</h3>
+ <pre><code>my-site/
+  index.html              &larr; homepage (/)
+  about.html              &larr; /about
+  blog.html               &larr; /blog
+  post.html               &larr; collection single (/post/{slug})
+  404.html                 &larr; custom 404 page
+  partials/
+    head.html              &larr; DOCTYPE, &lt;head&gt;, CSS
+    nav.html               &larr; site navigation
+    footer.html            &larr; footer, closing tags
+  css/
+    style.css
+  images/
+    logo.svg
+  js/
+    main.js
+  outpost/                 &larr; the CMS engine (do not edit)
+    api.php
+    engine.php
+    config.php
+    admin/
+    content/
+      data/
+      uploads/</code></pre>
+
+ <h3>Why this architecture?</h3>
  <ul>
+ <li><strong>Simplicity</strong> — your site is just a folder of HTML files. No indirection through theme slugs, no active-theme setting, no theme switching.</li>
  <li><strong>Valid HTML</strong> — templates are valid HTML that can be opened directly in a browser. Default content is visible, making templates double as design mockups.</li>
- <li><strong>Familiar to designers</strong> — No new syntax to learn. It is just HTML with data attributes.</li>
- <li><strong>Tool-friendly</strong> — Standard HTML means full support in every code editor, linter, and browser dev tool without plugins.</li>
+ <li><strong>Familiar to designers</strong> — no new syntax to learn beyond data attributes. It is just HTML.</li>
+ <li><strong>Tool-friendly</strong> — standard HTML means full support in every code editor, linter, and browser dev tool without plugins.</li>
+ <li><strong>Clean separation</strong> — the <code>outpost/</code> directory is the engine. Your site files are never inside it. Updates to Outpost never touch your files.</li>
  </ul>
 
- <h3>Auto-Detection</h3>
- 
- <p>Partials follow the same rule: a templates can include a partial, and a template can include a partial. Cross-engine partial includes are not supported.</p>
+ <h2>Key directories</h2>
 
- <h3>Syntax Quick Reference</h3>
+ <table>
+ <thead>
+ <tr><th>Path</th><th>Purpose</th></tr>
+ </thead>
+ <tbody>
+ <tr><td><code>/</code> (site root)</td><td>Your HTML templates, CSS, JS, images, and any other static files</td></tr>
+ <tr><td><code>partials/</code></td><td>Reusable template fragments (head, nav, footer, components)</td></tr>
+ <tr><td><code>css/</code></td><td>Stylesheets</td></tr>
+ <tr><td><code>js/</code></td><td>JavaScript files</td></tr>
+ <tr><td><code>images/</code></td><td>Static site images (logos, icons, backgrounds)</td></tr>
+ <tr><td><code>outpost/</code></td><td>The CMS engine — API, admin panel, database, uploads</td></tr>
+ <tr><td><code>outpost/content/data/</code></td><td>SQLite database</td></tr>
+ <tr><td><code>outpost/content/uploads/</code></td><td>User-uploaded media files</td></tr>
+ <tr><td><code>outpost/cache/</code></td><td>Compiled templates and HTML page cache</td></tr>
+ </tbody>
+ </table>
+
+ <h2>Syntax quick reference</h2>
  <table>
  <thead>
  <tr><th>Feature</th><th>Syntax</th></tr>
  </thead>
  <tbody>
  <tr>
- <td>Collection loop</td>
- <td><code>&lt;outpost-each collection="slug"&gt;</code></td>
- <td><code>&lt;outpost-each collection="slug"&gt;</code></td>
- </tr>
- <tr>
- <td>Single item</td>
- <td><code>&lt;outpost-single collection="slug"&gt;</code></td>
- <td><code>&lt;outpost-single collection="slug"&gt;</code></td>
- </tr>
- <tr>
- <td>Menu</td>
- <td><code>&lt;outpost-menu name="main"&gt;</code></td>
- <td><code>&lt;outpost-menu name="main"&gt;</code></td>
- </tr>
- <tr>
- <td>Folder loop</td>
- <td><code>&lt;outpost-each folder="slug"&gt;</code></td>
- <td><code>&lt;outpost-each folder="slug"&gt;</code></td>
- </tr>
- <tr>
- <td>Gallery loop</td>
- <td><code>&lt;outpost-each gallery="name"&gt;</code></td>
- <td><code>&lt;outpost-each gallery="name"&gt;</code></td>
- </tr>
- <tr>
- <td>Repeater loop</td>
- <td><code>&lt;outpost-each repeat="name"&gt;</code></td>
- <td><code>&lt;outpost-each repeat="name"&gt;</code></td>
- </tr>
- <tr>
- <td>Pagination</td>
- <td><code>&lt;outpost-pagination /&gt;</code></td>
- <td><code>&lt;outpost-pagination /&gt;</code></td>
- </tr>
- <tr>
- <td>SEO meta</td>
- <td><code>&lt;outpost-meta title="Default" /&gt;</code></td>
- <td><code>&lt;outpost-seo /&gt;</code></td>
- </tr>
- <tr>
- <td>Empty fallback</td>
- <td><code>&lt;outpost-else&gt;</code> inside loop</td>
- <td><code>&lt;outpost-each collection="slug" empty&gt;</code></td>
- </tr>
- <tr>
- <td>Not-found fallback</td>
- <td><code>&lt;outpost-else&gt;</code> inside single</td>
- <td><code>&lt;outpost-single collection="slug" else&gt;</code></td>
- </tr>
- <tr>
  <td>Text field</td>
- <td><code>data-outpost="title"</code></td>
  <td><code>&lt;h2 data-outpost="title"&gt;Default&lt;/h2&gt;</code></td>
  </tr>
  <tr>
  <td>Rich text</td>
- <td><code>data-outpost="body" data-type="raw"</code></td>
  <td><code>&lt;div data-outpost="body" data-type="raw"&gt;&lt;/div&gt;</code></td>
  </tr>
  <tr>
  <td>Image</td>
- <td><code>data-outpost="image" data-type="image"</code></td>
  <td><code>&lt;img data-outpost="image" data-type="image"&gt;</code></td>
  </tr>
  <tr>
  <td>Link</td>
  <td><code>&lt;a data-outpost="url" data-type="link"&gt;</code></td>
- <td><code>&lt;a data-outpost="url" data-type="link"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Global field</td>
+ <td><code>&lt;span data-outpost="site_name" data-scope="global"&gt;My Site&lt;/span&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Collection loop</td>
+ <td><code>&lt;outpost-each collection="slug"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Single item</td>
+ <td><code>&lt;outpost-single collection="slug"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Menu</td>
+ <td><code>&lt;outpost-menu name="main"&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Include partial</td>
+ <td><code>&lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;</code></td>
+ </tr>
+ <tr>
+ <td>Pagination</td>
+ <td><code>&lt;outpost-pagination /&gt;</code></td>
+ </tr>
+ <tr>
+ <td>SEO meta</td>
+ <td><code>&lt;outpost-meta title="Default" /&gt;</code></td>
  </tr>
  <tr>
  <td>Attribute binding</td>
- <td>N/A</td>
  <td><code>data-bind="datetime:date"</code></td>
  </tr>
  </tbody>
  </table>
 
- <h3>Compile and Cache Behavior</h3>
- <p>templates follow the same compile-and-cache pipeline as . The <code>.html</code> source is compiled into cached PHP at <code>outpost/cache/templates/{hash}.php</code> on first request. File modification time is compared on each request, and the cache is rebuilt if the source is newer. Clearing <code>cache/templates/</code> forces a full recompile.</p>
+ <h2>Compile and cache behavior</h2>
+ <p>The <code>.html</code> source files are compiled into cached PHP at <code>outpost/cache/templates/{hash}.php</code> on first request. File modification time is compared on each request, and the cache is rebuilt if the source is newer. Clearing <code>cache/templates/</code> forces a full recompile.</p>
 
- <h3>Field Auto-Registration</h3>
- <p>templates participate in the same auto-registration system as . When a templates is compiled, Outpost scans all <code>data-outpost</code> attributes and registers any new fields in the database. The <code>data-type</code> attribute determines the field type (image, raw, link, textarea, etc.).</p>
+ <h2>Field auto-registration</h2>
+ <p>When a template is compiled, Outpost scans all <code>data-outpost</code> attributes and registers any new fields in the database. The <code>data-type</code> attribute determines the field type (image, raw, link, textarea, etc.). Fields appear in the admin automatically — no manual schema setup required.</p>
 
- 
+ <h2>Updates never touch your files</h2>
+ <p>When you update Outpost via Settings &rarr; Updates, the updater only modifies files inside the <code>outpost/</code> directory — the engine, admin panel, and docs. Your HTML templates, CSS, JavaScript, images, and all other site files at the root are never read, modified, or deleted by the updater.</p>
 
  </div>
 </main>

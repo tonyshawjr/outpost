@@ -14,7 +14,7 @@
 <main class="main">
  <div class="page-hero">
  <h1>Template Cache</h1>
- <p class="lead">Outpost uses a two-level caching system to keep pages fast. templates are compiled to PHP once and cached on disk. Rendered HTML output is cached separately with a 1-hour TTL, so the database is queried only once per page per hour — regardless of traffic.</p>
+ <p class="lead">Outpost uses a two-level caching system to keep pages fast. Templates are compiled to PHP once and cached on disk. Rendered HTML output is cached separately with a 1-hour TTL, so the database is queried only once per page per hour — regardless of traffic.</p>
  </div>
  <div class="content">
 
@@ -28,13 +28,13 @@
  <tr>
  <td><strong>Template cache</strong></td>
  <td>Compiled PHP version of each <code>.html</code> template</td>
- <td><code>cache/templates/</code></td>
+ <td><code>outpost/cache/templates/</code></td>
  <td>Until the source file changes (mtime-based)</td>
  </tr>
  <tr>
  <td><strong>HTML page cache</strong></td>
  <td>Full rendered HTML output for each URL</td>
- <td><code>cache/html/</code></td>
+ <td><code>outpost/cache/html/</code></td>
  <td>1 hour (3600 seconds)</td>
  </tr>
  </tbody>
@@ -42,7 +42,7 @@
  <p>On a cache hit for the HTML layer, Outpost reads a file from disk and sends it to the browser. No template compilation, no database queries, no PHP function calls. This is the most impactful performance optimization in the system.</p>
 
  <h2>Template cache</h2>
- <p>templates (<code>.html</code> files in your theme directory) are not executed directly. Outpost's template engine compiles them to plain PHP files the first time they are requested. Each subsequent request runs the compiled PHP file directly, bypassing the compilation step entirely.</p>
+ <p>Templates (<code>.html</code> files at your site root) are not executed directly. Outpost's template engine compiles them to plain PHP files the first time they are requested. Each subsequent request runs the compiled PHP file directly, bypassing the compilation step entirely.</p>
 
  <h3>How compilation works</h3>
  <p>The compiler reads your <code>.html</code> template, parses the template syntax, and converts each tag to its PHP equivalent:</p>
@@ -60,13 +60,11 @@
  <tr><td><code>&lt;!-- comment --&gt;</code></td><td>(removed entirely)</td></tr>
  </tbody>
  </table>
- <p>The compiled PHP is written to a file in <code>cache/templates/</code>. The cache filename is an MD5 hash of the source template's real file path, so each template has a unique, deterministic cache key.</p>
+ <p>The compiled PHP is written to a file in <code>outpost/cache/templates/</code>. The cache filename is an MD5 hash of the source template's real file path, so each template has a unique, deterministic cache key.</p>
 
  <h3>Automatic invalidation</h3>
  <p>The template cache is invalidated automatically based on file modification time. Before serving a cached template, Outpost compares the <code>filemtime()</code> of the source <code>.html</code> file against the <code>filemtime()</code> of the compiled cache file. If the source is newer, the template is recompiled and the cache is updated.</p>
- <p>This means during development, editing and saving a <code>.html</code> template takes effect on the next page load with no manual steps required. The mtime check has negligible overhead — it is a single filesystem call per template.</p>
-
- 
+ <p>This means during development, editing and saving an <code>.html</code> template takes effect on the next page load with no manual steps required. The mtime check has negligible overhead — it is a single filesystem call per template.</p>
 
  <h2>Performance characteristics</h2>
  <p>With both cache layers functioning, Outpost's request path is as fast as a static file server for cached pages:</p>
@@ -81,7 +79,7 @@
  <li>HTML cache miss detected</li>
  <li>Template cache checked — compiled PHP loaded (or recompiled if source changed)</li>
  <li>Compiled template executes — database queries run, output generated</li>
- <li>HTML output written to <code>cache/html/</code></li>
+ <li>HTML output written to <code>outpost/cache/html/</code></li>
  <li>HTML output sent to browser</li>
  </ol>
  <p>Cache misses are fast in absolute terms — SQLite is an embedded database with sub-millisecond query times for typical Outpost data volumes. But cache hits are faster still, and they do not hold a database connection, making the system efficient under concurrent load.</p>

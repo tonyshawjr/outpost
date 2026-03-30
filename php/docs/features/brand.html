@@ -14,7 +14,7 @@
 <main class="main">
   <div class="page-hero">
     <h1>Brand Settings</h1>
-    <p class="lead">Set your site-wide colors, fonts, logo, and favicon in one place. Brand settings serve as the baseline identity for your entire site &mdash; the Theme Customizer and CSS Framework both read from them.</p>
+    <p class="lead">Set your site-wide colors, fonts, logo, and favicon in one place. Brand settings serve as the baseline identity for your entire site &mdash; the CSS Framework reads from them and injects CSS custom properties into every page.</p>
   </div>
   <div class="content">
 
@@ -29,22 +29,7 @@
     <p>These values are stored in <code>content/data/brand.json</code> and are included in backups.</p>
 
     <h2>Where brand values go</h2>
-    <p>Brand settings flow into your site through two paths, depending on how your theme is set up:</p>
-
-    <h3>Path 1: Theme Customizer (via <code>brand_key</code>)</h3>
-    <p>If your theme has a <a href="features/theme-customizer.html">Theme Customizer</a> section in <code>theme.json</code>, individual customizer fields can map to brand values using the <code>brand_key</code> property. When a field has a <code>brand_key</code>, the brand value becomes the baseline default instead of the field's hardcoded <code>default</code>.</p>
-    <p><strong>Value priority (highest wins):</strong></p>
-    <ol>
-      <li>Customizer saved value (user customized this specific theme)</li>
-      <li>Brand value (site-wide baseline via <code>brand_key</code>)</li>
-      <li>Field <code>default</code> in <code>theme.json</code> (theme developer's fallback)</li>
-    </ol>
-    <p>This means: set your brand colors once, and every theme that maps its customizer fields to brand keys will inherit those colors automatically. Override per-theme in the Customizer when needed.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; The built-in Personal theme already maps its accent, text, background, surface colors, heading/body fonts, logo, and favicon to brand keys. Set your brand once and Personal inherits it.</div>
-
-    <h3>Path 2: CSS Framework (via <code>"framework": true</code>)</h3>
-    <p>If your theme opts into the <a href="#framework">Outpost CSS Framework</a> by adding <code>"framework": true</code> to <code>theme.json</code>, brand values are injected directly as <code>--brand-*</code> CSS tokens before <code>&lt;/head&gt;</code>. Your theme CSS uses these tokens directly:</p>
+    <p>Brand settings flow into your site as CSS custom properties. When the CSS Framework is enabled (via <code>"framework": true</code> in <code>theme.json</code>), brand values are injected directly as <code>--brand-*</code> CSS tokens before <code>&lt;/head&gt;</code>. Your site CSS uses these tokens directly:</p>
     <pre><code>/* Brand tokens injected automatically */
 :root {
   --brand-primary: #2D5A47;
@@ -60,41 +45,9 @@
   --text-lg: 1.25rem;
   /* ... through text-5xl */
 }</code></pre>
-    <p>The framework path is independent of the customizer &mdash; it reads directly from <code>brand.json</code> every time a page renders.</p>
+    <p>The framework reads directly from <code>brand.json</code> every time a page renders.</p>
 
-    <h3>Which path should I use?</h3>
-    <table>
-      <thead>
-        <tr><th>Scenario</th><th>Use</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Theme has its own CSS variables (like Personal)</td>
-          <td>Customizer with <code>brand_key</code> mappings</td>
-        </tr>
-        <tr>
-          <td>Theme uses the Outpost CSS Framework</td>
-          <td><code>"framework": true</code> in theme.json</td>
-        </tr>
-        <tr>
-          <td>Theme wants both (framework + customizer overrides)</td>
-          <td>Both &mdash; they work together. Framework injects <code>--brand-*</code> tokens, customizer overrides theme-specific vars</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2 id="brand-key">The brand_key property</h2>
-    <p>Add <code>brand_key</code> to any customizer field in <code>theme.json</code> to map it to a brand value. The format is <code>"section.field"</code> using dotted notation:</p>
-    <pre><code>{
-  "key": "color-accent",
-  "label": "Accent Color",
-  "type": "color",
-  "default": "#14B8A6",
-  "var": "--color-accent",
-  "brand_key": "colors.accent"
-}</code></pre>
-
-    <h3>Available brand keys</h3>
+    <h2 id="brand-keys">Available brand keys</h2>
     <table>
       <thead>
         <tr><th>Brand key</th><th>Section</th><th>Description</th></tr>
@@ -113,29 +66,10 @@
       </tbody>
     </table>
 
-    <h3>Personal theme mappings</h3>
-    <p>The built-in Personal theme maps 8 of its 10 customizer fields to brand keys:</p>
-    <table>
-      <thead>
-        <tr><th>Customizer field</th><th>Brand key</th><th>CSS variable</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Accent Color</td><td><code>colors.accent</code></td><td><code>--color-accent</code></td></tr>
-        <tr><td>Text Color</td><td><code>colors.neutral</code></td><td><code>--color-ink</code></td></tr>
-        <tr><td>Background</td><td><code>colors.background</code></td><td><code>--color-body</code></td></tr>
-        <tr><td>Surface Color</td><td><code>colors.surface</code></td><td><code>--color-paper</code></td></tr>
-        <tr><td>Heading Font</td><td><code>typography.heading_font</code></td><td><code>--font-display</code></td></tr>
-        <tr><td>Body Font</td><td><code>typography.body_font</code></td><td><code>--font-sans</code></td></tr>
-        <tr><td>Site Logo</td><td><code>identity.logo</code></td><td>&mdash;</td></tr>
-        <tr><td>Favicon</td><td><code>identity.favicon</code></td><td>&mdash;</td></tr>
-      </tbody>
-    </table>
-    <p>Accent Hover and Muted Text have no brand mapping &mdash; they are theme-specific values that only exist in the Customizer.</p>
-
     <h2 id="framework">The framework flag</h2>
-    <p>Add <code>"framework": true</code> to your <code>theme.json</code> to opt into the Outpost CSS Framework:</p>
+    <p>Add <code>"framework": true</code> to your <code>theme.json</code> (in the site root) to opt into the Outpost CSS Framework:</p>
     <pre><code>{
-  "name": "My Theme",
+  "name": "My Site",
   "version": "1.0.0",
   "framework": true
 }</code></pre>
@@ -145,9 +79,9 @@
       <li><strong>Framework CSS</strong> (<code>/outpost/framework/outpost-framework.css</code>) &mdash; lightweight reset, grid system, utility classes, button styles</li>
       <li><strong>Brand tokens</strong> &mdash; <code>:root</code> CSS custom properties for all brand values + computed type scale</li>
     </ol>
-    <p>Your theme CSS then uses <code>var(--brand-primary)</code>, <code>var(--brand-font-heading)</code>, <code>var(--text-lg)</code>, etc.</p>
+    <p>Your site CSS then uses <code>var(--brand-primary)</code>, <code>var(--brand-font-heading)</code>, <code>var(--text-lg)</code>, etc.</p>
 
-    <div class="callout callout-note"><strong>Note</strong> &mdash; The framework flag is independent of the customizer. A theme can use the framework without a customizer section, or vice versa, or both.</div>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; The framework flag is optional. Sites that do not use the framework can reference brand values directly from the Brand API or use their own CSS custom properties.</div>
 
     <h2>Storage</h2>
     <p>Brand settings are stored in <code>content/data/brand.json</code>:</p>

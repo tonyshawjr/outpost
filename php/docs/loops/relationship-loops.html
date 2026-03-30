@@ -25,7 +25,7 @@
  <p>Use <code>&lt;outpost-each relationship="field_name"&gt;</code> to loop over a relationship field. Inside the loop, access item fields with <code>data-outpost</code> attributes.</p>
  <pre><code>&lt;outpost-each relationship="field_name"&gt;
  &lt;h3 data-outpost="title"&gt;&lt;/h3&gt;
- &lt;a data-outpost-href="url"&gt;View&lt;/a&gt;
+ &lt;a data-outpost="url" data-type="link" href="#"&gt;View&lt;/a&gt;
 &lt;/outpost-each&gt;</code></pre>
 
  <h3>Related Posts Example </h3>
@@ -33,8 +33,8 @@
  &lt;h2&gt;Related Posts&lt;/h2&gt;
  &lt;div class="related-grid"&gt;
  &lt;outpost-each relationship="related_posts"&gt;
- &lt;a class="related-card"&gt;
- &lt;img data-outpost-src="featured_image" alt=""&gt;
+ &lt;a class="related-card" data-outpost="url" data-type="link" href="#"&gt;
+ &lt;img data-outpost="featured_image" data-type="image" src="" alt=""&gt;
  &lt;h3 data-outpost="title"&gt;&lt;/h3&gt;
  &lt;p data-outpost="excerpt"&gt;&lt;/p&gt;
  &lt;/a&gt;
@@ -49,7 +49,7 @@
  &lt;div class="speaker-grid"&gt;
  &lt;outpost-each relationship="speakers"&gt;
  &lt;div class="speaker-card"&gt;
- &lt;img data-outpost-src="photo" alt="" class="speaker-photo"&gt;
+ &lt;img data-outpost="photo" data-type="image" src="" alt="" class="speaker-photo"&gt;
  &lt;h3 data-outpost="title"&gt;&lt;/h3&gt;
  &lt;p class="speaker-role" data-outpost="role"&gt;&lt;/p&gt;
  &lt;/div&gt;

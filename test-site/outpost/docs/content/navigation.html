@@ -14,12 +14,15 @@
 <main class="main">
   <div class="page-hero">
     <h1>Navigation Menus</h1>
-    <p class="lead">Create and manage menus in the admin, then render them in your theme templates with a simple loop. Menus support nested items for dropdown navigation and multiple independent menus per site.</p>
+    <p class="lead">Create and manage menus in the admin, then render them in your templates with a simple loop. Menus support nested items for dropdown navigation and multiple independent menus per site. Forge auto-detects <code>&lt;nav&gt;</code> elements in your HTML to register menus automatically.</p>
   </div>
   <div class="content">
 
     <h2>Overview</h2>
     <p>Outpost lets you create any number of named menus — a main navigation, a footer link list, a social media menu, a legal links bar, and so on. Each menu is identified by a slug that you reference in templates. Items in each menu are ordered and nested via drag-and-drop in the admin.</p>
+
+    <h3>Auto-detection by Forge</h3>
+    <p>When Forge (the AI site builder) generates or scans your site, it auto-detects <code>&lt;nav&gt;</code> elements in your HTML templates and registers them as menus. A <code>&lt;nav&gt;</code> element containing <code>&lt;outpost-menu name="main"&gt;</code> becomes a managed menu that editors can update from Admin &rarr; Navigation without touching template files.</p>
 
     <h2>Creating a menu</h2>
     <ol class="steps">
@@ -291,7 +294,7 @@
     </table>
 
     <h2>Placing menus in partials</h2>
-    <p>The standard pattern is to place all navigation in the <code>partials/nav.html</code> and <code>partials/footer.html</code> partials, which are included in every template. This means the menu is edited once and appears consistently everywhere.</p>
+    <p>The standard pattern is to place all navigation in <code>partials/nav.html</code> and <code>partials/footer.html</code> at your site root, which are included in every template. This means the menu is edited once and appears consistently everywhere.</p>
 
     <pre><code><span class="t-comment">{# index.html — standard page template #}</span>
 <span class="t-kw">{% include</span> <span class="t-string">'head'</span> <span class="t-kw">%}</span>
@@ -306,7 +309,7 @@
     <h2>Related docs</h2>
     <ul>
       <li><a href="loops/menu-loops.html">Menu Loops</a> — full <code>{% for item in menu.slug %}</code> reference</li>
-      <li><a href="themes/partials.html">Partials</a> — placing nav in shared <code>nav.html</code> and <code>footer.html</code></li>
+      <li>Partials — place nav in shared <code>partials/nav.html</code> and <code>partials/footer.html</code> at the site root</li>
       <li><a href="recipes/dropdown-navigation.html">Recipe: Dropdown Navigation</a> — complete CSS transitions and keyboard accessibility</li>
       <li><a href="content/global-fields.html">Global Fields</a> — for single-link site settings like social profile URLs</li>
     </ul>

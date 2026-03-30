@@ -14,14 +14,14 @@
 <main class="main">
   <div class="page-hero">
     <h1>Ranger AI Assistant</h1>
-    <p class="lead">Your built-in AI assistant that can do just about anything in Outpost &mdash; create pages, write content, build themes, manage your site &mdash; all by asking in plain English.</p>
+    <p class="lead">Your built-in AI assistant that can do just about anything in Outpost &mdash; create pages, write content, build sites, manage your content &mdash; all by asking in plain English.</p>
   </div>
   <div class="content">
 
     <h2>What is Ranger?</h2>
     <p>Ranger is like having a web developer on speed dial, right inside your admin panel. Instead of clicking through menus and filling out forms, you just tell Ranger what you want in your own words. It handles the rest.</p>
 
-    <p>Want a new blog collection with title, image, and body fields? Just ask. Need to update your site name, upload an image, or build an entire theme from scratch? Ranger can do all of that &mdash; and more.</p>
+    <p>Want a new blog collection with title, image, and body fields? Just ask. Need to update your site name, upload an image, or build an entire site from scratch? Ranger can do all of that &mdash; and more.</p>
 
     <p>Ranger works with your choice of AI provider (Claude, OpenAI, or Google). You bring your own API key &mdash; no Outpost subscription or account needed.</p>
 
@@ -61,9 +61,9 @@
       <li>"Set the global field site_name to 'Mountain View Bakery'"</li>
     </ul>
 
-    <h3>Build and edit themes</h3>
+    <h3>Build and edit site files</h3>
     <ul>
-      <li>"Build me a restaurant theme with a homepage, menu page, and contact page"</li>
+      <li>"Build me a restaurant site with a homepage, menu page, and contact page"</li>
       <li>"Add a footer partial with social media links"</li>
       <li>"Show me what's in the homepage template"</li>
       <li>"Check my templates for syntax errors"</li>
@@ -123,7 +123,7 @@
     <p>Made a typo or want to rephrase? You can edit a previous message and Ranger will re-process it with your updated wording.</p>
 
     <h3>Start fresh for new topics</h3>
-    <p>If you switch from building a theme to managing users, start a new conversation. This keeps the context focused and prevents confusion.</p>
+    <p>If you switch from building site templates to managing users, start a new conversation. This keeps the context focused and prevents confusion.</p>
 
     <h3>Chain requests naturally</h3>
     <p>Ranger remembers your conversation. You can say "create a blog collection" and then follow up with "now add a featured_image field to it" without repeating the collection name.</p>
@@ -158,7 +158,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you're not sure which to pick, start with Claude. It handles complex multi-step tasks (like building an entire theme) better than the alternatives.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you're not sure which to pick, start with Claude. It handles complex multi-step tasks (like building an entire site) better than the alternatives.</div>
 
     <h2>Understanding Costs</h2>
     <p>Every message you send to Ranger uses "tokens" &mdash; think of them as units of text. Longer messages and more complex responses use more tokens, which cost money through your AI provider.</p>
@@ -234,11 +234,11 @@
       <tbody>
         <tr>
           <td><strong>Editor</strong></td>
-          <td>Create and edit pages, collection items, global fields, and media. Cannot access settings, users, or theme files.</td>
+          <td>Create and edit pages, collection items, global fields, and media. Cannot access settings, users, or site files.</td>
         </tr>
         <tr>
           <td><strong>Developer</strong></td>
-          <td>Everything an editor can do, plus theme files, templates, and database queries.</td>
+          <td>Everything an editor can do, plus site files, templates, and database queries.</td>
         </tr>
         <tr>
           <td><strong>Admin</strong></td>
@@ -254,7 +254,7 @@
 
     <ul>
       <li><strong>Your API key is encrypted</strong> &mdash; stored using AES-256-GCM encryption. It cannot be read from the database.</li>
-      <li><strong>File access is limited</strong> &mdash; Ranger can only read and write files inside your active theme directory. It cannot access system files or other directories.</li>
+      <li><strong>File access is limited</strong> &mdash; Ranger can only read and write files inside your site root directory (excluding the <code>outpost/</code> system directory). It cannot access system files.</li>
       <li><strong>Database queries are read-only</strong> &mdash; Ranger can look up data but cannot modify, delete, or create database tables directly.</li>
       <li><strong>External requests are filtered</strong> &mdash; when downloading images from URLs, Ranger blocks requests to private/internal networks.</li>
       <li><strong>All actions require authentication</strong> &mdash; every request goes through Outpost's normal session and CSRF protection.</li>
@@ -266,7 +266,7 @@
     <p>Go to <strong>Settings &gt; Integrations</strong>, select a provider, and paste your API key. Make sure you click Save.</p>
 
     <h3>Responses are slow</h3>
-    <p>Response speed depends on your AI provider. Complex requests (like building an entire theme) take longer because Ranger is executing multiple steps. If basic responses are consistently slow, try switching to a faster model.</p>
+    <p>Response speed depends on your AI provider. Complex requests (like building an entire site) take longer because Ranger is executing multiple steps. If basic responses are consistently slow, try switching to a faster model.</p>
 
     <h3>Ranger made a mistake</h3>
     <p>AI is not perfect. If Ranger creates something wrong, you can:</p>

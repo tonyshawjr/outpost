@@ -14,12 +14,12 @@
 <main class="main">
  <div class="page-hero">
  <h1>Overview</h1>
- <p class="lead">Outpost is a developer-first, self-hosted CMS built on PHP 8.x and SQLite. Drop one directory onto any PHP server and you have a fully working content management system — no Composer, no npm on the server, no database server to configure.</p>
+ <p class="lead">Outpost is a developer-first, self-hosted CMS built on PHP 8.x and SQLite. Drop one directory alongside your HTML files on any PHP server and you have a fully working content management system — no Composer, no npm on the server, no database server to configure.</p>
  </div>
  <div class="content">
 
  <h2>What is Outpost?</h2>
- 
+ <p>Outpost lives in a single <code>outpost/</code> folder alongside your site's HTML files. There are no themes, no theme switching, and no theme.json. Your site root <em>is</em> the content source — Outpost's Forge analysis scans every <code>.html</code> file it finds and makes them editable through the admin panel.</p>
 
  <table>
  <thead>
@@ -38,7 +38,7 @@
  <tr>
  <td>Database</td>
  <td>SQLite via PDO</td>
- <td>Single file: <code>outpost/data/cms.db</code></td>
+ <td>Single file: <code>outpost/content/data/cms.db</code></td>
  </tr>
  <tr>
  <td>Templates</td>
@@ -71,7 +71,7 @@
  <h2>What You Can Build</h2>
  
 
- <p>Themes are completely standalone. Outpost adds no classes, no JavaScript, and no CSS of its own to the public site output. You have full control over every byte of HTML the site serves.</p>
+ <p>Your HTML files are the site. Outpost adds no classes, no JavaScript, and no CSS of its own to the public site output. You have full control over every byte of HTML the site serves. There are no themes — your site root is the content source, and the <code>outpost/</code> folder is just the CMS engine.</p>
 
  <h3>Pages</h3>
  <p>Pages are CMS-managed content items that map to specific URLs you define in the admin. Unlike collection items, each page is unique. Pages support a rich-text body, custom meta fields, SEO metadata (title, description, Open Graph), and per-page visibility (public, members-only, paid).</p>
@@ -92,28 +92,28 @@
  <p>When a visitor requests a URL, the following sequence occurs:</p>
 
  <ol>
- <li><strong>Routing.</strong> The web server forwards all requests to <code>index.php</code> (Apache or Nginx) or <code>front-router.php</code> (PHP built-in dev server). The router maps the URL to a theme template file — for example, <code>/blog</code> maps to <code>themes/active-theme/blog.html</code> and <code>/post/my-first-post</code> maps to <code>post.html</code> with <code>?slug=my-first-post</code>.</li>
+ <li><strong>Routing.</strong> The web server forwards all requests to <code>index.php</code> (Apache or Nginx) or <code>front-router.php</code> (PHP built-in dev server). The router maps the URL to an HTML file in the site root — for example, <code>/blog</code> maps to <code>blog.html</code> and <code>/post/my-first-post</code> maps to <code>post.html</code> with <code>?slug=my-first-post</code>.</li>
  <li><strong>Cache check.</strong> Outpost checks whether a compiled PHP file exists in <code>outpost/cache/templates/</code> and whether it is newer than the source <code>.html</code> file. If the cache is fresh, it skips compilation.</li>
  <li><strong>Compilation.</strong> If the cache is stale or missing, the template engine reads the <code>.html</code> source, walks through every data attribute and custom element, and outputs equivalent PHP code. The result is written to disk as a <code>.php</code> file in the template cache directory.</li>
  <li><strong>Execution.</strong> The compiled PHP file is included. Template output tags resolve to CMS function calls — <code>cms_text()</code>, <code>cms_collection_list()</code>, <code>cms_global()</code> and so on — that query the SQLite database and return content.</li>
  <li><strong>Output.</strong> The complete HTML response is sent to the browser. Optionally, Outpost can cache the full rendered HTML of each page so that repeat requests skip database queries entirely.</li>
  </ol>
 
- <p>From a theme developer's perspective this is entirely transparent — you write <code>data-outpost="title"</code> and the page title appears. Compilation and caching happen automatically in the background.</p>
+ <p>From a developer's perspective this is entirely transparent — you write <code>data-outpost="title"</code> and the page title appears. Compilation and caching happen automatically in the background.</p>
 
  <div class="callout callout-tip"><strong>Tip</strong> — Because templates are compiled to native PHP, every page load runs at full PHP speed. There is no interpreted template engine executing at request time — just a thin PHP file that calls database functions.</div>
 
  <h2>The Admin Panel</h2>
  <p>The admin panel lives at <code>/outpost/</code>. This path is reserved — no theme template can conflict with it. The admin is a Svelte 5 SPA that communicates exclusively through the REST API at <code>outpost/api.php</code>. It requires no separate process, no WebSocket server, and no build step on the server.</p>
 
- <p>On first visit to <code>/outpost/</code> when no database exists, Outpost bootstraps itself: it creates the SQLite file at <code>outpost/data/cms.db</code>, runs all schema migrations, creates a default admin account, and seeds a starter theme. You are taken directly to the login screen.</p>
+ <p>On first visit to <code>/outpost/</code> when no database exists, Outpost bootstraps itself: it creates the SQLite file at <code>outpost/content/data/cms.db</code>, runs all schema migrations, and creates a default admin account. Forge then scans your site's HTML files and makes them editable. You are taken directly to the login screen.</p>
 
  <div class="callout callout-warn"><strong>Warning</strong> — The default admin credentials are <code>admin</code> / <code>admin</code>. Change your password immediately after first login via Admin &rarr; Settings &rarr; Account.</div>
 
  <h2>No Server-Side Dependencies</h2>
  <p>A core design goal of Outpost is that deploying a site requires only copying files. There is no <code>composer install</code> to run, no <code>npm install</code> on the server, no build step, and no cron job required for basic operation. As long as the server runs PHP 8.x with the <code>pdo_sqlite</code> extension enabled, Outpost works.</p>
 
- <p>The admin SPA is a pre-built artifact — a small set of static JS and CSS files in <code>outpost/admin/</code>. The Svelte source code lives in a separate <code>cms/src/</code> directory and is only relevant when you are modifying the admin UI itself. Most theme developers and all content editors never need to touch it.</p>
+ <p>The admin SPA is a pre-built artifact — a small set of static JS and CSS files in <code>outpost/admin/</code>. The Svelte source code lives in a separate <code>cms/src/</code> directory and is only relevant when you are modifying the admin UI itself. Most developers and all content editors never need to touch it.</p>
 
  <h2>Continue Reading</h2>
  <table>
@@ -147,10 +147,6 @@
  <tr>
  <td><a href="deploy.html">Deploy</a></td>
  <td>Apache and Nginx configuration, file permissions, production checklist</td>
- </tr>
- <tr>
- <td><a href="themes/">Themes</a></td>
- <td>How to build and activate a theme, URL routing, partials</td>
  </tr>
  <tr>
  <td><a href="template-syntax/">Template Syntax</a></td>

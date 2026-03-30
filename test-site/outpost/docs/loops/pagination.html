@@ -19,7 +19,14 @@
  <div class="content">
 
  <h2>Setup</h2>
- <p>Add <code>paginate:N</code> to a collection loop and place <code>&lt;outpost-pagination /&gt;</code> immediately after the closing <code>&lt;/outpost-each&gt;</code>. That is all that is required.</p>
+ <p>Add <code>paginate="N"</code> to a collection loop. The pagination controls are automatically rendered after the loop. That is all that is required.</p>
+ <pre><code>&lt;outpost-each collection="post" paginate="10" sort="published_at"&gt;
+ &lt;article&gt;
+ &lt;h2 data-outpost="title"&gt;Post Title&lt;/h2&gt;
+ &lt;p data-outpost="excerpt"&gt;&lt;/p&gt;
+ &lt;/article&gt;
+&lt;/outpost-each&gt;</code></pre>
+ <p>When <code>paginate</code> is set, the engine automatically appends <code>&lt;outpost-pagination /&gt;</code> after the loop. You can also place <code>&lt;outpost-pagination /&gt;</code> manually if you need it in a different position.</p>
  
 
  

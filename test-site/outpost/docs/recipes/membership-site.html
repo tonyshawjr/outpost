@@ -46,7 +46,7 @@
 
     <div class="callout callout-note">
       <strong>Note</strong>
-      These are Outpost's own admin-area URLs. You can link to them from your theme templates. They use the admin CSS, not your theme's CSS. If you want custom-styled login/register pages, create theme templates that post to the <a href="api/member-api.html">Member API</a>.
+      These are Outpost's own admin-area URLs. You can link to them from your templates. They use the admin CSS, not your site's CSS. If you want custom-styled login/register pages, create template pages at your site root that post to the <a href="api/member-api.html">Member API</a>.
     </div>
 
     <h2>2. Collection setup</h2>
@@ -284,9 +284,9 @@ http_response_code(200);</code></pre>
     </div>
 
     <h2>10. Customising the login page appearance</h2>
-    <p>The built-in login page at <code>/outpost/login</code> uses the admin CSS. To create a branded login experience within your theme, create a template page that posts to the Member API login endpoint directly.</p>
+    <p>The built-in login page at <code>/outpost/login</code> uses the admin CSS. To create a branded login experience, create a <code>login.html</code> template at your site root that posts to the Member API login endpoint directly.</p>
 
-    <pre><code><span class="t-comment">{# themes/mysite/login.html — custom branded login page #}</span>
+    <pre><code><span class="t-comment">{# login.html — custom branded login page #}</span>
 <span class="t-kw">{% include 'head' %}</span>
 <span class="t-kw">{% include 'nav' %}</span>
 
@@ -344,25 +344,20 @@ http_response_code(200);</code></pre>
 
 <span class="t-kw">{% include 'footer' %}</span></code></pre>
 
-    <h2>12. theme.json routing for member pages</h2>
-    <p>Add your custom login and register pages to <code>theme.json</code> routes so Outpost can serve them as theme templates:</p>
+    <h2>12. Routing for member pages</h2>
+    <p>In v5, routing is automatic. Create <code>.html</code> files at your site root and the router maps them to URLs. For example, create <code>login.html</code> at the site root and it is accessible at <code>/login</code>:</p>
 
-    <pre><code>{
-  "name": "Membership",
-  "version": "1.0.0",
-  "routes": {
-    "/": "index.html",
-    "/articles": "articles.html",
-    "/articles/{slug}": "article.html",
-    "/login": "login.html",
-    "/register": "register.html",
-    "/upgrade": "upgrade.html"
-  }
-}</code></pre>
+    <pre><code>site root/
+  index.html        ← /
+  articles.html     ← /articles
+  article.html      ← /articles/{slug} (collection URL pattern)
+  login.html        ← /login (custom branded login)
+  register.html     ← /register (custom branded registration)
+  upgrade.html      ← /upgrade</code></pre>
 
     <div class="callout callout-note">
       <strong>Note</strong>
-      Custom <code>/login</code> and <code>/register</code> routes in <code>theme.json</code> serve your branded theme templates. The built-in <code>/outpost/login</code> and <code>/outpost/register</code> URLs continue to work alongside them — you can redirect one to the other using a simple JavaScript redirect or a PHP header.
+      Custom <code>/login</code> and <code>/register</code> pages at the site root serve your branded templates. The built-in <code>/outpost/login</code> and <code>/outpost/register</code> URLs continue to work alongside them — you can redirect one to the other using a simple JavaScript redirect or a PHP header.
     </div>
 
     <h2>13. Member variables reference</h2>

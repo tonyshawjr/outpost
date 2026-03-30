@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>theme.json — Outpost CMS</title>
+  <title>theme.json (Removed) — Outpost CMS</title>
   <base href="/outpost/docs/">
   <link rel="stylesheet" href="assets/docs.css">
 </head>
@@ -14,292 +14,32 @@
 <main class="main">
   <div class="page-hero">
     <h1>theme.json</h1>
-    <p class="lead">Every Outpost theme requires a <code>theme.json</code> file at the root of the theme directory. It provides the display name, version, author, and description shown in the admin theme browser.</p>
+    <p class="lead">This feature has been removed in Outpost v5.0.</p>
   </div>
   <div class="content">
 
-    <h2>Purpose</h2>
-    <p><code>theme.json</code> provides metadata for the admin theme browser (name, screenshot, description, author, version) and optionally declares <a href="features/theme-customizer.html">Theme Customizer</a> fields via the <code>customizer</code> key. It does not configure routing, fields, collections, or template compilation.</p>
-    <p>It is safe to update <code>theme.json</code> at any time without clearing caches or restarting anything. Changes to the <code>customizer</code> schema take effect the next time the customizer is opened.</p>
+    <div class="callout callout-note">
+      <strong>Removed in v5.0</strong> — <code>theme.json</code> has been removed. In v5.0, the concept of themes no longer exists. Your site's HTML files live at the site root, and site configuration is handled through the admin panel. There is no theme metadata file to maintain.
+    </div>
 
-    <h2>Complete example</h2>
-    <pre><code>{
-  "$schema": "/outpost/docs/schemas/theme.schema.json",
-  "name": "My Theme",
-  "version": "1.0.0",
-  "author": "Your Name",
-  "description": "A clean theme for personal blogs and portfolios.",
-  "screenshot": "screenshot.png",
-  "managed": true
-}</code></pre>
-
-    <h2>Field reference</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Type</th>
-          <th>Required</th>
-          <th>Purpose</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>$schema</code></td>
-          <td>string</td>
-          <td>No</td>
-          <td>Path to the JSON Schema file for IDE validation and autocomplete. Use <code>"/outpost/docs/schemas/theme.schema.json"</code>. All bundled themes include this field.</td>
-        </tr>
-        <tr>
-          <td><code>name</code></td>
-          <td>string</td>
-          <td>Yes</td>
-          <td>Display name shown in the admin theme browser. Does not need to match the directory slug.</td>
-        </tr>
-        <tr>
-          <td><code>version</code></td>
-          <td>string</td>
-          <td>Yes</td>
-          <td>Semantic version string. Displayed as a badge on the theme card. Increment this when you make changes.</td>
-        </tr>
-        <tr>
-          <td><code>author</code></td>
-          <td>string</td>
-          <td>Yes</td>
-          <td>Theme creator name. Shown in the theme details panel.</td>
-        </tr>
-        <tr>
-          <td><code>description</code></td>
-          <td>string</td>
-          <td>Yes</td>
-          <td>A short summary of the theme's purpose and style. Shown beneath the theme name in the browser.</td>
-        </tr>
-        <tr>
-          <td><code>screenshot</code></td>
-          <td>string</td>
-          <td>No</td>
-          <td>Filename (or relative path) of a preview image within the theme directory. PNG or JPG. Displayed as the theme card thumbnail.</td>
-        </tr>
-        <tr>
-          <td><code>managed</code></td>
-          <td>boolean</td>
-          <td>No</td>
-          <td>When <code>true</code>, marks this theme as managed by Outpost. Managed themes receive automatic updates when the CMS is updated. See <a href="themes/theme-updates.html">Theme Updates</a> for details.</td>
-        </tr>
-        <tr>
-          <td><code>framework</code></td>
-          <td>boolean</td>
-          <td>No</td>
-          <td>When <code>true</code>, Outpost injects the CSS Framework stylesheet and <a href="features/brand.html">Brand</a> CSS tokens (<code>--brand-primary</code>, <code>--brand-font-heading</code>, type scale, etc.) before <code>&lt;/head&gt;</code>. See <a href="features/brand.html#framework">Brand Settings &rarr; The framework flag</a>.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>The managed field</h2>
-    <p>The <code>managed</code> field identifies themes that are bundled with Outpost and maintained by the Outpost team. When <code>"managed": true</code> is set, the theme participates in the <a href="themes/theme-updates.html">theme update system</a> &mdash; it will be automatically updated alongside the CMS when a new version is released.</p>
-    <pre><code>{
-  "name": "Personal",
-  "version": "2.0.0",
-  "author": "Port City Pixel",
-  "description": "Reference personal blog theme.",
-  "managed": true
-}</code></pre>
-    <p>Managed themes display a small &ldquo;Managed&rdquo; badge on their theme card in the admin browser, indicating they are official and auto-updated.</p>
-
-    <h3>What managed means in practice</h3>
+    <h2>What changed</h2>
+    <p>In previous versions, <code>theme.json</code> provided metadata for the admin theme browser (name, version, author, description) and optionally declared Theme Customizer fields. In v5.0:</p>
     <ul>
-      <li><strong>Auto-updated:</strong> When the CMS is updated via Settings &rarr; Updates, managed themes in the update package are compared against installed versions. If a newer version exists, the theme files are updated automatically with conflict detection.</li>
-      <li><strong>Conflict detection:</strong> If you have edited files in a managed theme, the updater detects your changes and preserves them. Conflicting files are reported in the update results so you can review them.</li>
-      <li><strong>Manifest tracking:</strong> Each managed theme includes a <code>.outpost-manifest.json</code> file that stores MD5 hashes of all shipped files. This is how the updater knows which files you have modified versus which are untouched.</li>
+      <li>There is no theme browser — your site root is the content source directly.</li>
+      <li>There is no theme switching — there is only one set of templates: the HTML files at your site root.</li>
+      <li>Site configuration (name, branding, etc.) is managed through the admin panel under Settings and Brand.</li>
+      <li>CSS variables and visual customization are managed directly by developers in their CSS files.</li>
     </ul>
 
-    <h3>Duplicating strips the managed flag</h3>
-    <p>When you duplicate a managed theme (via Admin &rarr; Themes &rarr; Duplicate), the copy has its <code>managed</code> flag removed automatically. This means your custom copy will never be overwritten by future updates &mdash; it becomes an independent, user-owned theme. The original managed theme continues to receive updates normally.</p>
+    <h2>Migration</h2>
+    <p>If you are upgrading from a previous version, you can safely delete the <code>theme.json</code> file. No data is lost — the file was metadata-only and did not contain content or configuration that affects rendering.</p>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; If you want to customize a managed theme without losing auto-updates, duplicate it first. Your duplicate is yours to edit freely, while the original stays in sync with Outpost releases.</div>
-
-    <div class="callout callout-warn"><strong>Warning</strong> &mdash; Do not add <code>"managed": true</code> to your own themes. This flag is reserved for themes distributed with Outpost. Setting it on a custom theme could cause the updater to overwrite your files if a bundled theme with the same directory slug is released in the future.</div>
-
-    <h2>The screenshot field</h2>
-    <p>If <code>screenshot</code> is present and the file exists, it is served from the theme's directory and displayed as the theme card's preview image in the admin browser. The path is relative to the theme root:</p>
-    <pre><code>{
-  "screenshot": "screenshot.png"
-}</code></pre>
-    <p>This assumes the file lives at <code>outpost/themes/my-theme/screenshot.png</code>. You can also place it in a subdirectory:</p>
-    <pre><code>{
-  "screenshot": "assets/preview.jpg"
-}</code></pre>
-    <p>If the <code>screenshot</code> key is omitted entirely, or if the file cannot be found, the theme card displays a neutral placeholder graphic. This does not affect the theme's functionality — it is cosmetic only.</p>
-    <p>For best results, use a screenshot that is approximately 1200 &times; 900 pixels (4:3 ratio). The admin crops and scales it to fit the card thumbnail.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — Take your screenshot after you have added real content and styled the theme fully. A screenshot of a blank, unstyled site is not useful for identifying the theme at a glance.</div>
-
-    <h2>Versioning conventions</h2>
-    <p>Outpost does not enforce any versioning scheme — the <code>version</code> field is a plain string. However, following <a href="https://semver.org/" target="_blank" rel="noopener">semantic versioning</a> (MAJOR.MINOR.PATCH) is recommended:</p>
-    <table>
-      <thead>
-        <tr><th>Change type</th><th>Version bump</th><th>Example</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Breaking layout or field name change</td>
-          <td>MAJOR</td>
-          <td><code>1.0.0</code> → <code>2.0.0</code></td>
-        </tr>
-        <tr>
-          <td>New template or partial added</td>
-          <td>MINOR</td>
-          <td><code>1.0.0</code> → <code>1.1.0</code></td>
-        </tr>
-        <tr>
-          <td>Bug fix, style tweak, copy change</td>
-          <td>PATCH</td>
-          <td><code>1.0.0</code> → <code>1.0.1</code></td>
-        </tr>
-      </tbody>
-    </table>
-    <p>Keeping the version up to date is especially valuable when distributing themes or using the Builder sync workflow — it gives you a quick way to see at a glance whether a deployed theme is current.</p>
-
-    <h2>Validation</h2>
-    <p>Outpost does not perform strict schema validation on <code>theme.json</code>. Any valid JSON file is accepted. However, if the file is missing or contains invalid JSON, the theme will not appear in the admin browser and Outpost will log a warning. Always confirm your JSON is valid before deploying.</p>
-
-    <div class="callout callout-warn"><strong>Warning</strong> — If <code>theme.json</code> is missing entirely, the theme directory will not appear in Admin → Themes. The theme still exists on disk but Outpost will not recognize it. Always include <code>theme.json</code> even if it is minimal.</div>
-
-    <h3>JSON Schema for IDE support</h3>
-    <p>Outpost ships a JSON Schema file at <code>/outpost/docs/schemas/theme.schema.json</code> that provides IDE autocomplete and inline validation for <code>theme.json</code> files. Add a <code>$schema</code> field pointing to it:</p>
-    <pre><code>{
-  "$schema": "/outpost/docs/schemas/theme.schema.json",
-  "name": "My Theme",
-  "version": "1.0.0",
-  "author": "Your Name"
-}</code></pre>
-    <p>When present, editors like VS Code, JetBrains IDEs, and others will:</p>
+    <h2>Related docs</h2>
     <ul>
-      <li>Autocomplete field names (<code>name</code>, <code>version</code>, <code>customizer</code>, etc.)</li>
-      <li>Validate field types (e.g. <code>managed</code> must be boolean)</li>
-      <li>Show documentation for each field on hover</li>
-      <li>Autocomplete customizer field types (<code>color</code>, <code>font</code>, <code>image</code>, <code>text</code>, <code>toggle</code>)</li>
-      <li>Validate CSS variable names start with <code>--</code></li>
+      <li><a href="themes/">Site Structure</a> — how site root files work with Outpost v5.0</li>
+      <li><a href="themes/create-a-theme.html">Setting Up Your Site</a> — structuring HTML files for Outpost</li>
+      <li><a href="features/brand.html">Brand Settings</a> — site-wide branding configuration</li>
     </ul>
-    <p>All three bundled themes (Personal, Starter, Skeleton) include this field. When you duplicate a theme to start customizing, the <code>$schema</code> reference carries over so your new theme gets the same IDE support.</p>
-
-    <h2>The Skeleton theme</h2>
-    <p>Outpost ships a <strong>Skeleton</strong> theme alongside Personal and Starter. Skeleton is a developer reference &mdash; every template is heavily commented and demonstrates every template tag Outpost supports. It is not meant to look polished; it is meant to teach.</p>
-    <p>To start building a new theme from Skeleton:</p>
-    <ol>
-      <li>Go to Admin &rarr; Themes</li>
-      <li>Find Skeleton and click <strong>Duplicate</strong></li>
-      <li>Rename the duplicate and start editing &mdash; the copy is fully yours</li>
-    </ol>
-    <p>Skeleton ships as a managed theme, so it stays current with new tag examples in future updates. Your duplicate is independent and never touched by the updater.</p>
-
-    <h2>The customizer key</h2>
-    <p>Themes can declare customizable properties by adding a <code>customizer</code> key to <code>theme.json</code>. When present, the admin panel shows a visual Theme Customizer (Admin &rarr; Customize) that lets site owners change colors, fonts, logo, and favicon without editing code.</p>
-    <p>The <code>customizer</code> key contains a <code>sections</code> array. Each section becomes a tab in the customizer UI. Each section contains a <code>fields</code> array describing the customizable properties.</p>
-
-    <pre><code>{
-  "name": "My Theme",
-  "version": "1.0.0",
-  "author": "Your Name",
-  "description": "A customizable theme.",
-  "customizer": {
-    "sections": [
-      {
-        "id": "colors",
-        "label": "Colors",
-        "fields": [
-          {
-            "key": "color-accent",
-            "label": "Accent Color",
-            "type": "color",
-            "default": "#14B8A6",
-            "var": "--color-accent"
-          }
-        ]
-      },
-      {
-        "id": "typography",
-        "label": "Typography",
-        "fields": [
-          {
-            "key": "font-heading",
-            "label": "Heading Font",
-            "type": "font",
-            "default": "Inter",
-            "var": "--font-display"
-          }
-        ]
-      },
-      {
-        "id": "identity",
-        "label": "Site Identity",
-        "fields": [
-          {
-            "key": "logo",
-            "label": "Site Logo",
-            "type": "image"
-          }
-        ]
-      }
-    ]
-  }
-}</code></pre>
-
-    <h3>Field types</h3>
-    <table>
-      <thead>
-        <tr><th>Type</th><th>Properties</th><th>Description</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>color</code></td>
-          <td><code>key</code>, <code>label</code>, <code>default</code>, <code>var</code></td>
-          <td>Color picker with hex input. Overrides the CSS custom property named in <code>var</code>.</td>
-        </tr>
-        <tr>
-          <td><code>font</code></td>
-          <td><code>key</code>, <code>label</code>, <code>default</code>, <code>var</code></td>
-          <td>Font selector from a curated Google Fonts list. Loads the font via <code>&lt;link&gt;</code> and sets the CSS custom property.</td>
-        </tr>
-        <tr>
-          <td><code>image</code></td>
-          <td><code>key</code>, <code>label</code></td>
-          <td>Image picker for logos and favicons. No <code>var</code> or <code>default</code> needed. A field with <code>key: "logo"</code> syncs to the <code>@site_logo</code> global.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h3>The brand_key property</h3>
-    <p>Any customizer field can include an optional <code>brand_key</code> property to inherit its baseline value from <a href="features/brand.html">Brand Settings</a> instead of the hardcoded <code>default</code>. The format is <code>"section.field"</code> using dotted notation:</p>
-    <pre><code>{
-  "key": "color-accent",
-  "label": "Accent Color",
-  "type": "color",
-  "default": "#14B8A6",
-  "var": "--color-accent",
-  "brand_key": "colors.accent"
-}</code></pre>
-    <p>When <code>brand_key</code> is present, the value priority is: Customizer saved value &rarr; Brand value &rarr; field <code>default</code>. Fields without <code>brand_key</code> are unaffected. See <a href="features/brand.html#brand-key">Brand Settings</a> for the full list of available keys.</p>
-
-    <p>For full customizer documentation — including CSS requirements, dark mode behavior, brand integration, and the API — see <a href="features/theme-customizer.html">Theme Customizer</a>.</p>
-
-    <div class="callout callout-tip"><strong>Tip</strong> — If you omit the <code>customizer</code> key entirely, your theme works normally — the admin will simply show "This theme doesn't support customization yet" when a user navigates to the customizer.</div>
-
-    <h2>Minimal valid theme.json</h2>
-    <p>If you are building a quick prototype and do not care about the admin display details yet, this is the minimum that will be recognized:</p>
-    <pre><code>{
-  "name": "Prototype",
-  "version": "0.1.0",
-  "author": "Me",
-  "description": "Work in progress."
-}</code></pre>
-    <p>You can always expand it later. The <code>screenshot</code> field can be added at any time.</p>
-
-    <h2>The directory slug vs. the name field</h2>
-    <p>It is important to understand that the theme's <em>slug</em> (used internally, in the database, and in asset URLs) comes from the <em>directory name</em>, not from the <code>name</code> field in <code>theme.json</code>. The <code>name</code> field is display-only.</p>
-    <p>For example, a theme in <code>outpost/themes/coastal-portfolio/</code> has the slug <code>coastal-portfolio</code>, regardless of whether <code>theme.json</code> says <code>"name": "Coastal Portfolio"</code> or <code>"name": "My Theme"</code>. The slug is what Outpost stores in the <code>settings</code> table as <code>active_theme</code>, and it is what appears in asset paths like <code>/outpost/themes/coastal-portfolio/assets/style.css</code>.</p>
-
-    <div class="callout callout-note"><strong>Note</strong> — Renaming a theme directory changes its slug and breaks all references to that slug in the database (active theme setting, any hardcoded asset paths in templates). If you need to rename, update the <code>active_theme</code> setting in the database and update asset paths in your templates after the rename.</div>
 
   </div>
 </main>

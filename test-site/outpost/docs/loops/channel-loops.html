@@ -28,7 +28,7 @@
  &lt;h2 data-outpost="title"&gt;&lt;/h2&gt;
  &lt;p data-outpost="description"&gt;&lt;/p&gt;
  &lt;p class="price" data-outpost="price"&gt;&lt;/p&gt;
- &lt;img data-outpost-src="image_url" alt=""&gt;
+ &lt;img data-outpost="image_url" data-type="image" src="" alt=""&gt;
  &lt;/div&gt;
 &lt;/outpost-each&gt;</code></pre>
 
@@ -38,7 +38,7 @@
  &lt;div class="property-grid"&gt;
  &lt;outpost-each channel="properties"&gt;
  &lt;a class="property-card"&gt;
- &lt;img data-outpost-src="image" alt=""&gt;
+ &lt;img data-outpost="image" data-type="image" src="" alt=""&gt;
  &lt;h2 data-outpost="title"&gt;&lt;/h2&gt;
  &lt;p class="price" data-outpost="price"&gt;&lt;/p&gt;
  &lt;p class="location"&gt;
@@ -53,7 +53,7 @@
  <h3>RSS Feed </h3>
  <pre><code>&lt;outpost-each channel="blog_feed"&gt;
  &lt;article class="feed-item"&gt;
- &lt;h2&gt;&lt;a data-outpost-href="link" data-outpost="title"&gt;&lt;/a&gt;&lt;/h2&gt;
+ &lt;h2&gt;&lt;a data-outpost="link" data-type="link" href="#"&gt;&lt;span data-outpost="title"&gt;&lt;/span&gt;&lt;/a&gt;&lt;/h2&gt;
  &lt;time data-outpost="pubDate"&gt;&lt;/time&gt;
  &lt;span class="author" data-outpost="author"&gt;&lt;/span&gt;
  &lt;p data-outpost="description"&gt;&lt;/p&gt;
@@ -64,7 +64,7 @@
  <pre><code>&lt;section class="our-posts"&gt;
  &lt;h2&gt;Latest Articles&lt;/h2&gt;
  &lt;outpost-each channel="blog_feed"&gt;
- &lt;a data-outpost-href="link" data-outpost="title"&gt;&lt;/a&gt;
+ &lt;a data-outpost="link" data-type="link" href="#"&gt;&lt;span data-outpost="title"&gt;&lt;/span&gt;&lt;/a&gt;
  &lt;/outpost-each&gt;
 &lt;/section&gt;
 

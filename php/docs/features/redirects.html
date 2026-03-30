@@ -19,7 +19,7 @@
   <div class="content">
 
     <h2>Overview</h2>
-    <p>Redirects let you point old or changed URLs to new destinations. Every front-end request is checked against your redirect rules before theme routing, so visitors (and search engines) are seamlessly forwarded.</p>
+    <p>Redirects let you point old or changed URLs to new destinations. Every front-end request is checked against your redirect rules before page routing, so visitors (and search engines) are seamlessly forwarded.</p>
     <p>Access redirects from the sidebar under <strong>Tools &rarr; Redirects</strong>. Requires the <code>settings.*</code> capability (admin role or higher).</p>
 
     <h2>Redirect Types</h2>
@@ -150,7 +150,7 @@
     <pre><code>{ "csv": "/old,/new,301\n/blog/*,/articles/*" }</code></pre>
 
     <h2>How It Works Internally</h2>
-    <p>The redirect check runs in <code>front-router.php</code> after the config and database are loaded but <strong>before</strong> theme routing. This ensures redirects take priority over page or collection routes. The <code>redirects</code> table is created automatically on first use (no migration step needed).</p>
+    <p>The redirect check runs in <code>front-router.php</code> after the config and database are loaded but <strong>before</strong> page routing. This ensures redirects take priority over page or collection routes. The <code>redirects</code> table is created automatically on first use (no migration step needed).</p>
     <p>The evaluation order is: exact match &rarr; wildcard match &rarr; regex match. Only active rules are considered. On match, the response is sent immediately with the configured status code and <code>Location</code> header.</p>
 
   </div>

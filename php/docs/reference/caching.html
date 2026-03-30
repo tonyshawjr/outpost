@@ -44,7 +44,7 @@
     <hr>
 
     <h2 id="template-cache">Template Cache (Compile Cache)</h2>
-    <p>Every theme template (<code>.html</code> file) is compiled to PHP the first time it is rendered. The compiled PHP is stored in <code>cache/templates/</code> and reused on all subsequent requests until the source file changes.</p>
+    <p>Every template (<code>.html</code> file) is compiled to PHP the first time it is rendered. The compiled PHP is stored in <code>cache/templates/</code> and reused on all subsequent requests until the source file changes.</p>
 
     <h3>How It Works</h3>
     <ol>
@@ -63,7 +63,7 @@
     <p>This means moving or renaming a template file produces a new cache entry. Old orphaned entries are harmless but can be cleared manually.</p>
 
     <h3>Auto-Invalidation</h3>
-    <p>The template cache invalidates itself automatically when you save a template file. The mtime check runs on every request — if the source is newer, it recompiles. No manual clearing is needed during normal theme development.</p>
+    <p>The template cache invalidates itself automatically when you save a template file. The mtime check runs on every request — if the source is newer, it recompiles. No manual clearing is needed during normal template development.</p>
 
     <pre><code><span class="token comment">// Recompile if source is newer than cache</span>
 <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">file_exists</span><span class="token punctuation">(</span><span class="token variable">$compiled</span><span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token function">filemtime</span><span class="token punctuation">(</span><span class="token variable">$templateFile</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token function">filemtime</span><span class="token punctuation">(</span><span class="token variable">$compiled</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -76,12 +76,12 @@
     <p>Each partial (<code>partials/*.html</code>) has its own cache entry and its own mtime check. When you edit a partial, only that partial's cache entry is invalidated. Template files that include the partial still use their own (unmodified) cache entry — but since partials are included via a PHP function call at runtime, the updated partial content is always rendered.</p>
 
     <h3>Disabling the Template Cache</h3>
-    <p>During theme development, you can disable the template cache to force recompilation on every request:</p>
+    <p>During template development, you can disable the template cache to force recompilation on every request:</p>
     <pre><code><span class="token comment">// In outpost/config.php</span>
 <span class="token function">define</span><span class="token punctuation">(</span><span class="token string">'OUTPOST_TEMPLATE_CACHE'</span><span class="token punctuation">,</span> <span class="token keyword">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
     <div class="callout callout-tip">
-      <strong>When to disable.</strong> Disable template caching during active theme development to avoid the mtime delay — file system timestamps can have 1-second resolution on some systems, which can cause the old compiled version to be served if you edit and reload very quickly. Re-enable it in production.
+      <strong>When to disable.</strong> Disable template caching during active template development to avoid the mtime delay — file system timestamps can have 1-second resolution on some systems, which can cause the old compiled version to be served if you edit and reload very quickly. Re-enable it in production.
     </div>
 
     <h3>Clearing the Template Cache Manually</h3>

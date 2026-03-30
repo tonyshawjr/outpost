@@ -14,16 +14,16 @@
 <main class="main">
   <div class="page-hero">
     <h1>Pages</h1>
-    <p class="lead">Static CMS-managed pages that map to theme templates — About, Contact, Home, Services, and any other page in your site.</p>
+    <p class="lead">Static CMS-managed pages that map to HTML template files at your site root — About, Contact, Home, Services, and any other page in your site.</p>
   </div>
   <div class="content">
 
     <h2>What are pages?</h2>
-    <p>Pages are the static, individually-editable content items in your site — the About page, Contact page, Home page, and so on. Unlike <a href="content/collections.html">collection items</a>, which repeat in a structured list, each page stands alone and maps directly to a single template file in your theme.</p>
-    <p>Pages are managed in <strong>Admin &rarr; Pages</strong>. You do not create pages manually in the admin — they are <em>discovered automatically</em> the first time the router receives a request for a URL that matches an existing theme template.</p>
+    <p>Pages are the static, individually-editable content items in your site — the About page, Contact page, Home page, and so on. Unlike <a href="content/collections.html">collection items</a>, which repeat in a structured list, each page stands alone and maps directly to a single <code>.html</code> template file at your site root.</p>
+    <p>Pages are managed in <strong>Admin &rarr; Pages</strong>. You do not create pages manually in the admin — they are <em>discovered automatically</em> the first time the router receives a request for a URL that matches an existing HTML template file.</p>
 
     <h2>How pages are discovered</h2>
-    <p>When a visitor (or the admin) first loads a URL, the router looks for a matching <code>.html</code> template in the active theme directory. If one is found and no page record yet exists in the database, the CMS creates the page record automatically. From that point on, the page appears in Admin &rarr; Pages and its fields can be edited.</p>
+    <p>When a visitor (or the admin) first loads a URL, the router looks for a matching <code>.html</code> template at the site root. If one is found and no page record yet exists in the database, the CMS creates the page record automatically. From that point on, the page appears in Admin &rarr; Pages and its fields can be edited.</p>
 
     <table>
       <thead>
@@ -42,7 +42,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-note"><strong>Note</strong> — The pages list in admin only shows paths that map to a template that exists in the currently active theme. Switching themes may change which pages appear.</div>
+    <div class="callout callout-note"><strong>Note</strong> — The pages list in admin only shows paths that map to a template file that exists at your site root.</div>
 
     <h2>Page properties</h2>
     <p>Every page has the following core properties:</p>
@@ -139,7 +139,7 @@
     <div class="callout callout-tip"><strong>Tip</strong> — If you remove a field from a template, the field and its stored value remain in the database. It simply stops appearing in the admin for that page. No data is deleted.</div>
 
     <h3>Where page fields are stored</h3>
-    <p>Page fields are stored in the <code>fields</code> table, keyed by the page path and the active theme slug. This means fields are theme-scoped — switching to a different theme does not overwrite fields from the previous theme.</p>
+    <p>Page fields are stored in the <code>fields</code> table, keyed by the page path. Field values persist as long as the template file exists.</p>
 
     <h2>Page fields vs. collection item fields</h2>
 
@@ -152,7 +152,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr><td><strong>Storage</strong></td><td><code>fields</code> table, keyed by path + theme</td><td>JSON in <code>collection_items.data</code></td></tr>
+        <tr><td><strong>Storage</strong></td><td><code>fields</code> table, keyed by page path</td><td>JSON in <code>collection_items.data</code></td></tr>
         <tr><td><strong>Schema source</strong></td><td>Auto-scaffolded from template analysis</td><td>Defined explicitly in collection schema editor</td></tr>
         <tr><td><strong>Edit location</strong></td><td>Admin &rarr; Pages &rarr; edit page</td><td>Admin &rarr; Collections &rarr; edit item</td></tr>
         <tr><td><strong>Multiple items</strong></td><td>No — one set of fields per page</td><td>Yes — each item has its own data</td></tr>
@@ -178,7 +178,7 @@
     <p>Press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> or click the Save button in the header. All fields on the page save together in a single request.</p>
 
     <h2>Template tags for page fields</h2>
-    <p>In your theme template, output page fields using the standard output tag syntax. The field name must match exactly (case-sensitive, underscores, no spaces).</p>
+    <p>In your template, output page fields using the standard output tag syntax. The field name must match exactly (case-sensitive, underscores, no spaces).</p>
 
     <pre><code>&lt;!-- Plain text field --&gt;
 &lt;h1&gt;{{ hero_title }}&lt;/h1&gt;
@@ -204,7 +204,7 @@
     <h2>Adding a new page</h2>
     <p>To add a new page to your site:</p>
     <ol>
-      <li>Create a new <code>.html</code> template file in your theme directory (e.g., <code>themes/my-theme/team.html</code>).</li>
+      <li>Create a new <code>.html</code> template file at your site root (e.g., <code>team.html</code>).</li>
       <li>Add output tags for the fields you want (<code>{{ team_intro }}</code>, <code>{{ team_photo | image }}</code>, etc.).</li>
       <li>Visit the URL in a browser or in the admin preview (<code>/team</code>).</li>
       <li>The CMS discovers the page, creates the page record, and scaffolds the fields.</li>
@@ -217,7 +217,7 @@
     <p>Pages can be deleted from the page editor. Open a page in Admin &rarr; Pages, then click <strong>Delete page</strong> at the bottom of the Settings sidebar tab. A confirmation step asks you to confirm before the deletion is permanent.</p>
     <p>Deleting a page removes:</p>
     <ul>
-      <li>The <code>.html</code> template file from the active theme (e.g. <code>about.html</code>)</li>
+      <li>The <code>.html</code> template file from the site root (e.g. <code>about.html</code>)</li>
       <li>The page record and all of its fields from the database</li>
       <li>The field registry entries for that page path</li>
     </ul>
@@ -232,7 +232,7 @@
       <li><a href="template-syntax/meta-tags.html">Meta Tags</a> — <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code></li>
       <li><a href="members/protecting-pages.html">Protecting Pages</a> — members and paid visibility enforcement</li>
       <li><a href="content/global-fields.html">Global Fields</a> — site-wide fields shared across all pages</li>
-      <li><a href="themes/routing.html">Routing</a> — how URLs map to template files</li>
+      <li><a href="reference/architecture.html">Architecture</a> — how URLs map to template files at the site root</li>
     </ul>
 
   </div>

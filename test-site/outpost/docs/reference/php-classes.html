@@ -22,7 +22,7 @@
       Outpost has no Composer dependencies. All classes are hand-written, zero-dependency PHP. Source files live in <code>outpost/</code>: <code>engine.php</code>, <code>template-engine.php</code>, and <code>db.php</code>.
     </div>
 
-    <p>These classes are internal to the CMS engine. Theme templates interact with them indirectly through template tag functions (<code>cms_text()</code>, <code>cms_global()</code>, etc.). Custom PHP that you write can use <code>OutpostDB</code> directly.</p>
+    <p>These classes are internal to the CMS engine. Templates interact with them indirectly through template tag functions (<code>cms_text()</code>, <code>cms_global()</code>, etc.). Custom PHP that you write can use <code>OutpostDB</code> directly.</p>
 
     <hr>
 
@@ -117,7 +117,7 @@
 
     <h2 id="outposttemplate">OutpostTemplate</h2>
     <p><strong>File:</strong> <code>outpost/template-engine.php</code></p>
-    <p>The template compiler. Converts <code>.html</code> theme files with <code>{{ }}</code> and <code>{% %}</code> tags into executable PHP, then caches the compiled output. All rendering goes through this class.</p>
+    <p>The template compiler. Converts <code>.html</code> template files with <code>{{ }}</code> and <code>{% %}</code> tags into executable PHP, then caches the compiled output. All rendering goes through this class.</p>
 
     <h3>Static Methods</h3>
 
@@ -129,12 +129,12 @@
         <tr>
           <td><code>render(string $templateFile, string $themePath): void</code></td>
           <td>void</td>
-          <td>Entry point for rendering a theme template. Checks the compiled cache, recompiles if the source is newer, then includes the compiled PHP. Also injects the analytics tracker snippet before <code>&lt;/body&gt;</code>.</td>
+          <td>Entry point for rendering a template file. Checks the compiled cache, recompiles if the source is newer, then includes the compiled PHP. Also injects the analytics tracker snippet before <code>&lt;/body&gt;</code>.</td>
         </tr>
         <tr>
           <td><code>renderPartial(string $name): void</code></td>
           <td>void</td>
-          <td>Renders a partial from the current theme's <code>partials/</code> directory. Called automatically when the compiler encounters <code>{% include 'name' %}</code>. Partials are compiled and cached separately.</td>
+          <td>Renders a partial from the site's <code>partials/</code> directory. Called automatically when the compiler encounters <code>{% include 'name' %}</code>. Partials are compiled and cached separately.</td>
         </tr>
         <tr>
           <td><code>compile(string $source): string</code></td>
@@ -177,9 +177,9 @@
 
     <h3>Usage Example</h3>
     <pre><code><span class="token comment">// Render a template file (used by front-router.php)</span>
-<span class="token variable">$themeDir</span> <span class="token operator">=</span> <span class="token constant">OUTPOST_DIR</span> <span class="token operator">.</span> <span class="token string">'themes/personal'</span><span class="token punctuation">;</span>
-<span class="token variable">$template</span> <span class="token operator">=</span> <span class="token variable">$themeDir</span> <span class="token operator">.</span> <span class="token string">'/blog.html'</span><span class="token punctuation">;</span>
-<span class="token class-name">OutpostTemplate</span><span class="token operator">::</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token variable">$template</span><span class="token punctuation">,</span> <span class="token variable">$themeDir</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$siteRoot</span> <span class="token operator">=</span> <span class="token constant">OUTPOST_SITE_ROOT</span><span class="token punctuation">;</span>
+<span class="token variable">$template</span> <span class="token operator">=</span> <span class="token variable">$siteRoot</span> <span class="token operator">.</span> <span class="token string">'/blog.html'</span><span class="token punctuation">;</span>
+<span class="token class-name">OutpostTemplate</span><span class="token operator">::</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token variable">$template</span><span class="token punctuation">,</span> <span class="token variable">$siteRoot</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token comment">// Compile source manually (useful for testing)</span>
 <span class="token variable">$source</span> <span class="token operator">=</span> <span class="token string">'&lt;h1&gt;{{ title "Hello" }}&lt;/h1&gt;'</span><span class="token punctuation">;</span>
@@ -272,7 +272,7 @@
         <tr><th>Function</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>outpost_init(): void</code></td><td>Bootstrap function. Runs migrations, loads the active theme, checks the HTML cache, discovers the current page, and preloads fields. Called once per request by <code>engine.php</code>.</td></tr>
+        <tr><td><code>outpost_init(): void</code></td><td>Bootstrap function. Runs migrations, checks the HTML cache, discovers the current page, and preloads fields. Called once per request by <code>engine.php</code>.</td></tr>
         <tr><td><code>cms_text(string $name, string $default): void</code></td><td>Outputs a text field value, HTML-escaped. Auto-registers the field if it doesn't exist.</td></tr>
         <tr><td><code>cms_textarea(string $name, string $default): void</code></td><td>Outputs a textarea field value with newlines converted to <code>&lt;br&gt;</code>, HTML-escaped.</td></tr>
         <tr><td><code>cms_richtext(string $name, string $default): void</code></td><td>Outputs a richtext field's stored HTML without escaping. Content must already be sanitized.</td></tr>
@@ -283,7 +283,7 @@
         <tr><td><code>cms_color(string $name, string $default): void</code></td><td>Outputs a color hex value, HTML-escaped.</td></tr>
         <tr><td><code>cms_number(string $name, string $default): void</code></td><td>Outputs a numeric field value, HTML-escaped.</td></tr>
         <tr><td><code>cms_date(string $name, string $default): void</code></td><td>Outputs a date field value, HTML-escaped.</td></tr>
-        <tr><td><code>cms_global(string $name, string $type, string $default): void</code></td><td>Outputs a global field value. Global fields are page-independent and shared across all pages and themes.</td></tr>
+        <tr><td><code>cms_global(string $name, string $type, string $default): void</code></td><td>Outputs a global field value. Global fields are page-independent and shared across all pages and templates.</td></tr>
         <tr><td><code>cms_global_get(string $name, string $default): string</code></td><td>Returns a global field value as a string without echoing. Used in conditional logic and for GA4 injection.</td></tr>
         <tr><td><code>cms_collection_list(string $slug, callable $callback, array $opts): void</code></td><td>Iterates published items in a collection, calling <code>$callback</code> with each escaped item array. Supports limit, ordering, folder filtering, and pagination.</td></tr>
         <tr><td><code>cms_collection_single(string $slug): ?array</code></td><td>Finds a single collection item by slug from the URL path or <code>?slug=</code> query param. Returns the item array or <code>null</code>.</td></tr>
@@ -307,7 +307,7 @@
     </table>
 
     <div class="callout callout-tip">
-      <strong>Theme development note.</strong> You never call these functions directly in templates — the template compiler converts tags like <code>{{ title }}</code> into <code>&lt;?php cms_text('title', ''); ?&gt;</code> automatically. The functions are listed here for PHP developers extending the engine or building custom endpoints.
+      <strong>Template development note.</strong> You never call these functions directly in templates — the template compiler converts tags like <code>{{ title }}</code> into <code>&lt;?php cms_text('title', ''); ?&gt;</code> automatically. The functions are listed here for PHP developers extending the engine or building custom endpoints.
     </div>
 
   </div>

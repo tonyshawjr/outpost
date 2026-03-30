@@ -35,16 +35,16 @@
  &lt;section class="hero" data-layout="hero"&gt;
  &lt;h1 data-outpost="title"&gt;&lt;/h1&gt;
  &lt;p data-outpost="subtitle"&gt;&lt;/p&gt;
- &lt;img data-outpost-src="image" alt=""&gt;
+ &lt;img data-outpost="image" data-type="image" src="" alt=""&gt;
  &lt;/section&gt;
 
  &lt;blockquote class="testimonial" data-layout="testimonial"&gt;
- &lt;div data-outpost="quote" data-outpost-raw&gt;&lt;/div&gt;
+ &lt;div data-outpost="quote" data-type="richtext"&gt;&lt;/div&gt;
  &lt;cite data-outpost="author"&gt;&lt;/cite&gt;
  &lt;/blockquote&gt;
 
  &lt;section class="prose" data-layout="text_block"&gt;
- &lt;div data-outpost="body" data-outpost-raw&gt;&lt;/div&gt;
+ &lt;div data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;
  &lt;/section&gt;
 
 &lt;/outpost-each&gt;</code></pre>
@@ -56,17 +56,18 @@
  &lt;div class="hero-inner"&gt;
  &lt;h1 data-outpost="heading"&gt;&lt;/h1&gt;
  &lt;p class="hero-sub" data-outpost="subheading"&gt;&lt;/p&gt;
- &lt;a data-outpost-href="cta_url" class="btn btn-primary"
- data-outpost="cta_label"&gt;&lt;/a&gt;
+ &lt;a data-outpost="cta_url" data-type="link" href="#" class="btn btn-primary"&gt;
+ &lt;span data-outpost="cta_label"&gt;Get Started&lt;/span&gt;
+ &lt;/a&gt;
  &lt;/div&gt;
- &lt;img data-outpost-src="background_image" alt="" class="hero-bg"&gt;
+ &lt;img data-outpost="background_image" data-type="image" src="" alt="" class="hero-bg"&gt;
  &lt;/section&gt;
 
  &lt;section class="testimonials" data-layout="testimonials"&gt;
  &lt;blockquote&gt;
  &lt;p data-outpost="quote"&gt;&lt;/p&gt;
  &lt;footer&gt;
- &lt;img data-outpost-src="avatar" alt="" class="avatar"&gt;
+ &lt;img data-outpost="avatar" data-type="image" src="" alt="" class="avatar"&gt;
  &lt;cite data-outpost="author"&gt;&lt;/cite&gt;
  &lt;/footer&gt;
  &lt;/blockquote&gt;
@@ -75,8 +76,9 @@
  &lt;section class="cta-banner" data-layout="cta"&gt;
  &lt;h2 data-outpost="heading"&gt;&lt;/h2&gt;
  &lt;p data-outpost="body_text"&gt;&lt;/p&gt;
- &lt;a data-outpost-href="button_url" class="btn btn-primary"
- data-outpost="button_text"&gt;&lt;/a&gt;
+ &lt;a data-outpost="button_url" data-type="link" href="#" class="btn btn-primary"&gt;
+ &lt;span data-outpost="button_text"&gt;Click Here&lt;/span&gt;
+ &lt;/a&gt;
  &lt;/section&gt;
 
 &lt;/outpost-each&gt;</code></pre>

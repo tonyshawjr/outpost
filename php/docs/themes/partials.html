@@ -19,12 +19,29 @@
  <div class="content">
 
  <h2>What partials are</h2>
- <p>A partial is an <code>.html</code> template file in the <code>partials/</code> subdirectory of your theme. You include it in any other template using the <code>&lt;outpost-include partial="name" /&gt;</code> tag. The included content is compiled and rendered inline, exactly as if you had written it directly in the parent template.</p>
+ <p>A partial is an <code>.html</code> template file in the <code>partials/</code> subdirectory at your site root. You include it in any other template using the <code>&lt;outpost-include partial="name" /&gt;</code> tag. The included content is compiled and rendered inline, exactly as if you had written it directly in the parent template.</p>
  <p>Partials are ideal for any HTML structure that appears on multiple pages: the site header, the navigation bar, the footer, a sidebar, a card component, or a cookie banner. Instead of copying the same markup into every template, you put it in a partial once and include it wherever needed.</p>
+
+ <h2>Where partials live</h2>
+ <p>Partials live in the <code>partials/</code> directory at your site root — the same directory that contains your page templates and the <code>outpost/</code> folder:</p>
+ <pre><code>my-site/
+  index.html
+  about.html
+  blog.html
+  partials/
+    head.html
+    nav.html
+    footer.html
+    components/
+      card.html
+      hero.html
+  outpost/</code></pre>
 
  <h2>Include syntax</h2>
  <p>Reference partials by name, without the <code>.html</code> extension and without the <code>partials/</code> path prefix:</p>
- 
+ <pre><code>&lt;outpost-include partial="head"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="footer"&gt;&lt;/outpost-include&gt;</code></pre>
  <p>These three lines correspond to the files:</p>
  <pre><code>partials/head.html
 partials/nav.html
@@ -32,13 +49,33 @@ partials/footer.html</code></pre>
 
  <h3>Subdirectory partials</h3>
  <p>You can organize partials into subdirectories. Use a forward slash in the include name to reference them:</p>
- 
+ <pre><code>&lt;outpost-include partial="components/card"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="components/hero"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="sections/testimonials"&gt;&lt;/outpost-include&gt;</code></pre>
  <p>These resolve to:</p>
  <pre><code>partials/components/card.html
 partials/components/hero.html
 partials/sections/testimonials.html</code></pre>
 
- 
+ <h2>Standard partials</h2>
+ <p>By convention, most Outpost sites use three standard partials:</p>
+
+ <table>
+ <thead>
+ <tr><th>Partial</th><th>Purpose</th></tr>
+ </thead>
+ <tbody>
+ <tr><td><code>head.html</code></td><td>DOCTYPE through opening <code>&lt;body&gt;</code> tag — meta tags, CSS links, favicon, analytics scripts</td></tr>
+ <tr><td><code>nav.html</code></td><td>Site navigation — logo, menu, mobile toggle</td></tr>
+ <tr><td><code>footer.html</code></td><td>Footer content, closing <code>&lt;/body&gt;&lt;/html&gt;</code>, JS includes</td></tr>
+ </tbody>
+ </table>
+
+ <p>These names are not enforced — you can name your partials anything. But Forge (the AI site builder) recognizes these standard names when auto-detecting site structure.</p>
+
+ <div class="callout callout-tip"><strong>Tip</strong> — Place global fields (<code>data-scope="global"</code>) in your partials so they are available on every page. Site name in <code>nav.html</code>, analytics ID in <code>head.html</code>, footer text in <code>footer.html</code> — they all scaffold into Admin &rarr; Globals automatically.</div>
+
+ </div>
 </main>
 
 <script src="assets/docs.js"></script>

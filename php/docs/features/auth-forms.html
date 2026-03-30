@@ -14,17 +14,17 @@
 <main class="main">
   <div class="page-hero">
     <h1>Auth Forms</h1>
-    <p class="lead">Build custom login, register, and forgot-password pages in your theme. Drop a <code>data-outpost-auth</code> attribute on a form and Outpost handles the rest.</p>
+    <p class="lead">Build custom login, register, and forgot-password pages in your site. Drop a <code>data-outpost-auth</code> attribute on a form and Outpost handles the rest.</p>
   </div>
   <div class="content">
 
     <h2>Overview</h2>
-    <p>Outpost includes built-in member login pages at <code>/outpost/member-pages/login.php</code>, but most themes need branded auth pages that match the site design. The auth client lets you build your own forms in plain HTML &mdash; Outpost auto-discovers them and wires them to the member API.</p>
+    <p>Outpost includes built-in member login pages at <code>/outpost/member-pages/login.php</code>, but most sites need branded auth pages that match the site design. The auth client lets you build your own forms in plain HTML &mdash; Outpost auto-discovers them and wires them to the member API.</p>
 
     <div class="callout callout-note"><strong>Note</strong> &mdash; Auth forms use session-based login (not JWT tokens). This means Lodge, member-only pages, and all session-dependent features work immediately after login. No extra configuration needed.</div>
 
     <h2>Login Form</h2>
-    <p>Create a <code>login.html</code> page in your theme with a form that has <code>data-outpost-auth="login"</code>:</p>
+    <p>Create a <code>login.html</code> page in your site root with a form that has <code>data-outpost-auth="login"</code>:</p>
 
     <pre><code>&lt;form data-outpost-auth="login" data-auth-redirect="/" class="space-y-4"&gt;
   &lt;div data-auth-error style="display:none;"&gt;&lt;/div&gt;

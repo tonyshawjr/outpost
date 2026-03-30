@@ -14,7 +14,7 @@
 <main class="main">
   <div class="page-hero">
     <h1>Code Editor</h1>
-    <p class="lead">A built-in theme file editor that lets you edit templates, CSS, and JavaScript directly in the admin panel — no FTP, SSH, or local development setup required for quick changes.</p>
+    <p class="lead">A built-in file editor scoped to the site root that lets you edit templates, CSS, and JavaScript directly in the admin panel — no FTP, SSH, or local development setup required for quick changes.</p>
   </div>
   <div class="content">
 
@@ -23,8 +23,8 @@
 
     <h2>Features</h2>
     <ul>
-      <li><strong>File browser</strong> — a dropdown picker listing all files in the currently active theme</li>
-      <li><strong>Edit any theme file</strong> — <code>.html</code>, <code>.css</code>, <code>.js</code>, <code>.json</code>, and other text-based formats</li>
+      <li><strong>File tree</strong> — a sidebar tree listing all files in the site root (excluding the <code>outpost/</code> directory)</li>
+      <li><strong>Edit any site file</strong> — <code>.html</code>, <code>.css</code>, <code>.js</code>, <code>.json</code>, and other text-based formats</li>
       <li><strong>Save shortcut</strong> — Cmd+S (Mac) or Ctrl+S (Windows/Linux) saves the file without reaching for the button</li>
       <li><strong>Syntax highlighting</strong> — colour-coded highlighting for HTML, CSS, and JavaScript</li>
       <li><strong>Instant effect</strong> — saving a template file automatically invalidates the template cache, so the next page load reflects your changes immediately</li>
@@ -38,13 +38,19 @@
     <div class="callout callout-note"><strong>Note</strong> — Writing or overwriting <code>.php</code> files requires the <code>admin</code> or <code>developer</code> role. The whitelist is enforced server-side in the API — it cannot be bypassed from the browser.</div>
 
     <h2>What you can edit</h2>
-    <p>The code editor operates on the <strong>active theme's directory only</strong>. You can edit:</p>
+    <p>The code editor operates on the <strong>site root directory</strong>, excluding the <code>outpost/</code> system directory. You can edit:</p>
     <ul>
       <li>Top-level template files (<code>index.html</code>, <code>blog.html</code>, <code>post.html</code>, etc.)</li>
       <li>Partial files (<code>partials/head.html</code>, <code>partials/nav.html</code>, <code>partials/footer.html</code>, etc.)</li>
       <li>Stylesheets and scripts (<code>assets/style.css</code>, <code>assets/main.js</code>)</li>
-      <li>Theme configuration (<code>theme.json</code>)</li>
+      <li>Site configuration (<code>theme.json</code>)</li>
     </ul>
+
+    <h2>Forge button</h2>
+    <p>When editing an <code>.html</code> file, a <strong>Forge</strong> button appears in the toolbar. Select any HTML and use Forge to wrap it in Outpost template tags — make fields editable, extract partials, create collection loops, and more. See the <a href="features/forge.html">Forge documentation</a> for details.</p>
+
+    <h2>Analyze Site</h2>
+    <p>The <strong>Analyze Site</strong> button in the toolbar runs Forge's site analysis across all <code>.html</code> files in the site root. It discovers pages, editable fields, navigation menus, and section blocks — then registers them in the CMS database. This is the same analysis that runs during the setup wizard, but can be re-run at any time to pick up new HTML files or fields.</p>
 
     <h2>Workflow</h2>
     <ol>
@@ -54,12 +60,12 @@
       <li>Visit your site to see the changes — template cache is cleared automatically on save.</li>
     </ol>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — The code editor saves directly to the live theme files on the server. There is no undo after saving. For significant changes, copy the current file contents to a local file before editing, so you can restore them if needed.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — The code editor saves directly to the live site files on the server. There is no undo after saving. For significant changes, copy the current file contents to a local file before editing, so you can restore them if needed.</div>
 
     <h2>Security</h2>
     <p>Several safeguards restrict what the code editor can access:</p>
     <ul>
-      <li>Files outside the active theme directory cannot be opened or written — the API validates all paths to prevent directory traversal.</li>
+      <li>Files outside the site root or inside the <code>outpost/</code> directory cannot be opened or written — the API validates all paths to prevent directory traversal.</li>
       <li>Only whitelisted file extensions are editable.</li>
       <li>All save operations require an authenticated session with a valid CSRF token.</li>
       <li>Writing <code>.php</code> files additionally requires the <code>admin</code> or <code>developer</code> role.</li>
@@ -83,7 +89,7 @@
           <td>Code Editor</td>
         </tr>
         <tr>
-          <td>Building a new theme or major feature</td>
+          <td>Building a new site or major feature</td>
           <td>Local editing with version control</td>
         </tr>
         <tr>
@@ -97,7 +103,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-tip"><strong>Tip</strong> — If you use the Outpost Builder (Electron app), the Builder's sync feature provides a better workflow for local theme development: edit locally, sync to the server, and see changes reflected without manual file transfers.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> — If you use the Outpost Builder (Electron app), the Builder's sync feature provides a better workflow for local development: edit locally, sync to the server, and see changes reflected without manual file transfers.</div>
 
   </div>
 </main>

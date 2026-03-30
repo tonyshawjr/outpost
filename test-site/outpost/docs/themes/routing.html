@@ -14,16 +14,16 @@
 <main class="main">
  <div class="page-hero">
  <h1>Routing</h1>
- <p class="lead">Outpost uses file-based routing — every URL maps to a template file. There is no route registration API. Understanding the routing algorithm helps you add new pages, troubleshoot 404s, and extend the system with custom PHP when needed.</p>
+ <p class="lead">Outpost uses file-based routing — every URL maps to an HTML file at your site root. There is no route registration API and no theme directory lookup. Understanding the routing algorithm helps you add new pages, troubleshoot 404s, and extend the system with custom PHP when needed.</p>
  </div>
  <div class="content">
 
  <h2>How routing works</h2>
 
- <p>Outpost does <strong>not</strong> have a route registration system like Laravel, Express, or WordPress. You do not define routes in <code>engine.php</code> or any config file. Instead, the router (<code>front-router.php</code>) maps incoming URLs to <code>.html</code> template files in the active theme directory.</p>
+ <p>Outpost does <strong>not</strong> have a route registration system like Laravel, Express, or WordPress. You do not define routes in any config file. Instead, the router (<code>front-router.php</code>) maps incoming URLs to <code>.html</code> template files at your site root.</p>
 
  <div class="callout callout-note">
-   <strong>Key concept:</strong> To create a new route, create a new <code>.html</code> file in your theme. The filename becomes the URL path. No PHP code or configuration is needed.
+   <strong>Key concept:</strong> To create a new route, create a new <code>.html</code> file at your site root. The filename becomes the URL path. No PHP code or configuration is needed.
  </div>
 
  <h2>The routing algorithm</h2>
@@ -36,7 +36,7 @@
      <tr>
        <td>1</td>
        <td><strong>Static files</strong> — If the URL matches a real file on disk (CSS, JS, images, fonts), serve it directly. PHP files are excluded.</td>
-       <td><code>/assets/style.css</code> → serves the file</td>
+       <td><code>/css/style.css</code> &rarr; serves the file</td>
      </tr>
      <tr>
        <td>2</td>
@@ -51,42 +51,42 @@
      <tr>
        <td>4</td>
        <td><strong>Lodge (member portal)</strong> — If the URL starts with the Lodge slug (default: <code>/lodge</code>), routes to Lodge templates: <code>lodge/dashboard.html</code>, <code>lodge/edit.html</code>, <code>lodge/create.html</code>, <code>lodge/profile.html</code>.</td>
-       <td><code>/lodge/edit/42</code> → <code>lodge/edit.html</code></td>
+       <td><code>/lodge/edit/42</code> &rarr; <code>lodge/edit.html</code></td>
      </tr>
      <tr>
        <td>5</td>
-       <td><strong>Direct page match</strong> — URL path maps to <code>{page}.html</code> in the theme. The root URL (<code>/</code>) maps to <code>index.html</code>.</td>
-       <td><code>/about</code> → <code>about.html</code><br><code>/</code> → <code>index.html</code></td>
+       <td><strong>Direct page match</strong> — URL path maps to <code>{page}.html</code> at the site root. The root URL (<code>/</code>) maps to <code>index.html</code>.</td>
+       <td><code>/about</code> &rarr; <code>about.html</code><br><code>/</code> &rarr; <code>index.html</code></td>
      </tr>
      <tr>
        <td>6</td>
-       <td><strong>Collection URL pattern</strong> — Checks each collection's <code>url_pattern</code> (e.g. <code>/post/{slug}</code>). If the URL matches, sets <code>$_GET['slug']</code> and renders <code>{collection-slug}.html</code> (fallback: <code>post.html</code>).</td>
-       <td><code>/post/my-article</code> → <code>post.html</code> with <code>$_GET['slug'] = 'my-article'</code></td>
+       <td><strong>Collection URL pattern</strong> — Checks each collection's <code>url_pattern</code> (e.g. <code>/post/{slug}</code>). If the URL matches, sets <code>$_GET['slug']</code> and renders <code>{collection-slug}.html</code> from the site root.</td>
+       <td><code>/post/my-article</code> &rarr; <code>post.html</code> with <code>$_GET['slug'] = 'my-article'</code></td>
      </tr>
      <tr>
        <td>7</td>
        <td><strong>Channel URL pattern</strong> — Same as collections but for channels (community content).</td>
-       <td><code>/listing/my-item</code> → <code>listing.html</code></td>
+       <td><code>/listing/my-item</code> &rarr; <code>listing.html</code></td>
      </tr>
      <tr>
        <td>8</td>
-       <td><strong>404</strong> — No match found. Renders <code>404.html</code> from the theme if it exists, otherwise a plain HTML 404.</td>
-       <td><code>/nonexistent</code> → <code>404.html</code></td>
+       <td><strong>404</strong> — No match found. Renders <code>404.html</code> from the site root if it exists, otherwise a plain HTML 404.</td>
+       <td><code>/nonexistent</code> &rarr; <code>404.html</code></td>
      </tr>
    </tbody>
  </table>
 
  <h2>Adding a new route</h2>
 
- <p>To add a route for <code>/services</code>, create a file at <code>themes/your-theme/services.html</code>:</p>
+ <p>To add a route for <code>/services</code>, create a file at <code>services.html</code> in your site root:</p>
 
- <pre><code>&lt;!-- themes/your-theme/services.html --&gt;
+ <pre><code>&lt;!-- services.html --&gt;
 &lt;outpost-include partial="head"&gt;&lt;/outpost-include&gt;
 &lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;
 
 &lt;main&gt;
   &lt;h1 data-outpost="page_title"&gt;Our Services&lt;/h1&gt;
-  &lt;div data-outpost="page_body" data-type="richtext"&gt;
+  &lt;div data-outpost="page_body" data-type="raw"&gt;
     &lt;p&gt;Default content here...&lt;/p&gt;
   &lt;/div&gt;
 &lt;/main&gt;
@@ -109,7 +109,7 @@
 
  <h3>Complete example: custom PHP page</h3>
 
- <p>This example creates a <code>/search</code> endpoint that queries the database and renders results through a theme template.</p>
+ <p>This example creates a <code>/search</code> endpoint that queries the database and renders results through a template.</p>
 
  <p><strong>Step 1:</strong> Create the PHP handler at <code>search.php</code> in your site root (next to <code>index.php</code>):</p>
 
@@ -124,25 +124,13 @@ $outpostDir = __DIR__ . '/outpost';
 require_once $outpostDir . '/config.php';
 require_once $outpostDir . '/db.php';
 require_once $outpostDir . '/engine.php';
+require_once $outpostDir . '/template-engine-v2.php';
 
-// 2. Detect the active theme and template engine version
-$themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-$activeTheme = ($themeRow &amp;&amp; $themeRow['value']) ? $themeRow['value'] : 'starter';
-$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
-
-$useV2 = outpost_detect_engine_version($themeDir);
-if ($useV2) {
-    require_once $outpostDir . '/template-engine-v2.php';
-} else {
-    require_once $outpostDir . '/template-engine.php';
-}
-
-// 3. Your custom logic
+// 2. Your custom logic
 $query   = trim($_GET['q'] ?? '');
 $results = [];
 
 if ($query !== '') {
-    // Search collection items by title
     $results = OutpostDB::fetchAll(
         "SELECT ci.slug, ci.data, c.slug AS collection_slug, c.url_pattern
          FROM collection_items ci
@@ -155,23 +143,24 @@ if ($query !== '') {
     );
 }
 
-// 4. Make data available to the template via a global
+// 3. Make data available to the template via a global
 $GLOBALS['_outpost_search_query']   = htmlspecialchars($query);
 $GLOBALS['_outpost_search_results'] = $results;
 
-// 5. Initialize and render
+// 4. Initialize and render
 outpost_init();
 
-$templateFile = $themeDir . '/search.html';
+$siteRoot = __DIR__;
+$templateFile = $siteRoot . '/search.html';
 if (!file_exists($templateFile)) {
     http_response_code(404);
     echo '&lt;h1&gt;Search template not found&lt;/h1&gt;';
     exit;
 }
 
-outpost_render_template($templateFile, $themeDir);</code></pre>
+outpost_render_template($templateFile, $siteRoot);</code></pre>
 
- <p><strong>Step 2:</strong> Create the template at <code>themes/your-theme/search.html</code>:</p>
+ <p><strong>Step 2:</strong> Create the template at <code>search.html</code> in your site root:</p>
 
  <pre><code>&lt;outpost-include partial="head"&gt;&lt;/outpost-include&gt;
 &lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;
@@ -182,7 +171,6 @@ outpost_render_template($templateFile, $themeDir);</code></pre>
     &lt;input type="text" name="q" placeholder="Search..."&gt;
     &lt;button type="submit"&gt;Search&lt;/button&gt;
   &lt;/form&gt;
-  &lt;!-- Results are rendered by the PHP handler above --&gt;
 &lt;/main&gt;
 
 &lt;outpost-include partial="footer"&gt;&lt;/outpost-include&gt;</code></pre>
@@ -209,33 +197,25 @@ location = /search {
  <pre><code>&lt;?php
 // Minimum bootstrap — gives you database + engine + template rendering
 $outpostDir = __DIR__ . '/outpost';
-require_once $outpostDir . '/config.php';     // Constants: OUTPOST_DIR, OUTPOST_DB_PATH, etc.
-require_once $outpostDir . '/db.php';          // OutpostDB class (static PDO wrapper)
-require_once $outpostDir . '/engine.php';      // Template helper functions + outpost_init()
-
-// Resolve theme
-$themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-$activeTheme = ($themeRow &amp;&amp; $themeRow['value']) ? $themeRow['value'] : 'starter';
-$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
-
-// Load template engine (v2 data-attributes or v1 Liquid)
-$useV2 = outpost_detect_engine_version($themeDir);
-require_once $outpostDir . ($useV2 ? '/template-engine-v2.php' : '/template-engine.php');
+require_once $outpostDir . '/config.php';
+require_once $outpostDir . '/db.php';
+require_once $outpostDir . '/engine.php';
+require_once $outpostDir . '/template-engine-v2.php';
 
 // Initialize (runs migrations, loads fields, etc.)
 outpost_init();
 
-// Render any template
-outpost_render_template($themeDir . '/my-page.html', $themeDir);</code></pre>
+// Render any template from the site root
+$siteRoot = __DIR__;
+outpost_render_template($siteRoot . '/my-page.html', $siteRoot);</code></pre>
 
  <table class="schema-table">
    <thead><tr><th>File</th><th>What it provides</th></tr></thead>
    <tbody>
-     <tr><td><code>config.php</code></td><td>Constants: <code>OUTPOST_DIR</code>, <code>OUTPOST_DB_PATH</code>, <code>OUTPOST_THEMES_DIR</code>, etc.</td></tr>
+     <tr><td><code>config.php</code></td><td>Constants: <code>OUTPOST_DIR</code>, <code>OUTPOST_DB_PATH</code>, etc.</td></tr>
      <tr><td><code>db.php</code></td><td><code>OutpostDB</code> — static PDO wrapper for SQLite queries</td></tr>
      <tr><td><code>engine.php</code></td><td>Template helper functions (<code>cms_text()</code>, <code>cms_collection_list()</code>, etc.), <code>outpost_init()</code>, <code>outpost_render_template()</code></td></tr>
-     <tr><td><code>template-engine.php</code></td><td><code>OutpostTemplate</code> — v1 Liquid compiler</td></tr>
-     <tr><td><code>template-engine-v2.php</code></td><td><code>OutpostTemplate</code> — v2 data-attribute compiler</td></tr>
+     <tr><td><code>template-engine-v2.php</code></td><td><code>OutpostTemplate</code> — data-attribute template compiler</td></tr>
      <tr><td><code>members.php</code></td><td><code>OutpostMember</code> — member session checking (optional, for gated pages)</td></tr>
    </tbody>
  </table>

@@ -293,7 +293,7 @@
 
     <h2>Lodge template tags</h2>
 
-    <p>Three custom elements render Lodge UI in your theme templates. They require a logged-in member session to display content &mdash; unauthenticated visitors see nothing.</p>
+    <p>Three custom elements render Lodge UI in your templates. They require a logged-in member session to display content &mdash; unauthenticated visitors see nothing.</p>
 
     <h3>&lt;outpost-lodge-dashboard&gt;</h3>
 
@@ -370,7 +370,7 @@
 
     <h2>Routing</h2>
 
-    <p>Lodge has its own sub-router built into <code>front-router.php</code>. All Lodge URLs live under a single configurable slug (default: <code>/lodge</code>). You do <strong>not</strong> create top-level theme files for Lodge pages &mdash; instead, templates go in a <code>lodge/</code> subdirectory inside your theme.</p>
+    <p>Lodge has its own sub-router built into <code>front-router.php</code>. All Lodge URLs live under a single configurable slug (default: <code>/lodge</code>). Lodge templates go in a <code>lodge/</code> subdirectory inside your site root.</p>
 
     <h3>URL &rarr; template mapping</h3>
 
@@ -384,9 +384,9 @@
       </tbody>
     </table>
 
-    <h3>Theme file structure</h3>
+    <h3>Site file structure</h3>
 
-    <pre><code>themes/your-theme/
+    <pre><code>your-site/
   index.html
   about.html
   post.html
@@ -398,11 +398,12 @@
   partials/
     head.html
     nav.html
-    footer.html</code></pre>
+    footer.html
+  outpost/                &larr; CMS system directory</code></pre>
 
     <h3>Custom slug</h3>
 
-    <p>The Lodge URL prefix is configurable in <strong>Admin &rarr; Settings</strong> (stored as <code>lodge_slug</code>). Change it from <code>/lodge</code> to <code>/portal</code>, <code>/members</code>, or any other slug. The router will look for templates in both <code>themes/{theme}/{custom-slug}/</code> and <code>themes/{theme}/lodge/</code> (fallback).</p>
+    <p>The Lodge URL prefix is configurable in <strong>Admin &rarr; Settings</strong> (stored as <code>lodge_slug</code>). Change it from <code>/lodge</code> to <code>/portal</code>, <code>/members</code>, or any other slug. The router will look for templates in both <code>{site-root}/{custom-slug}/</code> and <code>{site-root}/lodge/</code> (fallback).</p>
 
     <p>Reserved slugs that cannot be used: <code>outpost</code>, <code>admin</code>, <code>api</code>, <code>wp-admin</code>, <code>wp-login</code>.</p>
 
@@ -416,7 +417,7 @@
 
     <h2>Starter templates</h2>
 
-    <p>When you enable Lodge on a collection, the setup UI offers to install starter templates into your active theme. These are fully styled, ready-to-use HTML pages that you can customize:</p>
+    <p>When you enable Lodge on a collection, the setup UI offers to install starter templates into your site root. These are fully styled, ready-to-use HTML pages that you can customize:</p>
 
     <ul>
       <li><strong>Dashboard</strong> &mdash; item counts, recent activity, quick-create button</li>

@@ -195,7 +195,7 @@ date_default_timezone_set(<span class="t-string">'UTC'</span>);</code></pre>
     </table>
 
     <h2>Scheduling and collection loops</h2>
-    <p>Collection loops always filter by <code>status = 'published'</code>. This means scheduled items never appear in your theme's <code>{% for %}</code> loops until after the lazy publish check promotes them. There is nothing special to add to your templates — the filtering is built into the loop handler.</p>
+    <p>Collection loops always filter by <code>status = 'published'</code>. This means scheduled items never appear in your <code>&lt;outpost-each&gt;</code> collection loops until after the lazy publish check promotes them. There is nothing special to add to your templates — the filtering is built into the loop handler.</p>
     <pre><code><span class="t-comment">{# This loop only shows published items. Scheduled items are excluded automatically. #}</span>
 <span class="t-kw">{% for</span> post <span class="t-kw">in</span> collection.post <span class="t-kw">%}</span>
   <span class="t-tag">&lt;article&gt;</span>

@@ -30,7 +30,7 @@
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=pages</span>
       </div>
-      <p>Returns all pages for the active theme. Excludes collection item URL paths and the internal <code>__global__</code> page. Supports an optional <code>search</code> query parameter to filter by path or title.</p>
+      <p>Returns all pages. Excludes collection item URL paths and the internal <code>__global__</code> page. Supports an optional <code>search</code> query parameter to filter by path or title.</p>
     </div>
 
     <table class="schema-table">
@@ -62,7 +62,7 @@
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=pages&amp;id=1</span>
       </div>
-      <p>Returns a single page with all of its fields for the active theme, plus any registry fields that have not yet been populated.</p>
+      <p>Returns a single page with all of its fields, plus any registry fields that have not yet been populated.</p>
     </div>
 
     <p>Response:</p>
@@ -75,7 +75,6 @@
     "meta_description": "",
     "status": "published",
     "visibility": "public",
-    "active_theme": "personal",
     "fields": [
       {
         "id": 5,
@@ -128,7 +127,7 @@
 
     <p>What gets deleted:</p>
     <ul>
-      <li>The <code>.html</code> template file from the active theme directory (e.g. <code>themes/personal/about.html</code>)</li>
+      <li>The <code>.html</code> template file from the site root (e.g. <code>about.html</code>)</li>
       <li>The page row in the <code>pages</code> table</li>
       <li>All fields for that page (cascade via foreign key)</li>
       <li>All <code>page_field_registry</code> entries for that path</li>
@@ -164,7 +163,7 @@
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=globals</span>
       </div>
-      <p>Returns all global fields (the <code>__global__</code> page fields). These are shared across all pages and themes.</p>
+      <p>Returns all global fields (the <code>__global__</code> page fields). These are shared across all pages.</p>
     </div>
 
     <p>Response:</p>
@@ -867,7 +866,6 @@ if (!res.ok) {
   "settings": {
     "site_name": "My Site",
     "site_url": "https://example.com",
-    "active_theme": "personal",
     "cache_enabled": "1"
   }
 }</code></pre>
@@ -1228,43 +1226,75 @@ if (!res.ok) {
       <p>Deletes a menu.</p>
     </div>
 
-    <h2>Themes</h2>
-
-    <p>Theme management requires the <code>settings.*</code> capability.</p>
+    <h2>Site Detection</h2>
 
     <div class="endpoint">
       <div class="endpoint-line">
         <span class="method method-get">GET</span>
-        <span class="endpoint-path">api.php?action=themes</span>
+        <span class="endpoint-path">api.php?action=site/detect</span>
       </div>
-      <p>Returns all installed themes with their metadata.</p>
+      <p>Detects the site structure at <code>OUTPOST_SITE_ROOT</code>. Returns information about the site's HTML template files, partials directory, assets directory, and whether the site has been set up for Outpost.</p>
     </div>
 
-    <div class="endpoint">
-      <div class="endpoint-line">
-        <span class="method method-put">PUT</span>
-        <span class="endpoint-path">api.php?action=themes/activate</span>
-      </div>
-      <p>Activates a theme by slug.</p>
-    </div>
+    <p>Response:</p>
+    <pre><code>{
+  "site_root": "/var/www/html/",
+  "has_index": true,
+  "template_files": ["index.html", "about.html", "blog.html", "post.html"],
+  "has_partials": true,
+  "has_assets": true,
+  "has_outpost_tags": true
+}</code></pre>
 
-    <p>Request body: <code>{ "slug": "personal" }</code></p>
+    <h2>Forge Site Analysis</h2>
+
+    <p>Forge site analysis scans the HTML files at the site root and annotates them with Outpost template tags. Requires the <code>code.*</code> capability.</p>
 
     <div class="endpoint">
       <div class="endpoint-line">
         <span class="method method-post">POST</span>
-        <span class="endpoint-path">api.php?action=themes/duplicate</span>
+        <span class="endpoint-path">api.php?action=forge/analyze</span>
       </div>
-      <p>Duplicates a theme under a new name.</p>
+      <p>Scans all <code>.html</code> files at <code>OUTPOST_SITE_ROOT</code> and returns annotated versions with Outpost template tags (<code>data-outpost</code> attributes, <code>&lt;!-- outpost:section --&gt;</code> comments, <code>&lt;outpost-include&gt;</code> partials, <code>&lt;outpost-menu&gt;</code> loops, and <code>&lt;outpost-meta&gt;</code> tags). Does not modify any files on disk &mdash; returns a preview of proposed changes.</p>
     </div>
+
+    <p>Response:</p>
+    <pre><code>{
+  "files": {
+    "index.html": {
+      "original": "&lt;!-- original HTML --&gt;",
+      "annotated": "&lt;!-- annotated HTML with Outpost tags --&gt;",
+      "changes": 12
+    },
+    "about.html": { ... }
+  },
+  "partials_extracted": ["head", "nav", "footer"],
+  "sections_found": ["hero", "features", "testimonials"],
+  "fields_found": 24
+}</code></pre>
 
     <div class="endpoint">
       <div class="endpoint-line">
-        <span class="method method-delete">DELETE</span>
-        <span class="endpoint-path">api.php?action=themes&amp;slug=old-theme</span>
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">api.php?action=forge/analyze/apply</span>
       </div>
-      <p>Deletes a theme. Cannot delete the currently active theme.</p>
+      <p>Applies the annotated templates from a previous <code>forge/analyze</code> call. Writes the annotated HTML files to disk at <code>OUTPOST_SITE_ROOT</code>, creates the <code>partials/</code> directory and extracted partial files, and triggers a template re-scan to register all new fields in the database.</p>
     </div>
+
+    <p>Request body:</p>
+    <pre><code>{
+  "files": {
+    "index.html": "&lt;annotated HTML content&gt;",
+    "about.html": "&lt;annotated HTML content&gt;"
+  },
+  "partials": {
+    "head.html": "&lt;partial content&gt;",
+    "nav.html": "&lt;partial content&gt;",
+    "footer.html": "&lt;partial content&gt;"
+  }
+}</code></pre>
+
+    <p>Response: <code>{"success": true, "files_written": 5, "fields_registered": 24}</code></p>
 
     <h2>Dashboard</h2>
 
@@ -1509,7 +1539,7 @@ if (!res.ok) {
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=code/files</span>
       </div>
-      <p>Returns a directory listing of editable theme files.</p>
+      <p>Returns a directory listing of editable site files at <code>OUTPOST_SITE_ROOT</code>.</p>
     </div>
 
     <div class="endpoint">
@@ -1525,7 +1555,7 @@ if (!res.ok) {
         <span class="method method-put">PUT</span>
         <span class="endpoint-path">api.php?action=code/write</span>
       </div>
-      <p>Writes content to a file. The file must be within the active theme directory.</p>
+      <p>Writes content to a file. The file must be within <code>OUTPOST_SITE_ROOT</code> and not inside the <code>outpost/</code> directory.</p>
     </div>
 
     <div class="endpoint">
@@ -1541,7 +1571,7 @@ if (!res.ok) {
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=code/rename</span>
       </div>
-      <p>Renames or moves a file/folder within the theme. Body: <code>{ oldPath, newPath }</code>. Path traversal is blocked.</p>
+      <p>Renames or moves a file/folder within the site root. Body: <code>{ oldPath, newPath }</code>. Path traversal is blocked.</p>
     </div>
 
     <div class="endpoint">
@@ -1557,7 +1587,7 @@ if (!res.ok) {
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=code/search&amp;q=term</span>
       </div>
-      <p>Full-text search across all theme files. Returns up to 200 matching results with line numbers and context.</p>
+      <p>Full-text search across all site files. Returns up to 200 matching results with line numbers and context.</p>
     </div>
 
     <div class="endpoint">
@@ -2308,7 +2338,7 @@ if (!res.ok) {
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=backup/create</span>
       </div>
-      <p>Creates a new backup zip containing the SQLite database, all uploaded media files, and the entire themes directory. Returns metadata about the created backup.</p>
+      <p>Creates a new backup zip containing the SQLite database and all uploaded media files. Returns metadata about the created backup.</p>
     </div>
 
     <p>Response:</p>
@@ -2349,10 +2379,10 @@ if (!res.ok) {
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=backup/restore</span>
       </div>
-      <p>Restores the site from an uploaded backup zip. Requires <code>super_admin</code> role. Accepts a multipart form upload with a <code>backup</code> file field. Extracts the database, uploads, and themes. The current database is safety-copied before overwrite and restored on failure. Clears all caches after restore.</p>
+      <p>Restores the site from an uploaded backup zip. Requires <code>super_admin</code> role. Accepts a multipart form upload with a <code>backup</code> file field. Extracts the database and uploads. The current database is safety-copied before overwrite and restored on failure. Clears all caches after restore.</p>
     </div>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — Restoring a backup permanently overwrites the current database, uploaded media, and themes. This cannot be undone unless you have another backup.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — Restoring a backup permanently overwrites the current database and uploaded media. This cannot be undone unless you have another backup.</div>
 
     <div class="endpoint">
       <div class="endpoint-line">
@@ -2420,7 +2450,7 @@ if (!res.ok) {
         <span class="method method-post">POST</span>
         <span class="endpoint-path">api.php?action=updates/apply</span>
       </div>
-      <p>Downloads a release zip and applies the update. Body: <code>{ url }</code>. The URL must point to <code>github.com/tonyshawjr/outpost/releases</code>. All zip paths are validated before extraction. Only core files are replaced — themes, data, and uploads are never touched.</p>
+      <p>Downloads a release zip and applies the update. Body: <code>{ url }</code>. The URL must point to <code>github.com/tonyshawjr/outpost/releases</code>. All zip paths are validated before extraction. Only core files are replaced — site files, data, and uploads are never touched.</p>
     </div>
 
     <h2>Cron</h2>
@@ -2512,107 +2542,6 @@ if (!res.ok) {
       </div>
       <p>Returns goal completion data for the dashboard, including conversion counts per goal over the selected time range.</p>
     </div>
-
-    <h2>Theme Customizer</h2>
-
-    <p>Customize the active theme's colors, fonts, logo, and favicon. All endpoints require the <code>settings.*</code> capability. Values are stored in <code>content/data/customizer.json</code>, keyed by theme slug.</p>
-
-    <div class="endpoint">
-      <div class="endpoint-line">
-        <span class="method method-get">GET</span>
-        <span class="endpoint-path">api.php?action=customizer</span>
-      </div>
-      <p>Returns the customizer schema from the active theme's <code>theme.json</code> along with any saved values. If the theme does not support customization, returns an error.</p>
-    </div>
-
-    <p>Response:</p>
-    <pre><code>{
-  "theme": "personal",
-  "schema": {
-    "sections": [
-      {
-        "id": "colors",
-        "label": "Colors",
-        "fields": [
-          {
-            "key": "color-accent",
-            "label": "Accent Color",
-            "type": "color",
-            "default": "#14B8A6",
-            "var": "--color-accent"
-          }
-        ]
-      }
-    ]
-  },
-  "values": {
-    "colors": {
-      "color-accent": "#E11D48"
-    }
-  }
-}</code></pre>
-
-    <div class="endpoint">
-      <div class="endpoint-line">
-        <span class="method method-put">PUT</span>
-        <span class="endpoint-path">api.php?action=customizer</span>
-      </div>
-      <p>Saves customizer values for the active theme. Only fields declared in the theme's schema are accepted — unknown keys are ignored. Clears the page cache automatically. If the <code>logo</code> field is set, it is synced to the <code>@site_logo</code> global.</p>
-    </div>
-
-    <p>Request body (section IDs as keys, field key-value pairs as values):</p>
-    <pre><code>{
-  "colors": {
-    "color-accent": "#E11D48",
-    "color-ink": "#1A1A2E"
-  },
-  "typography": {
-    "font-heading": "Playfair Display"
-  },
-  "identity": {
-    "logo": "/outpost/uploads/logo.png"
-  }
-}</code></pre>
-
-    <p>Response: <code>{"success": true}</code></p>
-
-    <div class="endpoint">
-      <div class="endpoint-line">
-        <span class="method method-post">POST</span>
-        <span class="endpoint-path">api.php?action=customizer/reset</span>
-      </div>
-      <p>Deletes all saved customizer values for the active theme, reverting to the defaults declared in <code>theme.json</code>. Clears the page cache.</p>
-    </div>
-
-    <p>Response: <code>{"success": true}</code></p>
-
-    <div class="endpoint">
-      <div class="endpoint-line">
-        <span class="method method-get">GET</span>
-        <span class="endpoint-path">api.php?action=customizer/export</span>
-      </div>
-      <p>Returns the active theme's saved customizer values as a downloadable JSON file. The <code>Content-Disposition</code> header triggers a browser download. Returns an error if no values are saved.</p>
-    </div>
-
-    <div class="endpoint">
-      <div class="endpoint-line">
-        <span class="method method-post">POST</span>
-        <span class="endpoint-path">api.php?action=customizer/import</span>
-      </div>
-      <p>Imports a customizer preset JSON file. Send the JSON as the request body. Values are validated against the theme's schema — only known section/field keys are accepted. Clears the page cache.</p>
-    </div>
-
-    <p>Request body (same structure as the save endpoint):</p>
-    <pre><code>{
-  "colors": {
-    "color-accent": "#3B82F6"
-  },
-  "typography": {
-    "font-heading": "Merriweather"
-  }
-}</code></pre>
-
-    <p>Response: <code>{"success": true}</code></p>
 
     <h2>Ranger AI Assistant</h2>
 

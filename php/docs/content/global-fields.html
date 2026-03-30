@@ -14,13 +14,13 @@
 <main class="main">
   <div class="page-hero">
     <h1>Global Fields</h1>
-    <p class="lead">Site-wide content available in every template — site name, logo, social links, analytics IDs, contact information, footer text, and any other value shared across the whole site. Global fields auto-scaffold from templates and are edited from one place in the admin.</p>
+    <p class="lead">Site-wide content available in every template — site name, logo, social links, analytics IDs, contact information, footer text, and any other value shared across the whole site. Global fields auto-scaffold from your HTML templates and are edited from one place in the admin.</p>
   </div>
   <div class="content">
 
     <h2>What are global fields?</h2>
     <p>Global fields hold content that is shared across the entire site, not scoped to a single page or collection item. Where a page field like <code>{{ hero_title }}</code> only appears on the specific page that defines it, a global field like <code>{{ @site_name }}</code> is available in every template and every partial across every page of the site.</p>
-    <p>They live in <strong>Admin &rarr; Globals</strong>. Like page fields, global fields are <strong>auto-scaffolded</strong> — the admin discovers them automatically by scanning the active theme's templates for any tag using the <code>@</code> prefix. You never register them manually; just use them in your templates and they appear.</p>
+    <p>They live in <strong>Admin &rarr; Globals</strong>. Like page fields, global fields are <strong>auto-scaffolded</strong> — the admin discovers them automatically by scanning your site's HTML templates for any tag using the <code>data-scope="global"</code> attribute. You never register them manually; just use them in your templates and they appear.</p>
 
     <h2>Template syntax</h2>
     <p>Global fields use the <code>@</code> prefix to distinguish them from page-scoped fields:</p>
@@ -45,13 +45,13 @@
     <p>See <a href="template-syntax/global-fields.html">Template Syntax &rarr; Global Fields</a> for the complete syntax reference.</p>
 
     <h2>Auto-scaffolding</h2>
-    <p>You do not register global fields in advance. When you add a new <code>{{ @field_name }}</code> tag anywhere in the active theme — including partials and all page templates — that field appears automatically in <strong>Admin &rarr; Globals</strong> the next time any page is rendered or the admin is opened.</p>
+    <p>You do not register global fields in advance. When you add a new <code>data-outpost="field_name" data-scope="global"</code> attribute anywhere in your site — including partials and all page templates — that field appears automatically in <strong>Admin &rarr; Globals</strong> the next time any page is rendered or the admin is opened.</p>
 
     <pre><code><span class="t-comment">{# Add this to head.html — a "favicon" field appears in Admin → Globals immediately #}</span>
 <span class="t-tag">&lt;link</span> <span class="t-attr">rel</span>=<span class="t-string">"icon"</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @favicon | image }}"</span><span class="t-tag">&gt;</span></code></pre>
 
     <div class="callout callout-tip">
-      <strong>Tip</strong> — Define all your site identity, social, analytics, and contact fields in your partials (<code>head.html</code>, <code>nav.html</code>, <code>footer.html</code>) during theme development. They all scaffold into Globals automatically at first render.
+      <strong>Tip</strong> — Define all your site identity, social, analytics, and contact fields in your partials (<code>partials/head.html</code>, <code>partials/nav.html</code>, <code>partials/footer.html</code>). They all scaffold into Globals automatically at first render.
     </div>
 
     <h2>Field types for globals</h2>
@@ -96,7 +96,7 @@
     </table>
 
     <h2>Managing globals in admin</h2>
-    <p>Navigate to <strong>Admin &rarr; Globals</strong>. All global fields from all templates and partials in the active theme appear on a single form, grouped and ordered by the sequence they appear in the template source. Each field renders the appropriate editor widget based on its filter type.</p>
+    <p>Navigate to <strong>Admin &rarr; Globals</strong>. All global fields from all templates and partials at your site root appear on a single form, grouped and ordered by the sequence they appear in the template source. Each field renders the appropriate editor widget based on its type.</p>
     <p>Press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> or click <strong>Save</strong> to save all globals in one request. Saving global fields clears the HTML page cache so visitors immediately see the updated values.</p>
 
     <h2>Common use cases with examples</h2>
@@ -271,7 +271,7 @@
       <li><a href="template-syntax/global-fields.html">Template Syntax &rarr; Global Fields</a> — complete syntax reference, including PHP functions <code>cms_global()</code> and <code>cms_global_get()</code></li>
       <li><a href="content/pages.html">Pages</a> — page-scoped fields and auto-scaffolding</li>
       <li><a href="template-syntax/conditionals.html">Conditionals</a> — <code>{% if @global_name %}</code> syntax</li>
-      <li><a href="themes/partials.html">Partials</a> — placing globals in shared <code>head.html</code>, <code>nav.html</code>, <code>footer.html</code></li>
+      <li>Partials — place globals in shared <code>partials/head.html</code>, <code>partials/nav.html</code>, <code>partials/footer.html</code> at the site root</li>
       <li><a href="reference/database-schema.html">Database Schema</a> — <code>settings</code> table structure</li>
     </ul>
 

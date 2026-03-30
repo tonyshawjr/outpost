@@ -19,7 +19,7 @@
   <div class="content">
 
     <h2>Built-in tracker</h2>
-    <p>Outpost automatically injects a lightweight tracking snippet before the closing <code>&lt;/body&gt;</code> tag on every page rendered by the template engine. No changes to your theme templates are required. The snippet fires a request to <code>/outpost/track.php</code> using <code>fetch()</code> with an <code>Image()</code> pixel as a fallback for older browsers.</p>
+    <p>Outpost automatically injects a lightweight tracking snippet before the closing <code>&lt;/body&gt;</code> tag on every page rendered by the template engine. No changes to your templates are required. The snippet fires a request to <code>/outpost/track.php</code> using <code>fetch()</code> with an <code>Image()</code> pixel as a fallback for older browsers.</p>
 
     <div class="callout callout-note"><strong>Note</strong> — The tracker only fires on pages rendered through Outpost's template engine. Static files (images, CSS, JS) are not tracked.</div>
 
@@ -232,25 +232,25 @@ outpost.trackSearchClick('keyword', '/path/to/result')</code></pre>
 
     <!-- ───────────────────── GA4 ───────────────────── -->
     <h2>GA4 integration</h2>
-    <p>Outpost's built-in analytics and Google Analytics 4 can run in parallel. To add GA4, store your Measurement ID in a global field and inject the GA4 snippet conditionally in your theme's <code>head.html</code> partial.</p>
+    <p>Outpost's built-in analytics and Google Analytics 4 can run in parallel. To add GA4, store your Measurement ID in a global field and inject the GA4 snippet conditionally in your <code>partials/head.html</code> file.</p>
 
     <h3>Setup</h3>
     <ol>
       <li>Create a global field named <code>ga4_id</code> in <strong>Admin &rarr; Globals</strong>.</li>
       <li>Enter your GA4 Measurement ID (e.g. <code>G-XXXXXXXXXX</code>) as the field value.</li>
-      <li>Add the following to <code>partials/head.html</code> in your theme:</li>
+      <li>Add the following to <code>partials/head.html</code>:</li>
     </ol>
-    <pre><code>{% if @ga4_id %}
-&lt;script async src="https://www.googletagmanager.com/gtag/js?id={{ @ga4_id }}"&gt;&lt;/script&gt;
-&lt;script&gt;
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '{{ @ga4_id }}');
-&lt;/script&gt;
-{% endif %}</code></pre>
+    <pre><code>&lt;outpost-if field="ga4_id" scope="global"&gt;
+  &lt;script async src="https://www.googletagmanager.com/gtag/js?id=GA4_ID"&gt;&lt;/script&gt;
+  &lt;script&gt;
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', document.querySelector('[data-outpost="ga4_id"]')?.textContent || '');
+  &lt;/script&gt;
+&lt;/outpost-if&gt;</code></pre>
 
-    <p>When <code>@ga4_id</code> is empty the block is omitted entirely, so you can leave the field blank on development sites without modifying your theme files.</p>
+    <p>When the <code>ga4_id</code> global field is empty, the <code>&lt;outpost-if&gt;</code> block is omitted entirely, so you can leave the field blank on development sites without modifying your template files.</p>
 
     <div class="callout callout-note"><strong>Note</strong> — GA4 tracks in addition to Outpost's built-in analytics. Both systems record pageviews independently. Numbers will differ slightly because GA4 uses different bot filtering and session definitions.</div>
 

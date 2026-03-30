@@ -32,15 +32,15 @@
         </tr>
         <tr>
           <td><code>admin</code></td>
-          <td>Full access to all content, themes, code editor, user management, and member management. Cannot change site settings or perform super-level operations. Can create users up to and including the <code>admin</code> role.</td>
+          <td>Full access to all content, code editor, user management, and member management. Cannot change site settings or perform super-level operations. Can create users up to and including the <code>admin</code> role.</td>
         </tr>
         <tr>
           <td><code>developer</code></td>
-          <td>Full content management access plus the code editor and theme files. Cannot manage other users, members, or change site settings. Suited for developers who need to modify templates and styles but should not manage accounts.</td>
+          <td>Full content management access plus the code editor and template files. Cannot manage other users, members, or change site settings. Suited for developers who need to modify templates and styles but should not manage accounts.</td>
         </tr>
         <tr>
           <td><code>editor</code></td>
-          <td>Content management only — pages, collections and items, media, globals, navigation, folders, and form submissions. No access to themes, code, analytics, channels, form builder, settings, or user management. Editors can optionally be restricted to specific collections and cannot edit locked pages. Suited for content writers and marketing teams.</td>
+          <td>Content management only — pages, collections and items, media, globals, navigation, folders, and form submissions. No access to the code editor, analytics, channels, form builder, settings, or user management. Editors can optionally be restricted to specific collections and cannot edit locked pages. Suited for content writers and marketing teams.</td>
         </tr>
       </tbody>
     </table>
@@ -136,7 +136,7 @@
           <td>&#10007;</td>
         </tr>
         <tr>
-          <td>Code editor (theme files)</td>
+          <td>Code editor (template files)</td>
           <td>&#10003;</td>
           <td>&#10003;</td>
           <td>&#10003;</td>
@@ -283,7 +283,7 @@
         </tr>
         <tr>
           <td>Agency delivering a site to a client</td>
-          <td>Keep yourself as <code>super_admin</code>. Give the client an <code>editor</code> account so they can manage content without accessing themes, code, or settings.</td>
+          <td>Keep yourself as <code>super_admin</code>. Give the client an <code>editor</code> account so they can manage content without accessing the code editor or settings.</td>
         </tr>
         <tr>
           <td>Agency + client needs to update settings</td>
@@ -295,11 +295,11 @@
         </tr>
         <tr>
           <td>Large content team</td>
-          <td>One <code>admin</code> account to manage users and settings. Multiple <code>editor</code> accounts for writers. One <code>developer</code> account for the theme developer.</td>
+          <td>One <code>admin</code> account to manage users and settings. Multiple <code>editor</code> accounts for writers. One <code>developer</code> account for the template developer.</td>
         </tr>
         <tr>
           <td>Client self-managing content, no dev access</td>
-          <td>Give the client an <code>editor</code> account. Theme changes only through you with <code>super_admin</code>.</td>
+          <td>Give the client an <code>editor</code> account. Template changes only through you with <code>super_admin</code>.</td>
         </tr>
       </tbody>
     </table>
@@ -310,7 +310,7 @@
       <li>Content changes — page publishes, collection item saves, media uploads and deletions</li>
       <li>Settings changes — any change to site settings or SMTP configuration</li>
       <li>User management — user creation, role changes, password resets, deletions</li>
-      <li>Theme actions — theme activation, duplication, deletion</li>
+      <li>Template actions — file creation, editing, deletion via code editor</li>
       <li>Login and logout events for all admin users</li>
     </ul>
     <p>The activity log is read-only. Entries cannot be deleted from the admin — they persist indefinitely in the database.</p>

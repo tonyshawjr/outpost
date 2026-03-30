@@ -16,10 +16,8 @@
 - [REST API Reference](/outpost/docs/api/): All admin and member API endpoints
 - [GraphQL API](/outpost/docs/api/graphql.html): Full GraphQL API with queries, mutations, introspection, and interactive playground
 - [Deploy Guide](/outpost/docs/deploy.html): Apache, Nginx, file permissions, cache
-- [Brand Settings](/outpost/docs/features/brand.html): Site-wide colors, fonts, logo, and favicon — baseline identity for themes
-- [Theme Customizer](/outpost/docs/features/theme-customizer.html): Visual color, font, logo, and favicon editor with live preview
-- [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system with theme updates
-- [Theme Updates](/outpost/docs/themes/theme-updates.html): Managed theme auto-updates and conflict detection
+- [Brand Settings](/outpost/docs/features/brand.html): Site-wide colors, fonts, logo, and favicon — baseline visual identity
+- [Auto-Updater](/outpost/docs/features/auto-updater.html): Built-in update system
 - [Security](/outpost/docs/reference/security.html): Security hardening, rate limiting, SSRF prevention
 - [Setup Wizard](/outpost/docs/features/setup-wizard.html): First-run setup wizard, content packs, getting started checklist, contextual tips
 - [Forge](/outpost/docs/features/forge.html): Visual tag builder — select HTML, right-click or Cmd+E, wrap in template tags with smart detection
@@ -54,41 +52,42 @@ The admin panel is at `/outpost/`. The `index.php` at the outpost root serves th
 ## File Structure
 
 ```
-your-site/
-  outpost/                     # entire CMS
-    admin/                     # built Svelte SPA (do not edit directly)
-    themes/
-      my-theme/
-        index.html             # / route
-        about.html             # /about
-        blog.html              # /blog
-        post.html              # /post/{slug} single item
-        partials/
-          head.html            # DOCTYPE through <body>
-          nav.html             # site navigation
-          footer.html          # </body></html>
-        assets/
-          style.css
-        theme.json
-    data/
-      cms.db                   # SQLite database
-    uploads/                   # media files
-    cache/                     # compiled template cache + HTML page cache
-    backups/                   # auto-created before each sync push
-    api.php                    # admin REST API
-    member-api.php             # member REST API
-    sync-api.php               # builder sync API
-    front-router.php           # PHP dev server router
-    engine.php                 # core CMS functions (cms_text, cms_global, etc.)
-    channels.php               # channel engine: sync, fetch, cache, template functions
-    template-engine.php        # Template compiler (OutpostTemplate::render)
-    mailer.php                 # SMTP / mail() email
-    members.php                # member session helpers (OutpostMember)
-    ranger.php                 # Ranger AI assistant: tools, streaming, providers
-    config.php                 # constants: DB path, SMTP, upload limits, etc.
+your-site/                       # OUTPOST_SITE_ROOT — the content source
+  index.html                     # / route
+  about.html                     # /about
+  blog.html                      # /blog
+  post.html                      # /post/{slug} single item
+  partials/
+    head.html                    # DOCTYPE through <body>
+    nav.html                     # site navigation
+    footer.html                  # </body></html>
+  assets/
+    style.css
+  theme.json                     # optional — framework flag, metadata
+  .htaccess                      # Apache rewrite rules (auto-generated on install)
+  outpost/                       # entire CMS engine
+    admin/                       # built Svelte SPA (do not edit directly)
+    content/
+      data/
+        cms.db                   # SQLite database
+      uploads/                   # media files
+      backups/                   # auto-created before each sync push
+    cache/                       # compiled template cache + HTML page cache
+    api.php                      # admin REST API
+    member-api.php               # member REST API
+    sync-api.php                 # builder sync API
+    front-router.php             # PHP dev server router
+    engine.php                   # core CMS functions (cms_text, cms_global, etc.)
+    channels.php                 # channel engine: sync, fetch, cache, template functions
+    template-engine-v2.php       # Template compiler (OutpostTemplate::render)
+    mailer.php                   # SMTP / mail() email
+    members.php                  # member session helpers (OutpostMember)
+    ranger.php                   # Ranger AI assistant: tools, streaming, providers
+    config.php                   # constants: DB path, OUTPOST_SITE_ROOT, etc.
+    forge-analyze.php            # Forge site analysis engine
     docs/
-      index.html               # developer documentation
-      llms.txt                 # this file
+      index.html                 # developer documentation
+      llms.txt                   # this file
     member-pages/
       login.php
       register.php
@@ -97,8 +96,10 @@ your-site/
       verify-email.php
       logout.php
       profile.php
-  index.php                    # Apache/Nginx front controller
+  index.php                      # Apache/Nginx front controller
 ```
+
+**Key v5.0 change:** There is no theme layer. The site root (`OUTPOST_SITE_ROOT`) IS the content source. HTML templates, partials, and assets live directly at the site root, not inside `outpost/themes/`. The constant `OUTPOST_SITE_ROOT` is defined in `config.php` as `dirname(OUTPOST_DIR) . '/'`.
 
 ## Routing
 
@@ -108,7 +109,7 @@ Rules evaluated in order:
 3. `/sitemap.xml` — auto-generated sitemap
 4. Collection URL patterns (e.g. `/post/{slug}`) — router extracts slug, sets `$_GET['slug']`, renders the single template
 5. Channel URL patterns (e.g. `/listing/{slug}`) — same as collections but for external data channels
-6. Path maps to theme template file (e.g. `/about` → `about.html`)
+6. Path maps to site root template file (e.g. `/about` → `about.html`)
 7. No match → 404
 
 URL pattern example: pattern `/post/{slug}` with URL `/post/my-article` → template `post.html`, `$_GET['slug'] = 'my-article'`
@@ -149,7 +150,7 @@ Dynamic routes use collections: create a collection with URL pattern `/event/{sl
 
 ### Adding a new route
 
-To add a route for `/services`, create `themes/your-theme/services.html`. No config or PHP needed — the router checks the filesystem on every request.
+To add a route for `/services`, create `services.html` at the site root. No config or PHP needed — the router checks the filesystem on every request.
 
 ### Custom PHP routes (standalone scripts)
 
@@ -159,17 +160,15 @@ For pages needing server-side logic, create a standalone PHP file that bootstrap
 <?php
 // Minimum bootstrap for a standalone PHP file
 $outpostDir = __DIR__ . '/outpost';
-require_once $outpostDir . '/config.php';     // Constants: OUTPOST_DIR, OUTPOST_DB_PATH, etc.
+require_once $outpostDir . '/config.php';     // Constants: OUTPOST_DIR, OUTPOST_SITE_ROOT, etc.
 require_once $outpostDir . '/db.php';          // OutpostDB (static PDO wrapper)
 require_once $outpostDir . '/engine.php';      // Template helpers + outpost_init()
 
-// Resolve active theme
-$themeRow    = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'active_theme'");
-$activeTheme = ($themeRow && $themeRow['value']) ? $themeRow['value'] : 'starter';
-$themeDir    = OUTPOST_THEMES_DIR . $activeTheme;
+// Site root is the content source (v5: no theme layer)
+$siteRoot = OUTPOST_SITE_ROOT;
 
 // Load template engine (auto-detect v1 or v2)
-$useV2 = outpost_detect_engine_version($themeDir);
+$useV2 = outpost_detect_engine_version($siteRoot);
 require_once $outpostDir . ($useV2 ? '/template-engine-v2.php' : '/template-engine.php');
 
 // Your custom logic here
@@ -179,9 +178,9 @@ $results = OutpostDB::fetchAll(
     ['%' . $query . '%']
 );
 
-// Initialize and render a theme template
+// Initialize and render a template from the site root
 outpost_init();
-outpost_render_template($themeDir . '/search.html', $themeDir);
+outpost_render_template($siteRoot . 'search.html', $siteRoot);
 ```
 
 Bootstrap files: `config.php` (constants), `db.php` (OutpostDB), `engine.php` (template helpers + outpost_init()), `template-engine.php` or `template-engine-v2.php` (compiler), `members.php` (optional, for gated pages).
@@ -196,125 +195,54 @@ Always use absolute paths starting with `/` for CSS, JS, images, and fonts:
 
 Relative paths resolve differently per page URL. On `/about`, `assets/style.css` becomes `/about/assets/style.css` — a 404.
 
-## theme.json
+## theme.json (optional)
 
-Every theme requires a `theme.json` at the root of the theme directory. It provides metadata for the admin browser and optionally controls auto-update behavior.
+An optional `theme.json` at the site root provides metadata and enables the CSS framework.
 
 ```json
 {
-  "$schema": "/outpost/docs/schemas/theme.schema.json",
-  "name": "My Theme",
+  "name": "My Site",
   "version": "1.0.0",
   "author": "Your Name",
-  "description": "A clean theme for personal blogs.",
-  "screenshot": "screenshot.png",
-  "managed": true
+  "description": "A clean personal blog.",
+  "framework": true
 }
 ```
 
 | Field | Required | Purpose |
 |---|---|---|
-| `$schema` | No | Path to JSON Schema for IDE autocomplete and validation. Use `"/outpost/docs/schemas/theme.schema.json"`. |
-| `name` | Yes | Display name in admin theme browser |
-| `version` | Yes | Semantic version badge on theme card |
-| `author` | Yes | Creator name shown in details panel |
-| `description` | Yes | Short summary shown in browser |
-| `screenshot` | No | Relative path to PNG/JPG preview image |
-| `managed` | No | When `true`, theme receives auto-updates during CMS updates. Reserved for bundled themes. |
-
-### JSON Schema
-
-Outpost ships a JSON Schema at `/outpost/docs/schemas/theme.schema.json` that enables IDE autocomplete and validation for `theme.json` files. Add `"$schema": "/outpost/docs/schemas/theme.schema.json"` to any theme.json for autocomplete of all fields including customizer sections, field types (`color`, `font`, `image`, `text`, `toggle`), and CSS variable names. All bundled themes include this reference.
-
-The directory name is the slug (immutable); it is used as the `active_theme` setting value.
-
-### Managed themes
-
-Themes with `"managed": true` are official themes maintained by Outpost. They participate in the theme update system — when the CMS is updated, managed themes in the package are automatically updated with conflict detection. The bundled Personal and Starter themes ship with this flag.
-
-Managed themes show a "Managed" badge in Admin → Themes. Duplicating a managed theme strips the `managed` flag — the copy becomes an independent user-owned theme that is never touched by updates. Do not add `"managed": true` to custom themes.
-
-### Bundled themes
-
-Outpost ships three managed themes:
-- **Personal** — full-featured personal blog theme (reference implementation)
-- **Starter** — clean, minimal starting point for non-developers
-- **Skeleton** — developer reference theme with heavily commented templates demonstrating every template tag
-
-The Skeleton theme is the recommended starting point for theme development. Duplicate it in Admin → Themes to create a new theme, then edit the copy. It demonstrates: output tags (text, richtext, image, link, textarea, color, number, date, select, toggle), globals, meta tags, wrapping and inline defaults, conditionals, collection loops with all options, single item fetch, menu loops with dropdowns, folder loops, pagination, form tag, includes, SEO block, and admin check.
+| `name` | No | Display name in admin |
+| `version` | No | Semantic version |
+| `author` | No | Creator name |
+| `description` | No | Short summary |
+| `framework` | No | When `true`, injects `--brand-*` CSS tokens and framework CSS before `</head>` |
 
 ### Brand Settings
 
 Brand (Admin → Brand) sets site-wide visual identity: palette (primary, secondary, accent, neutral, background, surface), typography (heading font, body font, type scale ratio), and identity (logo, favicon). Stored in `content/data/brand.json`.
 
-Brand values flow into themes via two paths:
-1. **Customizer with `brand_key`** — customizer fields map to brand values using `"brand_key": "colors.accent"`. Priority: saved customizer value → brand value → theme.json default.
-2. **Framework with `"framework": true`** — injects `--brand-*` CSS tokens and framework CSS directly. Theme CSS uses `var(--brand-primary)`, `var(--brand-font-heading)`, etc.
+When `"framework": true` is set in `theme.json`, brand values are injected as `--brand-*` CSS custom properties before `</head>`. Site CSS uses `var(--brand-primary)`, `var(--brand-font-heading)`, etc.
 
 Available brand keys: `colors.primary`, `colors.secondary`, `colors.accent`, `colors.neutral`, `colors.background`, `colors.surface`, `typography.heading_font`, `typography.body_font`, `identity.logo`, `identity.favicon`.
 
 #### Custom Google Fonts
 
-The font picker in Brand and Theme Customizer ships with ~30 curated Google Fonts. Admins can add any Google Font via Brand → Typography → "Manage fonts". Enter the exact font name from fonts.google.com and choose a category (Sans Serif, Serif, Display, Monospace). Custom fonts are stored in the `settings` table as the `custom_fonts` key (JSON array of `{ name, category }` objects) and automatically appear in all font picker dropdowns.
+The font picker in Brand ships with ~30 curated Google Fonts. Admins can add any Google Font via Brand → Typography → "Manage fonts". Enter the exact font name from fonts.google.com and choose a category (Sans Serif, Serif, Display, Monospace). Custom fonts are stored in the `settings` table as the `custom_fonts` key (JSON array of `{ name, category }` objects) and automatically appear in all font picker dropdowns.
 
 API: `GET api.php?action=fonts` returns `{ fonts: [...] }` (custom fonts only). `PUT api.php?action=fonts` with body `{ fonts: [{ name, category }, ...] }` saves them. Requires `settings.*` capability.
 
-### Customizer schema (optional)
-
-Themes can declare customizable properties by adding a `customizer` key to `theme.json`. When present, the admin shows a visual Theme Customizer (Admin → Customize) that lets site owners change colors, fonts, logo, and favicon without editing code.
-
-```json
-{
-  "name": "My Theme",
-  "version": "1.0.0",
-  "customizer": {
-    "sections": [
-      {
-        "id": "colors",
-        "label": "Colors",
-        "fields": [
-          { "key": "color-accent", "label": "Accent Color", "type": "color", "default": "#14B8A6", "var": "--color-accent" }
-        ]
-      },
-      {
-        "id": "typography",
-        "label": "Typography",
-        "fields": [
-          { "key": "font-heading", "label": "Heading Font", "type": "font", "default": "Inter", "var": "--font-display" }
-        ]
-      },
-      {
-        "id": "identity",
-        "label": "Site Identity",
-        "fields": [
-          { "key": "logo", "label": "Site Logo", "type": "image" }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Field types: `color` (hex picker, requires `var`), `font` (Google Fonts dropdown, requires `var`), `image` (media picker for logo/favicon). The `logo` key syncs to `@site_logo` global on save.
-
-**Brand key mapping (optional):** Fields can include a `brand_key` property (e.g. `"brand_key": "colors.accent"`) to map to a Brand setting. When present, the brand value serves as the baseline default instead of the field's `default`. Value priority: Customizer saved value → Brand value → theme.json field default. The `GET customizer` API enriches fields with a `brand_default` property so the admin UI can show the brand value as the reset target. Fields without `brand_key` are unaffected (fully backward-compatible).
-
-Storage: `content/data/customizer.json` — per-theme key, included in backups, safe from auto-updater. CSS overrides injected before `</head>` with `:root:not([data-theme="dark"])` selector (light mode only). Google Fonts loaded dynamically; hardcoded theme font links stripped.
-
-Themes without a `customizer` key work normally — the admin shows "This theme doesn't support customization yet."
-
 ## Template Scanning & Auto-Rescan
 
-`outpost_scan_theme_templates()` parses all `.html` template files in a theme and:
+`outpost_scan_theme_templates()` parses all `.html` template files at `OUTPOST_SITE_ROOT` and:
 1. Creates page stubs in the `pages` table for each template
 2. Creates field stubs in the `fields` table (never overwrites saved content)
 3. Upserts into `page_field_registry` with field type, default value, and sort order
 
 The scanner runs:
-- On **theme activation** (`PUT themes/activate`)
+- On first request when no fields exist
 - **Automatically on each frontend request** when any template file (top-level `.html` or `partials/*.html`) has been modified since the last scan
 
-Auto-rescan uses `filemtime()` comparison against a `last_template_scan_<theme>` setting stored in the `settings` table. Editing templates via the code editor or direct file access triggers an automatic re-scan on the next frontend request — no theme re-activation needed.
+Auto-rescan uses `filemtime()` comparison against a `last_template_scan` setting stored in the `settings` table. Editing templates via the code editor or direct file access triggers an automatic re-scan on the next frontend request.
 
 The scanner extracts defaults from all syntax forms:
 - Inline: `<span data-outpost="field">Default</span>`, `<span data-outpost="field" data-type="type">Default</span>`
@@ -916,20 +844,26 @@ The EditDrawer is the sidebar editing panel in the frontend visual editor. It pr
 
 **Bridge integration**: When a user clicks an element in the preview iframe, the bridge JS sends a postMessage identifying the block and field. The EditDrawer automatically navigates to the matching section and scrolls to/highlights the corresponding field.
 
-### Skeleton Theme (v2 Reference)
+### Section Comment Contract
 
-The Skeleton theme is the developer reference theme, rewritten to showcase every v2 template feature:
+The `<!-- outpost:section -->` comment syntax groups fields into named editable sections in the admin editor:
 
-- **7 homepage blocks** with `<!-- outpost-settings: -->` definitions: colors, layout variants (select), ranges (number), toggles (boolean)
-- **Repeater fields**: features grid, testimonials carousel, team members, skills list — all using `<outpost-each repeat="name">`
-- **Collection loops** with pagination (`<outpost-pagination />`), filtering, and sorting options
-- **Folder/taxonomy loops** using `<outpost-each folder="slug">`
-- **Single item fetch** with `<outpost-single collection="slug">` including related posts
-- **Global blocks** for nav and footer using `<!-- outpost:nav global -->` and `<!-- outpost:footer global -->`
-- **Conditionals** using `<outpost-if field="x" exists>`
-- **Responsive CSS** using `var()` custom properties from outpost-settings and `[data-layout]` attribute selectors for variant-based styling
+```html
+<!-- outpost:hero -->
+<section class="hero">
+  <h1 data-outpost="hero_title">Welcome</h1>
+  <p data-outpost="hero_subtitle">Subtitle</p>
+</section>
+<!-- /outpost:hero -->
+```
 
-The Skeleton theme is the recommended starting point for theme development. Duplicate it in Admin → Themes to create a new theme.
+- `<!-- outpost:name -->...<!-- /outpost:name -->` groups fields into editable sections
+- `<!-- outpost:name global -->` marks the section as global (fields shared across all pages)
+- The admin editor shows sections as collapsible groups with all their fields
+
+### Navigation Element Contract
+
+Outpost recognizes `<nav>` elements for menu integration. When Forge analyzes a site, `<nav>` elements with links are automatically wrapped with `<outpost-menu>` loops.
 
 ### v2 Quick Reference
 
@@ -960,7 +894,7 @@ The Skeleton theme is the recommended starting point for theme development. Dupl
 
 ## Partials
 
-Stored in `partials/` inside the theme directory. Included via `<outpost-include partial="name" />`. Subdirectories supported: `<outpost-include partial="components/card" />` maps to `partials/components/card.html`. Each partial inherits the full template context from its parent.
+Stored in `partials/` at the site root. Included via `<outpost-include partial="name" />`. Subdirectories supported: `<outpost-include partial="components/card" />` maps to `partials/components/card.html`. Each partial inherits the full template context from its parent.
 
 Standard partial names: `head` (DOCTYPE through `<body>`), `nav` (navigation), `footer` (closing tags).
 
@@ -973,20 +907,20 @@ Standard partial names: `head` (DOCTYPE through `<body>`), `nav` (navigation), `
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <outpost-seo />
-  <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+  <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
 ```
 
-## Theme Assets
+## Site Assets
 
-Static files in `outpost/themes/my-theme/assets/` are served directly by the web server. Use absolute paths in templates:
+Static files in `assets/` at the site root are served directly by the web server. Use absolute paths in templates:
 
 ```html
-<link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css">
 ```
 
-No asset pipeline or build step. Cache busting: add `?v=2` to URLs. No OUTPOST variable for theme path — hardcode the theme directory name or use a global field.
+No asset pipeline or build step. Cache busting: add `?v=2` to URLs.
 
 ## Collections
 
@@ -1461,9 +1395,9 @@ Admin users have one of four roles (separate from front-end member roles):
 | Role | Description |
 |---|---|
 | `super_admin` | Full access + user management + site settings + destructive ops. Reserved for site owner. |
-| `admin` | Full content + themes + code editor + user management. Cannot change site-level settings. |
-| `developer` | Full content + code editor + theme files. No user/member management or settings. |
-| `editor` | Content only (pages, collections, media, globals, navigation, folders, form submissions). No themes, code, analytics, channels, form builder, settings, or user management. Can be restricted to specific collections. Cannot edit locked pages. |
+| `admin` | Full content + code editor + user management. Cannot change site-level settings. |
+| `developer` | Full content + code editor + site files. No user/member management or settings. |
+| `editor` | Content only (pages, collections, media, globals, navigation, folders, form submissions). No code, analytics, channels, form builder, settings, or user management. Can be restricted to specific collections. Cannot edit locked pages. |
 
 ### Collection-Scoped Editors
 
@@ -2099,7 +2033,7 @@ Images in post content still point to old WordPress domain after import — upda
 
 ## Code Editor
 
-In-admin theme file editor at Admin → Code. Requires `developer` or higher role.
+In-admin site file editor at Admin → Code. Requires `developer` or higher role. Edits files at `OUTPOST_SITE_ROOT`, excluding the `outpost/` directory.
 
 Features: syntax highlighting (HTML, CSS, JS), tab bar with dirty-state indicator, file tree with create/rename/delete, find-in-files search, Outpost template autocomplete inside `data-outpost` and `<outpost-*>` elements.
 
@@ -2188,21 +2122,21 @@ If no AI key is configured, Smart Forge falls back to the existing PHP scanner s
 
 ### Forge Playground
 
-Ships with a 6-page demo website in `themes/forge-playground/` (index, features, blog, gallery, about, contact) — pure HTML/CSS with Unsplash images. No `theme.json` — users "Forge a Theme" via a guided wizard. Includes a reset button to restore all files to pristine state from `.forge-snapshot/` backups.
+Supports demo HTML sites at the site root — pure HTML/CSS pages that can be annotated with Outpost template tags via Forge site analysis.
 
 ### Insert Asset
 
 Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the theme's `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
 
-- `.css` → `<link rel="stylesheet" href="/outpost/content/themes/{theme}/assets/{path}">`
-- `.js` → `<script src="/outpost/content/themes/{theme}/assets/{path}"></script>`
-- images → `<img src="/outpost/content/themes/{theme}/assets/{path}" alt="">`
+- `.css` → `<link rel="stylesheet" href="/assets/{path}">`
+- `.js` → `<script src="/assets/{path}"></script>`
+- images → `<img src="/assets/{path}" alt="">`
 
 Powered by the `code/assets` API endpoint which scans the theme's `assets/` directory recursively.
 
-### Forge Theme Wizard
+### Forge Site Analysis
 
-Folders in `themes/` without `theme.json` show a banner in the Code Editor. Click "Forge Theme" to create `theme.json` with name, author, and description via a guided wizard. Also available from the Forge context menu.
+The `forge/analyze` API endpoint scans all `.html` files at `OUTPOST_SITE_ROOT` and returns annotated versions with Outpost template tags. The `forge/analyze/apply` endpoint writes the annotated files to disk and triggers a template re-scan.
 
 ### Preview Tabs
 
@@ -2216,7 +2150,7 @@ Cmd+E / Ctrl+E opens Make Editable directly with the field type pre-selected by 
 
 Stored as key-value pairs in `settings` table. Edit in Admin → Settings.
 
-Key settings: site name, active theme slug, SMTP host/port/user/pass, from name/email, form notification email, builder sync key.
+Key settings: site name, SMTP host/port/user/pass, from name/email, form notification email, builder sync key.
 
 Read in PHP: `OutpostDB::setting('key', 'default')`
 
@@ -2235,7 +2169,8 @@ define('OUTPOST_SYNC_KEY', 'your-random-64-char-key');
 
 | Constant | Default | Description |
 |---|---|---|
-| `OUTPOST_CONTENT_DIR` | `content/` | User data directory containing data, uploads, themes, backups |
+| `OUTPOST_SITE_ROOT` | `dirname(OUTPOST_DIR) . '/'` | Site root directory — where HTML templates, partials, and assets live |
+| `OUTPOST_CONTENT_DIR` | `content/` | User data directory containing data, uploads, backups |
 | `OUTPOST_DB_PATH` | `content/data/cms.db` | SQLite database path |
 | `OUTPOST_SITE_URL` | auto-detected | Canonical URL for sitemap, emails, absolute links |
 | `OUTPOST_DEBUG` | `false` | Show PHP errors inline — never true in production |
@@ -2243,7 +2178,6 @@ define('OUTPOST_SYNC_KEY', 'your-random-64-char-key');
 | `OUTPOST_WEBP_AUTO_CONVERT` | `true` | Auto-convert JPEG/PNG uploads to WebP |
 | `OUTPOST_WEBP_QUALITY` | `85` | WebP compression quality (0–100) |
 | `OUTPOST_UPLOADS_DIR` | `content/uploads/` | Media upload directory (symlinked at `outpost/uploads`) |
-| `OUTPOST_THEMES_DIR` | `content/themes/` | Themes directory (symlinked at `outpost/themes`) |
 | `OUTPOST_BACKUPS_DIR` | `content/backups/` | Backup zip storage directory |
 | `OUTPOST_CACHE_DIR` | `cache/` | Cache directory (not under content/ — regenerated) |
 | `OUTPOST_CACHE_TTL` | `3600` | HTML page cache TTL in seconds |
@@ -2313,9 +2247,9 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `menus` | GET, POST, PUT, DELETE | Navigation menus CRUD |
 | `loops` | GET, POST, DELETE | Saved query loops |
 | `settings` | GET, PUT | Site settings |
-| `themes` | GET, PUT, DELETE | Theme management |
-| `themes/activate` | PUT | Activate theme |
-| `themes/duplicate` | POST | Duplicate theme |
+| `site/detect` | GET | Detect site structure at OUTPOST_SITE_ROOT |
+| `forge/analyze` | POST | Scan site HTML and return annotated templates |
+| `forge/analyze/apply` | POST | Apply annotated templates to disk |
 | `forms` | GET | List form names with counts |
 | `forms/submissions` | GET, PUT, DELETE | Form submissions (supports `form`, `form_id`, `status`, `starred` filters) |
 | `forms/submissions/star` | PUT | Toggle star on submission |
@@ -2327,17 +2261,17 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `forms/export` | GET | Export submissions as CSV |
 | `forms/builder` | GET, POST, PUT, DELETE | Form builder CRUD (create/read/update/delete form definitions) |
 | `forms/builder/duplicate` | POST | Duplicate a form |
-| `code/files` | GET | List theme code files |
-| `code/read` | GET | Read a theme file |
-| `code/write` | POST | Write a theme file |
+| `code/files` | GET | List site code files at OUTPOST_SITE_ROOT |
+| `code/read` | GET | Read a site file |
+| `code/write` | POST | Write a site file |
 | `code/create` | POST | Create file or folder |
 | `code/rename` | POST | Rename/move file |
 | `code/delete` | DELETE | Delete file or directory |
-| `code/search` | GET | Full-text search in theme files |
+| `code/search` | GET | Full-text search in site files |
 | `code/context` | GET | Globals + collections for autocomplete |
-| `code/assets` | GET | List theme asset files (CSS, JS, images) |
+| `code/assets` | GET | List site asset files (CSS, JS, images) |
 | `cache/clear` | POST | Clear HTML + template cache |
-| `backup/create` | POST | Create backup zip (DB + uploads + themes) |
+| `backup/create` | POST | Create backup zip (DB + uploads) |
 | `backup/list` | GET | List available backups |
 | `backup/download` | GET | Download a backup zip |
 | `backup/restore` | POST | Restore from uploaded backup zip (super_admin only) |
@@ -2373,11 +2307,6 @@ All mutating requests require `X-CSRF-Token` header (token received at login). S
 | `channels/sync-log` | GET | Channel sync history |
 | `channels/discover` | POST | Schema discovery (fetch URL, return JSON schema) |
 | `channels/items` | GET | Preview cached channel items |
-| `customizer` | GET | Get customizer schema + saved values for active theme |
-| `customizer` | PUT | Save customizer values (validates against theme schema, clears cache) |
-| `customizer/reset` | POST | Reset customizer to theme defaults |
-| `customizer/export` | GET | Export customizer values as downloadable JSON |
-| `customizer/import` | POST | Import customizer preset JSON |
 | `revisions` | GET | List revisions for entity (entity_type, entity_id params) |
 | `revisions/restore` | POST | Restore a revision (snapshots current state first) |
 
@@ -2704,32 +2633,34 @@ mutation {
 
 ## Sync API
 
-Machine-to-machine API for the Outpost Builder desktop app to sync theme files. Authenticated with a static API key in `X-Outpost-Key` header. HTTPS enforced on non-localhost.
+Machine-to-machine API for the Outpost Builder desktop app to sync site files. Authenticated with a static API key in `X-Outpost-Key` header. HTTPS enforced on non-localhost.
 
 Base URL: `/outpost/sync-api.php?action=ENDPOINT`
 
 Rate limiting: 5 failed auth attempts per hour per IP → 429 with `Retry-After` header.
 
-File constraints: max 2 MB per file, allowed extensions: `php html htm css js json svg txt md yml yaml xml`, paths must stay within `themes/{theme-name}/`.
+File constraints: max 2 MB per file, allowed extensions: `php html htm css js json svg txt md yml yaml xml png jpg jpeg gif webp ico woff woff2 ttf otf eot`, paths must stay within `OUTPOST_SITE_ROOT` and outside `outpost/`.
 
 ### Endpoints
 
 | Action | Method | Description |
 |---|---|---|
-| `pull` | GET | Full site snapshot: all theme files (base64), media list, DB snapshot + raw DB file |
-| `push` | POST | Deploy theme files to server; auto-creates backup before writing; clears cache after |
+| `pull` | GET | Full site snapshot: all site files (base64), media list, DB snapshot + raw DB file |
+| `push` | POST | Deploy site files to server; auto-creates backup before writing; clears cache after |
 | `backup/list` | GET | List all server-side backups (newest first, auto-prunes >30 days old) |
 | `backup/restore` | POST | Restore a backup by ID; auto-creates backup of current state first |
 
 ### Pull response structure
 ```json
 {
-  "outpost_version": "1.0.0",
+  "outpost_version": "5.0.0",
   "site_url": "https://example.com/outpost",
   "pulled_at": "2024-03-01T10:00:00+00:00",
-  "theme": {
-    "active": "personal",
-    "files": { "themes/personal/index.html": "<base64>" }
+  "site_files": {
+    "index.html": "<base64>",
+    "about.html": "<base64>",
+    "partials/head.html": "<base64>",
+    "assets/style.css": "<base64>"
   },
   "uploads": [{ "path": "uploads/photo.jpg", "url": "...", "size": 204800 }],
   "db_snapshot": { "settings": {}, "pages": [], "collections": [], ... },
@@ -2742,13 +2673,17 @@ The `db_snapshot` excludes sync API key and admin credentials.
 ### Push request body
 ```json
 {
-  "theme": {
-    "name": "personal",
-    "files": { "themes/personal/index.html": "<base64>" }
+  "files": {
+    "index.html": "<base64>",
+    "about.html": "<base64>",
+    "partials/nav.html": "<base64>",
+    "assets/style.css": "<base64>"
   },
   "push_content": false
 }
 ```
+
+File paths are relative to `OUTPOST_SITE_ROOT`. Paths inside `outpost/` are rejected.
 
 `push_content: true` + `db_file` replaces the entire server database — overwrites all live data. Use with caution.
 
@@ -2764,7 +2699,7 @@ The Builder desktop app auto-generates a `CLAUDE.md` file containing the site's 
 Copy the `outpost/` directory to your server. First request initializes the DB.
 
 **Preserve on re-deploy:**
-- `outpost/content/` — entire user data directory (database, uploads, themes, backups)
+- `outpost/content/` — entire user data directory (database, uploads, backups)
 - `outpost/cache/` — safe to clear, not required to preserve
 
 **File permissions:**
@@ -2808,37 +2743,9 @@ Check for and apply core updates from Settings → Updates. Requires `super_admi
 2. `POST api.php?action=updates/apply` — downloads release zip, validates URL (must be github.com/tonyshawjr/outpost), validates zip paths (zip slip prevention), extracts core files + updates managed themes
 
 **Files replaced:** root `.php` files, `admin/`, `docs/`, `member-pages/`, `tools/`
-**Files never touched:** user themes, `data/`, `uploads/`, `cache/` (cache is cleared post-update)
+**Files never touched:** site root files (HTML templates, partials, assets), `data/`, `uploads/`, `cache/` (cache is cleared post-update)
 
 **Security:** URL validated via `parse_url()` with strict hostname + path check. HTTPS enforced. All zip entry paths validated before extraction. Only `super_admin` can trigger updates.
-
-### Theme Update System
-
-Managed themes (those with `"managed": true` in theme.json) are updated alongside the CMS core. The update package includes managed themes in `content/themes/`.
-
-**Update flow per theme:**
-1. If the theme doesn't exist on the site → installed as fresh copy (with or without `theme.json`)
-2. If the theme exists but has no `theme.json` in the package → skipped (no version to compare)
-3. If installed version >= package version → skipped (up to date)
-4. Otherwise → file-by-file update with conflict detection
-
-**Conflict detection via .outpost-manifest.json:**
-Each managed theme ships with `.outpost-manifest.json` containing MD5 hashes of all files as shipped. During an update:
-- File hash matches manifest (unmodified by user) → replaced with new version
-- File modified by user but update didn't change it → kept as-is (no conflict)
-- File modified by user AND update changed it → **conflict**: user version preserved, file path reported
-- New file in update package → copied in
-
-After update, the new manifest replaces the old one for future comparisons.
-
-**Update results:** The `updates/apply` response includes `theme_updates` array with per-theme results:
-```json
-{ "theme": "personal", "action": "updated", "from_version": "1.0.0", "to_version": "2.0.0", "conflicts": ["assets/style.css"] }
-{ "theme": "starter", "action": "installed", "version": "1.0.0" }
-{ "theme": "personal", "action": "skipped", "reason": "up_to_date", "version": "2.0.0" }
-```
-
-**Key functions:** `outpost_update_managed_themes()` (orchestrates), `outpost_theme_update_with_conflicts()` (per-theme hash comparison), `outpost_list_files_recursive()` (file enumeration).
 
 ### Enhanced Template Error Messages
 
@@ -2922,7 +2829,7 @@ Key columns:
 
 **`pages`:** `id`, `title`, `slug`, `body`, `meta_title`, `meta_description`, `og_image`, `visibility` (`'public'|'members'|'paid'`), `status` (`'published'|'draft'`), `locked` (0|1 — admin-only lock), `sort_order`, `created_at`, `updated_at`
 
-**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name)
+**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name). In v5, `theme` is always empty string.
 
 **`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`. `sort_field` only accepts: `created_at`, `updated_at`, `published_at`, `slug`, `sort_order` — invalid values default to `created_at`.
 
@@ -2979,7 +2886,7 @@ Cache bypass: `?nocache=1` in URL (development only).
 
 **Minimize template-level API calls.** Each `<outpost-each collection="slug">` runs a SQL query. Use `limit:N` to cap results. Avoid multiple loops against the same collection — restructure templates to use a single loop where possible.
 
-**CDN / reverse proxy:** Place Cloudflare, Fastly, or Nginx caching in front of the site. Outpost's HTML cache headers respect standard cache-control. Static assets in `outpost/themes/slug/assets/` can be served directly by the web server with long cache headers.
+**CDN / reverse proxy:** Place Cloudflare, Fastly, or Nginx caching in front of the site. Outpost's HTML cache headers respect standard cache-control. Static assets in `assets/` at the site root can be served directly by the web server with long cache headers.
 
 **Template warm-up:** After deploying a new theme or clearing the template cache, the first request for each page compiles the template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
 
@@ -3305,16 +3212,16 @@ const res = await fetch('/outpost/api.php?action=content/items&collection=post&c
 ## Setup Wizard & Onboarding (v2.0.0)
 
 ### Setup Wizard
-Runs automatically on fresh installs. 4-step full-screen wizard: site name → theme → content pack → done. Checks `setup_completed` setting via `auth/me`. Existing sites auto-skip via migration detection (if pages or collections exist, `setup_completed` is set to `1`).
+Runs automatically on fresh installs. Generates `.htaccess` for Apache URL rewriting. Checks `setup_completed` setting via `auth/me`. Existing sites auto-skip via migration detection (if pages or collections exist, `setup_completed` is set to `1`).
 
 ### Content Packs
 JSON files in `content-packs/` directory. Manifest: `packs.json` (array of pack defs with id, name, description, icon, themes array). Per-theme pack files: `{theme}-{pack}.json` (e.g. `personal-blog.json`). Each contains: settings, globals, collections (with schema + items + folders), menus. The `blank` pack has no file — just activates the theme. Applied in a single SQLite transaction via `POST setup/apply`.
 
 ### Getting Started Checklist
-Dashboard card after wizard completion. 5 items: add_logo, edit_homepage, create_post, setup_navigation, customize_theme. Dynamically computed via `GET setup/checklist`. Dismiss via `POST setup/checklist/dismiss` (persists in settings table).
+Dashboard card after wizard completion. 5 items: add_logo, edit_homepage, create_post, setup_navigation, configure_brand. Dynamically computed via `GET setup/checklist`. Dismiss via `POST setup/checklist/dismiss` (persists in settings table).
 
 ### Contextual Tips
-One-line dismissible tips below `.page-header` on 7 admin sections (Pages, Collections, Media, Globals, Navigation, Forms, Themes). State in localStorage under `outpost-dismissed-tips`. Component: `ContextualTip.svelte`. Tip definitions in `src/lib/tips.js`.
+One-line dismissible tips below `.page-header` on admin sections (Pages, Collections, Media, Globals, Navigation, Forms). State in localStorage under `outpost-dismissed-tips`. Component: `ContextualTip.svelte`. Tip definitions in `src/lib/tips.js`.
 
 ### EmptyState Component
 Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, ctaLabel/ctaAction, secondaryLabel/secondaryAction, searchActive. Used by 11 admin pages for consistent empty states.
@@ -3574,12 +3481,12 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - `upload_media` — upload a file to the media library
 - `upload_media_from_url` — download an image from a URL and add to media library
 
-**Theme & file tools:**
-- `create_theme_file` — create a new file in the active theme
-- `update_theme_file` — update file contents in the active theme
-- `delete_theme_file` — delete a file from the active theme
-- `read_file` — read the contents of a theme file
-- `list_theme_files` — list all files in the active theme directory
+**Site file tools:**
+- `create_theme_file` — create a new file at the site root
+- `update_theme_file` — update file contents at the site root
+- `delete_theme_file` — delete a file from the site root
+- `read_file` — read the contents of a site file
+- `list_theme_files` — list all files at the site root
 
 **Schema tools:**
 - `create_collection_field` — add a field to a collection's schema
@@ -3627,7 +3534,7 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 ### Security Model
 
 - **SSRF protection** — outbound HTTP requests (e.g., `upload_media_from_url`) validate URLs against private IP ranges (10.x, 172.16-31.x, 192.168.x, 127.x, ::1) and internal hostnames
-- **Path traversal prevention** — file tools enforce theme directory boundaries; `../` and absolute paths outside the theme are blocked
+- **Path traversal prevention** — file tools enforce site root boundaries; `../` and absolute paths outside the site root are blocked; writes inside `outpost/` are rejected
 - **CSRF enforcement** — all POST/PUT/DELETE endpoints require a valid `X-CSRF-Token` header
 - **Capability enforcement** — every tool checks the authenticated user's role capabilities before execution (e.g., editors cannot access `manage_users`)
 - **XSS prevention** — tool outputs are HTML-escaped before rendering in the chat interface

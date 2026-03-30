@@ -32,20 +32,20 @@
  </thead>
  <tbody>
  <tr>
- <td><code>item.label</code></td>
- <td>Display text for the link — set by the editor</td>
+ <td><code>data-outpost="label"</code></td>
+ <td>Display text for the link — set by the editor. Use on a <code>&lt;span&gt;</code> or similar text element.</td>
  </tr>
  <tr>
- <td><code>item.url</code></td>
- <td>Link destination — can be a relative path, absolute URL, or anchor</td>
+ <td><code>data-outpost="url"</code></td>
+ <td>Link destination — use on an <code>&lt;a&gt;</code> element to set its <code>href</code>. Can be a relative path, absolute URL, or anchor.</td>
  </tr>
  <tr>
- <td><code>item.target</code></td>
- <td><code>_self</code> (default, same tab) or <code>_blank</code> (new tab)</td>
+ <td><code>target</code></td>
+ <td><code>_self</code> (default, same tab) or <code>_blank</code> (new tab). Set automatically from admin configuration.</td>
  </tr>
  <tr>
- <td><code>item.children</code></td>
- <td>Array of child menu items — same structure as top-level items. Empty array if no children.</td>
+ <td><code>children</code></td>
+ <td>Array of child menu items — same structure as top-level items. Empty array if no children. Nested menus require custom PHP handling.</td>
  </tr>
  </tbody>
  </table>
@@ -55,7 +55,7 @@
  
 
  <h2>Nav with Dropdown Menus</h2>
- <p>Check <code>item.children</code> to conditionally render a dropdown panel. Nest child items inside the menu template.</p>
+ <p>Dropdown menus with child items require custom template logic. Here is a basic example:</p>
  
 
  <h3>CSS for Hover Dropdowns</h3>

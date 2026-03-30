@@ -20,7 +20,7 @@
 
     <h2>What are Channels?</h2>
     <p>Collections store content you write inside Outpost. Channels do the opposite &mdash; they pull content <em>in</em> from external sources and make it available to your templates with familiar data-attribute syntax. No plugins, no Composer dependencies, no build step.</p>
-    <p>Connect to any JSON API, RSS feed, or CSV file &mdash; a headless CMS, a product catalog, a job board, a podcast feed, a Google Sheets spreadsheet &mdash; and render the data in your theme templates using the same <code>&#123;% for %&#125;</code> and <code>&#123;% single %&#125;</code> tags you already know from collections. Outpost caches the external data in SQLite so pages render instantly, and re-fetches automatically when the cache expires.</p>
+    <p>Connect to any JSON API, RSS feed, or CSV file &mdash; a headless CMS, a product catalog, a job board, a podcast feed, a Google Sheets spreadsheet &mdash; and render the data in your templates using the same <code>&lt;outpost-each&gt;</code> and <code>&lt;outpost-single&gt;</code> tags you already know from collections. Outpost caches the external data in SQLite so pages render instantly, and re-fetches automatically when the cache expires.</p>
 
     <p>Common use cases:</p>
     <ul>
@@ -187,7 +187,7 @@
     </table>
 
     <h3>Step 4 &mdash; Preview</h3>
-    <p>Outpost fetches the first batch of items and displays them in a table so you can verify the data looks correct. This step also provides auto-generated template code you can copy directly into your theme templates.</p>
+    <p>Outpost fetches the first batch of items and displays them in a table so you can verify the data looks correct. This step also provides auto-generated template code you can copy directly into your templates.</p>
 
     <div class="callout callout-note"><strong>Note</strong> &mdash; The preview performs a real sync. After completing the wizard, data is already cached and ready for template rendering.</div>
 
@@ -376,7 +376,7 @@
     <h3>Setting up</h3>
     <ol>
       <li>Set the <strong>URL pattern</strong> in the channel configuration (e.g. <code>/listing/{slug}</code>)</li>
-      <li>Create a matching template file in your theme (e.g. <code>listing.html</code>)</li>
+      <li>Create a matching template file in your site root (e.g. <code>listing.html</code>)</li>
       <li>Use the <code>&#123;% single %&#125;</code> tag in the template to load the item by its slug</li>
     </ol>
 
@@ -399,7 +399,7 @@
   &lt;p&gt;The listing you're looking for may have been removed or the URL is incorrect.&lt;/p&gt;
 &#123;% endsingle %&#125;</code></pre>
 
-    <p>The <code>&#123;% else %&#125;</code> block renders when no item matches the slug in the URL &mdash; useful for displaying a 404-style message within your theme&rsquo;s layout.</p>
+    <p>The <code>&#123;% else %&#125;</code> block renders when no item matches the slug in the URL &mdash; useful for displaying a 404-style message within your site&rsquo;s layout.</p>
 
     <h3>Full example &mdash; single job page</h3>
     <pre><code>{#--- Template: Job Detail | Route: /careers/{slug} ---#}

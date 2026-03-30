@@ -63,7 +63,7 @@
  
 
  
- <p>In the templates engine, conditionals use the <code>&lt;outpost-if&gt;</code> custom element. The content inside is rendered only when the condition is true. An optional <code>&lt;outpost-else&gt;</code> element provides the fallback.</p>
+ <p>In the templates engine, conditionals use the <code>&lt;outpost-if&gt;</code> custom element. The content inside is rendered only when the condition is true. Use a second <code>&lt;outpost-if&gt;</code> with the <code>empty</code> attribute to handle the false case.</p>
 
  
 
@@ -72,13 +72,14 @@
  &lt;img data-outpost="featured_image" data-type="image" src="" alt=""&gt;
 &lt;/outpost-if&gt;</code></pre>
 
- <h3>With Else</h3>
+ <h3>Empty Check (Negation)</h3>
  <pre><code>&lt;outpost-if field="featured_image" exists&gt;
  &lt;img data-outpost="featured_image" data-type="image" src="" alt=""&gt;
-&lt;outpost-else&gt;
+&lt;/outpost-if&gt;
+&lt;outpost-if field="featured_image" empty&gt;
  &lt;div class="placeholder"&gt;&lt;/div&gt;
-&lt;/outpost-else&gt;
 &lt;/outpost-if&gt;</code></pre>
+ <div class="callout callout-note"><strong>Note</strong> -- There is no <code>&lt;outpost-else&gt;</code> element. Use a second <code>&lt;outpost-if&gt;</code> with the <code>empty</code> attribute to achieve if/else behavior.</div>
 
  <h3>Global Field Check</h3>
  <pre><code>&lt;outpost-if field="twitter_url" scope="global" exists&gt;
@@ -91,13 +92,17 @@
 &lt;/outpost-if&gt;</code></pre>
 
  <h3>String Inequality</h3>
- <pre><code>&lt;outpost-if field="status" not-equals="archived"&gt;
+ <pre><code>&lt;outpost-if field="status" not="archived"&gt;
  &lt;a href="" data-outpost="url"&gt;&lt;span data-outpost="title"&gt;&lt;/span&gt;&lt;/a&gt;
 &lt;/outpost-if&gt;</code></pre>
 
- <h3>Admin Check</h3>
- <pre><code>&lt;outpost-if admin&gt;
- &lt;div class="admin-hint"&gt;Edit hint here.&lt;/div&gt;
+ <h3>Member Auth Check</h3>
+ <pre><code>&lt;outpost-if member="logged-in"&gt;
+ &lt;p&gt;Welcome back, member!&lt;/p&gt;
+&lt;/outpost-if&gt;
+
+&lt;outpost-if member="logged-out"&gt;
+ &lt;a href="/login"&gt;Sign in&lt;/a&gt;
 &lt;/outpost-if&gt;</code></pre>
 
  <h3>Example: Post Detail Page</h3>
@@ -112,17 +117,18 @@
  &lt;/outpost-if&gt;
  &lt;div class="prose" data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;
  &lt;/article&gt;
-&lt;outpost-else&gt;
+&lt;/outpost-single&gt;
+
+&lt;outpost-single collection="post" else&gt;
  &lt;p&gt;Post not found.&lt;/p&gt;
-&lt;/outpost-else&gt;
 &lt;/outpost-single&gt;</code></pre>
 
  <h2>Limitations</h2>
  <div class="callout callout-note"><strong>Note</strong> — The template language is intentionally simple. Keep complex logic in PHP helpers or JavaScript rather than template conditionals.</div>
  <ul>
- <li>No <code>elseif</code> — use nested <code>&lt;outpost-if&gt;...&lt;outpost-else&gt;...&lt;outpost-if&gt;</code> blocks.</li>
+ <li>No <code>elseif</code> or <code>&lt;outpost-else&gt;</code> — use a pair of <code>&lt;outpost-if&gt;</code> blocks with <code>exists</code> and <code>empty</code> attributes.</li>
  <li>No <code>and</code> / <code>or</code> operators — achieve compound checks with nested <code>&lt;outpost-if&gt;</code> elements.</li>
- <li>No negation shorthand — use <code>&lt;outpost-if field="name" exists&gt;...&lt;outpost-else&gt;...&lt;/outpost-if&gt;</code> or <code>&lt;outpost-if field="name" not-equals="value"&gt;</code>.</li>
+ <li>For negation, use <code>&lt;outpost-if field="name" empty&gt;</code> or <code>&lt;outpost-if field="name" not="value"&gt;</code>.</li>
  <li>String comparisons only — no numeric or date comparisons with <code>&lt;</code> / <code>&gt;</code>.</li>
  </ul>
 

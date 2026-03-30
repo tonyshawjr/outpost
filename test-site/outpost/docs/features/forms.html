@@ -96,7 +96,7 @@
     <p>Every form follows this structure: a <code>&lt;form&gt;</code> wrapper, hidden system fields, an optional honeypot, one <code>.outpost-field</code> wrapper per field (with type-specific modifier class), and a submit button. No JavaScript is injected — the form submits via standard POST.</p>
 
     <h3>Styling builder forms</h3>
-    <p>Builder forms output semantic HTML with BEM-style class names. Target these in your theme's CSS:</p>
+    <p>Builder forms output semantic HTML with BEM-style class names. Target these in your site's CSS:</p>
     <pre><code>.outpost-form { /* form wrapper */ }
 .outpost-form--contact { /* form-specific, uses the slug */ }
 .outpost-field { /* field wrapper — one per field */ }
@@ -110,7 +110,7 @@
 .outpost-form-submit { /* submit button */ }
 .outpost-section-title { /* section heading */ }
 .outpost-radio-group, .outpost-checkbox-group { /* choice groups */ }</code></pre>
-    <p>Outpost does not inject any default form styles. Your theme's CSS has full control over the appearance. A minimal starting point:</p>
+    <p>Outpost does not inject any default form styles. Your site's CSS has full control over the appearance. A minimal starting point:</p>
     <pre><code>.outpost-form { max-width: 600px; }
 .outpost-field { margin-bottom: 1.5rem; }
 .outpost-field label { display: block; margin-bottom: 0.25rem; font-weight: 600; }

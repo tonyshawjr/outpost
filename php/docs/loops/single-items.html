@@ -22,7 +22,23 @@
  
 
  <h2>How It Works</h2>
- <p>When a visitor hits a collection URL like <code>/post/hello-world</code>, the router extracts the slug (<code>hello-world</code>) and sets it as an internal parameter. The <code>&lt;outpost-single&gt;</code> tag reads that slug, queries the collection for a published item matching it, and renders the main block. If no published item with that slug exists, the <code>&lt;outpost-else&gt;</code> branch renders instead.</p>
+ <p>When a visitor hits a collection URL like <code>/post/hello-world</code>, the router extracts the slug (<code>hello-world</code>) and sets it as an internal parameter. The <code>&lt;outpost-single&gt;</code> tag reads that slug, queries the collection for a published item matching it, and renders the main block. If no published item with that slug exists, the <code>&lt;outpost-single ... else&gt;</code> block renders instead.</p>
+
+ <h3>Basic Single Item</h3>
+ <pre><code>&lt;outpost-single collection="post"&gt;
+ &lt;article&gt;
+ &lt;h1 data-outpost="title"&gt;Post Title&lt;/h1&gt;
+ &lt;time data-outpost="published_at"&gt;&lt;/time&gt;
+ &lt;div data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;
+ &lt;/article&gt;
+&lt;/outpost-single&gt;
+
+&lt;outpost-single collection="post" else&gt;
+ &lt;p&gt;Post not found.&lt;/p&gt;
+&lt;/outpost-single&gt;</code></pre>
+
+ <h3>Available Fields</h3>
+ <p>Inside a <code>&lt;outpost-single&gt;</code> block, you have access to all the same fields as in a collection loop: <code>title</code>, <code>slug</code>, <code>published_at</code>, <code>url</code>, <code>status</code>, plus all custom fields defined in the collection schema.</p>
 
  
 </main>

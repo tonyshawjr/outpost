@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Create a Theme — Outpost CMS</title>
+ <title>Setting Up Your Site — Outpost CMS</title>
  <base href="/outpost/docs/">
  <link rel="stylesheet" href="assets/docs.css">
 </head>
@@ -13,39 +13,136 @@
 
 <main class="main">
  <div class="page-hero">
- <h1>Create a Theme</h1>
- <p class="lead">A complete walkthrough for building an Outpost theme from scratch — from an empty directory to a fully functioning site with pages, a blog, and custom content fields.</p>
+ <h1>Setting Up Your Site</h1>
+ <p class="lead">A complete walkthrough for structuring an Outpost site from scratch — from an empty directory to a fully functioning site with pages, a blog, navigation, and custom content fields.</p>
  </div>
  <div class="content">
 
  <h2>Before you start</h2>
- <p>Make sure Outpost is running and you can access the admin panel. You will be creating files in the <code>outpost/themes/</code> directory on your server (or local environment). You do not need to restart PHP or rebuild anything — Outpost picks up new theme files automatically on the next request.</p>
+ <p>Make sure Outpost is installed in the <code>outpost/</code> subdirectory and you can access the admin panel. You will be creating HTML files at your site root — the same directory that contains the <code>outpost/</code> folder. You do not need to restart PHP or rebuild anything — Outpost picks up new template files automatically on the next request.</p>
 
  <h2>Step 1: Create the directory structure</h2>
- <p>Choose a short, lowercase, hyphenated slug for your theme. This becomes the directory name and is used internally everywhere. Create the required subdirectories:</p>
- <pre><code>mkdir -p outpost/themes/my-theme/partials
-mkdir outpost/themes/my-theme/assets</code></pre>
- <p>At this point your theme directory looks like:</p>
- <pre><code>outpost/themes/my-theme/
- partials/
- assets/</code></pre>
+ <p>Your site root needs a <code>partials/</code> directory for shared template fragments. You can also create directories for CSS, JavaScript, and images:</p>
+ <pre><code>mkdir -p partials
+mkdir css
+mkdir js
+mkdir images</code></pre>
+ <p>At this point your site directory looks like:</p>
+ <pre><code>my-site/
+  partials/
+  css/
+  js/
+  images/
+  outpost/          &larr; already installed</code></pre>
 
- <h2>Step 2: Create theme.json</h2>
- <p>Every theme requires a <code>theme.json</code> at its root. Without it, Outpost will not recognize the directory as a theme.</p>
- <pre><code>{
- "name": "My Theme",
- "version": "1.0.0",
- "author": "Your Name",
- "description": "Clean and minimal."
-}</code></pre>
- <p>See <a href="themes/theme-json.html">theme.json reference</a> for all available fields.</p>
-
- <h2>Step 3: Create partials/head.html</h2>
+ <h2>Step 2: Create partials/head.html</h2>
  <p>The <code>head.html</code> partial is the standard place for the HTML document opening — <code>DOCTYPE</code>, <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>, meta tags, CSS links, and the opening <code>&lt;body&gt;</code> tag. It is included at the top of every page template.</p>
- <p>Note the use of <code>&lt;outpost-meta title="Default" /&gt;</code> and <code>&lt;outpost-meta description="Default" /&gt;</code> — these read per-page SEO values set in the admin. The content between the opening and closing tags is the default fallback used when no value has been entered. The GA4 block is conditional — it only renders the tracking snippet if the <code>ga4_id</code> global field has been filled in.</p>
- 
 
- 
+ <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;outpost-meta title="My Site"&gt;&lt;/outpost-meta&gt;
+  &lt;outpost-seo&gt;&lt;/outpost-seo&gt;
+  &lt;link rel="stylesheet" href="/css/style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;</code></pre>
+
+ <p>Note the use of <code>&lt;outpost-meta title="My Site" /&gt;</code> — this reads per-page SEO values set in the admin. The content attribute is the default fallback used when no value has been entered.</p>
+
+ <h2>Step 3: Create partials/nav.html</h2>
+ <p>The navigation partial uses <code>&lt;outpost-menu&gt;</code> to render a menu managed in the admin. Forge (the AI site builder) auto-detects <code>&lt;nav&gt;</code> elements to register menus.</p>
+
+ <pre><code>&lt;header&gt;
+  &lt;a href="/"&gt;
+    &lt;span data-outpost="site_name" data-scope="global"&gt;My Site&lt;/span&gt;
+  &lt;/a&gt;
+  &lt;nav&gt;
+    &lt;outpost-menu name="main"&gt;
+      &lt;a data-bind="href:url" data-outpost="label"&gt;Link&lt;/a&gt;
+    &lt;/outpost-menu&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;</code></pre>
+
+ <h2>Step 4: Create partials/footer.html</h2>
+ <pre><code>&lt;footer&gt;
+  &lt;p data-outpost="footer_text" data-scope="global"&gt;&amp;copy; 2026 My Site&lt;/p&gt;
+&lt;/footer&gt;
+&lt;script src="/js/main.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+ <h2>Step 5: Create index.html (homepage)</h2>
+ <p>The homepage template at your site root. This file maps to the <code>/</code> URL:</p>
+
+ <pre><code>&lt;outpost-include partial="head"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;
+
+&lt;main&gt;
+  &lt;!-- outpost:hero --&gt;
+  &lt;section class="hero"&gt;
+    &lt;h1 data-outpost="hero_title"&gt;Welcome to My Site&lt;/h1&gt;
+    &lt;p data-outpost="hero_subtitle"&gt;A brief description of what this site is about.&lt;/p&gt;
+  &lt;/section&gt;
+  &lt;!-- /outpost:hero --&gt;
+
+  &lt;!-- outpost:content --&gt;
+  &lt;section class="content"&gt;
+    &lt;div data-outpost="page_body" data-type="raw"&gt;
+      &lt;p&gt;Main page content goes here.&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+  &lt;!-- /outpost:content --&gt;
+&lt;/main&gt;
+
+&lt;outpost-include partial="footer"&gt;&lt;/outpost-include&gt;</code></pre>
+
+ <p>The <code>&lt;!-- outpost:hero --&gt;</code> and <code>&lt;!-- outpost:content --&gt;</code> comment pairs group fields into labeled sections in the admin editor.</p>
+
+ <h2>Step 6: Create a blog listing page</h2>
+ <p>Create <code>blog.html</code> at the site root. This page loops over a "post" collection:</p>
+
+ <pre><code>&lt;outpost-include partial="head"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;
+
+&lt;main&gt;
+  &lt;h1 data-outpost="page_title"&gt;Blog&lt;/h1&gt;
+
+  &lt;outpost-each collection="post" limit="10"&gt;
+    &lt;article&gt;
+      &lt;h2&gt;&lt;a data-bind="href:url" data-outpost="title"&gt;Post Title&lt;/a&gt;&lt;/h2&gt;
+      &lt;p data-outpost="excerpt"&gt;Post excerpt...&lt;/p&gt;
+    &lt;/article&gt;
+  &lt;/outpost-each&gt;
+
+  &lt;outpost-pagination&gt;&lt;/outpost-pagination&gt;
+&lt;/main&gt;
+
+&lt;outpost-include partial="footer"&gt;&lt;/outpost-include&gt;</code></pre>
+
+ <h2>Step 7: Create a single post template</h2>
+ <p>Create <code>post.html</code> at the site root. The router matches URLs like <code>/post/my-article</code> to this template:</p>
+
+ <pre><code>&lt;outpost-include partial="head"&gt;&lt;/outpost-include&gt;
+&lt;outpost-include partial="nav"&gt;&lt;/outpost-include&gt;
+
+&lt;main&gt;
+  &lt;outpost-single collection="post" var="post"&gt;
+    &lt;article&gt;
+      &lt;h1 data-outpost="title"&gt;Post Title&lt;/h1&gt;
+      &lt;img data-outpost="featured_image" data-type="image" src="placeholder.jpg" alt=""&gt;
+      &lt;div data-outpost="body" data-type="raw"&gt;Post content...&lt;/div&gt;
+    &lt;/article&gt;
+  &lt;/outpost-single&gt;
+&lt;/main&gt;
+
+&lt;outpost-include partial="footer"&gt;&lt;/outpost-include&gt;</code></pre>
+
+ <h2>That's it</h2>
+ <p>Visit your site in a browser. The CMS discovers your templates, auto-registers all fields, and the pages appear in <strong>Admin &rarr; Pages</strong> ready to edit. No configuration files, no theme activation, no restart needed.</p>
+
+ <div class="callout callout-tip"><strong>Tip</strong> — Use the Code Editor (Admin &rarr; Code Editor) to create and edit template files directly from the admin panel without FTP or SSH access.</div>
 
  </div>
 </main>

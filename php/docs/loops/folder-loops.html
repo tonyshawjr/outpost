@@ -21,7 +21,14 @@
  
 
  <h2>Basic Syntax</h2>
- <p>The folder slug (e.g., <code>categories</code>, <code>tags</code>) is set when you create the folder in Admin → Folders. Use it after <code>folder.</code>.</p>
+ <p>The folder slug (e.g., <code>categories</code>, <code>tags</code>) is set when you create the folder in Admin &rarr; Folders. Use it in the <code>folder</code> attribute of <code>&lt;outpost-each&gt;</code>.</p>
+ <pre><code>&lt;outpost-each folder="categories"&gt;
+ &lt;a data-outpost="slug" data-type="link"&gt;
+ &lt;span data-outpost="name"&gt;Category Name&lt;/span&gt;
+ (&lt;span data-outpost="count"&gt;0&lt;/span&gt;)
+ &lt;/a&gt;
+&lt;/outpost-each&gt;</code></pre>
+ <p>Each folder item provides three fields: <code>name</code> (display name), <code>slug</code> (URL-safe identifier), and <code>count</code> (number of published items with this label).</p>
  
 
  
@@ -40,7 +47,7 @@
  &lt;/aside&gt;
 
  &lt;main class="main-col"&gt;
- &lt;outpost-each collection="post" paginate="10" sort="published_at" filteredby="category"&gt;
+ &lt;outpost-each collection="post" paginate="10" sort="published_at" filter="category"&gt;
  &lt;article&gt;
  &lt;h2&gt;&lt;a data-outpost="url" data-type="link"&gt;&lt;span data-outpost="title"&gt;Title&lt;/span&gt;&lt;/a&gt;&lt;/h2&gt;
  &lt;p data-outpost="excerpt" data-type="or_body"&gt;Excerpt&lt;/p&gt;

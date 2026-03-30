@@ -33,7 +33,7 @@
  &lt;/a&gt;
  &lt;p data-outpost="excerpt"&gt;Excerpt text&lt;/p&gt;
  &lt;time data-outpost="published_at" data-bind="datetime:published_at"&gt;March 4, 2026&lt;/time&gt;
- &lt;div data-outpost="body" data-type="raw"&gt;Body content&lt;/div&gt;
+ &lt;div data-outpost="body" data-type="richtext"&gt;Body content&lt;/div&gt;
  &lt;/article&gt;
 &lt;/outpost-each&gt;</code></pre>
 
@@ -46,7 +46,7 @@
  </thead>
  <tbody>
  <tr><td><code>data-outpost="title"</code></td><td><code>&lt;h2 data-outpost="title"&gt;Default&lt;/h2&gt;</code></td><td>Text content is replaced</td></tr>
- <tr><td><code>data-outpost="body" data-type="raw"</code></td><td><code>&lt;div data-outpost="body" data-type="raw"&gt;&lt;/div&gt;</code></td><td>Rich HTML output</td></tr>
+ <tr><td><code>data-outpost="body" data-type="richtext"</code></td><td><code>&lt;div data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;</code></td><td>Rich HTML output</td></tr>
  <tr><td><code>data-outpost="featured_image"</code></td><td><code>&lt;img data-outpost="featured_image" data-type="image"&gt;</code></td><td>Sets the <code>src</code> attribute</td></tr>
  <tr><td><code>data-outpost="url"</code></td><td><code>&lt;a data-outpost="url" data-type="link"&gt;...&lt;/a&gt;</code></td><td>Sets the <code>href</code> attribute</td></tr>
  <tr><td><code>data-outpost="excerpt" data-type="or_body"</code></td><td><code>&lt;p data-outpost="excerpt" data-type="or_body"&gt;&lt;/p&gt;</code></td><td>Falls back to body text</td></tr>
@@ -84,13 +84,13 @@
 &lt;outpost-pagination /&gt;
 
 &lt;!-- Filter by folder label --&gt;
-&lt;outpost-each collection="post" filteredby="category"&gt;...&lt;/outpost-each&gt;
+&lt;outpost-each collection="post" filter="category"&gt;...&lt;/outpost-each&gt;
 
 &lt;!-- Related items (inside an outpost-single) --&gt;
-&lt;outpost-each collection="post" related="post" limit="3"&gt;...&lt;/outpost-each&gt;
+&lt;outpost-each collection="post" related limit="3"&gt;...&lt;/outpost-each&gt;
 
 &lt;!-- Combine options freely --&gt;
-&lt;outpost-each collection="post" paginate="10" sort="published_at" filteredby="category"&gt;
+&lt;outpost-each collection="post" paginate="10" sort="published_at" filter="category"&gt;
  ...
 &lt;/outpost-each&gt;</code></pre>
 
@@ -101,7 +101,7 @@
  &lt;/header&gt;
 
  &lt;div class="post-grid"&gt;
- &lt;outpost-each collection="post" paginate="12" sort="published_at" filteredby="category"&gt;
+ &lt;outpost-each collection="post" paginate="12" sort="published_at" filter="category"&gt;
  &lt;article class="post-card"&gt;
  &lt;a data-outpost="url" data-type="link" class="post-card-image"&gt;
  &lt;img data-outpost="featured_image" data-type="image" data-bind="alt:title"&gt;

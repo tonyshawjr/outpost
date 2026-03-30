@@ -58,7 +58,7 @@ curl "https://yoursite.com/outpost/api.php?action=content/pages"</code></pre>
       <tbody>
         <tr>
           <td><strong>What they are</strong></td>
-          <td>Standalone pages — Home, About, Contact, etc. Each maps to a <code>.html</code> template file in the theme.</td>
+          <td>Standalone pages — Home, About, Contact, etc. Each maps to a <code>.html</code> template file at the site root.</td>
           <td>Entries in a <strong>collection</strong> — blog posts, team members, projects, products. Like rows in a database table.</td>
         </tr>
         <tr>
@@ -126,7 +126,7 @@ curl "https://yoursite.com/outpost/api.php?action=content/pages"</code></pre>
         <span class="method method-get">GET</span>
         <span class="endpoint-path">api.php?action=content/schema</span>
       </div>
-      <p>Returns the complete content schema for the site: all collections with their field definitions, pages with their template-derived fields, global fields referenced across theme templates, and all folders. Page and global fields are extracted by parsing the active theme's templates, so only fields actually used in templates are returned.</p>
+      <p>Returns the complete content schema for the site: all collections with their field definitions, pages with their template-derived fields, global fields referenced across site templates, and all folders. Page and global fields are extracted by parsing the site's templates, so only fields actually used in templates are returned.</p>
     </div>
 
     <p>Response:</p>
