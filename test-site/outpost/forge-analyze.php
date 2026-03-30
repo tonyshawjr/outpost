@@ -2127,10 +2127,10 @@ function forge_analyze_site(string $siteRoot): array {
             ];
         }
     }
-    // Check for footer menu
+    // Check for footer menu (uses footer-specific extractor that handles div.footer-links etc.)
     if (isset($partials['footer'])) {
         $footerHtml = $partials['footer']['html'] ?? '';
-        $footerMenuItems = forge_analyze_extract_menu_items($footerHtml);
+        $footerMenuItems = forge_analyze_extract_footer_menu($footerHtml);
         if (!empty($footerMenuItems)) {
             $menus[] = [
                 'name'  => 'Footer Navigation',

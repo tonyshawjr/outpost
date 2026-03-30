@@ -548,7 +548,7 @@ function smart_forge_path_selector(DOMElement $el): string {
 
 // ── Section Detection ───────────────────────────────────
 
-function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state): void {
+function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, bool $strictMode = false): void {
     $xpath = new DOMXPath($doc);
 
     // 1. Explicit data-outpost-section attributes
@@ -586,56 +586,60 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state): 
         }
     }
 
-    // 2. <section> elements — use id or class as section name (unless already named by comment)
-    $sections = $xpath->query('//section');
-    foreach ($sections as $el) {
-        $path = smart_forge_node_path($el);
-        if (isset($state->sectionMap[$path])) continue;
-
-        $name = '';
-        $id = $el->getAttribute('id');
-        if ($id) {
-            $name = smart_forge_humanize($id);
-        } else {
-            $classes = array_filter(explode(' ', $el->getAttribute('class')), fn($c) => trim($c) !== '');
-            if (!empty($classes)) {
-                $name = smart_forge_humanize(reset($classes));
-            }
-        }
-        if (!$name) $name = 'Section';
-
-        $state->sections[] = $name;
-        $state->sectionMap[$path] = $name;
-    }
-
-    // 3. Landmark elements
-    $landmarks = ['header' => 'Header', 'footer' => 'Footer', 'main' => 'Main', 'aside' => 'Sidebar'];
-    foreach ($landmarks as $tag => $defaultName) {
-        $els = $xpath->query('//' . $tag);
-        foreach ($els as $el) {
+    // In strict mode (Forge Analyze), only use explicit markers above.
+    // In normal mode (single-file Forge), fall back to heuristics.
+    if (!$strictMode) {
+        // 2. <section> elements — use id or class as section name (unless already named by comment)
+        $sections = $xpath->query('//section');
+        foreach ($sections as $el) {
             $path = smart_forge_node_path($el);
             if (isset($state->sectionMap[$path])) continue;
 
+            $name = '';
             $id = $el->getAttribute('id');
-            $name = $id ? smart_forge_humanize($id) : $defaultName;
+            if ($id) {
+                $name = smart_forge_humanize($id);
+            } else {
+                $classes = array_filter(explode(' ', $el->getAttribute('class')), fn($c) => trim($c) !== '');
+                if (!empty($classes)) {
+                    $name = smart_forge_humanize(reset($classes));
+                }
+            }
+            if (!$name) $name = 'Section';
+
             $state->sections[] = $name;
             $state->sectionMap[$path] = $name;
         }
-    }
 
-    // 4. If no sections found yet, look for h2 headings as dividers
-    if (empty($state->sections)) {
-        $h2s = $xpath->query('//h2');
-        foreach ($h2s as $el) {
-            $text = trim($el->textContent);
-            if ($text) {
-                $name = smart_forge_humanize($text);
-                if (strlen($name) > 30) $name = substr($name, 0, 30);
+        // 3. Landmark elements
+        $landmarks = ['header' => 'Header', 'footer' => 'Footer', 'main' => 'Main', 'aside' => 'Sidebar'];
+        foreach ($landmarks as $tag => $defaultName) {
+            $els = $xpath->query('//' . $tag);
+            foreach ($els as $el) {
+                $path = smart_forge_node_path($el);
+                if (isset($state->sectionMap[$path])) continue;
+
+                $id = $el->getAttribute('id');
+                $name = $id ? smart_forge_humanize($id) : $defaultName;
                 $state->sections[] = $name;
-                // Map the h2's parent as the section
-                $parent = $el->parentNode;
-                if ($parent && $parent instanceof DOMElement) {
-                    $state->sectionMap[smart_forge_node_path($parent)] = $name;
+                $state->sectionMap[$path] = $name;
+            }
+        }
+
+        // 4. If no sections found yet, look for h2 headings as dividers
+        if (empty($state->sections)) {
+            $h2s = $xpath->query('//h2');
+            foreach ($h2s as $el) {
+                $text = trim($el->textContent);
+                if ($text) {
+                    $name = smart_forge_humanize($text);
+                    if (strlen($name) > 30) $name = substr($name, 0, 30);
+                    $state->sections[] = $name;
+                    // Map the h2's parent as the section
+                    $parent = $el->parentNode;
+                    if ($parent && $parent instanceof DOMElement) {
+                        $state->sectionMap[smart_forge_node_path($parent)] = $name;
+                    }
                 }
             }
         }
