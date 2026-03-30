@@ -1059,27 +1059,25 @@ function forge_analyze_extract_footer_menu(string $footerHtml): array {
         }
     }
 
-    // Look for a div with multiple <a> tags that aren't social links
-    $socialPatterns = ['social', 'icon', 'facebook', 'twitter', 'instagram', 'linkedin', 'youtube'];
+    // Look for a div with nav-like class (footer-links, footer-nav, footer-menu)
+    $navDivPatterns = ['footer-links', 'footer-nav', 'footer-menu', 'quick-links', 'site-links', 'page-links'];
     $xpath = new DOMXPath($doc);
     $divs = $xpath->query('//footer//div');
 
     foreach ($divs as $div) {
         if (!($div instanceof DOMElement)) continue;
-        // Skip social media sections
-        if (forge_analyze_class_contains($div, $socialPatterns)) continue;
 
-        $links = $div->getElementsByTagName('a');
-        if ($links->length >= 3) {
-            // Check that these aren't social links by examining hrefs
+        // Priority: look for a div specifically classed as a nav/links container
+        if (forge_analyze_class_contains($div, $navDivPatterns)) {
+            $links = $div->getElementsByTagName('a');
             $navLinks = [];
             foreach ($links as $link) {
                 if (!($link instanceof DOMElement)) continue;
-                $href = strtolower($link->getAttribute('href'));
-                // Skip external social links
-                if (preg_match('/facebook|twitter|instagram|linkedin|youtube|tiktok|pinterest/i', $href)) {
-                    continue;
-                }
+                $href = trim($link->getAttribute('href'));
+                // Only include internal page links (relative .html, /, or relative paths)
+                if (!$href || $href === '#') continue;
+                if (str_starts_with($href, 'tel:') || str_starts_with($href, 'mailto:')) continue;
+                if (preg_match('/facebook|twitter|instagram|linkedin|youtube|tiktok|pinterest|maps\.app|maps\.google|smugmug/i', $href)) continue;
                 $item = forge_analyze_link_to_item($link);
                 if ($item) $navLinks[] = $item;
             }
@@ -2120,14 +2118,9 @@ function forge_analyze_site(string $siteRoot): array {
         // Run Smart Forge scan on the stripped page body
         $scanResult = forge_analyze_scan_page($originalHtml, $filePartials, $fileHeadClass, $filename);
 
+        // Clean page name from filename (for display)
         $title = ucwords(str_replace(['-', '_'], ' ', $filename));
         if ($filename === 'index') $title = 'Home';
-
-        // Extract title from <title> tag if available
-        if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $originalHtml, $titleMatch)) {
-            $extractedTitle = trim(strip_tags($titleMatch[1]));
-            if ($extractedTitle) $title = $extractedTitle;
-        }
 
         $pages[] = [
             'path'          => $path,
