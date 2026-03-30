@@ -49,8 +49,8 @@ function smart_forge_scan(string $htmlContent, string $filename = ''): array {
     // Strip v2 data-outpost and data-type attributes (so DOM parser sees clean HTML)
     $cleanHtml = preg_replace('/\s+data-outpost="[^"]*"/', '', $cleanHtml);
     $cleanHtml = preg_replace('/\s+data-type="[^"]*"/', '', $cleanHtml);
-    // Strip v2 section comment wrappers
-    $cleanHtml = preg_replace('/<!--\s*\/?outpost:[a-z0-9_-]+\s*-->/i', '', $cleanHtml);
+    // NOTE: Do NOT strip <!-- outpost:sectionname --> comments — the section detector needs them.
+    // They are valid HTML comments that DOMDocument preserves as comment nodes.
 
     // Parse with DOMDocument
     $doc = new DOMDocument('1.0', 'UTF-8');
@@ -155,6 +155,11 @@ class SmartForgeState {
 
     /**
      * Generate a unique field name.
+     * When duplicates exist, numbers start at 1: hero_button_1, hero_button_2
+     *
+     * First occurrence: hero_button (no suffix)
+     * On first collision, the original is retroactively renamed to hero_button_1
+     * and the new one becomes hero_button_2. Subsequent: hero_button_3, etc.
      */
     public function uniqueName(string $base): string {
         $base = smart_forge_sanitize_name($base);
@@ -165,13 +170,44 @@ class SmartForgeState {
             return $base;
         }
 
-        $this->usedNames[$base]++;
-        $name = $base . '_' . $this->usedNames[$base];
-        // Ensure even the numbered version is unique
-        while (isset($this->usedNames[$name])) {
-            $this->usedNames[$base]++;
-            $name = $base . '_' . $this->usedNames[$base];
+        // First collision: retroactively rename the original to _1
+        if ($this->usedNames[$base] === 1) {
+            $renamedBase = $base . '_1';
+            // Rename the first occurrence in fields list
+            foreach ($this->fields as &$f) {
+                if ($f['name'] === $base) {
+                    $f['name'] = $renamedBase;
+                    $f['label'] = smart_forge_human_label($renamedBase);
+                    break;
+                }
+            }
+            unset($f);
+            // Also update replacements map
+            foreach ($this->replacements as $path => &$r) {
+                if (isset($r['name']) && $r['name'] === $base) {
+                    $r['name'] = $renamedBase;
+                }
+                if (isset($r['name_label']) && $r['name_label'] === $base) {
+                    $r['name_label'] = $renamedBase;
+                }
+                if (isset($r['name_url']) && $r['name_url'] === $base) {
+                    $r['name_url'] = $renamedBase;
+                }
+            }
+            unset($r);
+            $this->usedNames[$renamedBase] = 1;
+            $this->usedNames[$base] = 1; // Will be incremented below
         }
+
+        // Increment and find next available number
+        $this->usedNames[$base]++;
+        $counter = $this->usedNames[$base];
+        $name = $base . '_' . $counter;
+        while (isset($this->usedNames[$name])) {
+            $counter++;
+            $name = $base . '_' . $counter;
+        }
+        $this->usedNames[$base] = $counter;
         $this->usedNames[$name] = 1;
         return $name;
     }
@@ -412,32 +448,14 @@ function smart_forge_is_worth_editing(DOMElement $node, string $text): bool {
     $parent = $node->parentNode;
     while ($parent && $parent instanceof DOMElement) {
         $pClasses = strtolower($parent->getAttribute('class'));
-        if (preg_match('/\b(scroll[-_]?(indicator|down|up|hint)|divider|separator|decorator|ornament|decoration)\b/', $pClasses)) {
+        if (preg_match('/\b(scroll[-_]?(indicator|down|up|hint)|divider|separator|spacer|decorator|ornament|decoration|overlay|backdrop|curtain|bg|glow|line)\b/', $pClasses)) {
             return false;
         }
         if ($parent->getAttribute('aria-hidden') === 'true') return false;
         $parent = $parent->parentNode;
     }
 
-    // Check if inside <nav> <ul> — skip nav menu links only (not CTAs, logos, taglines)
-    $tag = strtolower($node->nodeName);
-    $isInsideNavList = false;
-    $parent = $node->parentNode;
-    while ($parent && $parent instanceof DOMElement) {
-        $pTag = strtolower($parent->nodeName);
-        if ($pTag === 'ul' || $pTag === 'ol') {
-            // Check if this list is inside a nav
-            $grandparent = $parent->parentNode;
-            while ($grandparent && $grandparent instanceof DOMElement) {
-                if (strtolower($grandparent->nodeName) === 'nav') { $isInsideNavList = true; break; }
-                $grandparent = $grandparent->parentNode;
-            }
-            break;
-        }
-        $parent = $parent->parentNode;
-    }
-    // Only skip if inside a nav's <ul>/<ol> list items — CTAs and brand outside lists are kept
-    if ($isInsideNavList && in_array($tag, ['a', 'li', 'span'])) return false;
+    // Nav check is now handled by smart_forge_should_skip() — all <nav> descendants are skipped
 
     return true;
 }
@@ -604,27 +622,44 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
         $state->addSection($sectionName, smart_forge_node_path($el), $el);
     }
 
-    // 1b. HTML comments like <!-- Hero Section --> name the next sibling section
+    // 1b. HTML comments — two patterns:
+    //   (a) <!-- outpost:hero --> format (v2 section markers) — strip "outpost:" prefix
+    //   (b) <!-- Hero Section --> generic comment — use as section name
     $commentSections = [];
     $xpath2 = new DOMXPath($doc);
     $comments = $xpath2->query('//comment()');
     foreach ($comments as $comment) {
         $text = trim($comment->textContent);
-        // Match patterns like "Hero Section", "Chef Section", "Team Grid"
-        if (preg_match('/^[\s-]*(.+?)[\s-]*$/', $text, $cm)) {
-            $sectionLabel = trim($cm[1]);
-            if (strlen($sectionLabel) > 2 && strlen($sectionLabel) < 50) {
-                // Find the next sibling element
-                $next = $comment->nextSibling;
-                while ($next && !($next instanceof DOMElement)) {
-                    $next = $next->nextSibling;
-                }
-                if ($next && $next instanceof DOMElement) {
-                    $path = smart_forge_node_path($next);
-                    if (!isset($state->sectionMap[$path])) {
-                        $name = smart_forge_humanize($sectionLabel);
-                        $state->addSection($name, $path, $next);
-                    }
+
+        // Skip closing comments like <!-- /outpost:hero -->
+        if (str_starts_with($text, '/')) continue;
+
+        $sectionLabel = null;
+
+        // (a) Match <!-- outpost:sectionname --> format — strip "outpost:" prefix
+        if (preg_match('/^outpost:([a-z0-9_-]+)$/i', $text, $om)) {
+            $sectionLabel = $om[1];
+        }
+        // (b) Match generic comments like <!-- Hero Section -->
+        elseif (preg_match('/^[\s-]*(.+?)[\s-]*$/', $text, $cm)) {
+            $candidate = trim($cm[1]);
+            // Skip outpost-settings and other internal comments
+            if (!str_starts_with(strtolower($candidate), 'outpost') && strlen($candidate) > 2 && strlen($candidate) < 50) {
+                $sectionLabel = $candidate;
+            }
+        }
+
+        if ($sectionLabel !== null) {
+            // Find the next sibling element
+            $next = $comment->nextSibling;
+            while ($next && !($next instanceof DOMElement)) {
+                $next = $next->nextSibling;
+            }
+            if ($next && $next instanceof DOMElement) {
+                $path = smart_forge_node_path($next);
+                if (!isset($state->sectionMap[$path])) {
+                    $name = smart_forge_humanize($sectionLabel);
+                    $state->addSection($name, $path, $next);
                 }
             }
         }
@@ -649,7 +684,11 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
                     $c = trim($c);
                     if ($c === '' || strlen($c) < 3) return false;
                     // Skip animation, transition, layout, and utility classes
-                    if (preg_match('/^(fade|slide|animate|transition|delay|duration|ease|scale|rotate|translate|opacity|transform|overflow|relative|absolute|fixed|sticky|col|row|flex|grid|block|inline|hidden|visible|container|wrapper|inner|outer|d|p|m|w|h|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|bg|text|show|hide|no|has|is|wp|elementor|swiper|slick|aos|gsap|wow|hs|webflow|lottie|jarallax)\-?/i', $c)) return false;
+                    // Single-letter prefixes (d, p, m, w, h) require a hyphen after them to avoid
+                    // matching real words like "welcome-section" or "pricing-table"
+                    if (preg_match('/^(fade|slide|animate|transition|delay|duration|ease|scale|rotate|translate|opacity|transform|overflow|relative|absolute|fixed|sticky|col|row|flex|grid|block|inline|hidden|visible|container|wrapper|inner|outer|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|bg|text|show|hide|no|has|is|wp|elementor|swiper|slick|aos|gsap|wow|webflow|lottie|jarallax)\-/i', $c)) return false;
+                    // Exact-match single-letter utility classes (shouldn't survive strlen < 3 check but just in case)
+                    if (preg_match('/^[dpmwh]-/i', $c)) return false;
                     return true;
                 });
                 if (!empty($classes)) {
@@ -668,8 +707,11 @@ function smart_forge_detect_sections(DOMDocument $doc, SmartForgeState $state, b
             }
             if (!$name) $name = 'Section';
 
-            // Try to derive a better name from the first heading inside this section
-            if ($name === 'Section' || strlen($name) <= 3) {
+            // Try to derive a better name from the first heading inside this section.
+            // Also override CSS-class-derived names that look presentational (e.g. "Times Bar")
+            $nameSlug = smart_forge_sanitize_name($name);
+            $looksLikeCssClass = $name !== 'Section' && !preg_match('/^(hero|banner|about|features?|services?|team|testimonials?|contact|cta|pricing|faq|gallery|portfolio|blog|news|welcome|intro|overview|showcase|stats|counter|partners?|clients?|brands?|footer|header|sidebar)(_|$)/i', $nameSlug);
+            if ($name === 'Section' || strlen($name) <= 3 || $looksLikeCssClass) {
                 $headingXpath = new DOMXPath($doc);
                 $headings = $headingXpath->query('.//h1|.//h2|.//h3', $el);
                 if ($headings->length > 0) {
@@ -770,59 +812,146 @@ function smart_forge_get_section(DOMNode $node, SmartForgeState $state): string 
 
 // ── Field Name Generation ───────────────────────────────
 
+/**
+ * Generate a semantic field name from section + element role.
+ *
+ * Rules:
+ * 1. Section name is ALWAYS the prefix: hero_, welcome_, cta_
+ * 2. Element role is the suffix: _title (h1), _heading (h2), _subtitle, _body, _image, _button, _link, _label
+ * 3. Duplicates get _1, _2 suffixes (starting at 1 for second occurrence)
+ * 4. NEVER use CSS class names as field names
+ * 5. NEVER use numbered suffixes without the type
+ */
 function smart_forge_field_name(DOMElement $el, string $section, string $typeHint, SmartForgeState $state): string {
     $sectionSlug = smart_forge_sanitize_name($section);
+    if (!$sectionSlug) $sectionSlug = 'content';
 
-    // 1. Check id attribute — prefix with section slug
-    $id = $el->getAttribute('id');
-    if ($id && preg_match('/^[a-zA-Z][\w\-]*$/', $id)) {
-        $idName = smart_forge_sanitize_name($id);
-        // If the id already starts with the section slug, use it as-is
-        if ($sectionSlug && str_starts_with($idName, $sectionSlug . '_')) {
-            return $state->uniqueName($idName);
-        }
-        $name = $sectionSlug ? $sectionSlug . '_' . $idName : $idName;
-        return $state->uniqueName($name);
-    }
+    // ── Determine the element's ROLE from tag + context ──
+    $tag = strtolower($el->nodeName);
+    $role = smart_forge_element_role($el, $tag, $typeHint);
 
-    // 2. Check classes for a SEMANTIC name — prefix with section slug
-    //    Skip utility, layout, animation, and presentational classes entirely
-    $classes = array_filter(explode(' ', $el->getAttribute('class')), function ($c) {
-        $c = trim($c);
-        if ($c === '' || strlen($c) < 3) return false;
-        // Skip utility/layout/animation/presentational classes that produce gibberish names
-        if (preg_match('/^(col|row|d|p|m|w|h|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|g|gap|text|bg|flex|grid|block|inline|hidden|visible|container|wrapper|inner|outer|fade|slide|animate|transition|delay|duration|ease|scale|rotate|translate|opacity|transform|overflow|relative|absolute|fixed|sticky|static|float|clear|z|top|bottom|left|right|rounded|border|shadow|leading|tracking|font|uppercase|lowercase|capitalize|truncate|whitespace|break|cursor|pointer|select|resize|sr|lg|md|sm|xl|xs|xxl|show|hide|collapse|expanded|active|disabled|focus|hover|group|peer|dark|light|mobile|desktop|tablet|no|has|is|not|wp|elementor|swiper|slick|aos|gsap|wow|hs|webflow|lottie|jarallax)\-?/i', $c)) return false;
-        // Skip classes that are just element-type descriptions (times-bar-time, hero-btn, etc.)
-        // These produce names like "times_bar_time" which are not semantic
-        return true;
-    });
-
-    // Among remaining classes, prefer ones that suggest CONTENT role over layout role
-    $semanticClass = null;
-    foreach ($classes as $cls) {
-        $sanitized = smart_forge_sanitize_name($cls);
-        if (!$sanitized || strlen($sanitized) < 3) continue;
-        // Skip class names that are just the section name repeated
-        if ($sectionSlug && $sanitized === $sectionSlug) continue;
-        // Skip class names that are purely structural (describing HTML structure, not content)
-        if (preg_match('/^(item|card|box|wrap|cell|slot|panel|block|module|component|widget|section|region|area|zone|part|piece|chunk|segment|unit|col_|row_)/', $sanitized)) continue;
-        $semanticClass = $sanitized;
-        break;
-    }
-
-    if ($semanticClass) {
-        // If the class already starts with the section slug, use it as-is
-        if ($sectionSlug && str_starts_with($semanticClass, $sectionSlug . '_')) {
-            return $state->uniqueName($semanticClass);
-        }
-        $name = $sectionSlug ? $sectionSlug . '_' . $semanticClass : $semanticClass;
-        return $state->uniqueName($name);
-    }
-
-    // 3. Section + element type (always prefixed with block name)
-    //    This produces clean names like hero_heading, about_body, cta_link
-    $name = $sectionSlug ? $sectionSlug . '_' . $typeHint : $typeHint;
+    // ── Combine: {section}_{role} ──
+    $name = $sectionSlug . '_' . $role;
     return $state->uniqueName($name);
+}
+
+/**
+ * Determine an element's semantic role from its tag, classes, and context.
+ * Returns a clean role suffix like: title, heading, subtitle, body, image, button, link, label
+ *
+ * NEVER returns CSS class names. Only returns semantic content roles.
+ */
+function smart_forge_element_role(DOMElement $el, string $tag, string $typeHint): string {
+    $classes = strtolower($el->getAttribute('class'));
+
+    // ── Check classes for ROLE keywords only (not as field names, just to refine the role) ──
+    // These keywords help disambiguate: a <p> with class "subtitle" → subtitle, not text
+    $roleFromClass = smart_forge_extract_role_keyword($classes);
+    if ($roleFromClass) {
+        return $roleFromClass;
+    }
+
+    // ── Map tag to default role ──
+    switch ($tag) {
+        case 'h1':
+            return 'title';
+        case 'h2':
+            return 'heading';
+        case 'h3':
+            return 'subheading';
+        case 'h4':
+        case 'h5':
+        case 'h6':
+            return 'heading';
+
+        case 'img':
+            return 'image';
+
+        case 'a':
+            // Check if it looks like a button (btn class)
+            if (preg_match('/\b(btn|button|cta|action)\b/i', $classes)) {
+                return 'button';
+            }
+            return 'link';
+
+        case 'button':
+            return 'button';
+
+        case 'p':
+            // Use typeHint to distinguish body vs text vs subtitle
+            if ($typeHint === 'body') return 'body';
+            if ($typeHint === 'text') return 'text';
+            return $typeHint ?: 'text';
+
+        case 'span':
+            return 'label';
+
+        case 'div':
+            // Use the typeHint from the walk function (label, name, role, badge, date)
+            return $typeHint ?: 'label';
+
+        case 'blockquote':
+            return 'quote';
+
+        case 'figcaption':
+            return 'caption';
+
+        case 'time':
+            return 'date';
+
+        case 'small':
+            return 'note';
+
+        case 'strong':
+        case 'em':
+            return 'label';
+
+        case 'address':
+            return 'address';
+
+        case 'ul':
+        case 'ol':
+            return 'list';
+
+        default:
+            // Fall back to typeHint if provided
+            return $typeHint ?: 'field';
+    }
+}
+
+/**
+ * Extract a semantic ROLE keyword from CSS classes.
+ * Only matches known content-role words, never structural/layout/animation classes.
+ * Returns null if no role keyword found.
+ */
+function smart_forge_extract_role_keyword(string $classes): ?string {
+    if (!$classes) return null;
+
+    // Map of class keyword patterns to role names
+    $roleMap = [
+        '/\b\w*subtitle\b/' => 'subtitle',
+        '/\b\w*tagline\b/' => 'tagline',
+        '/\b\w*caption\b/' => 'caption',
+        '/\b\w*excerpt\b/' => 'excerpt',
+        '/\b\w*summary\b/' => 'summary',
+        '/\b\w*bio\b/' => 'bio',
+        '/\b\w*quote\b/' => 'quote',
+        '/\b\w*testimonial\b/' => 'testimonial',
+        '/\b\w*slogan\b/' => 'slogan',
+        '/\b\w*copyright\b/' => 'copyright',
+        '/\b\w*credit\b/' => 'credit',
+        '/\b\w*schedule\b/' => 'schedule',
+        '/\b\w*price\b/' => 'price',
+        '/\b\w*author\b/' => 'author',
+    ];
+
+    foreach ($roleMap as $pattern => $role) {
+        if (preg_match($pattern, $classes)) {
+            return $role;
+        }
+    }
+
+    return null;
 }
 
 
@@ -840,12 +969,28 @@ function smart_forge_should_skip(DOMNode $node): bool {
     // data-outpost-skip
     if ($node->hasAttribute('data-outpost-skip')) return true;
 
-    // Check ancestors for skip tags
+    // aria-hidden="true" — element and ALL children are decorative, never annotate
+    if ($node->getAttribute('aria-hidden') === 'true') return true;
+
+    // Decorative elements: classes that indicate purely visual/structural role
+    // (backgrounds, dividers, overlays, spacers, glows, etc.)
+    $classes = strtolower($node->getAttribute('class'));
+    if ($classes !== '' && preg_match('/\b(divider|spacer|separator|line|bg|overlay|glow|backdrop|curtain|decoration|ornament)\b/', $classes)) {
+        // Only skip if the element has no meaningful text content (> 2 chars)
+        $text = trim($node->textContent);
+        if ($text === '' || mb_strlen($text) <= 2) return true;
+    }
+
+    // Check ALL ancestors for skip tags, <nav>, aria-hidden, data-outpost-skip
+    // Everything inside a <nav> is navigation — handled by <outpost-menu>, not individual fields
+    // Everything inside aria-hidden="true" is decorative — never annotate
     $parent = $node->parentNode;
     while ($parent && $parent instanceof DOMElement) {
         $parentTag = strtolower($parent->nodeName);
         if (in_array($parentTag, $skipTags)) return true;
+        if ($parentTag === 'nav') return true;
         if ($parent->hasAttribute('data-outpost-skip')) return true;
+        if ($parent->getAttribute('aria-hidden') === 'true') return true;
         $parent = $parent->parentNode;
     }
 
@@ -1116,7 +1261,7 @@ function smart_forge_walk(DOMNode $node, DOMDocument $doc, SmartForgeState $stat
             $bgUrl = $m[1];
             // Skip data: URIs
             if (!str_starts_with($bgUrl, 'data:')) {
-                $name = smart_forge_field_name($node, $section, 'bg_image', $state);
+                $name = smart_forge_field_name($node, $section, 'background', $state);
                 $selector = smart_forge_css_selector($node);
                 $state->addField($name, 'image', $section, $selector . '[style]', $bgUrl, $node);
             }
@@ -1127,15 +1272,30 @@ function smart_forge_walk(DOMNode $node, DOMDocument $doc, SmartForgeState $stat
     if (in_array($tag, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
         $text = trim($node->textContent);
         // Headings are always worth editing if they have 2+ chars and are in content areas
+        // (nav headings already skipped by smart_forge_should_skip)
         if ($text !== '' && mb_strlen($text) >= 2) {
-            // Skip headings inside <nav> — those are navigation labels
-            $isNavLabel = false;
-            $parent = $node->parentNode;
-            while ($parent && $parent instanceof DOMElement) {
-                if (strtolower($parent->nodeName) === 'nav') { $isNavLabel = true; break; }
-                $parent = $parent->parentNode;
+            // Skip structural/decorative headings:
+            // 1. Headings with explicit structural classes (footer-heading, widget-title, etc.)
+            $classes = strtolower($node->getAttribute('class'));
+            $isStructuralHeading = preg_match('/\b(footer[-_]?heading|widget[-_]?title|sidebar[-_]?heading|section[-_]?label|column[-_]?title|block[-_]?title)\b/', $classes);
+
+            // 2. Short h3-h6 headings inside <footer> — these are column labels
+            //    ("Contact", "Service Times", "Quick Links") — not editable content.
+            //    h1/h2 in footer are still annotated (e.g. brand names, taglines).
+            if (!$isStructuralHeading && in_array($tag, ['h3', 'h4', 'h5', 'h6']) && mb_strlen($text) <= 30) {
+                $ancestor = $node->parentNode;
+                while ($ancestor && $ancestor instanceof DOMElement) {
+                    if (strtolower($ancestor->nodeName) === 'footer') {
+                        $isStructuralHeading = true;
+                        break;
+                    }
+                    $ancestor = $ancestor->parentNode;
+                }
             }
-            if (!$isNavLabel) {
+
+            if (!$isStructuralHeading) {
+                // Tag-based role: h1=title, h2=heading, h3=subheading, h4+=heading
+                // The smart_forge_element_role() function handles this mapping
                 $name = smart_forge_field_name($node, $section, 'heading', $state);
                 $selector = smart_forge_css_selector($node);
                 // Check if heading has inline formatting children
@@ -1154,6 +1314,7 @@ function smart_forge_walk(DOMNode $node, DOMDocument $doc, SmartForgeState $stat
     }
 
     // ── Links — CTA buttons AND text links with meaningful content ──
+    // (nav links already skipped by smart_forge_should_skip — all <nav> descendants are excluded)
     if ($tag === 'a') {
         $href = $node->getAttribute('href');
         $text = trim($node->textContent);
@@ -1161,29 +1322,9 @@ function smart_forge_walk(DOMNode $node, DOMDocument $doc, SmartForgeState $stat
         // Skip truly empty links
         if ($text === '' || $href === '') { return; }
 
-        // Skip if inside a nav's <ul>/<ol> (menu system handles those)
-        $isInsideNavList = false;
-        $p = $node->parentNode;
-        while ($p && $p instanceof DOMElement) {
-            $pTag = strtolower($p->nodeName);
-            if ($pTag === 'ul' || $pTag === 'ol') {
-                $gp = $p->parentNode;
-                while ($gp && $gp instanceof DOMElement) {
-                    if (strtolower($gp->nodeName) === 'nav') { $isInsideNavList = true; break; }
-                    $gp = $gp->parentNode;
-                }
-                break;
-            }
-            $p = $p->parentNode;
-        }
-        if ($isInsideNavList) { return; }
-
         if (smart_forge_is_worth_editing($node, $text)) {
-            $classes = $node->getAttribute('class');
-            $isCta = (bool)preg_match('/\b(btn|button|cta|action)\b/i', $classes);
-            $typeHint = $isCta ? 'cta' : 'link';
-
-            $name = smart_forge_field_name($node, $section, $typeHint, $state);
+            // smart_forge_element_role() determines button vs link from classes
+            $name = smart_forge_field_name($node, $section, 'link', $state);
             $selector = smart_forge_css_selector($node);
             $state->addField($name, 'link', $section, $selector, $href, $node);
             // Store link replacement info
@@ -1201,7 +1342,7 @@ function smart_forge_walk(DOMNode $node, DOMDocument $doc, SmartForgeState $stat
     if ($tag === 'button') {
         $text = trim($node->textContent);
         if ($text !== '' && smart_forge_is_worth_editing($node, $text)) {
-            $name = smart_forge_field_name($node, $section, 'cta', $state);
+            $name = smart_forge_field_name($node, $section, 'button', $state);
             $selector = smart_forge_css_selector($node);
             $labelName = $state->uniqueName($name . '_label');
             $urlName = $state->uniqueName($name . '_url');

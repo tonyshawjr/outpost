@@ -1104,36 +1104,128 @@ function forge_analyze_find_element_in(DOMElement $parent, string $tag, int $ind
 
 
 // ════════════════════════════════════════════════════════════
+// Tag Range Finder (raw string, no DOM)
+// ════════════════════════════════════════════════════════════
+
+/**
+ * Find the byte range of the Nth occurrence of a given HTML tag in raw HTML.
+ *
+ * Handles nested tags of the same name by counting open/close depth.
+ * Returns the range from the opening '<tag' to the end of '</tag>'.
+ *
+ * @param string $html   Raw HTML string
+ * @param string $tag    Tag name (e.g. 'nav', 'footer', 'head')
+ * @param int    $index  0 for first, -1 for last
+ * @return array|null    ['start' => int, 'end' => int] or null if not found
+ */
+function forge_analyze_find_tag_range(string $html, string $tag, int $index = 0): ?array {
+    $tag = strtolower($tag);
+    $openPattern = '/<' . $tag . '[\s>]/i';
+    $closeTag = '</' . $tag . '>';
+
+    // Find all opening tag positions
+    $openPositions = [];
+    $offset = 0;
+    while (preg_match($openPattern, $html, $m, PREG_OFFSET_CAPTURE, $offset)) {
+        $openPositions[] = $m[0][1];
+        $offset = $m[0][1] + strlen($m[0][0]);
+    }
+
+    if (empty($openPositions)) return null;
+
+    // Handle negative index (last occurrence)
+    if ($index < 0) {
+        $index = count($openPositions) + $index;
+    }
+    if ($index < 0 || $index >= count($openPositions)) return null;
+
+    $start = $openPositions[$index];
+
+    // Find the matching close tag by counting depth
+    $depth = 0;
+    $searchOffset = $start;
+    while (preg_match('/<(\/?)\s*' . $tag . '[\s>\/]/i', $html, $tagMatch, PREG_OFFSET_CAPTURE, $searchOffset)) {
+        $isClose = ($tagMatch[1][0] === '/');
+        $matchPos = $tagMatch[0][1];
+        $matchLen = strlen($tagMatch[0][0]);
+
+        if ($isClose) {
+            if ($depth <= 1) {
+                // Found our matching close tag
+                $closeEnd = strpos($html, '>', $matchPos);
+                if ($closeEnd === false) $closeEnd = $matchPos + $matchLen;
+                return ['start' => $start, 'end' => $closeEnd + 1];
+            }
+            $depth--;
+        } else {
+            $depth++;
+        }
+        $searchOffset = $matchPos + $matchLen;
+    }
+
+    // No closing tag found — try to find just the opening tag's end
+    // (for void elements or malformed HTML)
+    $tagEnd = strpos($html, '>', $start);
+    if ($tagEnd !== false) {
+        return ['start' => $start, 'end' => $tagEnd + 1];
+    }
+
+    return null;
+}
+
+
+/**
+ * Find a tag range in the original HTML by matching against normalized DOM-serialized HTML.
+ *
+ * DOMDocument normalizes attributes, whitespace, and casing when serializing.
+ * This function finds the ORIGINAL byte range by locating the tag in the raw HTML
+ * and comparing it structurally.
+ *
+ * @param string $originalHtml  Raw original HTML
+ * @param string $domHtml       DOM-serialized HTML of the partial
+ * @param string $tag           Tag name ('nav', 'footer')
+ * @param int    $index         0 for first, -1 for last
+ * @return array|null           ['start' => int, 'end' => int, 'html' => string] or null
+ */
+function forge_analyze_find_original_range(string $originalHtml, string $domHtml, string $tag, int $index = 0): ?array {
+    $range = forge_analyze_find_tag_range($originalHtml, $tag, $index);
+    if (!$range) return null;
+
+    $originalSnippet = substr($originalHtml, $range['start'], $range['end'] - $range['start']);
+    $range['html'] = $originalSnippet;
+    return $range;
+}
+
+
+// ════════════════════════════════════════════════════════════
 // Phase 5: Per-Page Smart Forge Scan
 // ════════════════════════════════════════════════════════════
 
 /**
  * Scan a single page's HTML after partials have been extracted.
  *
- * Strips the regions that correspond to nav, footer, and shared <head> content,
+ * Strips the regions that correspond to nav, footer, head, and mobile-menu,
  * then runs the existing `smart_forge_scan()` engine on the remaining body HTML.
  *
  * @param string $originalHtml     The full original HTML of this page
- * @param array  $partials         Partials extracted by Phase 3/4, keyed by name:
+ * @param array  $partials         Partials with byte offsets keyed by name:
  *                                 ['nav' => ['html'=>'...','start'=>int,'end'=>int], ...]
- *                                 Each entry has 'start' (byte offset) and 'end' (byte offset)
- * @param array  $headClassification  Head classification from Phase 2:
- *                                    ['shared'=>[elements], 'per_page'=>[elements],
- *                                     'head_start'=>int, 'head_end'=>int]
+ * @param array  $headRange        Head tag byte range: ['start'=>int, 'end'=>int] or empty
  * @param string $filename         Original filename (for context in field naming)
  * @return array  Smart Forge scan result: {template, fields, sections, field_map, repeaters, suggested_partials}
  */
-function forge_analyze_scan_page(string $originalHtml, array $partials, array $headClassification, string $filename = ''): array {
-    // Build a list of byte ranges to strip (nav, footer, mobile-menu, shared head)
+function forge_analyze_scan_page(string $originalHtml, array $partials, array $headRange, string $filename = ''): array {
+    // Build a list of byte ranges to strip (head, nav, footer, mobile-menu)
     $stripRanges = [];
 
-    // Strip shared head content — replace entire <head> innards with just per-page elements
-    // We keep the <body> tag and everything after it, minus nav/footer
-    if (!empty($headClassification['head_start']) && !empty($headClassification['head_end'])) {
-        $stripRanges[] = [
-            'start' => (int)$headClassification['head_start'],
-            'end'   => (int)$headClassification['head_end'],
-        ];
+    // Strip entire <head>...</head>
+    if (!empty($headRange['start']) || (isset($headRange['start']) && $headRange['start'] === 0)) {
+        if (isset($headRange['end'])) {
+            $stripRanges[] = [
+                'start' => (int)$headRange['start'],
+                'end'   => (int)$headRange['end'],
+            ];
+        }
     }
 
     // Strip each extracted partial region from the HTML
@@ -1157,7 +1249,7 @@ function forge_analyze_scan_page(string $originalHtml, array $partials, array $h
         $strippedHtml = $before . $after;
     }
 
-    // Remove DOCTYPE, <html>, <head>, </head>, <body>, </body>, </html> wrapper tags
+    // Remove DOCTYPE, <html>, <body>, </body>, </html> wrapper tags
     // so smart_forge_scan gets clean body content
     $strippedHtml = preg_replace('/<!DOCTYPE[^>]*>/i', '', $strippedHtml);
     $strippedHtml = preg_replace('/<\/?html[^>]*>/i', '', $strippedHtml);
@@ -1351,45 +1443,45 @@ function forge_analyze_apply_global_heuristics(array $field, string $partialName
  * @param string $originalHtml       Full original HTML of the page
  * @param array  $partials           Extracted partials with byte offsets: {name => {html, start, end}}
  * @param array  $scanResult         Smart Forge scan result from forge_analyze_scan_page()
- * @param array  $headClassification Head classification from Phase 2
+ * @param array  $headRange          Head tag byte range: ['start'=>int, 'end'=>int] or empty
  * @param string $pagePath           Page path (e.g. '/', '/about') for meta defaults
+ * @param array  $perPageHeadElements Per-page head elements for this file: [key => html_string]
  * @return string  Final annotated HTML template
  */
-function forge_analyze_rewrite_page(string $originalHtml, array $partials, array $scanResult, array $headClassification, string $pagePath): string {
+function forge_analyze_rewrite_page(string $originalHtml, array $partials, array $scanResult, array $headRange, string $pagePath, array $perPageHeadElements = []): string {
     $template = $originalHtml;
 
     // ── Step 1: Build replacement map (byte offset => replacement) ──
     // We process replacements from end to start to preserve offsets.
     $replacements = []; // [['start'=>int, 'end'=>int, 'replacement'=>string], ...]
 
-    // ── Replace <head>...</head> with outpost-include + per-page styles ──
-    $headStart = $headClassification['head_start'] ?? null;
-    $headEnd   = $headClassification['head_end'] ?? null;
+    // ── Replace everything from DOCTYPE through <body> with outpost-include head ──
+    // The head partial contains DOCTYPE, <html>, <head>...</head>, and <body> tag.
+    // Per-page elements (inline styles, page-specific scripts) go after the include.
+    $hasHead = !empty($headRange) && isset($headRange['start'], $headRange['end']);
 
-    if ($headStart !== null && $headEnd !== null) {
-        // Collect per-page elements (inline styles, page-specific meta)
-        $perPageHtml = '';
-        foreach (($headClassification['per_page'] ?? []) as $element) {
-            $perPageHtml .= '  ' . trim($element) . "\n";
-        }
-
-        // Build the replacement: outpost-include for head + per-page elements
-        $headReplacement = "<outpost-include partial=\"head\">\n";
-        if (!empty($perPageHtml)) {
-            $headReplacement .= $perPageHtml;
-        }
-
-        // Find where <body> tag starts — everything from DOCTYPE through <body> is handled by head partial
-        $bodyPos = stripos($template, '<body');
-        if ($bodyPos !== false) {
-            $bodyTagEnd = strpos($template, '>', $bodyPos);
-            if ($bodyTagEnd !== false) {
-                $replacements[] = [
-                    'start'       => 0,
-                    'end'         => $bodyTagEnd + 1,
-                    'replacement' => $headReplacement,
-                ];
+    // Even without head classification, if we have a <body> tag, replace up to it
+    $bodyPos = stripos($template, '<body');
+    if ($bodyPos !== false) {
+        $bodyTagEnd = strpos($template, '>', $bodyPos);
+        if ($bodyTagEnd !== false) {
+            // Collect per-page elements
+            $perPageHtml = '';
+            foreach ($perPageHeadElements as $key => $element) {
+                $perPageHtml .= '  ' . trim($element) . "\n";
             }
+
+            // Build the replacement
+            $headReplacement = "<outpost-include partial=\"head\">\n";
+            if (!empty($perPageHtml)) {
+                $headReplacement .= $perPageHtml;
+            }
+
+            $replacements[] = [
+                'start'       => 0,
+                'end'         => $bodyTagEnd + 1,
+                'replacement' => $headReplacement,
+            ];
         }
     }
 
@@ -1743,7 +1835,8 @@ function forge_analyze_rewrite_nav_partial(string $html, array $globalFields): s
 
 
 /**
- * Rewrite the footer partial: inject global field annotations.
+ * Rewrite the footer partial: inject global field annotations and convert
+ * <nav> link groups to <outpost-menu name="footer">.
  *
  * @param string $html          Raw footer HTML
  * @param array  $globalFields  Detected global fields
@@ -1755,6 +1848,82 @@ function forge_analyze_rewrite_footer_partial(string $html, array $globalFields)
     // Ensure footer partial ends with </body></html>
     if (!preg_match('/<\/body>/i', $template)) {
         $template = rtrim($template) . "\n</body>\n</html>\n";
+    }
+
+    // ── Convert <nav> inside footer to <outpost-menu name="footer"> ──
+    // Find <nav>...</nav> inside the footer
+    $navRange = forge_analyze_find_tag_range($template, 'nav', 0);
+    if ($navRange) {
+        $navHtml = substr($template, $navRange['start'], $navRange['end'] - $navRange['start']);
+
+        // Find <ul>...</ul> inside the nav
+        $ulStart = stripos($navHtml, '<ul');
+        if ($ulStart !== false) {
+            // Find matching </ul>
+            $depth = 0;
+            $searchPos = 0;
+            $ulEnd = null;
+            while (preg_match('/<(\/?)\s*ul[\s>]/i', $navHtml, $tagMatch, PREG_OFFSET_CAPTURE, $searchPos)) {
+                $isClose = ($tagMatch[1][0] === '/');
+                $matchPos = $tagMatch[0][1];
+                $matchLen = strlen($tagMatch[0][0]);
+
+                if ($isClose) {
+                    if ($depth <= 1) {
+                        $closeEnd = strpos($navHtml, '>', $matchPos);
+                        $ulEnd = ($closeEnd !== false) ? $closeEnd + 1 : $matchPos + $matchLen;
+                        break;
+                    }
+                    $depth--;
+                } else {
+                    $depth++;
+                }
+                $searchPos = $matchPos + $matchLen;
+            }
+
+            if ($ulEnd !== null) {
+                $ulHtml = substr($navHtml, $ulStart, $ulEnd - $ulStart);
+                $indent = forge_analyze_detect_indent($navHtml, $ulStart);
+
+                // Extract first <a> to use as menu template
+                $menuItems = '';
+                if (preg_match_all('/<li[^>]*>\s*(<a\b[^>]*>.*?<\/a>)\s*<\/li>/is', $ulHtml, $liMatches)) {
+                    $firstLink = $liMatches[1][0] ?? '';
+                    if ($firstLink) {
+                        $menuLink = preg_replace('/(<a\b[^>]*?)(\bhref=["\'][^"\']*["\'])([^>]*>)/i', '$1data-bind="href:url" $2$3', $firstLink, 1);
+                        $menuLink = preg_replace('/(<a\b[^>]*)(>)/i', '$1 data-outpost="label"$2', $menuLink, 1);
+                        $menuItems = $indent . '  ' . $menuLink;
+                    }
+                }
+
+                if ($menuItems) {
+                    // Replace the entire <nav>...</nav> with <outpost-menu name="footer">
+                    $menuReplacement = $indent . '<outpost-menu name="footer">' . "\n"
+                        . $menuItems . "\n"
+                        . $indent . '</outpost-menu>';
+                    $template = substr($template, 0, $navRange['start'])
+                        . $menuReplacement
+                        . substr($template, $navRange['end']);
+                }
+            }
+        } else {
+            // No <ul> — try flat <a> links inside nav
+            if (preg_match_all('/<a\b[^>]*>.*?<\/a>/is', $navHtml, $linkMatches)) {
+                $firstLink = $linkMatches[0][0] ?? '';
+                if ($firstLink) {
+                    $indent = forge_analyze_detect_indent($template, $navRange['start']);
+                    $menuLink = preg_replace('/(<a\b[^>]*?)(\bhref=["\'][^"\']*["\'])([^>]*>)/i', '$1data-bind="href:url" $2$3', $firstLink, 1);
+                    $menuLink = preg_replace('/(<a\b[^>]*)(>)/i', '$1 data-outpost="label"$2', $menuLink, 1);
+
+                    $menuReplacement = $indent . '<outpost-menu name="footer">' . "\n"
+                        . $indent . '  ' . $menuLink . "\n"
+                        . $indent . '</outpost-menu>';
+                    $template = substr($template, 0, $navRange['start'])
+                        . $menuReplacement
+                        . substr($template, $navRange['end']);
+                }
+            }
+        }
     }
 
     // Global field annotations are handled by the caller (forge_analyze_rewrite_partial)
@@ -2047,10 +2216,39 @@ function forge_analyze_site(string $siteRoot): array {
     // ── Phase 4: Use extracted partials directly (keyed by name) ──
     $partials = [];
 
-    // Add head partial from classification
-    if (!empty($headClassification['shared_html'])) {
+    // Add head partial from classification — build full DOCTYPE through <body>
+    // using the first file as a structural template, keeping only shared elements
+    if (!empty($headClassification['shared_html']) && !empty($htmlFiles)) {
+        $referenceHtml = $htmlFiles[0]['html'];
+
+        // Extract DOCTYPE line
+        $doctype = '<!DOCTYPE html>';
+        if (preg_match('/<!DOCTYPE[^>]*>/i', $referenceHtml, $dtm)) {
+            $doctype = $dtm[0];
+        }
+
+        // Extract <html> opening tag
+        $htmlOpen = '<html>';
+        if (preg_match('/<html[^>]*>/i', $referenceHtml, $htm)) {
+            $htmlOpen = $htm[0];
+        }
+
+        // Extract <body> opening tag (with any attributes like class)
+        $bodyOpen = '<body>';
+        if (preg_match('/<body[^>]*>/i', $referenceHtml, $bm)) {
+            $bodyOpen = $bm[0];
+        }
+
+        // Build the head partial: DOCTYPE, <html>, <head> with shared elements, </head>, <body>
+        $headPartialHtml = $doctype . "\n"
+            . $htmlOpen . "\n"
+            . "<head>\n"
+            . "    " . $headClassification['shared_html'] . "\n"
+            . "</head>\n"
+            . $bodyOpen . "\n";
+
         $partials['head'] = [
-            'html'        => $headClassification['shared_html'],
+            'html'        => $headPartialHtml,
             'match_count' => count($htmlFiles),
         ];
     }
@@ -2071,42 +2269,71 @@ function forge_analyze_site(string $siteRoot): array {
         $path = $filename === 'index' ? '/' : '/' . $filename;
         $fullFilePath = rtrim($siteRoot, '/') . '/' . $filePath;
 
-        // Build per-file partial offsets from the extracted partials
+        // Find byte ranges of partials in the ORIGINAL HTML using raw string tag search.
+        // This avoids the DOM serialization mismatch problem where DOMDocument
+        // normalizes attributes/whitespace differently from the source.
         $filePartials = [];
-        foreach ($partials as $pName => $pData) {
-            // Find this partial's position in the current file
-            $partialHtml = $pData['html'] ?? '';
-            if ($partialHtml && str_contains($originalHtml, $partialHtml)) {
-                $pos = strpos($originalHtml, $partialHtml);
-                $filePartials[$pName] = [
-                    'html'  => $partialHtml,
-                    'start' => $pos,
-                    'end'   => $pos + strlen($partialHtml),
-                ];
+
+        // Nav: first <nav> tag
+        if (isset($partials['nav'])) {
+            $navRange = forge_analyze_find_tag_range($originalHtml, 'nav', 0);
+            if ($navRange) {
+                $filePartials['nav'] = $navRange;
             }
         }
 
-        // Get per-file head classification
-        $fileHeadClass = $headClassification;
+        // Footer: last <footer> tag
+        if (isset($partials['footer'])) {
+            $footerRange = forge_analyze_find_tag_range($originalHtml, 'footer', -1);
+            if ($footerRange) {
+                $filePartials['footer'] = $footerRange;
+            }
+        }
+
+        // Mobile menu: find div with mobile/overlay class
+        if (isset($partials['mobile-menu'])) {
+            $mobilePatterns = ['mobile', 'overlay', 'offcanvas', 'off-canvas', 'sidebar-menu', 'hamburger-menu'];
+            // Search for divs with mobile-related classes
+            $searchOffset = 0;
+            while (preg_match('/<div\b[^>]*class=["\'][^"\']*\b(' . implode('|', $mobilePatterns) . ')[^"\']*["\'][^>]*>/i', $originalHtml, $mm, PREG_OFFSET_CAPTURE, $searchOffset)) {
+                $mmStart = $mm[0][1];
+                $mmRange = forge_analyze_find_tag_range(substr($originalHtml, $mmStart) , 'div', 0);
+                if ($mmRange) {
+                    $filePartials['mobile-menu'] = [
+                        'start' => $mmStart + $mmRange['start'],
+                        'end'   => $mmStart + $mmRange['end'],
+                    ];
+                    break;
+                }
+                $searchOffset = $mmStart + strlen($mm[0][0]);
+            }
+        }
+
+        // Head: byte range of <head>...</head>
+        $headRange = forge_analyze_find_tag_range($originalHtml, 'head', 0);
+
+        // Per-page head elements for this specific file
+        $perPageElements = $headClassification['per_page'][$filePath] ?? [];
 
         // Run Smart Forge scan on the stripped page body
-        $scanResult = forge_analyze_scan_page($originalHtml, $filePartials, $fileHeadClass, $filename);
+        $scanResult = forge_analyze_scan_page($originalHtml, $filePartials, $headRange ?: [], $filename);
 
         // Clean page name from filename (for display)
         $title = ucwords(str_replace(['-', '_'], ' ', $filename));
         if ($filename === 'index') $title = 'Home';
 
         $pages[] = [
-            'path'          => $path,
-            'title'         => $title,
-            'filename'      => $filePath,
-            'file'          => $fullFilePath,
-            'fields'        => $scanResult['fields'] ?? [],
-            'sections'      => $scanResult['sections'] ?? [],
-            'scan_result'   => $scanResult,
-            'head_class'    => $fileHeadClass,
-            'file_partials' => $filePartials,
-            'original_size' => strlen($originalHtml),
+            'path'              => $path,
+            'title'             => $title,
+            'filename'          => $filePath,
+            'file'              => $fullFilePath,
+            'fields'            => $scanResult['fields'] ?? [],
+            'sections'          => $scanResult['sections'] ?? [],
+            'scan_result'       => $scanResult,
+            'head_range'        => $headRange ?: [],
+            'per_page_head'     => $perPageElements,
+            'file_partials'     => $filePartials,
+            'original_size'     => strlen($originalHtml),
         ];
     }
 
@@ -2319,14 +2546,15 @@ function handle_forge_analyze_apply(): void {
             if (!$realFile || !$realRoot || !str_starts_with($realFile, $realRoot . '/')) continue;
             if ($outpostDir && str_starts_with($realFile, rtrim($outpostDir, '/') . '/')) continue;
 
-            $originalHtml = file_get_contents($file);
-            $scanResult   = $page['scan_result'] ?? [];
-            $headClass    = $page['head_class'] ?? [];
-            $filePartials = $page['file_partials'] ?? [];
-            $pagePath     = $page['path'] ?? '/';
+            $originalHtml     = file_get_contents($file);
+            $scanResult       = $page['scan_result'] ?? [];
+            $headRange        = $page['head_range'] ?? [];
+            $perPageHead      = $page['per_page_head'] ?? [];
+            $filePartials     = $page['file_partials'] ?? [];
+            $pagePath         = $page['path'] ?? '/';
 
             $rewritten = forge_analyze_rewrite_page(
-                $originalHtml, $filePartials, $scanResult, $headClass, $pagePath
+                $originalHtml, $filePartials, $scanResult, $headRange, $pagePath, $perPageHead
             );
             $rewritten = preg_replace('/<\?(?:php|=)?/i', '&lt;?', $rewritten);
 
