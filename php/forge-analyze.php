@@ -1451,147 +1451,99 @@ function forge_analyze_apply_global_heuristics(array $field, string $partialName
 function forge_analyze_rewrite_page(string $originalHtml, array $partials, array $scanResult, array $headRange, string $pagePath, array $perPageHeadElements = []): string {
     $template = $originalHtml;
 
-    // ── Step 1: Build replacement map (byte offset => replacement) ──
-    // We process replacements from end to start to preserve offsets.
-    $replacements = []; // [['start'=>int, 'end'=>int, 'replacement'=>string], ...]
+    // ── Conservative approach: ONLY inject data-outpost attributes ──
+    // Do NOT replace head/nav/footer with <outpost-include> tags.
+    // Do NOT modify the document structure (DOCTYPE, html, head, body).
+    // The page must remain a fully functional standalone HTML file.
+    // Partials are created as separate files — the developer can manually
+    // add <outpost-include> tags later from the code editor.
 
-    // ── Replace everything from DOCTYPE through <body> with outpost-include head ──
-    // The head partial contains DOCTYPE, <html>, <head>...</head>, and <body> tag.
-    // Per-page elements (inline styles, page-specific scripts) go after the include.
-    $hasHead = !empty($headRange) && isset($headRange['start'], $headRange['end']);
-
-    // Even without head classification, if we have a <body> tag, replace up to it
-    $bodyPos = stripos($template, '<body');
-    if ($bodyPos !== false) {
-        $bodyTagEnd = strpos($template, '>', $bodyPos);
-        if ($bodyTagEnd !== false) {
-            // Collect per-page elements
-            $perPageHtml = '';
-            foreach ($perPageHeadElements as $key => $element) {
-                $perPageHtml .= '  ' . trim($element) . "\n";
-            }
-
-            // Build the replacement
-            $headReplacement = "<outpost-include partial=\"head\">\n";
-            if (!empty($perPageHtml)) {
-                $headReplacement .= $perPageHtml;
-            }
-
-            $replacements[] = [
-                'start'       => 0,
-                'end'         => $bodyTagEnd + 1,
-                'replacement' => $headReplacement,
-            ];
-        }
-    }
-
-    // ── Replace nav region with outpost-include ──
-    if (isset($partials['nav']) && isset($partials['nav']['start'], $partials['nav']['end'])) {
-        $navStart = (int)$partials['nav']['start'];
-        $navEnd   = (int)$partials['nav']['end'];
-
-        // Detect indentation at the nav position
-        $indent = forge_analyze_detect_indent($template, $navStart);
-
-        $replacements[] = [
-            'start'       => $navStart,
-            'end'         => $navEnd,
-            'replacement' => $indent . "<outpost-include partial=\"nav\">\n",
-        ];
-    }
-
-    // ── Replace mobile menu/overlay with outpost-include (if extracted) ──
-    if (isset($partials['mobile-menu']) && isset($partials['mobile-menu']['start'], $partials['mobile-menu']['end'])) {
-        $mmStart = (int)$partials['mobile-menu']['start'];
-        $mmEnd   = (int)$partials['mobile-menu']['end'];
-        $indent  = forge_analyze_detect_indent($template, $mmStart);
-
-        $replacements[] = [
-            'start'       => $mmStart,
-            'end'         => $mmEnd,
-            'replacement' => $indent . "<outpost-include partial=\"mobile-menu\">\n",
-        ];
-    }
-
-    // ── Replace footer region with outpost-include ──
-    if (isset($partials['footer']) && isset($partials['footer']['start'], $partials['footer']['end'])) {
-        $footerStart = (int)$partials['footer']['start'];
-        $footerEnd   = (int)$partials['footer']['end'];
-        $indent      = forge_analyze_detect_indent($template, $footerStart);
-
-        // Footer include replaces everything from footer start through </html>
-        $endOfDoc = strlen($template);
-        $replacements[] = [
-            'start'       => $footerStart,
-            'end'         => $endOfDoc,
-            'replacement' => $indent . "<outpost-include partial=\"footer\">\n",
-        ];
-    }
-
-    // ── Sort replacements by start offset descending ──
-    usort($replacements, fn($a, $b) => $b['start'] - $a['start']);
-
-    // ── Apply structural replacements (back to front) ──
-    foreach ($replacements as $r) {
-        $template = substr($template, 0, $r['start']) . $r['replacement'] . substr($template, $r['end']);
-    }
-
-    // ── Step 2: Apply Smart Forge field annotations ──
-    // Use the annotated template from the scan result as a guide,
-    // but apply annotations to our structurally-rewritten template.
+    // ── Step 1: Apply Smart Forge field annotations ──
+    // Inject data-outpost="name" (+ data-type for non-text) into the
+    // original HTML element's opening tag using regex text-matching.
     $fields = $scanResult['fields'] ?? [];
+    $annotatedValues = [];
+
     foreach ($fields as $field) {
         $name = $field['name'];
         $type = $field['type'];
         $defaultVal = $field['default_value'] ?? '';
 
+        // Skip if this exact value was already annotated (prevents duplicate data-outpost)
+        $dedupeKey = $type . '::' . $defaultVal;
+        if (isset($annotatedValues[$dedupeKey])) continue;
+
         if ($type === 'image') {
             if ($defaultVal && str_contains($template, $defaultVal)) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_img($template, $defaultVal, $name);
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         } elseif ($type === 'link') {
             if ($defaultVal) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_link($template, $defaultVal, '', $name);
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         } elseif ($type === 'richtext') {
             if ($defaultVal) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_element($template, $defaultVal, $name, 'richtext');
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         } elseif ($type === 'text') {
             // Skip alt text and URL sub-fields (handled with their parent)
             if (str_ends_with($name, '_alt') || str_ends_with($name, '_url')) continue;
             if ($defaultVal) {
+                $before = $template;
                 $template = smart_forge_add_attr_to_element($template, $defaultVal, $name, 'text');
+                if ($template !== $before) $annotatedValues[$dedupeKey] = true;
             }
         }
     }
 
-    // ── Step 3: Insert section comment wrappers ──
-    // Parse the current template to detect sections and insert comments
+    // ── Step 2: Insert section comment wrappers ──
+    // Parse the current template to detect sections and insert comments.
+    // Since the template still has its full HTML structure, load it directly.
     $doc = new DOMDocument('1.0', 'UTF-8');
     libxml_use_internal_errors(true);
-    $wrappedForSections = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $template . '</body></html>';
-    $doc->loadHTML($wrappedForSections, LIBXML_NOERROR);
+    if (preg_match('/<!doctype|<html[\s>]/i', $template)) {
+        $doc->loadHTML($template, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_HTML_NOIMPLIED);
+    } else {
+        $wrappedForSections = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $template . '</body></html>';
+        $doc->loadHTML($wrappedForSections, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_HTML_NOIMPLIED);
+    }
     libxml_clear_errors();
 
     $sectionState = new SmartForgeState();
     smart_forge_detect_sections($doc, $sectionState);
     $template = smart_forge_insert_section_comments($template, $doc, $sectionState);
 
-    // ── Step 4: Insert <outpost-meta> if not already present ──
+    // ── Step 3: Insert <outpost-meta> and <outpost-seo> in <head> if not present ──
     if (!str_contains($template, '<outpost-meta') && !str_contains($template, '<outpost-seo')) {
-        // Derive defaults from the page path
         $titleDefault = ucwords(str_replace(['/', '-', '_'], ' ', trim($pagePath, '/'))) ?: 'Home';
-        $metaTag = '  <outpost-meta title="' . htmlspecialchars($titleDefault) . '" description="">' . "\n";
+
+        // Try to extract existing <title> content as the default
+        if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $template, $tm)) {
+            $existingTitle = trim(strip_tags($tm[1]));
+            if ($existingTitle) $titleDefault = $existingTitle;
+        }
+
+        // Try to extract existing meta description as the default
+        $descDefault = '';
+        if (preg_match('/<meta\s+name=["\']description["\'][^>]*content=["\']([^"\']*)["\'][^>]*\/?>/i', $template, $dm)) {
+            $descDefault = $dm[1];
+        } elseif (preg_match('/<meta\s+content=["\']([^"\']*)["\'][^>]*name=["\']description["\'][^>]*\/?>/i', $template, $dm)) {
+            $descDefault = $dm[1];
+        }
+
+        $metaTag = '  <outpost-meta title="' . htmlspecialchars($titleDefault) . '" description="' . htmlspecialchars($descDefault) . '">' . "\n";
         $metaTag .= '  <outpost-seo>' . "\n";
 
-        // Insert after the head include line
-        $headIncludePos = strpos($template, '<outpost-include partial="head">');
-        if ($headIncludePos !== false) {
-            $lineEnd = strpos($template, "\n", $headIncludePos);
-            if ($lineEnd !== false) {
-                $template = substr($template, 0, $lineEnd + 1) . $metaTag . substr($template, $lineEnd + 1);
-            }
+        // Insert inside <head>, right after the opening <head> tag
+        if (preg_match('/<head[^>]*>/i', $template, $headMatch, PREG_OFFSET_CAPTURE)) {
+            $insertPos = $headMatch[0][1] + strlen($headMatch[0][0]);
+            $template = substr($template, 0, $insertPos) . "\n" . $metaTag . substr($template, $insertPos);
         }
     }
 
