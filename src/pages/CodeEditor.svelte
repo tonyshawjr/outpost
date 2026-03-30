@@ -859,30 +859,15 @@
         </button>
         {#if activeTab && activeTab.path.endsWith('.html')}
           <button
-            class="ce-tool-btn ce-smart-forge-btn"
-            onclick={runSmartForge}
-            disabled={smartForging}
-            title={forgeAiAvailable ? 'Smart Forge AI — AI-powered content detection' : 'Smart Forge — Auto-detect all editable content in this file'}
+            class="ce-tool-btn"
+            onclick={() => { showAnalyzeModal = true; }}
+            title="Forge — scan all site files for pages, fields, menus, and globals"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z"/>
               <path d="M18 12L19 15L22 16L19 17L18 20L17 17L14 16L17 15L18 12Z" opacity="0.6"/>
             </svg>
-            {#if smartForging}
-              {forgeAiAvailable ? 'Analyzing with AI...' : 'Scanning...'}
-            {:else}
-              {forgeAiAvailable ? 'Smart Forge AI' : 'Smart Forge'}
-            {/if}
-          </button>
-          <button
-            class="ce-tool-btn"
-            onclick={() => { showAnalyzeModal = true; }}
-            title="Analyze Site — scan all templates for pages, fields, menus, and globals"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            Analyze Site
+            Forge
           </button>
         {/if}
         {#if activeTab}

@@ -323,7 +323,11 @@ function forge_analyze_extract_partials(array $files): array {
         if ($nav) {
             $html = forge_analyze_serialize_node($nav, $doc);
             $normalized = forge_analyze_normalize_whitespace($html);
-            $hash = md5($normalized);
+            // Strip active-state classes before hashing — these vary per page
+            // but the nav structure is identical
+            $forHash = preg_replace('/\s*\b(nav-active|active|current|current-menu-item|current_page_item)\b/', '', $normalized);
+            $forHash = preg_replace('/class="\s*"/', '', $forHash); // clean empty class attrs
+            $hash = md5($forHash);
 
             $navByFile[$file['path']] = $hash;
 
