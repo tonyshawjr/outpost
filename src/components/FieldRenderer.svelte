@@ -5,6 +5,7 @@
   import GalleryField from './GalleryField.svelte';
   import FlexibleField from './FlexibleField.svelte';
   import RelationshipField from './RelationshipField.svelte';
+  import LinkPicker from './LinkPicker.svelte';
 
   let {
     field,
@@ -95,13 +96,7 @@
     </div>
 
   {:else if field.field_type === 'link'}
-    <input
-      class="fr-input"
-      type="url"
-      value={displayValue}
-      oninput={handleInput}
-      placeholder={field.default_value || 'https://'}
-    />
+    <LinkPicker value={displayValue} onchange={(url) => onchange(field.id, url)} />
 
   {:else if field.field_type === 'select'}
     <select class="fr-select" value={displayValue} onchange={handleInput}>

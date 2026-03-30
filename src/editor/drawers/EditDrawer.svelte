@@ -1,5 +1,6 @@
 <script>
   import RichTextEditor from '../../components/RichTextEditor.svelte';
+  import LinkPicker from '../../components/LinkPicker.svelte';
 
   let {
     fields = [],
@@ -1334,22 +1335,7 @@
     </div>
     <div class="ope-link-label-group">
       <label class="ope-link-sublabel" for="ope-field-{field.name}">URL</label>
-      <div class="ope-link-wrap">
-        <div class="ope-link-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <input
-          id="ope-field-{field.name}"
-          class="ope-field-input ope-link-input"
-          type="text"
-          value={editValues[field.name] || ''}
-          oninput={(e) => handleInput(field.name, e.target.value)}
-          placeholder="Enter URL or path..."
-        />
-      </div>
+      <LinkPicker value={editValues[field.name] || ''} onchange={(url) => handleInput(field.name, url)} />
     </div>
 
   {:else}
