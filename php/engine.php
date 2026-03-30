@@ -1983,17 +1983,18 @@ HTACCESS;
     if (file_exists($htaccessPath)) {
         $existing = file_get_contents($htaccessPath);
         if (str_contains($existing, '# BEGIN Outpost CMS')) {
-            // Replace existing block
             $existing = preg_replace(
                 '/# BEGIN Outpost CMS.*?# END Outpost CMS/s',
                 $block,
                 $existing
             );
-            file_put_contents($htaccessPath, $existing, LOCK_EX);
         } else {
-            // Prepend block — Outpost rules must run first to catch .html files
-            file_put_contents($htaccessPath, $block . "\n\n" . $existing, LOCK_EX);
+            // Strip conflicting catch-all rewrites before prepending
+            $existing = preg_replace('/^\s*RewriteRule\s+\^\s+index\.php\s+\[L\]\s*$/m', '', $existing);
+            $existing = $block . "\n\n" . trim($existing);
         }
+        $existing = preg_replace('/\n{3,}/', "\n\n", trim($existing));
+        file_put_contents($htaccessPath, $existing . "\n", LOCK_EX);
     } else {
         file_put_contents($htaccessPath, $block . "\n", LOCK_EX);
     }
