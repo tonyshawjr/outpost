@@ -22,6 +22,7 @@
   import TemplateRefPanel from '$components/ce/TemplateRefPanel.svelte';
   import ForgeComponent  from '$components/ce/ForgeComponent.svelte';
   import ForgeAsset      from '$components/ce/ForgeAsset.svelte';
+  import ForgeAnalyzeModal from '$components/ce/ForgeAnalyzeModal.svelte';
 
   // ── Tree ─────────────────────────────────────────────────────────
   let tree        = $state([]);
@@ -72,6 +73,7 @@
   let smartForgeResult = $state(null);
   let forgeAiAvailable = $state(false);
   let forgeAiProvider  = $state(null);
+  let showAnalyzeModal = $state(false);
 
   async function checkForgeAiStatus() {
     try {
@@ -872,6 +874,16 @@
               {forgeAiAvailable ? 'Smart Forge AI' : 'Smart Forge'}
             {/if}
           </button>
+          <button
+            class="ce-tool-btn"
+            onclick={() => { showAnalyzeModal = true; }}
+            title="Analyze Site — scan all templates for pages, fields, menus, and globals"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Analyze Site
+          </button>
         {/if}
         {#if activeTab}
           <div class="ce-tool-sep"></div>
@@ -1038,6 +1050,11 @@
       </div>
     </div>
   </div>
+{/if}
+
+<!-- Forge Analyze Modal -->
+{#if showAnalyzeModal}
+  <ForgeAnalyzeModal onClose={() => showAnalyzeModal = false} />
 {/if}
 
 <!-- Command Palette overlay -->

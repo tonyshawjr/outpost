@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.0] — 2026-03-29
+
+### Added
+- **Forge Site Analysis** — One-click analysis of an entire HTML site. Cross-file diffs to extract shared partials (nav, footer, head), auto-creates navigation menus from nav links, detects editable sections and fields, annotates HTML with `data-outpost` attributes, and registers pages/fields/menus/globals in the database. No AI required — pure algorithmic using DOM tree comparison, frequency counting, and heuristic section detection.
+- **Cross-file partial extraction** — Uses Site Style Trees approach: structural hashing of DOM nodes, 80% frequency threshold for shared block detection. Extracts `partials/head.html`, `partials/nav.html`, `partials/footer.html` automatically.
+- **Nav auto-detection** — Parses `<nav>` element, detects dropdown hierarchies (ul/li nesting, div wrappers), builds parent-child menu items, creates menu in database.
+- **Head classification** — Splits `<head>` into shared elements (fonts, CSS, GA4, favicons) vs per-page elements (title, meta description, OG tags, inline styles). Replaces with `<outpost-meta>` and `<outpost-seo>`.
+- **Global field detection** — Scans extracted nav and footer partials for editable content (logo, copyright, address, phone, social links) and registers as global fields with `data-scope="global"`.
+- **Section detection heuristics** — Priority: `<!-- section:name -->` comments → class names (`.hero`, `.about`, `.cta`) → landmark elements → h2 headings → default. Developer contract: use section comments for best results.
+- **Preview before apply** — Analysis returns a full preview (pages, fields, partials, menus, globals, warnings) before writing any files. User can skip individual files.
+- **Automatic backup** — Creates `.forge-backup/{timestamp}/` with all originals before modifying files.
+- **Admin UI** — "Analyze Site" button in Code Editor with modal showing analysis preview, menu tree view, per-page field counts, warnings, and apply button.
+
+### Security
+- Path traversal protection on all file read/write operations
+- PHP code injection prevention (strips `<?php` tags from rewritten templates)
+- File count limit (100 files) and size limit (2MB per file) for DoS prevention
+- Partial name sanitization prevents directory traversal
+- All database queries parameterized
+
+---
+
 ## [5.0.0] — 2026-03-29
 
 ### Changed

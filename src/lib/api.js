@@ -348,6 +348,12 @@ export const code = {
     request('code/assets', { params: { theme } }),
 };
 
+// Forge Site Analysis
+export const forge = {
+  analyze: () => request('forge/analyze', { method: 'POST' }),
+  analyzeApply: (options = {}) => request('forge/analyze/apply', { method: 'POST', body: options }),
+};
+
 export const brand = {
   get: () =>
     request('brand'),

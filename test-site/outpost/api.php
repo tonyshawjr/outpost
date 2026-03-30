@@ -29,6 +29,7 @@ require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
 require_once __DIR__ . '/smart-forge.php';
+require_once __DIR__ . '/forge-analyze.php';
 require_once __DIR__ . '/shield.php';
 require_once __DIR__ . '/redirects.php';
 require_once __DIR__ . '/search.php';
@@ -586,6 +587,8 @@ match (true) {
     $action === 'forge/apply'     && $method === 'POST' => handle_forge_apply(),
     $action === 'forge/ai-scan'   && $method === 'POST' => handle_forge_ai_scan(),
     $action === 'forge/ai-status' && $method === 'GET'  => handle_forge_ai_status(),
+    $action === 'forge/analyze'       && $method === 'POST' => handle_forge_analyze(),
+    $action === 'forge/analyze/apply' && $method === 'POST' => handle_forge_analyze_apply(),
 
     // Editor Field Map & Active Users
     $action === 'editor/field-map'     && $method === 'GET'  => handle_editor_field_map(),
