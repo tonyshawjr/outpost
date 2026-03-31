@@ -114,7 +114,8 @@
   }
 
   function handleFocus() {
-    if (query) {
+    // Don't auto-search if the current value is already a full URL
+    if (query && !query.startsWith('http')) {
       open = true;
       doSearch(query);
     }
@@ -218,9 +219,7 @@
         </button>
       {/if}
 
-      {#if !loading && results.length === 0 && query.length > 0}
-        <div class="lp-empty">No pages found</div>
-      {/if}
+      <!-- No "no pages found" message — Use custom URL is always available -->
     </div>
   {/if}
 </div>

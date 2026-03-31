@@ -1980,25 +1980,70 @@ function smart_forge_insert_section_comments(string $template, DOMDocument $doc,
 }
 
 /**
+ * Find all <nav>...</nav> byte ranges in the HTML so injection functions can skip them.
+ * Also skips <header>...</header> blocks since navs are often inside headers.
+ * Returns array of [start, end] pairs.
+ */
+function smart_forge_get_nav_ranges(string $html): array {
+    $ranges = [];
+    // Find <nav> blocks
+    if (preg_match_all('/<nav\b[^>]*>/i', $html, $opens, PREG_OFFSET_CAPTURE)) {
+        foreach ($opens[0] as $open) {
+            $openPos = $open[1];
+            $closePos = stripos($html, '</nav>', $openPos);
+            if ($closePos !== false) {
+                $ranges[] = [$openPos, $closePos + 6];
+            }
+        }
+    }
+    // Find <header> blocks (nav is often inside a <header>)
+    if (preg_match_all('/<header\b[^>]*>/i', $html, $opens, PREG_OFFSET_CAPTURE)) {
+        foreach ($opens[0] as $open) {
+            $openPos = $open[1];
+            $closePos = stripos($html, '</header>', $openPos);
+            if ($closePos !== false) {
+                $ranges[] = [$openPos, $closePos + 9];
+            }
+        }
+    }
+    return $ranges;
+}
+
+/**
+ * Check if a byte offset falls inside any of the given ranges.
+ */
+function smart_forge_is_inside_nav(int $pos, array $navRanges): bool {
+    foreach ($navRanges as [$start, $end]) {
+        if ($pos >= $start && $pos < $end) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Add data-outpost="name" data-type="image" to an <img> tag matching the given src.
  */
 function smart_forge_add_attr_to_img(string $html, string $src, string $fieldName): string {
     $escaped = preg_quote($src, '/');
+    $navRanges = smart_forge_get_nav_ranges($html);
     // Find <img ... src="value" ...> and inject data-outpost + data-type before >
-    // Use callback to avoid backreference issues and prevent duplicate attributes
+    // Use PREG_OFFSET_CAPTURE to know match positions and skip nav elements
     $pattern = '/(<img\b[^>]*?\bsrc=["\'])(' . $escaped . ')(["\'][^>]*?)(\/?>)/i';
-    $matched = false;
-    return preg_replace_callback(
-        $pattern,
-        function ($m) use ($fieldName, &$matched) {
-            if ($matched) return $m[0];
-            // Skip if already annotated
-            if (str_contains($m[1] . $m[3], 'data-outpost="')) return $m[0];
-            $matched = true;
-            return $m[1] . $m[2] . $m[3] . ' data-outpost="' . $fieldName . '" data-type="image"' . $m[4];
-        },
-        $html
-    );
+    if (!preg_match_all($pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        return $html;
+    }
+    foreach ($matches as $m) {
+        $matchPos = $m[0][1];
+        // Skip if inside nav
+        if (smart_forge_is_inside_nav($matchPos, $navRanges)) continue;
+        // Skip if already annotated
+        if (str_contains($m[1][0] . $m[3][0], 'data-outpost="')) continue;
+        // Replace at exact position
+        $replacement = $m[1][0] . $m[2][0] . $m[3][0] . ' data-outpost="' . $fieldName . '" data-type="image"' . $m[4][0];
+        return substr_replace($html, $replacement, $matchPos, strlen($m[0][0]));
+    }
+    return $html;
 }
 
 /**
@@ -2007,50 +2052,48 @@ function smart_forge_add_attr_to_img(string $html, string $src, string $fieldNam
  */
 function smart_forge_add_attr_to_element(string $html, string $text, string $fieldName, string $type): string {
     // Skip if this element already has a data-outpost attribute (prevent duplicates)
-    // Try both decoded text AND HTML-encoded version (e.g., & vs &amp;)
+    // Try decoded text, htmlspecialchars version, AND htmlentities version
+    // (e.g., & vs &amp;, — vs &mdash;, etc.)
     $escaped = preg_quote($text, '/');
-    $escapedHtmlEncoded = preg_quote(htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'), '/');
-    // Build pattern that matches either version
-    if ($escaped !== $escapedHtmlEncoded) {
-        $escaped = '(?:' . $escaped . '|' . $escapedHtmlEncoded . ')';
+    $alternatives = [$escaped];
+    $escapedHtmlSpecial = preg_quote(htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'), '/');
+    if ($escapedHtmlSpecial !== $escaped) {
+        $alternatives[] = $escapedHtmlSpecial;
+    }
+    $escapedHtmlEntities = preg_quote(htmlentities($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'), '/');
+    if ($escapedHtmlEntities !== $escaped && $escapedHtmlEntities !== $escapedHtmlSpecial) {
+        $alternatives[] = $escapedHtmlEntities;
+    }
+    if (count($alternatives) > 1) {
+        $escaped = '(?:' . implode('|', $alternatives) . ')';
     }
     $typeAttr = ($type !== 'text') ? ' data-type="' . $type . '"' : '';
+    $navRanges = smart_forge_get_nav_ranges($html);
 
     // Find an element whose opening tag is immediately followed by this text
     // Pattern: <tag ...>text — inject data-outpost before the >
-    // Use preg_replace_callback to avoid backreference ambiguity (e.g. $2 followed by digit from text)
+    // Use PREG_OFFSET_CAPTURE to skip matches inside nav/header
     $pattern = '/(<(?:h[1-6]|p|span|div|li|td|th|dt|dd|figcaption|blockquote|label|small|strong|em|time|address|article|section|cite|mark)\b[^>]*?)(>)\s*' . $escaped . '/i';
-    $matched = false;
-    $result = preg_replace_callback(
-        $pattern,
-        function ($m) use ($fieldName, $typeAttr, $text, &$matched) {
-            if ($matched) return $m[0]; // Only replace first occurrence
-            // Skip if element already has data-outpost
-            if (str_contains($m[1], 'data-outpost="')) return $m[0];
-            $matched = true;
-            return $m[1] . ' data-outpost="' . $fieldName . '"' . $typeAttr . $m[2] . $text;
-        },
-        $html
-    );
-    if ($result !== null && $result !== $html) {
-        return $result;
+    if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        foreach ($matches as $m) {
+            $matchPos = $m[0][1];
+            if (smart_forge_is_inside_nav($matchPos, $navRanges)) continue;
+            if (str_contains($m[1][0], 'data-outpost="')) continue;
+            $replacement = $m[1][0] . ' data-outpost="' . $fieldName . '"' . $typeAttr . $m[2][0] . $text;
+            return substr_replace($html, $replacement, $matchPos, strlen($m[0][0]));
+        }
     }
 
-    // Fallback: try matching any element with this exact text
+    // Fallback: try matching any element with this exact text (still skip nav)
     $pattern2 = '/(<[a-z][a-z0-9]*\b[^>]*?)(>)\s*' . $escaped . '\s*</i';
-    $matched2 = false;
-    $result2 = preg_replace_callback(
-        $pattern2,
-        function ($m) use ($fieldName, $typeAttr, $text, &$matched2) {
-            if ($matched2) return $m[0];
-            if (str_contains($m[1], 'data-outpost="')) return $m[0];
-            $matched2 = true;
-            return $m[1] . ' data-outpost="' . $fieldName . '"' . $typeAttr . $m[2] . $text . '<';
-        },
-        $html
-    );
-    if ($result2 !== null && $result2 !== $html) {
-        return $result2;
+    if (preg_match_all($pattern2, $html, $matches2, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        foreach ($matches2 as $m) {
+            $matchPos = $m[0][1];
+            if (smart_forge_is_inside_nav($matchPos, $navRanges)) continue;
+            if (str_contains($m[1][0], 'data-outpost="')) continue;
+            $replacement = $m[1][0] . ' data-outpost="' . $fieldName . '"' . $typeAttr . $m[2][0] . $text . '<';
+            return substr_replace($html, $replacement, $matchPos, strlen($m[0][0]));
+        }
     }
 
     return $html;
@@ -2061,21 +2104,24 @@ function smart_forge_add_attr_to_element(string $html, string $text, string $fie
  */
 function smart_forge_add_attr_to_link(string $html, string $href, string $text, string $fieldName): string {
     $escapedHref = preg_quote($href, '/');
+    $navRanges = smart_forge_get_nav_ranges($html);
     // Find <a ... href="value" ...> and inject data-outpost + data-type="link"
-    // Use callback to avoid backreference issues and prevent duplicate attributes
+    // Use PREG_OFFSET_CAPTURE to skip matches inside nav/header
     $pattern = '/(<a\b[^>]*?\bhref=["\'])(' . $escapedHref . ')(["\'][^>]*?)(>)/i';
-    $matched = false;
-    return preg_replace_callback(
-        $pattern,
-        function ($m) use ($fieldName, &$matched) {
-            if ($matched) return $m[0];
-            // Skip if already annotated
-            if (str_contains($m[1] . $m[3], 'data-outpost="')) return $m[0];
-            $matched = true;
-            return $m[1] . $m[2] . $m[3] . ' data-outpost="' . $fieldName . '" data-type="link"' . $m[4];
-        },
-        $html
-    );
+    if (!preg_match_all($pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        return $html;
+    }
+    foreach ($matches as $m) {
+        $matchPos = $m[0][1];
+        // Skip if inside nav/header
+        if (smart_forge_is_inside_nav($matchPos, $navRanges)) continue;
+        // Skip if already annotated
+        if (str_contains($m[1][0] . $m[3][0], 'data-outpost="')) continue;
+        // Replace at exact position
+        $replacement = $m[1][0] . $m[2][0] . $m[3][0] . ' data-outpost="' . $fieldName . '" data-type="link"' . $m[4][0];
+        return substr_replace($html, $replacement, $matchPos, strlen($m[0][0]));
+    }
+    return $html;
 }
 
 function smart_forge_apply_repeater_template(string $html, DOMDocument $doc, array $repeater, SmartForgeState $state): string {
@@ -2090,20 +2136,21 @@ function smart_forge_apply_repeater_template(string $html, DOMDocument $doc, arr
 
 function smart_forge_replace_bg_image(string $html, string $url, string $fieldName): string {
     $escaped = preg_quote($url, '/');
+    $navRanges = smart_forge_get_nav_ranges($html);
     // Add data-outpost + data-type="image" to the element with this background-image style
-    // Use callback to avoid backreference issues and prevent duplicate attributes
+    // Use PREG_OFFSET_CAPTURE to skip matches inside nav/header
     $pattern = '/(<[a-z][a-z0-9]*\b[^>]*?style=["\'][^"\']*background(?:-image)?\s*:\s*url\([\'"]?)' . $escaped . '([\'"]?\)[^"\']*["\'][^>]*?)(>)/i';
-    $matched = false;
-    return preg_replace_callback(
-        $pattern,
-        function ($m) use ($url, $fieldName, &$matched) {
-            if ($matched) return $m[0];
-            if (str_contains($m[1] . $m[2], 'data-outpost="')) return $m[0];
-            $matched = true;
-            return $m[1] . $url . $m[2] . ' data-outpost="' . $fieldName . '" data-type="image"' . $m[3];
-        },
-        $html
-    );
+    if (!preg_match_all($pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        return $html;
+    }
+    foreach ($matches as $m) {
+        $matchPos = $m[0][1];
+        if (smart_forge_is_inside_nav($matchPos, $navRanges)) continue;
+        if (str_contains($m[1][0] . $m[2][0], 'data-outpost="')) continue;
+        $replacement = $m[1][0] . $url . $m[2][0] . ' data-outpost="' . $fieldName . '" data-type="image"' . $m[3][0];
+        return substr_replace($html, $replacement, $matchPos, strlen($m[0][0]));
+    }
+    return $html;
 }
 
 
