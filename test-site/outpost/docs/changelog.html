@@ -22,6 +22,19 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="5.1.1">5.1.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-04-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>MCP Server</strong> &mdash; Model Context Protocol server (<code>mcp.php</code>) lets AI tools like Claude Desktop and ChatGPT manage site content directly via JSON-RPC 2.0. 15 tools for collections, items, pages, globals, media, and search. 4 resources for site schema context. Uses existing API keys for auth.</li>
+      <li><strong>MCP connection info panel</strong> &mdash; Settings &rarr; Integrations shows MCP endpoint URL and Claude Desktop config snippet with copy buttons.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>1 MB payload size limit, rate-limited mutations, LIKE injection prevention, richtext sanitization, path redaction in errors, Origin header sanitization</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="5.0.0">5.0.0 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-03-29</span></h2>
     <h3>Changed</h3>
     <ul>

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.1] — 2026-04-01
+
+### Added
+- **MCP Server** — Model Context Protocol server (`mcp.php`) lets AI tools like Claude Desktop and ChatGPT manage site content directly via JSON-RPC 2.0 over HTTP. 15 tools for collections, items, pages, globals, media, and search. 4 resources for site schema context. Uses existing API keys for authentication.
+- **MCP connection info panel** — Settings → Integrations shows MCP endpoint URL and Claude Desktop config snippet with copy buttons.
+
+### Security
+- 1 MB payload size limit prevents memory exhaustion
+- Rate limiting on all mutation tools via existing API rate limiter
+- LIKE injection prevention in search and media queries
+- Richtext fields sanitized through collection schema detection
+- Error messages redacted to prevent path disclosure (full errors logged server-side)
+- Origin header sanitized against newline/null byte injection
+- DELETE endpoint requires authentication
+- Non-string field values coerced before DB storage
+
+---
+
 ## [5.1.0] — 2026-03-29
 
 ### Added

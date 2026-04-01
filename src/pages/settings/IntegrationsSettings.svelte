@@ -528,6 +528,61 @@
     {/if}
   </div>
 
+  <!-- MCP Server (AI Integration) -->
+  <div class="int-block">
+    <div class="int-block-header">
+      <div>
+        <h4 class="int-block-title">MCP Server</h4>
+        <p class="int-block-desc">Connect AI tools like Claude Desktop or ChatGPT to manage your site content directly via the Model Context Protocol.</p>
+      </div>
+    </div>
+    <div class="mcp-info">
+      <div class="form-group">
+        <label class="form-label">MCP Endpoint</label>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input class="input" type="text" readonly value={`${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`} style="font-family: var(--font-mono); font-size: 12px;" />
+          <button class="btn btn-secondary" type="button" onclick={() => {
+            navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`);
+            addToast('Endpoint URL copied', 'success');
+          }}>Copy</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 16px;">
+        <label class="form-label">Claude Desktop Config</label>
+        <p class="int-block-desc" style="margin-bottom: 8px;">Add this to your Claude Desktop config file. Replace <code>YOUR_API_KEY</code> with an API key from above.</p>
+        <pre class="mcp-config-block"><code>{JSON.stringify({
+  mcpServers: {
+    "outpost-cms": {
+      url: `${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`,
+      headers: {
+        Authorization: "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}, null, 2)}</code></pre>
+        <button class="btn btn-secondary" type="button" style="margin-top: 8px;" onclick={() => {
+          const config = JSON.stringify({
+            mcpServers: {
+              "outpost-cms": {
+                url: `${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`,
+                headers: {
+                  Authorization: "Bearer YOUR_API_KEY"
+                }
+              }
+            }
+          }, null, 2);
+          navigator.clipboard.writeText(config);
+          addToast('Config copied to clipboard', 'success');
+        }}>Copy Config</button>
+      </div>
+      <div style="margin-top: 16px; padding: 12px 16px; background: var(--bg-offset); border-radius: 8px;">
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+          <strong style="color: var(--text-primary);">15 AI tools available:</strong> list/create/update/delete collection items, manage pages, update globals, search content, browse media, read site schema.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Webhooks -->
   <div class="int-block">
     <div class="int-block-header">
@@ -772,6 +827,24 @@
     justify-content: space-between;
     padding: var(--space-sm) 0;
     border-bottom: 1px solid var(--border-faint);
+  }
+
+  /* MCP */
+  .mcp-config-block {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre;
+    line-height: 1.5;
+  }
+  .mcp-config-block code {
+    background: none;
+    padding: 0;
   }
 
   /* Webhooks */

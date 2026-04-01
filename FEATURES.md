@@ -4,6 +4,20 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## MCP Server — AI Content Management (v5.1.1)
+
+- **MCP endpoint** — `mcp.php` speaks JSON-RPC 2.0 over Streamable HTTP transport. Single file, zero dependencies, pure PHP.
+- **15 AI tools** — `list_collections`, `get_collection`, `list_items`, `get_item`, `create_item`, `update_item`, `delete_item`, `list_pages`, `get_page_fields`, `update_page_fields`, `get_globals`, `update_globals`, `list_media`, `search_content`, `get_schema`
+- **4 resources** — `outpost://schema` (full site schema), `outpost://pages` (all pages), `outpost://globals` (global fields), `outpost://collections/{slug}` (collection detail with recent items)
+- **Existing API key auth** — Bearer token authentication reuses API keys from Settings → Integrations. No new credentials needed.
+- **Revision snapshots** — Write operations automatically create revision history entries.
+- **Webhook dispatch** — Create/update/delete operations trigger existing webhook subscriptions.
+- **Compass indexing** — New and updated items automatically indexed for search.
+- **Admin UI** — MCP connection info panel in Settings → Integrations with endpoint URL, Claude Desktop config snippet, and copy buttons.
+- **Security hardened** — 1 MB payload limit, rate-limited mutations, LIKE injection prevention, richtext sanitization via schema detection, path redaction in errors, Origin header sanitization.
+
+---
+
 ## Auto-Inject Client Assets (v4.13.7)
 
 - **Automatic asset injection** — Compass, Search, and Auth CSS/JS automatically injected into rendered HTML when `data-compass`, `data-outpost-search`, or `data-outpost-auth` attributes are detected. Themes no longer need manual `<script>`/`<link>` tags.

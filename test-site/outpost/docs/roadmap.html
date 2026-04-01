@@ -344,6 +344,65 @@
       <li><strong>Field-level locking</strong> &mdash; &ldquo;being edited by Tony&rdquo; indicator</li>
     </ul>
 
+    <h3>v5.1.1 &mdash; MCP Server for AI</h3>
+    <p>Let Claude, ChatGPT, and other AI tools manage your site content directly. A single PHP file speaks the MCP JSON-RPC protocol. Zero new dependencies.</p>
+    <ul>
+      <li><strong>MCP endpoint</strong> &mdash; <code>/outpost/mcp.php</code> with JSON-RPC 2.0 over Streamable HTTP. Pure PHP, no libraries.</li>
+      <li><strong>15 AI tools</strong> &mdash; list/create/update/delete collections, items, pages, globals, media, search, and site schema</li>
+      <li><strong>4 MCP Resources</strong> &mdash; <code>outpost://schema</code>, <code>outpost://pages</code>, <code>outpost://globals</code>, <code>outpost://collections/{slug}</code></li>
+      <li><strong>Existing API key auth</strong> &mdash; Bearer token authentication reuses keys from Settings &rarr; Integrations</li>
+      <li><strong>Admin UI</strong> &mdash; MCP connection info panel with endpoint URL, Claude Desktop config snippet, copy buttons</li>
+      <li><strong>Security audited</strong> &mdash; 1 MB payload limit, rate-limited mutations, LIKE injection prevention, richtext sanitization, path redaction</li>
+    </ul>
+
+    <h3>v5.5 &mdash; WordPress Import Wizard</h3>
+    <p>Guided 6-step migration from WordPress. Handles pages, media downloads, ACF custom fields, and previews before committing.</p>
+    <ul>
+      <li><strong>Step 1: Upload &amp; Analyze</strong> &mdash; parse WXR without importing, return manifest of all content</li>
+      <li><strong>Step 2: Map Content Types</strong> &mdash; map WP post types to Outpost collections, WP pages to Outpost pages</li>
+      <li><strong>Step 3: Field Mapping</strong> &mdash; map WP fields + ACF custom fields to Outpost schema fields</li>
+      <li><strong>Step 4: Media Options</strong> &mdash; download &amp; re-host images or keep external URLs, with URL rewriting</li>
+      <li><strong>Step 5: Preview</strong> &mdash; preview imported items before committing</li>
+      <li><strong>Step 6: Progress</strong> &mdash; real-time progress bar with per-type results</li>
+      <li><strong>ACF detection</strong> &mdash; automatically detects ACF field groups from WXR metadata</li>
+      <li><strong>Batched media download</strong> &mdash; chunked for shared hosting timeout limits</li>
+    </ul>
+
+    <h3>v5.6 &mdash; Inline Visual Editing</h3>
+    <p>Click any element on your live site and edit it in place. Upgrades the existing on-page editor from drawer-only to true inline editing.</p>
+    <ul>
+      <li><strong>Inline text editing</strong> &mdash; click a heading or paragraph, it becomes contenteditable. Type, click away, saves.</li>
+      <li><strong>Inline image replacement</strong> &mdash; click an image, popover appears with &ldquo;Replace image&rdquo; opening the media picker</li>
+      <li><strong>Inline rich text</strong> &mdash; floating minimal toolbar (bold, italic, link) mounted on the element</li>
+      <li><strong>Block section boundaries</strong> &mdash; visible section borders on hover for block groups</li>
+      <li><strong>No page reload</strong> &mdash; DOM updates via postMessage instead of full reload</li>
+      <li><strong>Visual/Form mode toggle</strong> &mdash; switch between inline editing and the traditional drawer</li>
+    </ul>
+
+    <h3>v5.7 &mdash; Draft/Live Revisions</h3>
+    <p>Edit published content without affecting the live site. One click to publish or discard pending changes.</p>
+    <ul>
+      <li><strong>Dual columns</strong> &mdash; <code>draft_data</code> (pending) + <code>data</code> (live). Visitors always see the published version.</li>
+      <li><strong>Auto-draft on edit</strong> &mdash; editing a published item writes to draft, not live</li>
+      <li><strong>Publish / Discard</strong> &mdash; one-click publish copies draft to live; discard clears it</li>
+      <li><strong>Visual diff</strong> &mdash; field-by-field comparison between live and draft</li>
+      <li><strong>Draft indicators</strong> &mdash; yellow banner in editor, dot badge in item list</li>
+      <li><strong>Page drafts</strong> &mdash; same pattern for pages</li>
+      <li><strong>Preview support</strong> &mdash; preview tokens serve draft content</li>
+    </ul>
+
+    <h3>v5.8 &mdash; Plugin System</h3>
+    <p>Extend Outpost with plugins that declare what they need. No package manager &mdash; plugins are zip uploads with a JSON capability manifest.</p>
+    <ul>
+      <li><strong>Capability manifests</strong> &mdash; plugins declare permissions in <code>plugin.json</code>: content, media, hooks, admin pages, template tags</li>
+      <li><strong>Sandbox API</strong> &mdash; plugins receive a restricted <code>$outpost</code> object, never raw database access</li>
+      <li><strong>Hook system</strong> &mdash; <code>item.created</code>, <code>item.updated</code>, <code>page.updated</code>, etc.</li>
+      <li><strong>Custom template tags</strong> &mdash; plugins can register <code>&lt;outpost-{tag}&gt;</code> custom elements</li>
+      <li><strong>Settings from schema</strong> &mdash; auto-generated admin settings UI per plugin</li>
+      <li><strong>Install from zip</strong> &mdash; upload, validate manifest, extract</li>
+      <li><strong>Admin UI</strong> &mdash; Plugins page with list, enable/disable, settings, capability badges</li>
+    </ul>
+
     <h3>v6.0 &mdash; Commerce / Payments</h3>
     <p>Lightweight digital product sales via Stripe.</p>
     <ul>
@@ -385,7 +444,7 @@
         <tr><th>Feature</th><th>Why Not</th></tr>
       </thead>
       <tbody>
-        <tr><td>Plugin ecosystem</td><td>Requires a package manager &mdash; violates the zero-config promise</td></tr>
+        <tr><td><s>Plugin ecosystem</s></td><td><s>Requires a package manager</s> &mdash; <strong>Moved to v5.8.</strong> Capability manifests + zip upload solve the original objection.</td></tr>
         <tr><td>Managed SaaS hosting</td><td>A business model, not a product feature</td></tr>
         <tr><td>Native mobile apps</td><td>Web admin + responsive design is sufficient</td></tr>
         <tr><td>MySQL/Postgres</td><td>SQLite is the constraint that enables &ldquo;backup = one file&rdquo;</td></tr>

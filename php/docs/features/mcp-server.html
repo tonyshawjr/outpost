@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Server &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>MCP Server</h1>
+    <p class="lead">Connect AI tools like Claude Desktop and ChatGPT to manage your Outpost site content directly via the Model Context Protocol.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>The MCP (Model Context Protocol) server is a single PHP file (<code>mcp.php</code>) that lets AI assistants read and write your site content through a standardized JSON-RPC 2.0 protocol. It uses your existing API keys for authentication &mdash; no new setup required.</p>
+    <p>Once connected, an AI assistant can list your collections, create and edit posts, update page fields, manage globals, search content, and browse your media library &mdash; all through natural language.</p>
+
+    <div class="callout callout-note"><strong>Zero dependencies.</strong> The MCP server is pure PHP. No Composer packages, no npm, no build step. It reuses the same database queries and auth system as the REST API.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Setup</h2>
+
+    <h3>1. Create an API Key</h3>
+    <p>Go to <strong>Settings &rarr; Integrations</strong> and create an API key. Copy the key &mdash; you&rsquo;ll only see it once.</p>
+
+    <h3>2. Configure Claude Desktop</h3>
+    <p>Open your Claude Desktop config file and add the MCP server:</p>
+
+    <ul>
+      <li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+      <li><strong>Windows:</strong> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+    </ul>
+
+    <pre><code>{
+  "mcpServers": {
+    "outpost-cms": {
+      "url": "https://yoursite.com/outpost/mcp.php",
+      "headers": {
+        "Authorization": "Bearer op_your_api_key_here"
+      }
+    }
+  }
+}</code></pre>
+
+    <p>Replace <code>yoursite.com</code> with your actual domain and <code>op_your_api_key_here</code> with your API key.</p>
+
+    <h3>3. Restart Claude Desktop</h3>
+    <p>After saving the config, restart Claude Desktop. The Outpost tools will appear in the tools list.</p>
+
+    <div class="callout callout-note"><strong>Tip:</strong> The connection info panel in Settings &rarr; Integrations shows a pre-filled config snippet you can copy directly.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Available Tools</h2>
+    <p>The MCP server exposes 15 tools that cover all major content operations.</p>
+
+    <h3>Collections</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_collections</code></td><td>List all collections with schemas, fields, and item counts</td></tr>
+        <tr><td><code>get_collection</code></td><td>Get a single collection by slug with full field definitions and folders</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Collection Items</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_items</code></td><td>List items with optional status filter and pagination</td></tr>
+        <tr><td><code>get_item</code></td><td>Get a single item with all field data and labels</td></tr>
+        <tr><td><code>create_item</code></td><td>Create a new item (requires collection slug, item slug, and data)</td></tr>
+        <tr><td><code>update_item</code></td><td>Partial update &mdash; only specified fields change</td></tr>
+        <tr><td><code>delete_item</code></td><td>Delete an item by ID</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Pages</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_pages</code></td><td>List all pages with paths, titles, and visibility</td></tr>
+        <tr><td><code>get_page_fields</code></td><td>Get all editable fields for a page with current content</td></tr>
+        <tr><td><code>update_page_fields</code></td><td>Update field values on a page</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Globals</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>get_globals</code></td><td>Get all global field values (site name, logo, social links, etc.)</td></tr>
+        <tr><td><code>update_globals</code></td><td>Update global field values</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Media &amp; Search</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_media</code></td><td>List uploaded files with optional search by filename or alt text</td></tr>
+        <tr><td><code>search_content</code></td><td>Search across all items and pages by keyword</td></tr>
+        <tr><td><code>get_schema</code></td><td>Get the complete site schema: collections, pages, globals, folders</td></tr>
+      </tbody>
+    </table>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Resources</h2>
+    <p>MCP resources provide read-only context that AI tools can access to understand your site structure.</p>
+    <table>
+      <thead><tr><th>URI</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>outpost://schema</code></td><td>Complete site schema &mdash; collections, fields, pages, globals</td></tr>
+        <tr><td><code>outpost://pages</code></td><td>All pages with paths, titles, and meta</td></tr>
+        <tr><td><code>outpost://globals</code></td><td>All global field values</td></tr>
+        <tr><td><code>outpost://collections/{slug}</code></td><td>Collection schema + 20 most recent items</td></tr>
+      </tbody>
+    </table>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Authentication</h2>
+    <p>The MCP server uses the same API keys as the REST API. Create keys in <strong>Settings &rarr; Integrations</strong>.</p>
+    <ul>
+      <li>Keys are sent via <code>Authorization: Bearer op_xxx...</code> header</li>
+      <li>The key must belong to a user with an admin role</li>
+      <li>The <code>initialize</code> method is the only unauthenticated call (required by MCP protocol)</li>
+      <li>All tool and resource calls require a valid key</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Security</h2>
+    <ul>
+      <li><strong>Payload limit</strong> &mdash; 1 MB maximum request body. Larger payloads are rejected before parsing.</li>
+      <li><strong>Rate limiting</strong> &mdash; Mutation tools (create, update, delete) are rate-limited using the same IP-based limiter as the REST API.</li>
+      <li><strong>Input sanitization</strong> &mdash; All inputs validated. Slugs must match <code>[a-z0-9-]</code>. Richtext fields run through the HTML sanitizer. Search queries escape LIKE wildcards.</li>
+      <li><strong>Error redaction</strong> &mdash; Error messages never expose file paths or stack traces. Full errors logged server-side only.</li>
+      <li><strong>CORS</strong> &mdash; Same origin policy as the REST API. Configurable via <code>api_cors_origins</code> setting.</li>
+      <li><strong>Revisions</strong> &mdash; All write operations create revision snapshots for rollback.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Example Prompts</h2>
+    <p>Once connected, try prompts like:</p>
+    <ul>
+      <li>&ldquo;What collections does my site have?&rdquo;</li>
+      <li>&ldquo;Create a new blog post about our spring sale&rdquo;</li>
+      <li>&ldquo;Update the site name to Acme Corp&rdquo;</li>
+      <li>&ldquo;Show me all draft posts&rdquo;</li>
+      <li>&ldquo;Search for posts mentioning SEO&rdquo;</li>
+      <li>&ldquo;What fields does the homepage have?&rdquo;</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Technical Details</h2>
+    <ul>
+      <li><strong>Protocol:</strong> MCP 2025-03-26, JSON-RPC 2.0</li>
+      <li><strong>Transport:</strong> Streamable HTTP (POST for messages, DELETE for session termination)</li>
+      <li><strong>File:</strong> <code>outpost/mcp.php</code> &mdash; single file, ~850 lines, zero dependencies</li>
+      <li><strong>Session:</strong> <code>Mcp-Session-Id</code> header generated on initialize. Auth is stateless via Bearer token.</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

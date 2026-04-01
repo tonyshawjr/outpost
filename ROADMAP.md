@@ -333,7 +333,81 @@ Everything below is already built and released.
 
 ---
 
-## v5.0 — Commerce / Payments
+## v5.4 — MCP Server for AI — SHIPPED (v5.1.1)
+
+**Let Claude, ChatGPT, and other AI tools manage your site content directly.** A single PHP file (`mcp.php`) speaks the MCP JSON-RPC protocol, translating tool calls into Outpost's existing REST API handlers. Zero new dependencies.
+
+- ~~**MCP endpoint**~~ — **Shipped** — `POST /outpost/mcp.php` (JSON-RPC over Streamable HTTP). Pure PHP, no libraries.
+- ~~**15 AI tools**~~ — **Shipped** — `list_collections`, `get_collection`, `list_items`, `get_item`, `create_item`, `update_item`, `delete_item`, `list_pages`, `get_page_fields`, `update_page_fields`, `get_globals`, `update_globals`, `list_media`, `search_content`, `get_schema`
+- ~~**MCP Resources**~~ — **Shipped** — `outpost://schema`, `outpost://pages`, `outpost://globals`, `outpost://collections/{slug}`
+- ~~**API key auth**~~ — **Shipped** — Reuses existing API keys from Settings → Integrations. Bearer token authentication.
+- ~~**Admin UI**~~ — **Shipped** — Settings → Integrations: MCP connection info panel with endpoint URL, Claude Desktop config snippet, copy buttons.
+- ~~**Security audited**~~ — **Shipped** — 1 MB payload limit, rate-limited mutations, LIKE injection prevention, richtext sanitization, path redaction, Origin header sanitization.
+
+---
+
+## v5.5 — WordPress Import Wizard
+
+**Guided 6-step migration from WordPress.** Upgrade the existing WXR importer into a multi-step wizard that handles pages, media downloads, ACF custom fields, and previews before committing.
+
+- **Step 1: Upload & Analyze** — parse WXR without importing, return manifest (post/page/media/category counts, ACF field groups detected)
+- **Step 2: Map Content Types** — map each WP post type to an Outpost collection (existing or new). Map WP pages → Outpost pages.
+- **Step 3: Field Mapping** — map WP fields + detected ACF fields to Outpost schema fields per collection
+- **Step 4: Media Options** — download & re-host images or keep external URLs. Estimated disk usage. URL rewriting in body content.
+- **Step 5: Preview** — first 5 items as preview cards. Confirm and run.
+- **Step 6: Progress** — real-time progress bar, per-type result counts, error report
+- **Import sessions** — wizard state persisted to `import_sessions` table, go back/forward between steps
+- **Batched media download** — chunked into batches for shared hosting timeout limits
+- **ACF detection** — parse `wp:postmeta` for `_field_*` keys, map to flexible/repeater/relationship fields
+
+---
+
+## v5.6 — Inline Visual Editing
+
+**Click any element on your live site and edit it in place.** Upgrades the existing on-page editor from drawer-only to true inline editing. The foundation (overlay, bridge, data-outpost click detection) already exists.
+
+- **Inline text editing** — click a `data-outpost="title"` heading, it becomes `contenteditable`. Type, click away, saves automatically.
+- **Inline image replacement** — click an image, popover appears with "Replace image" opening the media picker
+- **Inline rich text** — floating minimal toolbar (bold, italic, link) using a stripped-down TipTap instance mounted on the element
+- **Block section boundaries** — `<!-- outpost:hero -->` comments render visible section borders on hover
+- **No page reload** — DOM updates pushed via postMessage instead of full reload
+- **Visual/Form mode toggle** — Edit drawer gets a toggle. Visual mode collapses drawer to minimal toolbar and activates inline editing.
+- **Floating save button** — appears when changes are pending, like the existing PublishDropdown
+
+---
+
+## v5.7 — Draft/Live Revisions
+
+**Edit published content without affecting the live site.** Dual-column approach: `draft_data` alongside `data` on collection items. Published version stays untouched while you work on changes. One click to publish or discard.
+
+- **Dual columns** — `draft_data` (pending changes) + `data` (live). Visitors always see `data`. Zero change to front-end rendering.
+- **Auto-draft on edit** — editing a published item writes to `draft_data`, not `data`
+- **Publish draft** — copies `draft_data` → `data`, clears draft, creates revision snapshot
+- **Discard draft** — clears `draft_data` without publishing
+- **Visual diff** — field-by-field comparison between live and draft (extends existing revision diff UI)
+- **Draft indicators** — yellow "Unpublished changes" banner in editor, dot badge in item list
+- **Page drafts** — same pattern for pages via `draft_fields` column
+- **Preview support** — preview tokens serve `draft_data` instead of `data`
+- **On-page editor** — "Viewing draft" pill with publish/discard actions
+
+---
+
+## v5.8 — Plugin System
+
+**Extend Outpost with plugins that declare what they need.** Plugins live in `outpost/content/plugins/{slug}/` with a `plugin.json` capability manifest and `main.php` entry point. No package manager, no Worker isolates — the sandbox is an API object that only exposes functions matching declared capabilities.
+
+- **Capability manifests** — plugins declare permissions in `plugin.json`: `content:read`, `content:write`, `media:read`, `hooks:item.created`, `admin:settings-page`, `template:tag`
+- **Sandbox API** — plugins receive an `$outpost` object, never raw DB access. Undeclared capabilities throw `PluginCapabilityError`.
+- **Hook system** — `item.created`, `item.updated`, `item.deleted`, `page.updated`, etc. Plugins register handlers. Dispatched alongside existing webhooks.
+- **Custom template tags** — plugins with `template:tag` capability can register `<outpost-{tag}>` custom elements
+- **Settings from schema** — `settings_schema` in manifest auto-generates admin settings UI per plugin
+- **Install from zip** — upload a zip, Outpost validates manifest, extracts to `content/plugins/`
+- **Admin UI** — Plugins sidebar page with list, enable/disable toggle, per-plugin settings, capability badges
+- **Plugin data storage** — key/value `plugin_data` table scoped per plugin
+
+---
+
+## v6.0 — Commerce / Payments
 
 **Lightweight digital product sales via Stripe.** Not a full eCommerce platform — just clean checkout + access gates for digital products, courses, and memberships.
 
@@ -350,7 +424,7 @@ Everything below is already built and released.
 
 ---
 
-## Long-Term (v5.x+)
+## Long-Term (v6.x+)
 
 ### Outpost CLI
 A standalone CLI tool (separate repo) for theme scaffolding, development server, and deployment:
@@ -390,7 +464,7 @@ These are explicitly out of scope. Acknowledging them keeps the codebase focused
 
 | Feature | Why Not |
 |---|---|
-| Plugin ecosystem | Requires a package manager (Composer/npm) — violates the zero-config promise |
+| ~~Plugin ecosystem~~ | ~~Requires a package manager~~ — **Moved to v5.8.** Capability manifests + zip upload solve the original objection (no Composer/npm needed). |
 | Managed SaaS hosting | A business model, not a product feature — can be built on top of Outpost separately |
 | Native mobile apps | Web admin + responsive design is sufficient; unnecessary release cycle overhead |
 | MySQL/Postgres support | SQLite is the constraint that enables "backup = one file" and shared-host compatibility |
@@ -429,5 +503,13 @@ These define what Outpost is. Breaking them makes it something else.
 | ~~4.1~~ | Template Engine v2 — Data Attribute Architecture | **Shipped** |
 | ~~4.5~~ | Smart Forge AI — AI-powered HTML annotation | **Shipped** |
 | ~~4.8~~ | Compass — Smart Filtering & Search | **Shipped** |
-| 5.0 | Commerce / Payments (Stripe) | Planned |
-| 5.x+ | CLI, VS Code Extension, Marketplace, Channels 3&4, A/B Testing | Future |
+| ~~4.1~~ | Template Engine v2 — Data Attribute Architecture | **Shipped** |
+| ~~4.5~~ | Smart Forge AI — AI-powered HTML annotation | **Shipped** |
+| ~~4.8~~ | Compass — Smart Filtering & Search | **Shipped** |
+| ~~5.4~~ | MCP Server for AI | **Shipped** |
+| 5.5 | WordPress Import Wizard | Planned |
+| 5.6 | Inline Visual Editing | Planned |
+| 5.7 | Draft/Live Revisions | Planned |
+| 5.8 | Plugin System | Planned |
+| 6.0 | Commerce / Payments (Stripe) | Planned |
+| 6.x+ | CLI, VS Code Extension, Marketplace, Channels 3&4, A/B Testing | Future |
