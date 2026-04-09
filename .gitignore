@@ -37,5 +37,10 @@ Thumbs.db
 memory/
 .claude/
 
+# MCP server (local dev tooling, not shipped with CMS)
+mcp-server/
+.mcp.json
+*.log
+
 # Client site workspaces (contain credentials)
 sites/
