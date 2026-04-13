@@ -3471,8 +3471,17 @@ function handle_settings_get(): void {
 function handle_settings_update(): void {
     $data = get_json_body();
 
+    // Keys that must never be writable via the settings API
+    $blockedKeys = [
+        'sync_api_key', 'cron_key', 'shield_config',
+        'feature_flags', 'jwt_secret', 'ranger_key', 'totp_signing_key',
+    ];
+
     foreach ($data as $key => $value) {
         if (!is_string($key) || $key === '') continue;
+        if (in_array($key, $blockedKeys, true)) {
+            json_error('Setting "' . $key . '" cannot be updated via this endpoint', 403);
+        }
         OutpostDB::query(
             'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
             [$key, (string) $value]
