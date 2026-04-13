@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.2] — 2026-04-13
+
+### Security
+- **[CRITICAL] Sync API: removed PHP from allowed file extensions** — prevents remote code execution via sync file upload
+- **[CRITICAL] Settings API: added denylist** — blocks mass assignment of security-critical keys (`sync_api_key`, `shield_config`, etc.)
+- **[CRITICAL] Sync rate limiting: uses REMOTE_ADDR only** — prevents rate limit bypass via X-Forwarded-For spoofing
+- **[CRITICAL] Member login: fixed open redirect** — validates redirect URL is a relative path
+- Sync API key now stored as bcrypt hash (previously plaintext) — database leak no longer exposes sync credentials
+- JWT signing secret now randomly generated at install — no longer derived from predictable filesystem paths
+- GraphQL authentication now populates session role — mutations enforce capability-based authorization
+- Admin panel now sends full security headers: CSP (with nonce), X-Frame-Options: DENY, HSTS, nosniff
+- Shield security headers now include Content-Security-Policy and Strict-Transport-Security
+- Non-toggleable baseline security headers (nosniff, X-Frame-Options, HSTS) always applied even if Shield is disabled
+- Front-end rendered pages now receive security headers via Shield
+- Sync API supports optional IP allowlisting (`sync_allowed_ips` setting)
+- Role escalation prevention: only `super_admin` can assign the `super_admin` role
+- GraphQL CORS restricted: wildcard origin no longer allows Authorization header
+- CSRF protection now required on backup/restore and WordPress import endpoints
+- Database wrapper validates table and column names against `[a-zA-Z_][a-zA-Z0-9_]*` pattern
+- GraphQL introspection requires authentication
+- Ranger encryption key now randomly generated (previously derived from filesystem path)
+- TOTP 2FA secrets encrypted at rest using AES-256-GCM
+- Webhook signing secrets encrypted at rest
+- SMTP credentials encrypted at rest
+- Channel API credentials encrypted at rest
+- Backward-compatible decryption: existing plaintext values still work after upgrade
+- Session ID regenerated on API key authentication (prevents session fixation)
+- SSRF guard returns resolved IP for DNS pinning (prevents DNS rebinding attacks)
+- Member registration meta fields validated against configurable allowlist
+- Password complexity requirements: uppercase, lowercase, number, 8+ characters
+- Database directory protected with PHP guard and .htaccess for non-Apache servers
+- Member login rate limit window increased from 60s to 300s
+- SSL verification enabled in cache preloader (previously disabled)
+- Default "admin" username removed from installer form
+- File integrity monitoring upgraded from MD5 to SHA-256
+- SMTP test errors redacted from API response (logged server-side)
+- All API endpoints (MCP, Sync, Member, Admin) now send nosniff and Cache-Control: no-store headers
+- Static file responses now include X-Content-Type-Options: nosniff
+
+---
+
 ## [5.1.1] — 2026-04-01
 
 ### Added
