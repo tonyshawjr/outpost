@@ -201,6 +201,9 @@ function graphql_authenticate(): bool {
             if (!$user || !outpost_is_internal_role($user['role'])) {
                 return false;
             }
+            // Populate session so role/grant capability checks work for GraphQL auth
+            $_SESSION['outpost_user_id'] = $user['id'];
+            $_SESSION['outpost_role'] = $user['role'];
             OutpostDB::update('api_keys', ['last_used_at' => date('Y-m-d H:i:s')], 'id = ?', [$row['id']]);
             return true;
         }
