@@ -6,13 +6,36 @@
  * Used for stateless bearer-token auth for mobile apps and headless clients.
  */
 
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/db.php';
+
 /**
  * Get the JWT signing secret.
- * Derived from the database path + a fixed salt so each installation
- * has a unique secret without requiring manual configuration.
+ * Uses a random 256-bit secret stored in the settings table.
+ * Falls back to the old deterministic method if the DB is unavailable.
  */
 function outpost_jwt_secret(): string {
-    return hash('sha256', OUTPOST_DB_PATH . '::outpost-jwt-v1::' . (__DIR__), true);
+    try {
+        $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'jwt_secret'");
+
+        if ($row && !empty($row['value']) && preg_match('/^[0-9a-f]{64}$/i', $row['value'])) {
+            return hex2bin($row['value']);
+        }
+
+        // Generate and persist a new random secret
+        $secret = random_bytes(32);
+        $hex = bin2hex($secret);
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('jwt_secret', ?)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [$hex]
+        );
+
+        return $secret;
+    } catch (\Throwable $e) {
+        // DB unavailable — fall back to deterministic derivation
+        return hash('sha256', OUTPOST_DB_PATH . '::outpost-jwt-v1::' . (__DIR__), true);
+    }
 }
 
 /**
