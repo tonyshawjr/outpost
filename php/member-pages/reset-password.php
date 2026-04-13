@@ -26,8 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password  = $_POST['password'] ?? '';
     $confirm   = $_POST['confirm'] ?? '';
 
-    if (strlen($password) < 8) {
-        $error = 'Password must be at least 8 characters.';
+    $pwError = outpost_validate_password($password);
+    if ($pwError) {
+        $error = $pwError;
     } elseif ($password !== $confirm) {
         $error = 'Passwords do not match.';
     } else {

@@ -82,3 +82,23 @@ define('OUTPOST_ASSET_EXTENSIONS', ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 
         }
     }
 })();
+
+/**
+ * Validate password complexity.
+ * Returns an error message string if invalid, or null if the password meets requirements.
+ */
+function outpost_validate_password(string $password): ?string {
+    if (strlen($password) < 8) {
+        return 'Password must be at least 8 characters.';
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        return 'Password must contain at least one uppercase letter.';
+    }
+    if (!preg_match('/[a-z]/', $password)) {
+        return 'Password must contain at least one lowercase letter.';
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        return 'Password must contain at least one number.';
+    }
+    return null;
+}

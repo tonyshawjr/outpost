@@ -63,8 +63,9 @@ function do_install(string $username, string $password, string $email): array {
     if (strlen($username) < 3) {
         $errors[] = 'Username must be at least 3 characters.';
     }
-    if (strlen($password) < 8) {
-        $errors[] = 'Password must be at least 8 characters.';
+    $pwError = outpost_validate_password($password);
+    if ($pwError) {
+        $errors[] = $pwError;
     }
 
     if ($errors) return $errors;

@@ -211,8 +211,9 @@ if ($action === 'reset' && $method === 'POST') {
     if (!$token) {
         member_error('Reset token required');
     }
-    if (strlen($password) < 8) {
-        member_error('Password must be at least 8 characters');
+    $pwError = outpost_validate_password($password);
+    if ($pwError) {
+        member_error($pwError);
     }
 
     $user = OutpostDB::fetchOne(

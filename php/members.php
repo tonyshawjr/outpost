@@ -103,8 +103,9 @@ class OutpostMember {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'error' => 'Valid email is required.'];
         }
-        if (strlen($password) < 8) {
-            return ['success' => false, 'error' => 'Password must be at least 8 characters.'];
+        $pwError = outpost_validate_password($password);
+        if ($pwError) {
+            return ['success' => false, 'error' => $pwError];
         }
 
         // Check uniqueness
