@@ -1915,7 +1915,17 @@ function outpost_migrate_v5(): void {
     }
 
     // 3d. Clear theme references in DB
+    // Delete themed duplicates first to avoid UNIQUE constraint violations,
+    // then clear theme on remaining rows
+    $db->exec("DELETE FROM fields WHERE theme != '' AND EXISTS (
+        SELECT 1 FROM fields f2 WHERE f2.page_id = fields.page_id
+        AND f2.field_name = fields.field_name AND f2.theme = ''
+    )");
     $db->exec("UPDATE fields SET theme = '' WHERE theme != ''");
+    $db->exec("DELETE FROM page_field_registry WHERE theme != '' AND EXISTS (
+        SELECT 1 FROM page_field_registry p2 WHERE p2.path = page_field_registry.path
+        AND p2.field_name = page_field_registry.field_name AND p2.theme = ''
+    )");
     $db->exec("UPDATE page_field_registry SET theme = '' WHERE theme != ''");
     $db->exec("DELETE FROM settings WHERE key = 'active_theme'");
     $db->exec("DELETE FROM settings WHERE key LIKE 'last_template_scan_%'");

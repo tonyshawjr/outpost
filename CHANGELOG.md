@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.3] — 2026-04-13
+
+### Fixed
+- **v5 migration crash on sites with themed fields** — DELETE duplicates before UPDATE to avoid UNIQUE constraint violation on `fields` and `page_field_registry` tables. Fixes upgrade path from 4.x to 5.x.
+
+---
+
 ## [5.1.2] — 2026-04-13
 
 ### Security
