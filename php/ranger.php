@@ -62,6 +62,21 @@ function ranger_decrypt(string $ciphertext): string {
     return $plaintext;
 }
 
+/**
+ * Decrypt a value with fallback to plaintext for backward compatibility.
+ * If decryption fails (e.g. value was stored before encryption was added),
+ * returns the raw value unchanged.
+ */
+function safe_decrypt(string $value): string {
+    if ($value === '') return $value;
+    try {
+        return ranger_decrypt($value);
+    } catch (\Throwable $e) {
+        // Value is likely still plaintext (pre-encryption migration)
+        return $value;
+    }
+}
+
 // ── Database Migration ──────────────────────────────────
 
 function ensure_ranger_tables(): void {

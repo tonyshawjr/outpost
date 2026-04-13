@@ -1254,7 +1254,7 @@ function handle_totp_verify(): void {
         if (!$code) {
             json_error('Authentication code required', 400);
         }
-        if (!OutpostTOTP::verifyCode($user['totp_secret'], $code)) {
+        if (!OutpostTOTP::verifyCode(safe_decrypt($user['totp_secret']), $code)) {
             // Record failed attempt for rate limiting
             $rlAttempts[] = $now;
             OutpostDB::query(
@@ -1291,9 +1291,9 @@ function handle_totp_setup(): void {
     $user = OutpostDB::fetchOne('SELECT * FROM users WHERE id = ?', [$sessionUser['id']]);
     if (!$user) json_error('User not found', 404);
 
-    // Generate a new secret (not yet enabled)
+    // Generate a new secret (not yet enabled) — encrypt at rest
     $secret = OutpostTOTP::generateSecret();
-    OutpostDB::update('users', ['totp_secret' => $secret], 'id = ?', [$user['id']]);
+    OutpostDB::update('users', ['totp_secret' => ranger_encrypt($secret)], 'id = ?', [$user['id']]);
 
     $uri = OutpostTOTP::buildUri($secret, $user['username']);
 
@@ -1315,7 +1315,7 @@ function handle_totp_enable(): void {
         json_error('Run setup first', 400);
     }
 
-    if (!OutpostTOTP::verifyCode($user['totp_secret'], $code)) {
+    if (!OutpostTOTP::verifyCode(safe_decrypt($user['totp_secret']), $code)) {
         json_error('Invalid code. Make sure your authenticator app is synced.', 400);
     }
 
