@@ -162,7 +162,7 @@ OutpostAuth::requireAuth();
 // CSRF check on mutations (skip for API key auth — CSRF only protects browser sessions)
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
     if (!OutpostAuth::isApiKeyAuth()) {
-        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore') {
+        if ($action !== 'media/upload') {
             OutpostAuth::validateCsrf();
         }
     }
