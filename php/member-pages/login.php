@@ -37,6 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resend_verify'])) {
 
     if ($result['success']) {
         $redirect = $_GET['redirect'] ?? '/';
+        // Prevent open redirect: only allow relative paths, block protocol-relative URLs
+        if (!str_starts_with($redirect, '/') || str_starts_with($redirect, '//')) {
+            $redirect = '/';
+        }
         header('Location: ' . $redirect);
         exit;
     }
