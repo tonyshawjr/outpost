@@ -18,7 +18,7 @@
   </div>
   <div class="content">
 
-    <div class="callout callout-note"><strong>Renamed in v1.0.0-beta.7</strong> — "Taxonomies" are now called <strong>Folders</strong> and "Terms" are now called <strong>Labels</strong>. The old API endpoints (<code>action=taxonomies</code>, <code>action=terms</code>) and template syntax (<code>{% for term in taxonomy.slug %}</code>) still work for backward compatibility.</div>
+    <div class="callout callout-note"><strong>Renamed in v1.0.0-beta.7</strong> — "Taxonomies" are now called <strong>Folders</strong> and "Terms" are now called <strong>Labels</strong>. The old API endpoints (<code>action=taxonomies</code>, <code>action=terms</code>) still work for backward compatibility.</div>
 
     <h2>What are folders?</h2>
     <p>A folder is a labeling system for your content. Where a collection holds the items themselves, a folder provides the classification layer that organizes them. You define a folder (e.g., "Categories"), populate it with labels (e.g., "Technology", "Design", "Business"), and then assign those labels to individual collection items when editing them in the admin.</p>
@@ -111,126 +111,125 @@
     </div>
 
     <h2>Looping over all labels in a folder</h2>
-    <p>Use <code>{% for label in folder.slug %}</code> to iterate over every label. Replace <code>slug</code> with the folder's slug. This is used to build filter navigation, tag clouds, and category lists.</p>
+    <p>Use <code>&lt;outpost-each folder="slug"&gt;</code> to iterate over every label. Replace <code>slug</code> with the folder's slug. This is used to build filter navigation, tag clouds, and category lists.</p>
 
-    <pre><code><span class="t-comment">{# Build a category filter bar #}</span>
+    <pre><code><span class="t-comment">&lt;!-- Build a category filter bar --&gt;</span>
 <span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"category-filter"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog"</span><span class="t-tag">&gt;</span>All<span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.category</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category={{ label.slug }}"</span><span class="t-tag">&gt;</span>
-      <span class="t-out">{{ label.name }}</span>
-      <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"count"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.count }}</span><span class="t-tag">&lt;/span&gt;</span>
+  <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=default"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Label Name<span class="t-tag">&lt;/span&gt;</span>
+      <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"count"</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"count"</span> <span class="t-attr">data-type</span>=<span class="t-string">"number"</span><span class="t-tag">&gt;</span>0<span class="t-tag">&lt;/span&gt;</span>
     <span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/nav&gt;</span></code></pre>
 
     <p>All built-in label variables are available in the loop body:</p>
 
-    <pre><code><span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.tag</span> <span class="t-kw">%}</span>
+    <pre><code><span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"tag"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;li&gt;</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?tag={{ label.slug }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
-    <span class="t-kw">{% if</span> <span class="t-out">label.description</span> <span class="t-kw">%}</span>
-      <span class="t-tag">&lt;p</span> <span class="t-attr">class</span>=<span class="t-string">"label-desc"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.description }}</span><span class="t-tag">&lt;/p&gt;</span>
-    <span class="t-kw">{% endif %}</span>
-    <span class="t-tag">&lt;span&gt;</span><span class="t-out">{{ label.count }}</span> posts<span class="t-tag">&lt;/span&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?tag=default"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Label Name<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"description"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;p</span> <span class="t-attr">class</span>=<span class="t-string">"label-desc"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"description"</span><span class="t-tag">&gt;</span>Description text<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/p&gt;</span>
+    <span class="t-tag">&lt;/outpost-if&gt;</span>
+    <span class="t-tag">&lt;span&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"count"</span> <span class="t-attr">data-type</span>=<span class="t-string">"number"</span><span class="t-tag">&gt;</span>0<span class="t-tag">&lt;/span&gt;</span> posts<span class="t-tag">&lt;/span&gt;</span>
   <span class="t-tag">&lt;/li&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+<span class="t-tag">&lt;/outpost-each&gt;</span></code></pre>
 
     <h2>Filtering a collection loop by folder label</h2>
-    <p>Add the <code>filteredby:</code> modifier to a collection loop to filter items by a URL query parameter. When a visitor loads <code>/blog?category=design</code>, the loop returns only items tagged with the "design" label. Without the query parameter, all published items are returned.</p>
+    <p>Add the <code>filteredby</code> attribute to an <code>&lt;outpost-each&gt;</code> collection loop to filter items by a URL query parameter. When a visitor loads <code>/blog?category=design</code>, the loop returns only items tagged with the "design" label. Without the query parameter, all published items are returned.</p>
 
-    <pre><code><span class="t-comment">{# URL: /blog?category=design — shows only items tagged "design" #}</span>
-<span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">collection.post</span> <span class="t-out">filteredby:category</span> <span class="t-kw">%}</span>
+    <pre><code><span class="t-comment">&lt;!-- URL: /blog?category=design — shows only items tagged "design" --&gt;</span>
+<span class="t-tag">&lt;outpost-each</span> <span class="t-attr">collection</span>=<span class="t-string">"post"</span> <span class="t-attr">filteredby</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;article&gt;</span>
-    <span class="t-tag">&lt;h2&gt;</span><span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h2&gt;</span>
-    <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ item.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+    <span class="t-tag">&lt;h2&gt;</span><span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"title"</span><span class="t-tag">&gt;</span>Post Title<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;&lt;/h2&gt;</span>
+    <span class="t-tag">&lt;p</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"excerpt"</span><span class="t-tag">&gt;</span>Post excerpt.<span class="t-tag">&lt;/p&gt;</span>
   <span class="t-tag">&lt;/article&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+<span class="t-tag">&lt;/outpost-each&gt;</span></code></pre>
 
     <div class="callout callout-note">
-      <strong>Note</strong> — The value after <code>filteredby:</code> is the URL query string key, not the folder slug. Use a short, readable key. It will appear in visitor-facing URLs like <code>/blog?category=technology</code>.
+      <strong>Note</strong> — The value of <code>filteredby</code> is the URL query string key, not the folder slug. Use a short, readable key. It will appear in visitor-facing URLs like <code>/blog?category=technology</code>.
     </div>
 
-    <p>You can combine <code>filteredby:</code> with other loop modifiers like <code>paginate:</code> and <code>orderby:</code>:</p>
+    <p>You can combine <code>filteredby</code> with other loop attributes like <code>paginate</code> and <code>orderby</code>:</p>
 
-    <pre><code><span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">collection.post</span>
-    <span class="t-out">filteredby:category</span>
-    <span class="t-out">orderby:published_at</span>
-    <span class="t-out">paginate:10</span> <span class="t-kw">%}</span>
-  <span class="t-tag">&lt;h2&gt;</span><span class="t-out">{{ item.title }}</span><span class="t-tag">&lt;/h2&gt;</span>
-<span class="t-kw">{% endfor %}</span>
+    <pre><code><span class="t-tag">&lt;outpost-each</span>
+    <span class="t-attr">collection</span>=<span class="t-string">"post"</span>
+    <span class="t-attr">filteredby</span>=<span class="t-string">"category"</span>
+    <span class="t-attr">orderby</span>=<span class="t-string">"published_at"</span>
+    <span class="t-attr">paginate</span>=<span class="t-string">"10"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;h2</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"title"</span><span class="t-tag">&gt;</span>Post Title<span class="t-tag">&lt;/h2&gt;</span>
+<span class="t-tag">&lt;/outpost-each&gt;</span>
 
-<span class="t-kw">{% pagination %}</span></code></pre>
+<span class="t-tag">&lt;outpost-pagination /&gt;</span></code></pre>
 
     <p>Filtering works alongside pagination transparently — each page of results contains only items matching the active label.</p>
 
     <h2>Full filter + list pattern</h2>
     <p>The most common use of folders is a filter bar paired with a filtered item list. Here is a complete <code>blog.html</code> template implementing this pattern:</p>
 
-    <pre><code><span class="t-comment">{# blog.html — category filter + paginated post list #}</span>
+    <pre><code><span class="t-comment">&lt;!-- blog.html — category filter + paginated post list --&gt;</span>
 <span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"filter-bar"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog"</span><span class="t-tag">&gt;</span>All Posts<span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.category</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category={{ label.slug }}"</span><span class="t-tag">&gt;</span>
-      <span class="t-out">{{ label.name }}</span>
+  <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=default"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Label Name<span class="t-tag">&lt;/span&gt;</span>
     <span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/nav&gt;</span>
 
 <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-list"</span><span class="t-tag">&gt;</span>
-<span class="t-kw">{% for</span> post <span class="t-kw">in</span> <span class="t-out">collection.post</span> <span class="t-out">filteredby:category</span> <span class="t-out">orderby:published_at</span> <span class="t-out">paginate:12</span> <span class="t-kw">%}</span>
+<span class="t-tag">&lt;outpost-each</span> <span class="t-attr">collection</span>=<span class="t-string">"post"</span> <span class="t-attr">filteredby</span>=<span class="t-string">"category"</span> <span class="t-attr">orderby</span>=<span class="t-string">"published_at"</span> <span class="t-attr">paginate</span>=<span class="t-string">"12"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;article&gt;</span>
-    <span class="t-kw">{% if</span> <span class="t-out">post.featured_image</span> <span class="t-kw">%}</span>
-      <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"{{ post.featured_image | image }}"</span> <span class="t-attr">alt</span>=<span class="t-string">"{{ post.title }}"</span><span class="t-tag">&gt;</span>
-    <span class="t-kw">{% endif %}</span>
-    <span class="t-tag">&lt;h2&gt;</span><span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ post.url }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h2&gt;</span>
-    <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ post.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+    <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"featured_image"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;img</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"featured_image"</span> <span class="t-attr">data-type</span>=<span class="t-string">"image"</span> <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span> <span class="t-attr">alt</span>=<span class="t-string">"Post image"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;/outpost-if&gt;</span>
+    <span class="t-tag">&lt;h2&gt;</span><span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"title"</span><span class="t-tag">&gt;</span>Post Title<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;&lt;/h2&gt;</span>
+    <span class="t-tag">&lt;p</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"excerpt"</span><span class="t-tag">&gt;</span>Post excerpt.<span class="t-tag">&lt;/p&gt;</span>
     <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-tags"</span><span class="t-tag">&gt;</span>
-      <span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">post.labels.category</span> <span class="t-kw">%}</span>
-        <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"tag"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/span&gt;</span>
-      <span class="t-kw">{% endfor %}</span>
+      <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span> <span class="t-attr">scope</span>=<span class="t-string">"item"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"tag"</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Tag Name<span class="t-tag">&lt;/span&gt;</span>
+      <span class="t-tag">&lt;/outpost-each&gt;</span>
     <span class="t-tag">&lt;/div&gt;</span>
   <span class="t-tag">&lt;/article&gt;</span>
-<span class="t-kw">{% endfor %}</span>
+<span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/div&gt;</span>
 
-<span class="t-kw">{% pagination %}</span></code></pre>
+<span class="t-tag">&lt;outpost-pagination /&gt;</span></code></pre>
 
     <h2>Displaying an item's own labels</h2>
-    <p>Inside a <code>{% single %}</code> block or a collection loop, you can access the labels assigned to that specific item using <code>item.labels.folder-slug</code>:</p>
+    <p>Inside a single-item template or a collection loop, you can access the labels assigned to that specific item using <code>&lt;outpost-each folder="slug" scope="item"&gt;</code>:</p>
 
-    <pre><code><span class="t-kw">{% single</span> post <span class="t-kw">from</span> <span class="t-out">collection.post</span> <span class="t-kw">%}</span>
-  <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/h1&gt;</span>
+    <pre><code><span class="t-comment">&lt;!-- post.html (single-item template) --&gt;</span>
+<span class="t-tag">&lt;h1</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"title"</span><span class="t-tag">&gt;</span>Post Title<span class="t-tag">&lt;/h1&gt;</span>
 
-  <span class="t-comment">{# Show this post's categories as links #}</span>
-  <span class="t-kw">{% if</span> <span class="t-out">post.labels.category</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-categories"</span><span class="t-tag">&gt;</span>
-      <span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">post.labels.category</span> <span class="t-kw">%}</span>
-        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category={{ label.slug }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
-      <span class="t-kw">{% endfor %}</span>
-    <span class="t-tag">&lt;/div&gt;</span>
-  <span class="t-kw">{% endif %}</span>
+<span class="t-comment">&lt;!-- Show this post's categories as links --&gt;</span>
+<span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"labels.category"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"post-categories"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span> <span class="t-attr">scope</span>=<span class="t-string">"item"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=default"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Category Name<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;/outpost-each&gt;</span>
+  <span class="t-tag">&lt;/div&gt;</span>
+<span class="t-tag">&lt;/outpost-if&gt;</span>
 
-  <span class="t-out">{{ post.body | raw }}</span>
-<span class="t-kw">{% else %}</span>
-  <span class="t-tag">&lt;p&gt;</span>Post not found.<span class="t-tag">&lt;/p&gt;</span>
-<span class="t-kw">{% endsingle %}</span></code></pre>
+<span class="t-tag">&lt;div</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"body"</span> <span class="t-attr">data-type</span>=<span class="t-string">"richtext"</span><span class="t-tag">&gt;</span>Post body content.<span class="t-tag">&lt;/div&gt;</span></code></pre>
 
     <h2>Hierarchical folders</h2>
     <p>For hierarchical folders, the loop returns all labels in a single flat list ordered by creation. Each label carries a <code>parent_id</code> — labels with <code>parent_id == "0"</code> are top-level; all others are children. You construct the visual hierarchy in your template:</p>
 
     <pre><code><span class="t-tag">&lt;ul</span> <span class="t-attr">class</span>=<span class="t-string">"category-tree"</span><span class="t-tag">&gt;</span>
-<span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.category</span> <span class="t-kw">%}</span>
-  <span class="t-kw">{% if</span> <span class="t-out">label.parent_id</span> == <span class="t-string">"0"</span> <span class="t-kw">%}</span>
+<span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"parent_id"</span> <span class="t-attr">is</span>=<span class="t-string">"0"</span><span class="t-tag">&gt;</span>
     <span class="t-tag">&lt;li</span> <span class="t-attr">class</span>=<span class="t-string">"parent"</span><span class="t-tag">&gt;</span>
-      <span class="t-tag">&lt;strong&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/strong&gt;</span>
+      <span class="t-tag">&lt;strong</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Parent Name<span class="t-tag">&lt;/strong&gt;</span>
     <span class="t-tag">&lt;/li&gt;</span>
-  <span class="t-kw">{% else %}</span>
+  <span class="t-tag">&lt;/outpost-if&gt;</span>
+  <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"parent_id"</span> <span class="t-attr">not</span>=<span class="t-string">"0"</span><span class="t-tag">&gt;</span>
     <span class="t-tag">&lt;li</span> <span class="t-attr">class</span>=<span class="t-string">"child"</span><span class="t-tag">&gt;</span>
-      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category={{ label.slug }}"</span><span class="t-tag">&gt;</span>&mdash; <span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=default"</span><span class="t-tag">&gt;</span>&mdash; <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Child Name<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
     <span class="t-tag">&lt;/li&gt;</span>
-  <span class="t-kw">{% endif %}</span>
-<span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/outpost-if&gt;</span>
+<span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/ul&gt;</span></code></pre>
 
     <div class="callout callout-tip">
@@ -240,44 +239,39 @@
     <h2>Multiple folders on one collection</h2>
     <p>A collection can have more than one folder attached to it. For example, a blog might use both a hierarchical "Category" folder and a flat "Tag" folder. Each appears as a separate label selector in the item editor, and each can be looped and filtered independently in templates:</p>
 
-    <pre><code><span class="t-comment">{# Category nav — hierarchical #}</span>
+    <pre><code><span class="t-comment">&lt;!-- Category nav — hierarchical --&gt;</span>
 <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"category-nav"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.category</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category={{ label.slug }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=default"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Category Name<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/div&gt;</span>
 
-<span class="t-comment">{# Tag cloud — flat #}</span>
+<span class="t-comment">&lt;!-- Tag cloud — flat --&gt;</span>
 <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"tag-cloud"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.tag</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?tag={{ label.slug }}"</span> <span class="t-attr">class</span>=<span class="t-string">"tag"</span><span class="t-tag">&gt;</span><span class="t-out">{{ label.name }}</span><span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"tag"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?tag=default"</span> <span class="t-attr">class</span>=<span class="t-string">"tag"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Tag Name<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/div&gt;</span>
 
-<span class="t-comment">{# Items filtered by category only (tag filter could be added too) #}</span>
-<span class="t-kw">{% for</span> post <span class="t-kw">in</span> <span class="t-out">collection.post</span> <span class="t-out">filteredby:category</span> <span class="t-kw">%}</span>
-  <span class="t-tag">&lt;h2&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/h2&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+<span class="t-comment">&lt;!-- Items filtered by category only (tag filter could be added too) --&gt;</span>
+<span class="t-tag">&lt;outpost-each</span> <span class="t-attr">collection</span>=<span class="t-string">"post"</span> <span class="t-attr">filteredby</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;h2</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"title"</span><span class="t-tag">&gt;</span>Post Title<span class="t-tag">&lt;/h2&gt;</span>
+<span class="t-tag">&lt;/outpost-each&gt;</span></code></pre>
 
     <h2>Custom fields on labels</h2>
     <p>You can add custom fields to a folder's labels. Open the folder in <strong>Admin &rarr; Folders &rarr; [Folder] &rarr; Settings</strong> and add fields to the label schema. Each label then has those extra fields editable on its detail page.</p>
-    <p>Custom field values are accessed via <code>label.data.field_name</code>:</p>
+    <p>Custom field values are accessed via <code>data-outpost="data.field_name"</code>:</p>
 
-    <pre><code><span class="t-comment">{# Category with a brand color and icon custom field #}</span>
-<span class="t-kw">{% for</span> label <span class="t-kw">in</span> <span class="t-out">folder.category</span> <span class="t-kw">%}</span>
-  <span class="t-tag">&lt;a</span>
-    <span class="t-attr">href</span>=<span class="t-string">"/blog?category={{ label.slug }}"</span>
-    <span class="t-kw">{% if</span> <span class="t-out">label.data.color</span> <span class="t-kw">%}</span>
-      <span class="t-attr">style</span>=<span class="t-string">"border-left: 3px solid {{ label.data.color }}"</span>
-    <span class="t-kw">{% endif %}</span>
-  <span class="t-tag">&gt;</span>
-    <span class="t-kw">{% if</span> <span class="t-out">label.data.icon</span> <span class="t-kw">%}</span>
-      <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"{{ label.data.icon | image }}"</span> <span class="t-attr">alt</span>=<span class="t-string">""</span> <span class="t-attr">width</span>=<span class="t-string">"20"</span><span class="t-tag">&gt;</span>
-    <span class="t-kw">{% endif %}</span>
-    <span class="t-out">{{ label.name }}</span>
-    <span class="t-tag">&lt;span&gt;</span><span class="t-out">{{ label.count }}</span><span class="t-tag">&lt;/span&gt;</span>
+    <pre><code><span class="t-comment">&lt;!-- Category with a brand color and icon custom field --&gt;</span>
+<span class="t-tag">&lt;outpost-each</span> <span class="t-attr">folder</span>=<span class="t-string">"category"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"filter_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"/blog?category=default"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"data.icon"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;img</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"data.icon"</span> <span class="t-attr">data-type</span>=<span class="t-string">"image"</span> <span class="t-attr">src</span>=<span class="t-string">"default.png"</span> <span class="t-attr">alt</span>=<span class="t-string">""</span> <span class="t-attr">width</span>=<span class="t-string">"20"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;/outpost-if&gt;</span>
+    <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"name"</span><span class="t-tag">&gt;</span>Label Name<span class="t-tag">&lt;/span&gt;</span>
+    <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"count"</span> <span class="t-attr">data-type</span>=<span class="t-string">"number"</span><span class="t-tag">&gt;</span>0<span class="t-tag">&lt;/span&gt;</span>
   <span class="t-tag">&lt;/a&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+<span class="t-tag">&lt;/outpost-each&gt;</span></code></pre>
 
     <p>Available custom field types for labels:</p>
 
@@ -328,40 +322,40 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>{% for label in folder.slug %}</code></td>
+          <td><code>&lt;outpost-each folder="slug"&gt;...&lt;/outpost-each&gt;</code></td>
           <td>Loop over all labels in the named folder</td>
         </tr>
         <tr>
-          <td><code>{{ label.name }}</code></td>
+          <td><code>&lt;span data-outpost="name"&gt;Default&lt;/span&gt;</code></td>
           <td>Label display name</td>
         </tr>
         <tr>
-          <td><code>{{ label.slug }}</code></td>
+          <td><code>&lt;span data-outpost="slug"&gt;Default&lt;/span&gt;</code></td>
           <td>Label URL slug</td>
         </tr>
         <tr>
-          <td><code>{{ label.count }}</code></td>
+          <td><code>&lt;span data-outpost="count" data-type="number"&gt;0&lt;/span&gt;</code></td>
           <td>Published item count for this label</td>
         </tr>
         <tr>
-          <td><code>{{ label.description }}</code></td>
+          <td><code>&lt;span data-outpost="description"&gt;Default&lt;/span&gt;</code></td>
           <td>Optional description set on the label</td>
         </tr>
         <tr>
-          <td><code>{{ label.parent_id }}</code></td>
+          <td><code>&lt;span data-outpost="parent_id"&gt;0&lt;/span&gt;</code></td>
           <td>Parent label ID (hierarchical only); <code>0</code> = top-level</td>
         </tr>
         <tr>
-          <td><code>{{ label.data.field }}</code></td>
+          <td><code>&lt;span data-outpost="data.field"&gt;Default&lt;/span&gt;</code></td>
           <td>Custom field value on this label</td>
         </tr>
         <tr>
-          <td><code>{% for label in item.labels.slug %}</code></td>
+          <td><code>&lt;outpost-each folder="slug" scope="item"&gt;...&lt;/outpost-each&gt;</code></td>
           <td>Loop over labels assigned to a specific collection item</td>
         </tr>
         <tr>
-          <td><code>filteredby:key</code></td>
-          <td>Collection loop modifier — filter by <code>?key=label-slug</code> in URL</td>
+          <td><code>filteredby="key"</code></td>
+          <td>Collection loop attribute — filter by <code>?key=label-slug</code> in URL</td>
         </tr>
       </tbody>
     </table>
@@ -369,7 +363,7 @@
     <h2>Related docs</h2>
     <ul>
       <li><a href="loops/folder-loops.html">Folder Loops</a> — full loop reference, sorting, and filtering options</li>
-      <li><a href="loops/collection-loops.html">Collection Loops</a> — <code>filteredby:</code> and other modifiers</li>
+      <li><a href="loops/collection-loops.html">Collection Loops</a> — <code>filteredby</code> and other modifiers</li>
       <li><a href="loops/pagination.html">Pagination</a> — paginating filtered results</li>
       <li><a href="content/collections.html">Collections</a> — attaching folders in collection settings</li>
       <li><a href="recipes/category-filtering.html">Recipe: Category Filtering</a> — complete working example with active state CSS</li>

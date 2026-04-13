@@ -155,7 +155,7 @@
       </tbody>
     </table>
 
-    <p>The URL stored in the database (and output by the <code>| image</code> filter) is the web-root-relative path:</p>
+    <p>The URL stored in the database (and output by the <code>data-type="image"</code> attribute) is the web-root-relative path:</p>
 
     <pre><code>/outpost/uploads/1700000000_hero-photo.jpg</code></pre>
 
@@ -172,60 +172,70 @@
     </ul>
     <p>The sanitized SVG is written to disk in place of the raw upload. The result is safe to serve directly and embed inline in HTML. See <a href="reference/sanitization.html">Sanitization</a> for implementation details.</p>
 
-    <h2>Using media in templates — the <code>| image</code> filter</h2>
-    <p>Image fields in page templates, collection items, and global fields use the <code>| image</code> filter. This filter both outputs the stored URL and registers the field as an image picker widget in the admin editor — so editors see a proper media browser, not a raw text box.</p>
+    <h2>Using media in templates — the <code>data-type="image"</code> attribute</h2>
+    <p>Image fields in page templates, collection items, and global fields use the <code>data-type="image"</code> attribute. This both outputs the stored URL and registers the field as an image picker widget in the admin editor — so editors see a proper media browser, not a raw text box.</p>
 
     <h3>Page and collection image fields</h3>
 
-    <pre><code><span class="t-comment">{# Page template — hero image field #}</span>
+    <pre><code><span class="t-comment">&lt;!-- Page template — hero image field --&gt;</span>
 <span class="t-tag">&lt;img</span>
-  <span class="t-attr">src</span>=<span class="t-string">"{{ hero_image | image }}"</span>
-  <span class="t-attr">alt</span>=<span class="t-string">"{{ hero_title }}"</span>
+  <span class="t-attr">data-outpost</span>=<span class="t-string">"hero_image"</span>
+  <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+  <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span>
+  <span class="t-attr">alt</span>=<span class="t-string">"Hero image"</span>
   <span class="t-attr">width</span>=<span class="t-string">"1200"</span>
   <span class="t-attr">height</span>=<span class="t-string">"630"</span>
   <span class="t-attr">loading</span>=<span class="t-string">"lazy"</span>
 <span class="t-tag">&gt;</span>
 
-<span class="t-comment">{# Collection item — featured image #}</span>
-<span class="t-kw">{% if</span> <span class="t-out">post.featured_image</span> <span class="t-kw">%}</span>
+<span class="t-comment">&lt;!-- Collection item — featured image (inside outpost-each) --&gt;</span>
+<span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"featured_image"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;img</span>
-    <span class="t-attr">src</span>=<span class="t-string">"{{ post.featured_image | image }}"</span>
-    <span class="t-attr">alt</span>=<span class="t-string">"{{ post.title }}"</span>
+    <span class="t-attr">data-outpost</span>=<span class="t-string">"featured_image"</span>
+    <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+    <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span>
+    <span class="t-attr">alt</span>=<span class="t-string">"Featured image"</span>
     <span class="t-attr">loading</span>=<span class="t-string">"lazy"</span>
   <span class="t-tag">&gt;</span>
-<span class="t-kw">{% endif %}</span>
+<span class="t-tag">&lt;/outpost-if&gt;</span>
 
-<span class="t-comment">{# As a CSS background image #}</span>
-<span class="t-tag">&lt;div</span> <span class="t-attr">style</span>=<span class="t-string">"background-image: url('{{ banner_image | image }}')"</span><span class="t-tag">&gt;</span>
+<span class="t-comment">&lt;!-- As a CSS background image --&gt;</span>
+<span class="t-tag">&lt;div</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"banner_image"</span> <span class="t-attr">data-type</span>=<span class="t-string">"image"</span> <span class="t-attr">style</span>=<span class="t-string">"background-image: url('default.jpg')"</span><span class="t-tag">&gt;</span>
   ...
 <span class="t-tag">&lt;/div&gt;</span></code></pre>
 
     <h3>Global image fields</h3>
 
-    <pre><code><span class="t-comment">{# Site logo in the header partial #}</span>
+    <pre><code><span class="t-comment">&lt;!-- Site logo in the header partial --&gt;</span>
 <span class="t-tag">&lt;img</span>
-  <span class="t-attr">src</span>=<span class="t-string">"{{ @logo | image }}"</span>
-  <span class="t-attr">alt</span>=<span class="t-string">"{{ @site_name }}"</span>
+  <span class="t-attr">data-outpost</span>=<span class="t-string">"logo"</span>
+  <span class="t-attr">data-scope</span>=<span class="t-string">"global"</span>
+  <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+  <span class="t-attr">src</span>=<span class="t-string">"default-logo.png"</span>
+  <span class="t-attr">alt</span>=<span class="t-string">"Site logo"</span>
   <span class="t-attr">height</span>=<span class="t-string">"32"</span>
 <span class="t-tag">&gt;</span>
 
-<span class="t-comment">{# Author profile photo — only render if the global is set #}</span>
-<span class="t-kw">{% if</span> <span class="t-out">@profile_photo</span> <span class="t-kw">%}</span>
+<span class="t-comment">&lt;!-- Author profile photo — only render if the global is set --&gt;</span>
+<span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"profile_photo"</span> <span class="t-attr">scope</span>=<span class="t-string">"global"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;img</span>
-    <span class="t-attr">src</span>=<span class="t-string">"{{ @profile_photo | image }}"</span>
-    <span class="t-attr">alt</span>=<span class="t-string">"{{ @author_name }}"</span>
+    <span class="t-attr">data-outpost</span>=<span class="t-string">"profile_photo"</span>
+    <span class="t-attr">data-scope</span>=<span class="t-string">"global"</span>
+    <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+    <span class="t-attr">src</span>=<span class="t-string">"default-avatar.jpg"</span>
+    <span class="t-attr">alt</span>=<span class="t-string">"Author photo"</span>
     <span class="t-attr">class</span>=<span class="t-string">"avatar"</span>
   <span class="t-tag">&gt;</span>
-<span class="t-kw">{% endif %}</span></code></pre>
+<span class="t-tag">&lt;/outpost-if&gt;</span></code></pre>
 
     <h3>Conditional rendering for optional images</h3>
-    <p>Use <code>{% if field_name %}</code> to avoid rendering a broken <code>&lt;img&gt;</code> when the image field is empty:</p>
+    <p>Use <code>&lt;outpost-if field="field_name" exists&gt;</code> to avoid rendering a broken <code>&lt;img&gt;</code> when the image field is empty:</p>
 
-    <pre><code><span class="t-kw">{% if</span> <span class="t-out">post.featured_image</span> <span class="t-kw">%}</span>
+    <pre><code><span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"featured_image"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;figure</span> <span class="t-attr">class</span>=<span class="t-string">"post-cover"</span><span class="t-tag">&gt;</span>
-    <span class="t-tag">&lt;img</span> <span class="t-attr">src</span>=<span class="t-string">"{{ post.featured_image | image }}"</span> <span class="t-attr">alt</span>=<span class="t-string">"{{ post.title }}"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;img</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"featured_image"</span> <span class="t-attr">data-type</span>=<span class="t-string">"image"</span> <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span> <span class="t-attr">alt</span>=<span class="t-string">"Post cover"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;/figure&gt;</span>
-<span class="t-kw">{% endif %}</span></code></pre>
+<span class="t-tag">&lt;/outpost-if&gt;</span></code></pre>
 
     <h2>Focal point</h2>
     <p>Every image has a focal point — the spot that should remain visible when the image is cropped by CSS <code>object-fit: cover</code> or <code>background-size: cover</code>. The default is <code>50% 50%</code> (center). Click anywhere on the image preview in the media detail panel to set a custom focal point.</p>
@@ -238,31 +248,32 @@
       <li>Click <strong>Reset focal point</strong> below the preview to return to center (50/50).</li>
     </ol>
 
-    <h3>Using focal points in templates — the <code>| focal</code> filter</h3>
-    <p>The <code>| focal</code> filter outputs the focal point as a CSS-ready <code>X% Y%</code> string. Use it with <code>object-position</code> or <code>background-position</code>.</p>
+    <h3>Using focal points in templates — the <code>data-focal</code> attribute</h3>
+    <p>The <code>data-focal</code> attribute outputs the focal point as a CSS-ready <code>X% Y%</code> string. Use it with <code>object-position</code> or <code>background-position</code>.</p>
 
-    <pre><code><span class="t-comment">{# Image with focal-point-aware cropping #}</span>
+    <pre><code><span class="t-comment">&lt;!-- Image with focal-point-aware cropping --&gt;</span>
 <span class="t-tag">&lt;img</span>
-  <span class="t-attr">src</span>=<span class="t-string">"{{ hero_image | image }}"</span>
-  <span class="t-attr">alt</span>=<span class="t-string">"{{ hero_title }}"</span>
-  <span class="t-attr">style</span>=<span class="t-string">"object-fit: cover; object-position: {{ hero_image | focal }};"</span>
+  <span class="t-attr">data-outpost</span>=<span class="t-string">"hero_image"</span>
+  <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+  <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span>
+  <span class="t-attr">alt</span>=<span class="t-string">"Hero image"</span>
+  <span class="t-attr">style</span>=<span class="t-string">"object-fit: cover;"</span>
+  <span class="t-attr">data-focal</span>
 <span class="t-tag">&gt;</span>
 
-<span class="t-comment">{# CSS background image #}</span>
-<span class="t-tag">&lt;div</span> <span class="t-attr">style</span>=<span class="t-string">"background-image: url('{{ banner | image }}'); background-size: cover; background-position: {{ banner | focal }};"</span><span class="t-tag">&gt;</span>
-  ...
-<span class="t-tag">&lt;/div&gt;</span>
-
-<span class="t-comment">{# Collection item focal point #}</span>
-<span class="t-kw">{% for</span> post <span class="t-kw">in</span> <span class="t-out">collection.post</span> <span class="t-kw">%}</span>
+<span class="t-comment">&lt;!-- Collection item focal point --&gt;</span>
+<span class="t-tag">&lt;outpost-each</span> <span class="t-attr">collection</span>=<span class="t-string">"post"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;img</span>
-    <span class="t-attr">src</span>=<span class="t-string">"{{ post.featured_image | image }}"</span>
-    <span class="t-attr">style</span>=<span class="t-string">"object-fit: cover; object-position: {{ post.featured_image | focal }};"</span>
+    <span class="t-attr">data-outpost</span>=<span class="t-string">"featured_image"</span>
+    <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+    <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span>
+    <span class="t-attr">style</span>=<span class="t-string">"object-fit: cover;"</span>
+    <span class="t-attr">data-focal</span>
   <span class="t-tag">&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+<span class="t-tag">&lt;/outpost-each&gt;</span></code></pre>
 
     <div class="callout callout-tip">
-      <strong>Tip</strong> — If no custom focal point has been set, <code>| focal</code> outputs <code>50% 50%</code> (the CSS default). It is safe to always include <code>| focal</code> on cover images — there is no performance penalty.
+      <strong>Tip</strong> — If no custom focal point has been set, <code>data-focal</code> outputs <code>50% 50%</code> (the CSS default). It is safe to always include <code>data-focal</code> on cover images — there is no performance penalty.
     </div>
 
     <h2>Media folders</h2>
@@ -307,11 +318,11 @@
     <ul>
       <li><strong>Rename:</strong> Right-click a folder → <strong>Rename</strong>, or double-click the folder name.</li>
       <li><strong>Delete:</strong> Right-click → <strong>Delete</strong>. Files in a deleted folder become unfiled. Subfolders are re-parented to the deleted folder's parent.</li>
-      <li><strong>Copy template tag:</strong> Right-click a folder → <strong>Copy template tag</strong> to copy the <code>{% for img in media_folder.slug %}</code> tag for use in templates.</li>
+      <li><strong>Copy template tag:</strong> Right-click a folder → <strong>Copy template tag</strong> to copy the <code>&lt;outpost-each folder="slug"&gt;</code> tag for use in templates.</li>
     </ul>
 
     <h3>Folder slugs</h3>
-    <p>Each folder has an auto-generated slug derived from its name (lowercase, hyphens, no special characters). Slugs are unique across all folders. The slug is used in the <code>media_folder</code> template tag — see <a href="loops/gallery-loops.html">Gallery Loops</a> for details.</p>
+    <p>Each folder has an auto-generated slug derived from its name (lowercase, hyphens, no special characters). Slugs are unique across all folders. The slug is used in the <code>&lt;outpost-each&gt;</code> template tag — see <a href="loops/gallery-loops.html">Gallery Loops</a> for details.</p>
 
     <h3>Role-based folder restrictions</h3>
     <p>Admins can restrict editors to specific media folders. When a user with the <strong>Editor</strong> role has folder grants configured (via Admin → Users → Edit User → Media Folder Access), they can only:</p>
@@ -338,36 +349,38 @@
     </ul>
 
     <h2>Documents and non-image files</h2>
-    <p>For PDFs, audio, video, and other non-image files, use the <code>| link</code> filter in your template. This outputs the raw URL for use in an anchor tag or media element:</p>
+    <p>For PDFs, audio, video, and other non-image files, use the <code>data-type="link"</code> attribute in your template. This outputs the raw URL for use in an anchor tag or media element:</p>
 
-    <pre><code><span class="t-comment">{# PDF download link #}</span>
-<span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ brochure_pdf | link }}"</span> <span class="t-attr">download</span><span class="t-tag">&gt;</span>
+    <pre><code><span class="t-comment">&lt;!-- PDF download link --&gt;</span>
+<span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"brochure_pdf"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span> <span class="t-attr">download</span><span class="t-tag">&gt;</span>
   Download Brochure (PDF)
 <span class="t-tag">&lt;/a&gt;</span>
 
-<span class="t-comment">{# Embedded video file #}</span>
+<span class="t-comment">&lt;!-- Embedded video file --&gt;</span>
 <span class="t-tag">&lt;video</span> <span class="t-attr">controls</span> <span class="t-attr">preload</span>=<span class="t-string">"metadata"</span><span class="t-tag">&gt;</span>
-  <span class="t-tag">&lt;source</span> <span class="t-attr">src</span>=<span class="t-string">"{{ demo_video | link }}"</span> <span class="t-attr">type</span>=<span class="t-string">"video/mp4"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;source</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"demo_video"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">src</span>=<span class="t-string">"#"</span> <span class="t-attr">type</span>=<span class="t-string">"video/mp4"</span><span class="t-tag">&gt;</span>
 <span class="t-tag">&lt;/video&gt;</span>
 
-<span class="t-comment">{# Audio player #}</span>
+<span class="t-comment">&lt;!-- Audio player --&gt;</span>
 <span class="t-tag">&lt;audio</span> <span class="t-attr">controls</span><span class="t-tag">&gt;</span>
-  <span class="t-tag">&lt;source</span> <span class="t-attr">src</span>=<span class="t-string">"{{ episode_audio | link }}"</span> <span class="t-attr">type</span>=<span class="t-string">"audio/mpeg"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;source</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"episode_audio"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">src</span>=<span class="t-string">"#"</span> <span class="t-attr">type</span>=<span class="t-string">"audio/mpeg"</span><span class="t-tag">&gt;</span>
 <span class="t-tag">&lt;/audio&gt;</span></code></pre>
 
     <h2>Gallery fields</h2>
-    <p>For collection schema fields of type <strong>gallery</strong>, the field holds an ordered array of image URLs. Loop over them with <code>{% for image in item.gallery_field %}</code>:</p>
+    <p>For collection schema fields of type <strong>gallery</strong>, the field holds an ordered array of image URLs. Loop over them with <code>&lt;outpost-each repeat="gallery_field"&gt;</code>:</p>
 
     <pre><code><span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"gallery"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for</span> image <span class="t-kw">in</span> <span class="t-out">post.gallery</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ image | image }}"</span><span class="t-tag">&gt;</span>
+  <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">repeat</span>=<span class="t-string">"gallery"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span>
       <span class="t-tag">&lt;img</span>
-        <span class="t-attr">src</span>=<span class="t-string">"{{ image | image }}"</span>
+        <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span>
+        <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+        <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span>
         <span class="t-attr">alt</span>=<span class="t-string">""</span>
         <span class="t-attr">loading</span>=<span class="t-string">"lazy"</span>
       <span class="t-tag">&gt;</span>
     <span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/div&gt;</span></code></pre>
 
     <p>Gallery fields are reordered in the admin via drag-and-drop. The order in the template output matches the order set in the editor. See <a href="loops/gallery-loops.html">Gallery Loops</a> for the full reference.</p>
@@ -376,8 +389,10 @@
     <p>Outpost stores the original image at up to 2400px wide and generates a 400px thumbnail. The CMS does not create intermediate sizes (e.g., 640px, 960px). For responsive images, use CSS sizing or the HTML <code>srcset</code> attribute manually:</p>
 
     <pre><code><span class="t-tag">&lt;img</span>
-  <span class="t-attr">src</span>=<span class="t-string">"{{ hero_image | image }}"</span>
-  <span class="t-attr">alt</span>=<span class="t-string">"{{ hero_alt }}"</span>
+  <span class="t-attr">data-outpost</span>=<span class="t-string">"hero_image"</span>
+  <span class="t-attr">data-type</span>=<span class="t-string">"image"</span>
+  <span class="t-attr">src</span>=<span class="t-string">"default.jpg"</span>
+  <span class="t-attr">alt</span>=<span class="t-string">"Hero image"</span>
   <span class="t-attr">style</span>=<span class="t-string">"width: 100%; height: auto;"</span>
   <span class="t-attr">loading</span>=<span class="t-string">"lazy"</span>
   <span class="t-attr">decoding</span>=<span class="t-string">"async"</span>
@@ -443,7 +458,7 @@ define('OUTPOST_MAX_UPLOAD_SIZE', 25 * 1024 * 1024);</code></pre>
 
     <h2>Related docs</h2>
     <ul>
-      <li><a href="template-syntax/output-tags.html">Output Tags &amp; Filters</a> — <code>| image</code> and <code>| link</code> filter reference</li>
+      <li><a href="template-syntax/output-tags.html">Output Tags &amp; Filters</a> — <code>data-type="image"</code> and <code>data-type="link"</code> attribute reference</li>
       <li><a href="loops/gallery-loops.html">Gallery Loops</a> — looping over multi-image gallery fields</li>
       <li><a href="reference/sanitization.html">Sanitization</a> — SVG sanitization implementation details</li>
       <li><a href="deploy.html">Deploy</a> — preserving <code>uploads/</code> during re-deployment</li>

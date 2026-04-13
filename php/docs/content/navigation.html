@@ -82,14 +82,14 @@
     <p>Drag menu items up and down to reorder them. To make an item a child of another, drag it beneath and slightly indented from the parent item. Child items appear visually indented in the admin editor. Saving the menu persists the new order and hierarchy.</p>
 
     <h2>Basic template usage</h2>
-    <p>Loop over menu items using <code>{% for item in menu.slug %}</code>. Replace <code>slug</code> with the menu's slug:</p>
+    <p>Loop over menu items using <code>&lt;outpost-menu name="slug"&gt;</code>. Replace <code>slug</code> with the menu's slug:</p>
 
     <pre><code><span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"main-nav"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.main</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span> <span class="t-attr">target</span>=<span class="t-string">"{{ item.target }}"</span><span class="t-tag">&gt;</span>
-      <span class="t-out">{{ item.label }}</span>
+  <span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"main"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span> <span class="t-attr">target</span>=<span class="t-string">"_self"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Link Text<span class="t-tag">&lt;/span&gt;</span>
     <span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/outpost-menu&gt;</span>
 <span class="t-tag">&lt;/nav&gt;</span></code></pre>
 
     <h3>Available item fields</h3>
@@ -99,49 +99,47 @@
         <tr><th>Field</th><th>Type</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>item.label</code></td><td>string</td><td>Link display text</td></tr>
-        <tr><td><code>item.url</code></td><td>string</td><td>Link destination URL</td></tr>
-        <tr><td><code>item.target</code></td><td>string</td><td><code>_self</code> or <code>_blank</code></td></tr>
-        <tr><td><code>item.children</code></td><td>array</td><td>Array of child items (same structure as parent items); empty if no children</td></tr>
+        <tr><td><code>label</code></td><td>string</td><td>Link display text</td></tr>
+        <tr><td><code>url</code></td><td>string</td><td>Link destination URL</td></tr>
+        <tr><td><code>target</code></td><td>string</td><td><code>_self</code> or <code>_blank</code></td></tr>
+        <tr><td><code>children</code></td><td>array</td><td>Array of child items (same structure as parent items); empty if no children</td></tr>
       </tbody>
     </table>
 
     <h2>External links and security</h2>
-    <p>When <code>item.target</code> is <code>_blank</code>, Outpost automatically adds <code>rel="noopener noreferrer"</code> to the rendered link for security. This prevents the opened page from accessing the opener's <code>window</code> object. You can also add it manually in your template:</p>
+    <p>When <code>target</code> is <code>_blank</code>, Outpost automatically adds <code>rel="noopener noreferrer"</code> to the rendered link for security. This prevents the opened page from accessing the opener's <code>window</code> object. You can also add it manually in your template:</p>
 
-    <pre><code><span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.main</span> <span class="t-kw">%}</span>
+    <pre><code><span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"main"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;a</span>
-    <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span>
-    <span class="t-attr">target</span>=<span class="t-string">"{{ item.target }}"</span>
-    <span class="t-kw">{% if</span> <span class="t-out">item.target</span> == <span class="t-string">"_blank"</span> <span class="t-kw">%}</span>
-      <span class="t-attr">rel</span>=<span class="t-string">"noopener noreferrer"</span>
-    <span class="t-kw">{% endif %}</span>
-  <span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+    <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span>
+    <span class="t-attr">data-type</span>=<span class="t-string">"link"</span>
+    <span class="t-attr">href</span>=<span class="t-string">"#"</span>
+  <span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Link Text<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+<span class="t-tag">&lt;/outpost-menu&gt;</span></code></pre>
 
     <h2>Dropdown menus</h2>
-    <p>Check for <code>item.children</code> and loop over it to render a dropdown. If an item has no children, the check evaluates false and no dropdown is rendered:</p>
+    <p>Check for child items and loop over them to render a dropdown. If an item has no children, the check evaluates false and no dropdown is rendered:</p>
 
     <pre><code><span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"main-nav"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.main</span> <span class="t-kw">%}</span>
+  <span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"main"</span><span class="t-tag">&gt;</span>
     <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"nav-item"</span><span class="t-tag">&gt;</span>
-      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span> <span class="t-attr">target</span>=<span class="t-string">"{{ item.target }}"</span><span class="t-tag">&gt;</span>
-        <span class="t-out">{{ item.label }}</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Link Text<span class="t-tag">&lt;/span&gt;</span>
       <span class="t-tag">&lt;/a&gt;</span>
 
-      <span class="t-kw">{% if</span> <span class="t-out">item.children</span> <span class="t-kw">%}</span>
+      <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"children"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
         <span class="t-tag">&lt;ul</span> <span class="t-attr">class</span>=<span class="t-string">"dropdown"</span><span class="t-tag">&gt;</span>
-          <span class="t-kw">{% for</span> child <span class="t-kw">in</span> <span class="t-out">item.children</span> <span class="t-kw">%}</span>
+          <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">repeat</span>=<span class="t-string">"children"</span><span class="t-tag">&gt;</span>
             <span class="t-tag">&lt;li&gt;</span>
-              <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ child.url }}"</span> <span class="t-attr">target</span>=<span class="t-string">"{{ child.target }}"</span><span class="t-tag">&gt;</span>
-                <span class="t-out">{{ child.label }}</span>
+              <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span>
+                <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Child Link<span class="t-tag">&lt;/span&gt;</span>
               <span class="t-tag">&lt;/a&gt;</span>
             <span class="t-tag">&lt;/li&gt;</span>
-          <span class="t-kw">{% endfor %}</span>
+          <span class="t-tag">&lt;/outpost-each&gt;</span>
         <span class="t-tag">&lt;/ul&gt;</span>
-      <span class="t-kw">{% endif %}</span>
+      <span class="t-tag">&lt;/outpost-if&gt;</span>
     <span class="t-tag">&lt;/div&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-tag">&lt;/outpost-menu&gt;</span>
 <span class="t-tag">&lt;/nav&gt;</span></code></pre>
 
     <h3>Dropdown CSS</h3>
@@ -200,16 +198,16 @@
 <span class="t-tag">&lt;/button&gt;</span>
 
 <span class="t-tag">&lt;nav</span> <span class="t-attr">id</span>=<span class="t-string">"mobile-nav"</span> <span class="t-attr">class</span>=<span class="t-string">"mobile-nav hidden"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.main</span> <span class="t-kw">%}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
-    <span class="t-kw">{% if</span> <span class="t-out">item.children</span> <span class="t-kw">%}</span>
-      <span class="t-kw">{% for</span> child <span class="t-kw">in</span> <span class="t-out">item.children</span> <span class="t-kw">%}</span>
-        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ child.url }}"</span> <span class="t-attr">class</span>=<span class="t-string">"sub-link"</span><span class="t-tag">&gt;</span>
-          &mdash; <span class="t-out">{{ child.label }}</span>
+  <span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"main"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Link Text<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;outpost-if</span> <span class="t-attr">field</span>=<span class="t-string">"children"</span> <span class="t-attr">exists</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;outpost-each</span> <span class="t-attr">repeat</span>=<span class="t-string">"children"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span> <span class="t-attr">class</span>=<span class="t-string">"sub-link"</span><span class="t-tag">&gt;</span>
+          &mdash; <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Child Link<span class="t-tag">&lt;/span&gt;</span>
         <span class="t-tag">&lt;/a&gt;</span>
-      <span class="t-kw">{% endfor %}</span>
-    <span class="t-kw">{% endif %}</span>
-  <span class="t-kw">{% endfor %}</span>
+      <span class="t-tag">&lt;/outpost-each&gt;</span>
+    <span class="t-tag">&lt;/outpost-if&gt;</span>
+  <span class="t-tag">&lt;/outpost-menu&gt;</span>
 <span class="t-tag">&lt;/nav&gt;</span>
 
 <span class="t-tag">&lt;script&gt;</span>
@@ -224,29 +222,29 @@
     <h2>Multiple menus in one template</h2>
     <p>Reference different menu slugs anywhere in your templates. A single page request can output multiple menus without any performance concern — menu data is loaded once per request and cached in memory.</p>
 
-    <pre><code><span class="t-comment">{# partials/nav.html — main header nav #}</span>
+    <pre><code><span class="t-comment">&lt;!-- partials/nav.html — main header nav --&gt;</span>
 <span class="t-tag">&lt;header&gt;</span>
-  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/"</span><span class="t-tag">&gt;</span><span class="t-out">{{ @site_name }}</span><span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"site_name"</span> <span class="t-attr">data-scope</span>=<span class="t-string">"global"</span><span class="t-tag">&gt;</span>My Site<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
   <span class="t-tag">&lt;nav&gt;</span>
-    <span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.main</span> <span class="t-kw">%}</span>
-      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
-    <span class="t-kw">{% endfor %}</span>
+    <span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"main"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Link Text<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;/outpost-menu&gt;</span>
   <span class="t-tag">&lt;/nav&gt;</span>
 <span class="t-tag">&lt;/header&gt;</span>
 
-<span class="t-comment">{# partials/footer.html — footer nav + social links #}</span>
+<span class="t-comment">&lt;!-- partials/footer.html — footer nav + social links --&gt;</span>
 <span class="t-tag">&lt;footer&gt;</span>
   <span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"footer-links"</span><span class="t-tag">&gt;</span>
-    <span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.footer</span> <span class="t-kw">%}</span>
-      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
-    <span class="t-kw">{% endfor %}</span>
+    <span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"footer"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span><span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Link Text<span class="t-tag">&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-tag">&lt;/outpost-menu&gt;</span>
   <span class="t-tag">&lt;/nav&gt;</span>
   <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"social-links"</span><span class="t-tag">&gt;</span>
-    <span class="t-kw">{% for</span> item <span class="t-kw">in</span> <span class="t-out">menu.social</span> <span class="t-kw">%}</span>
-      <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ item.url }}"</span> <span class="t-attr">target</span>=<span class="t-string">"{{ item.target }}"</span><span class="t-tag">&gt;</span>
-        <span class="t-out">{{ item.label }}</span>
+    <span class="t-tag">&lt;outpost-menu</span> <span class="t-attr">name</span>=<span class="t-string">"social"</span><span class="t-tag">&gt;</span>
+      <span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span>
+        <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"label"</span><span class="t-tag">&gt;</span>Social Link<span class="t-tag">&lt;/span&gt;</span>
       <span class="t-tag">&lt;/a&gt;</span>
-    <span class="t-kw">{% endfor %}</span>
+    <span class="t-tag">&lt;/outpost-menu&gt;</span>
   <span class="t-tag">&lt;/div&gt;</span>
 <span class="t-tag">&lt;/footer&gt;</span></code></pre>
 
@@ -278,7 +276,7 @@
 <span class="t-tag">&lt;/script&gt;</span></code></pre>
 
     <h2>Menus as data vs. global fields</h2>
-    <p>For simple single-link scenarios — like a Twitter URL in the footer — using a <a href="content/global-fields.html">Global Field</a> (<code>{{ @twitter_url }}</code>) is often simpler than creating a full menu. Use menus when you need ordered, labeled, structured link lists that content editors should be able to manage without touching template files.</p>
+    <p>For simple single-link scenarios — like a Twitter URL in the footer — using a <a href="content/global-fields.html">Global Field</a> (<code>&lt;a data-outpost="twitter_url" data-scope="global" data-type="link" href="#"&gt;Twitter&lt;/a&gt;</code>) is often simpler than creating a full menu. Use menus when you need ordered, labeled, structured link lists that content editors should be able to manage without touching template files.</p>
 
     <table>
       <thead>
@@ -287,28 +285,28 @@
       <tbody>
         <tr><td>Site-wide header navigation with 5 links</td><td>Menu</td></tr>
         <tr><td>Footer with 10 links in multiple groups</td><td>Multiple menus (one per group) or one menu with groups as parent items</td></tr>
-        <tr><td>Single social media profile URL</td><td>Global field (<code>{{ @twitter_url }}</code>)</td></tr>
+        <tr><td>Single social media profile URL</td><td>Global field (<code>&lt;a data-outpost="twitter_url" data-scope="global" data-type="link" href="#"&gt;...&lt;/a&gt;</code>)</td></tr>
         <tr><td>Social media links — 4 platforms, all in a row</td><td>Menu (slug: <code>social</code>)</td></tr>
-        <tr><td>CTA button with an editable URL</td><td>Global field (<code>{{ @cta_url | link }}</code>)</td></tr>
+        <tr><td>CTA button with an editable URL</td><td>Global field (<code>&lt;a data-outpost="cta_url" data-scope="global" data-type="link" href="#"&gt;...&lt;/a&gt;</code>)</td></tr>
       </tbody>
     </table>
 
     <h2>Placing menus in partials</h2>
     <p>The standard pattern is to place all navigation in <code>partials/nav.html</code> and <code>partials/footer.html</code> at your site root, which are included in every template. This means the menu is edited once and appears consistently everywhere.</p>
 
-    <pre><code><span class="t-comment">{# index.html — standard page template #}</span>
-<span class="t-kw">{% include</span> <span class="t-string">'head'</span> <span class="t-kw">%}</span>
-<span class="t-kw">{% include</span> <span class="t-string">'nav'</span> <span class="t-kw">%}</span>
+    <pre><code><span class="t-comment">&lt;!-- index.html — standard page template --&gt;</span>
+<span class="t-tag">&lt;outpost-include</span> <span class="t-attr">partial</span>=<span class="t-string">"head"</span> <span class="t-tag">/&gt;</span>
+<span class="t-tag">&lt;outpost-include</span> <span class="t-attr">partial</span>=<span class="t-string">"nav"</span> <span class="t-tag">/&gt;</span>
 
 <span class="t-tag">&lt;main&gt;</span>
-  <span class="t-out">{{ hero_title }}</span>
+  <span class="t-tag">&lt;span</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"hero_title"</span><span class="t-tag">&gt;</span>Default Hero Title<span class="t-tag">&lt;/span&gt;</span>
 <span class="t-tag">&lt;/main&gt;</span>
 
-<span class="t-kw">{% include</span> <span class="t-string">'footer'</span> <span class="t-kw">%}</span></code></pre>
+<span class="t-tag">&lt;outpost-include</span> <span class="t-attr">partial</span>=<span class="t-string">"footer"</span> <span class="t-tag">/&gt;</span></code></pre>
 
     <h2>Related docs</h2>
     <ul>
-      <li><a href="loops/menu-loops.html">Menu Loops</a> — full <code>{% for item in menu.slug %}</code> reference</li>
+      <li><a href="loops/menu-loops.html">Menu Loops</a> — full <code>&lt;outpost-menu&gt;</code> reference</li>
       <li>Partials — place nav in shared <code>partials/nav.html</code> and <code>partials/footer.html</code> at the site root</li>
       <li><a href="recipes/dropdown-navigation.html">Recipe: Dropdown Navigation</a> — complete CSS transitions and keyboard accessibility</li>
       <li><a href="content/global-fields.html">Global Fields</a> — for single-link site settings like social profile URLs</li>

@@ -114,10 +114,10 @@
     <p>See <a href="members/admin-roles.html">Admin Roles</a> for full details on per-page locks and collection-scoped editors.</p>
 
     <h2>Page fields and auto-scaffolding</h2>
-    <p>Page fields are the editable content slots that your template uses. When a template contains <code>{{ hero_title }}</code>, the CMS creates a "hero_title" field for that page automatically. This is called <strong>auto-scaffolding</strong>.</p>
-    <p>The scaffolding process runs when the page is first discovered and whenever the page is loaded in the admin. This means adding a new <code>{{ field_name }}</code> tag to a template makes that field appear in the admin immediately — no manual schema setup required.</p>
+    <p>Page fields are the editable content slots that your template uses. When a template contains <code>&lt;span data-outpost="hero_title"&gt;Default&lt;/span&gt;</code>, the CMS creates a "hero_title" field for that page automatically. This is called <strong>auto-scaffolding</strong>.</p>
+    <p>The scaffolding process runs when the page is first discovered and whenever the page is loaded in the admin. This means adding a new <code>data-outpost="field_name"</code> attribute to a template makes that field appear in the admin immediately — no manual schema setup required.</p>
 
-    <p>The field type is inferred from the filter applied in the template tag:</p>
+    <p>The field type is inferred from the <code>data-type</code> attribute in the template tag:</p>
 
     <table>
       <thead>
@@ -127,12 +127,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr><td><code>{{ field_name }}</code></td><td>text</td></tr>
-        <tr><td><code>{{ field_name | textarea }}</code></td><td>textarea</td></tr>
-        <tr><td><code>{{ field_name | raw }}</code></td><td>richtext (WYSIWYG)</td></tr>
-        <tr><td><code>{{ field_name | image }}</code></td><td>image (media picker)</td></tr>
-        <tr><td><code>{{ field_name | link }}</code></td><td>link</td></tr>
-        <tr><td><code>{{ field_name | select }}</code></td><td>select (dropdown)</td></tr>
+        <tr><td><code>&lt;span data-outpost="field_name"&gt;Default&lt;/span&gt;</code></td><td>text</td></tr>
+        <tr><td><code>&lt;p data-outpost="field_name" data-type="textarea"&gt;Default&lt;/p&gt;</code></td><td>textarea</td></tr>
+        <tr><td><code>&lt;div data-outpost="field_name" data-type="richtext"&gt;Default&lt;/div&gt;</code></td><td>richtext (WYSIWYG)</td></tr>
+        <tr><td><code>&lt;img data-outpost="field_name" data-type="image" src="default.jpg"&gt;</code></td><td>image (media picker)</td></tr>
+        <tr><td><code>&lt;a data-outpost="field_name" data-type="link" href="#"&gt;Link&lt;/a&gt;</code></td><td>link</td></tr>
+        <tr><td><code>&lt;span data-outpost="field_name" data-type="select"&gt;Default&lt;/span&gt;</code></td><td>select (dropdown)</td></tr>
       </tbody>
     </table>
 
@@ -169,8 +169,8 @@
     <h3>SEO fields</h3>
     <p>The SEO tab in the right sidebar provides:</p>
     <ul>
-      <li><strong>Meta title</strong> — overrides <code>{{ meta.title }}</code> in the template. 60 character limit with a live character counter.</li>
-      <li><strong>Meta description</strong> — overrides <code>{{ meta.description }}</code>. 160 character limit.</li>
+      <li><strong>Meta title</strong> — overrides the <code>&lt;outpost-seo /&gt;</code> title output in the template. 60 character limit with a live character counter.</li>
+      <li><strong>Meta description</strong> — overrides the SEO meta description. 160 character limit.</li>
       <li><strong>Search preview</strong> — a simulated Google result card that updates live as you type, showing how the page will appear in search results.</li>
     </ul>
 
@@ -178,34 +178,33 @@
     <p>Press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> or click the Save button in the header. All fields on the page save together in a single request.</p>
 
     <h2>Template tags for page fields</h2>
-    <p>In your template, output page fields using the standard output tag syntax. The field name must match exactly (case-sensitive, underscores, no spaces).</p>
+    <p>In your template, output page fields using <code>data-outpost</code> attributes. The field name must match exactly (case-sensitive, underscores, no spaces).</p>
 
     <pre><code>&lt;!-- Plain text field --&gt;
-&lt;h1&gt;{{ hero_title }}&lt;/h1&gt;
+&lt;h1 data-outpost="hero_title"&gt;Default Hero Title&lt;/h1&gt;
 
 &lt;!-- Richtext field (renders HTML as-is) --&gt;
-&lt;div class="body-content"&gt;{{ page_body | raw }}&lt;/div&gt;
+&lt;div class="body-content" data-outpost="page_body" data-type="richtext"&gt;Default body content.&lt;/div&gt;
 
 &lt;!-- Image field (registers as image picker) --&gt;
-&lt;img src="{{ hero_image | image }}" alt="{{ hero_title }}"&gt;
+&lt;img data-outpost="hero_image" data-type="image" src="default.jpg" alt="Hero image"&gt;
 
 &lt;!-- Textarea field (preserves line breaks) --&gt;
-&lt;p&gt;{{ intro_text | textarea }}&lt;/p&gt;
+&lt;p data-outpost="intro_text" data-type="textarea"&gt;Default intro text.&lt;/p&gt;
 
 &lt;!-- Link field --&gt;
-&lt;a href="{{ cta_link | link }}"&gt;{{ cta_label }}&lt;/a&gt;
+&lt;a data-outpost="cta_link" data-type="link" href="#"&gt;&lt;span data-outpost="cta_label"&gt;Call to Action&lt;/span&gt;&lt;/a&gt;
 
 &lt;!-- SEO meta tags (in &lt;head&gt;) --&gt;
-&lt;title&gt;{{ meta.title }}My Site{{ /meta.title }}&lt;/title&gt;
-&lt;meta name="description" content="{{ meta.description }}Default description.{{ /meta.description }}"&gt;</code></pre>
+&lt;outpost-seo /&gt;</code></pre>
 
-    <div class="callout callout-note"><strong>Note</strong> — All output tags auto-escape HTML by default. Use <code>| raw</code> only for richtext fields that contain intentional HTML. See <a href="template-syntax/output-tags.html">Output Tags &amp; Filters</a> for the full reference.</div>
+    <div class="callout callout-note"><strong>Note</strong> — All output is auto-escaped by default. Use <code>data-type="richtext"</code> only for fields that contain intentional HTML. See <a href="template-syntax/output-tags.html">Output Tags &amp; Filters</a> for the full reference.</div>
 
     <h2>Adding a new page</h2>
     <p>To add a new page to your site:</p>
     <ol>
       <li>Create a new <code>.html</code> template file at your site root (e.g., <code>team.html</code>).</li>
-      <li>Add output tags for the fields you want (<code>{{ team_intro }}</code>, <code>{{ team_photo | image }}</code>, etc.).</li>
+      <li>Add data-outpost attributes for the fields you want (<code>&lt;span data-outpost="team_intro"&gt;Default&lt;/span&gt;</code>, <code>&lt;img data-outpost="team_photo" data-type="image" src="default.jpg"&gt;</code>, etc.).</li>
       <li>Visit the URL in a browser or in the admin preview (<code>/team</code>).</li>
       <li>The CMS discovers the page, creates the page record, and scaffolds the fields.</li>
       <li>The page now appears in Admin &rarr; Pages ready to edit.</li>
@@ -229,7 +228,7 @@
     <h2>Related pages</h2>
     <ul>
       <li><a href="template-syntax/output-tags.html">Output Tags &amp; Filters</a> — full syntax for all field filters</li>
-      <li><a href="template-syntax/meta-tags.html">Meta Tags</a> — <code>{{ meta.title }}</code> and <code>{{ meta.description }}</code></li>
+      <li><a href="template-syntax/meta-tags.html">Meta Tags</a> — <code>&lt;outpost-seo /&gt;</code> reference</li>
       <li><a href="members/protecting-pages.html">Protecting Pages</a> — members and paid visibility enforcement</li>
       <li><a href="content/global-fields.html">Global Fields</a> — site-wide fields shared across all pages</li>
       <li><a href="reference/architecture.html">Architecture</a> — how URLs map to template files at the site root</li>

@@ -51,7 +51,7 @@
       </tbody>
     </table>
 
-    <div class="callout callout-warn"><strong>Warning</strong> — The slug cannot be changed after creation because it is referenced by template tags (<code>collection.post</code>), stored data, folder associations, and API routes. Choose it carefully.</div>
+    <div class="callout callout-warn"><strong>Warning</strong> — The slug cannot be changed after creation because it is referenced by template tags (<code>&lt;outpost-each collection="post"&gt;</code>), stored data, folder associations, and API routes. Choose it carefully.</div>
 
     <h2>URL patterns</h2>
     <p>The URL pattern controls two things: the public URL of each item, and which template file handles the single-item view.</p>
@@ -87,22 +87,22 @@
     <h3>Available field types</h3>
     <table>
       <thead>
-        <tr><th>Type</th><th>Use case</th><th>Template filter</th></tr>
+        <tr><th>Type</th><th>Use case</th><th>Template syntax</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>text</code></td><td>Single-line text — title, headline, name, label</td><td>(none)</td></tr>
-        <tr><td><code>textarea</code></td><td>Multi-line plain text — address, short bio, notes</td><td><code>| textarea</code></td></tr>
-        <tr><td><code>richtext</code></td><td>WYSIWYG HTML body content (TipTap editor)</td><td><code>| raw</code></td></tr>
-        <tr><td><code>image</code></td><td>Single image via media picker</td><td><code>| image</code></td></tr>
-        <tr><td><code>link</code></td><td>URL input</td><td><code>| link</code></td></tr>
-        <tr><td><code>select</code></td><td>Dropdown with predefined choices</td><td>(none)</td></tr>
+        <tr><td><code>text</code></td><td>Single-line text — title, headline, name, label</td><td><code>&lt;span data-outpost="field"&gt;Default&lt;/span&gt;</code></td></tr>
+        <tr><td><code>textarea</code></td><td>Multi-line plain text — address, short bio, notes</td><td><code>&lt;p data-outpost="field" data-type="textarea"&gt;Default&lt;/p&gt;</code></td></tr>
+        <tr><td><code>richtext</code></td><td>WYSIWYG HTML body content (TipTap editor)</td><td><code>&lt;div data-outpost="field" data-type="richtext"&gt;Default&lt;/div&gt;</code></td></tr>
+        <tr><td><code>image</code></td><td>Single image via media picker</td><td><code>&lt;img data-outpost="field" data-type="image" src="default.jpg"&gt;</code></td></tr>
+        <tr><td><code>link</code></td><td>URL input</td><td><code>&lt;a data-outpost="field" data-type="link" href="#"&gt;Link&lt;/a&gt;</code></td></tr>
+        <tr><td><code>select</code></td><td>Dropdown with predefined choices</td><td><code>&lt;span data-outpost="field" data-type="select"&gt;Default&lt;/span&gt;</code></td></tr>
         <tr><td><code>toggle</code></td><td>On/off boolean</td><td>(conditional)</td></tr>
-        <tr><td><code>color</code></td><td>Color picker — outputs hex value</td><td>(none)</td></tr>
-        <tr><td><code>number</code></td><td>Numeric input</td><td>(none)</td></tr>
-        <tr><td><code>date</code></td><td>Date picker</td><td>(none)</td></tr>
-        <tr><td><code>repeater</code></td><td>Ordered list of rows with typed sub-fields</td><td><code>{% for row in item.field %}</code></td></tr>
-        <tr><td><code>flexible content</code></td><td>Ordered blocks with named layouts, each with its own sub-fields</td><td><code>{% for block in flexible.field %}</code></td></tr>
-        <tr><td><code>relationship</code></td><td>References to items from another collection</td><td><code>{% for item in relationship.field %}</code></td></tr>
+        <tr><td><code>color</code></td><td>Color picker — outputs hex value</td><td><code>&lt;span data-outpost="field" data-type="color"&gt;#000&lt;/span&gt;</code></td></tr>
+        <tr><td><code>number</code></td><td>Numeric input</td><td><code>&lt;span data-outpost="field" data-type="number"&gt;0&lt;/span&gt;</code></td></tr>
+        <tr><td><code>date</code></td><td>Date picker</td><td><code>&lt;time data-outpost="field" data-type="date"&gt;2025-01-01&lt;/time&gt;</code></td></tr>
+        <tr><td><code>repeater</code></td><td>Ordered list of rows with typed sub-fields</td><td><code>&lt;outpost-each repeat="field"&gt;...&lt;/outpost-each&gt;</code></td></tr>
+        <tr><td><code>flexible content</code></td><td>Ordered blocks with named layouts, each with its own sub-fields</td><td><code>&lt;outpost-each flexible="field"&gt;...&lt;/outpost-each&gt;</code></td></tr>
+        <tr><td><code>relationship</code></td><td>References to items from another collection</td><td><code>&lt;outpost-each relationship="field"&gt;...&lt;/outpost-each&gt;</code></td></tr>
       </tbody>
     </table>
 
@@ -128,7 +128,7 @@
         <tr><th>Status</th><th>Behavior</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>draft</code></td><td>Not publicly visible. Not returned in <code>{% for %}</code> loops on the front end.</td></tr>
+        <tr><td><code>draft</code></td><td>Not publicly visible. Not returned in <code>&lt;outpost-each&gt;</code> loops on the front end.</td></tr>
         <tr><td><code>published</code></td><td>Publicly visible and returned in loops. Requires a <code>published_at</code> timestamp (set automatically when first published).</td></tr>
         <tr><td><code>scheduled</code></td><td>Set a future publish date. The item auto-publishes when the scheduled time arrives. Not visible until then.</td></tr>
         <tr><td><code>pending_review</code></td><td>Submitted for review by an editor on a collection with <strong>Require Review</strong> enabled. Not publicly visible. Admins approve or reject pending items.</td></tr>
@@ -198,49 +198,47 @@
     </ul>
 
     <h2>Accessing collections in templates</h2>
-    <p>Use <code>{% for %}</code> loops to output collection items in list templates:</p>
+    <p>Use <code>&lt;outpost-each&gt;</code> loops to output collection items in list templates:</p>
 
     <pre><code>&lt;!-- Basic loop --&gt;
-{% for post in collection.post %}
+&lt;outpost-each collection="post"&gt;
   &lt;article&gt;
-    &lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;
-    &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+    &lt;a data-outpost="url" data-type="link" href="#"&gt;
+      &lt;span data-outpost="title"&gt;Post Title&lt;/span&gt;
+    &lt;/a&gt;
+    &lt;p data-outpost="excerpt"&gt;Post excerpt goes here.&lt;/p&gt;
   &lt;/article&gt;
-{% endfor %}
+&lt;/outpost-each&gt;
 
 &lt;!-- With featured image --&gt;
-{% for post in collection.post %}
+&lt;outpost-each collection="post"&gt;
   &lt;div class="card"&gt;
-    &lt;img src="{{ post.featured_image | image }}" alt="{{ post.title }}"&gt;
-    &lt;h2&gt;&lt;a href="{{ post.url }}"&gt;{{ post.title }}&lt;/a&gt;&lt;/h2&gt;
-    &lt;p&gt;{{ post.excerpt }}&lt;/p&gt;
+    &lt;img data-outpost="featured_image" data-type="image" src="default.jpg" alt="Post image"&gt;
+    &lt;h2&gt;&lt;a data-outpost="url" data-type="link" href="#"&gt;&lt;span data-outpost="title"&gt;Post Title&lt;/span&gt;&lt;/a&gt;&lt;/h2&gt;
+    &lt;p data-outpost="excerpt"&gt;Post excerpt goes here.&lt;/p&gt;
   &lt;/div&gt;
-{% endfor %}
+&lt;/outpost-each&gt;
 
 &lt;!-- With custom schema fields --&gt;
-{% for member in collection.member %}
+&lt;outpost-each collection="member"&gt;
   &lt;div class="team-card"&gt;
-    &lt;img src="{{ member.photo | image }}" alt="{{ member.name }}"&gt;
-    &lt;h3&gt;{{ member.name }}&lt;/h3&gt;
-    &lt;p&gt;{{ member.role }}&lt;/p&gt;
+    &lt;img data-outpost="photo" data-type="image" src="default.jpg" alt="Member photo"&gt;
+    &lt;h3&gt;&lt;span data-outpost="name"&gt;Member Name&lt;/span&gt;&lt;/h3&gt;
+    &lt;p data-outpost="role"&gt;Role Title&lt;/p&gt;
   &lt;/div&gt;
-{% endfor %}</code></pre>
+&lt;/outpost-each&gt;</code></pre>
 
     <h3>Single-item template</h3>
-    <p>Use <code>{% single %}</code> in the single-item template to fetch the item matching the current URL slug:</p>
+    <p>On a single-item template page (e.g., <code>post.html</code>), the item matching the current URL slug is automatically available. Use <code>data-outpost</code> attributes directly:</p>
 
     <pre><code>&lt;!-- post.html --&gt;
-{% single post from collection.post %}
-  &lt;article&gt;
-    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-    &lt;img src="{{ post.featured_image | image }}" alt="{{ post.title }}"&gt;
-    &lt;div class="body"&gt;{{ post.body | raw }}&lt;/div&gt;
-  &lt;/article&gt;
-{% else %}
-  &lt;p&gt;Post not found.&lt;/p&gt;
-{% endsingle %}</code></pre>
+&lt;article&gt;
+  &lt;h1 data-outpost="title"&gt;Post Title&lt;/h1&gt;
+  &lt;img data-outpost="featured_image" data-type="image" src="default.jpg" alt="Featured image"&gt;
+  &lt;div data-outpost="body" data-type="richtext"&gt;Post body content goes here.&lt;/div&gt;
+&lt;/article&gt;</code></pre>
 
-    <p>See <a href="loops/collection-loops.html">Collection Loops</a> for pagination, ordering, limiting, and folder filtering options. See <a href="loops/single-items.html">Single Items</a> for the full <code>{% single %}</code> reference.</p>
+    <p>See <a href="loops/collection-loops.html">Collection Loops</a> for pagination, ordering, limiting, and folder filtering options. See <a href="loops/single-items.html">Single Items</a> for the full single-item template reference.</p>
 
     <h2>Practical examples</h2>
 
@@ -274,7 +272,7 @@ Template: displayed only via loop on team.html — no single-item template neede
     <h2>Related pages</h2>
     <ul>
       <li><a href="loops/collection-loops.html">Collection Loops</a> — pagination, ordering, limiting, filtering</li>
-      <li><a href="loops/single-items.html">Single Items</a> — <code>{% single %}</code> tag reference</li>
+      <li><a href="loops/single-items.html">Single Items</a> — single-item template reference</li>
       <li><a href="content/folders.html">Folders</a> — categorizing collection items</li>
       <li><a href="features/scheduling.html">Scheduling</a> — scheduled publish dates</li>
       <li><a href="features/wordpress-import.html">WordPress Import</a> — import posts into a collection</li>
