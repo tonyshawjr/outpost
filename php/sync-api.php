@@ -80,6 +80,15 @@ if (!password_verify($_sync_key_provided, $_sync_key_stored)) {
 // Successful auth — clear any accumulated failed attempts
 sync_clear_rate_limit($_sync_ip);
 
+// ── IP Allowlisting (optional) ───────────────────────────
+$_sync_allowed_ips = sync_get_setting('sync_allowed_ips');
+if (!empty($_sync_allowed_ips)) {
+    $allowedList = array_map('trim', explode(',', $_sync_allowed_ips));
+    if (!in_array($_sync_ip, $allowedList, true)) {
+        sync_error(403, 'IP not in sync allowlist');
+    }
+}
+
 // ── Route ─────────────────────────────────────────────────
 $_sync_action = $_GET['action'] ?? '';
 $_sync_method = $_SERVER['REQUEST_METHOD'];
