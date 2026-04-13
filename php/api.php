@@ -5843,7 +5843,8 @@ function handle_test_smtp(): void {
         );
         json_response(['success' => true, 'message' => "Test email sent to {$toEmail}"]);
     } catch (Throwable $e) {
-        json_error('SMTP test failed: ' . $e->getMessage());
+        error_log('SMTP test failed: ' . $e->getMessage());
+        json_error('SMTP test failed. Check server logs for details.');
     }
 }
 
