@@ -30,7 +30,7 @@ define('SYNC_RATE_LIMIT_ATTEMPTS',  5);
 define('SYNC_RATE_LIMIT_WINDOW',    3600);             // 1 hour
 define('SYNC_BACKUP_RETENTION_DAYS', 30);
 define('SYNC_EXTENSIONS', [
-    'php', 'html', 'htm', 'css', 'js', 'json',
+    'html', 'htm', 'css', 'js', 'json',
     'svg', 'txt', 'md', 'yml', 'yaml', 'xml',
     'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'ico',
     'woff', 'woff2', 'ttf', 'eot', 'otf',
