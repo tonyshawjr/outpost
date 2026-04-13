@@ -1,6 +1,6 @@
 # Outpost CMS
 
-A lightweight, self-hosted headless CMS built for developers. PHP 8 + SQLite backend, Svelte 5 admin panel, Liquid-style template engine. No Composer, no npm on the server — drop it in and it runs.
+A lightweight, self-hosted headless CMS built for developers. PHP 8 + SQLite backend, Svelte 5 admin panel, data-attribute template engine (with legacy Liquid syntax support). No Composer, no npm on the server — drop it in and it runs.
 
 ---
 
@@ -8,11 +8,11 @@ A lightweight, self-hosted headless CMS built for developers. PHP 8 + SQLite bac
 
 Outpost gives you a full content management system that installs into any PHP host as a single directory (`/outpost/`). It includes:
 
-- A **Svelte 5 admin panel** for managing content, media, users, and themes
-- A **PHP template engine** (Liquid-style `{{ }}` / `{% %}` syntax) for rendering themes
+- A **Svelte 5 admin panel** for managing content, media, users, and sites
+- A **PHP template engine** (data-attribute v2, with legacy Liquid syntax) for rendering sites
 - A **public Content API** for headless/JAMstack use
 - A **member system** for front-end gating of content
-- A **developer toolset** (Template Reference, Code Editor, Theme Manager)
+- A **developer toolset** (Template Reference, Code Editor, Site Manager)
 
 The goal: something a developer can drop into a client site, hand off to a non-technical editor, and never have to explain WordPress to anyone again.
 
@@ -39,7 +39,7 @@ cms/
 │   ├── pages/              # Route components (Dashboard, PageEditor, etc.)
 │   ├── components/         # Shared UI (Sidebar, TopBar, RightSidebar, etc.)
 │   ├── lib/                # api.js, stores.js, utils.js
-│   └── styles/             # admin.css (global), tokens + theme vars
+│   └── styles/             # admin.css (global), tokens + site vars
 │
 ├── php/                    # PHP backend source (deploy from here)
 │   ├── api.php             # REST API entry point
@@ -47,7 +47,7 @@ cms/
 │   ├── auth.php            # Session auth + CSRF
 │   ├── engine.php          # Liquid-style template compiler
 │   ├── roles.php           # Role/capability definitions
-│   ├── themes/             # Default starter theme
+│   ├── sites/              # Default starter site
 │   └── admin/              # Built Svelte SPA (output of npm run build)
 │
 ├── test-site/              # Local dev test environment
@@ -110,7 +110,7 @@ All endpoints: `api.php?action=<endpoint>` with session auth + CSRF token.
 Public Content API: `api.php?action=content/<endpoint>` — no auth, wide-open CORS.
 
 ### Template Engine
-Theme templates use `{{ variable }}`, `{% for %}`, `{% if %}`, `{% include %}` syntax compiled to PHP by `engine.php`. Templates compile once and cache in `cache/templates/`. Cache clears on save.
+Site templates use `{{ variable }}`, `{% for %}`, `{% if %}`, `{% include %}` syntax compiled to PHP by `engine.php`. Templates compile once and cache in `cache/templates/`. Cache clears on save.
 
 ### Field Keys
 Collection fields from the Content API return `{ name: "", label: "title", type: "text" }` — `name` is always empty, `label` is the actual identifier. Use `field.label || field.name` in frontend code.
