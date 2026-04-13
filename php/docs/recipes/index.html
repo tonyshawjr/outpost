@@ -157,7 +157,7 @@
         <tr>
           <td><strong>Collection</strong></td>
           <td>A set of structured items with a schema you define (fields)</td>
-          <td><code>{% for item in collection.slug %}</code></td>
+          <td><code>&lt;outpost-each collection="slug"&gt;...&lt;/outpost-each&gt;</code></td>
         </tr>
         <tr>
           <td><strong>Page</strong></td>
@@ -167,22 +167,22 @@
         <tr>
           <td><strong>Folder</strong></td>
           <td>A set of classification labels attached to a collection</td>
-          <td><code>{% for label in folder.slug %}</code></td>
+          <td><code>&lt;outpost-each folder="slug"&gt;...&lt;/outpost-each&gt;</code></td>
         </tr>
         <tr>
           <td><strong>Global field</strong></td>
           <td>Site-wide key/value data (phone, logo, tagline)</td>
-          <td><code>{{ @field_name }}</code></td>
+          <td><code>&lt;span data-outpost="field_name" data-scope="global"&gt;Default&lt;/span&gt;</code></td>
         </tr>
         <tr>
           <td><strong>Menu</strong></td>
           <td>An ordered list of links with optional nesting</td>
-          <td><code>{% for item in menu.slug %}</code></td>
+          <td><code>&lt;outpost-menu name="slug"&gt;...&lt;/outpost-menu&gt;</code></td>
         </tr>
         <tr>
           <td><strong>Member</strong></td>
           <td>A registered user with free or paid status</td>
-          <td><code>{% if member %}</code>, <code>{% if paid_member %}</code></td>
+          <td><code>&lt;outpost-if field="member" exists&gt;</code>, <code>&lt;outpost-if field="paid_member" exists&gt;</code></td>
         </tr>
       </tbody>
     </table>

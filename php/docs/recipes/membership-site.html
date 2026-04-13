@@ -99,68 +99,70 @@
     </div>
 
     <h2>4. Template-level content gating</h2>
-    <p>Use <code>{% if paid_member %}</code> and <code>{% if member %}</code> conditionals to show different content to different tiers within the same template. This is the standard pattern for a "freemium" newsletter or magazine.</p>
+    <p>Use <code>&lt;outpost-if field="paid_member" exists&gt;</code> and <code>&lt;outpost-if field="member" exists&gt;</code> conditionals to show different content to different tiers within the same template. This is the standard pattern for a "freemium" newsletter or magazine.</p>
 
-    <pre><code><span class="t-kw">{% include 'head' %}</span>
-<span class="t-kw">{% include 'nav' %}</span>
+    <pre><code><span class="t-kw">&lt;outpost-include partial="head" /&gt;</span>
+<span class="t-kw">&lt;outpost-include partial="nav" /&gt;</span>
 
 <span class="t-tag">&lt;main&gt;</span>
-  <span class="t-kw">{% single article from collection.article %}</span>
+  <span class="t-kw">&lt;outpost-each collection="article" single&gt;</span>
 
     <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"article-single"</span><span class="t-tag">&gt;</span>
       <span class="t-tag">&lt;header&gt;</span>
-        <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ article.title }}</span><span class="t-tag">&lt;/h1&gt;</span>
-        <span class="t-tag">&lt;p</span> <span class="t-attr">class</span>=<span class="t-string">"article-meta"</span><span class="t-tag">&gt;</span><span class="t-out">{{ article.published_at }}</span><span class="t-tag">&lt;/p&gt;</span>
+        <span class="t-tag">&lt;h1&gt;</span><span class="t-out">&lt;span data-outpost="title"&gt;Article Title&lt;/span&gt;</span><span class="t-tag">&lt;/h1&gt;</span>
+        <span class="t-tag">&lt;p</span> <span class="t-attr">class</span>=<span class="t-string">"article-meta"</span><span class="t-tag">&gt;</span><span class="t-out">&lt;span data-outpost="published_at"&gt;Date&lt;/span&gt;</span><span class="t-tag">&lt;/p&gt;</span>
       <span class="t-tag">&lt;/header&gt;</span>
 
-      <span class="t-comment">{# Check the custom tier field to decide what to render #}</span>
-      <span class="t-kw">{% if article.tier == "free" %}</span>
+      <span class="t-comment">&lt;!-- Check the custom tier field to decide what to render --&gt;</span>
+      <span class="t-kw">&lt;outpost-if field="tier" is="free"&gt;</span>
 
-        <span class="t-comment">{# Free article — everyone can read the full content #}</span>
+        <span class="t-comment">&lt;!-- Free article — everyone can read the full content --&gt;</span>
         <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"article-body"</span><span class="t-tag">&gt;</span>
-          <span class="t-out">{{ article.body | raw }}</span>
+          <span class="t-out">&lt;div data-outpost="body" data-type="richtext"&gt;Article content here.&lt;/div&gt;</span>
         <span class="t-tag">&lt;/div&gt;</span>
 
-      <span class="t-kw">{% else %}</span>
+      <span class="t-kw">&lt;/outpost-if&gt;</span>
+      <span class="t-kw">&lt;outpost-if field="tier" is="paid"&gt;</span>
 
-        <span class="t-comment">{# Paid article — show full body to paid members, teaser + CTA to others #}</span>
-        <span class="t-kw">{% if paid_member %}</span>
+        <span class="t-comment">&lt;!-- Paid article — show full body to paid members, teaser + CTA to others --&gt;</span>
+        <span class="t-kw">&lt;outpost-if field="paid_member" exists&gt;</span>
 
           <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"article-body premium"</span><span class="t-tag">&gt;</span>
-            <span class="t-out">{{ article.body | raw }}</span>
+            <span class="t-out">&lt;div data-outpost="body" data-type="richtext"&gt;Article content here.&lt;/div&gt;</span>
           <span class="t-tag">&lt;/div&gt;</span>
 
-        <span class="t-kw">{% else %}</span>
+        <span class="t-kw">&lt;/outpost-if&gt;</span>
+        <span class="t-kw">&lt;outpost-if field="paid_member" not-exists&gt;</span>
 
-          <span class="t-comment">{# Show excerpt / teaser to free and logged-out visitors #}</span>
+          <span class="t-comment">&lt;!-- Show excerpt / teaser to free and logged-out visitors --&gt;</span>
           <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"article-teaser"</span><span class="t-tag">&gt;</span>
-            <span class="t-kw">{% if article.excerpt %}</span>
-              <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ article.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
-            <span class="t-kw">{% endif %}</span>
+            <span class="t-kw">&lt;outpost-if field="excerpt" exists&gt;</span>
+              <span class="t-tag">&lt;p&gt;</span><span class="t-out">&lt;span data-outpost="excerpt"&gt;Article teaser&lt;/span&gt;</span><span class="t-tag">&lt;/p&gt;</span>
+            <span class="t-kw">&lt;/outpost-if&gt;</span>
           <span class="t-tag">&lt;/div&gt;</span>
 
           <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"upgrade-cta"</span><span class="t-tag">&gt;</span>
             <span class="t-tag">&lt;p&gt;</span>This article is for paid members.<span class="t-tag">&lt;/p&gt;</span>
-            <span class="t-kw">{% if member %}</span>
-              <span class="t-comment">{# Logged in as free member — show upgrade prompt #}</span>
+            <span class="t-kw">&lt;outpost-if field="member" exists&gt;</span>
+              <span class="t-comment">&lt;!-- Logged in as free member — show upgrade prompt --&gt;</span>
               <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/upgrade"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-upgrade"</span><span class="t-tag">&gt;</span>Upgrade to Paid<span class="t-tag">&lt;/a&gt;</span>
-            <span class="t-kw">{% else %}</span>
-              <span class="t-comment">{# Not logged in — show login and register options #}</span>
+            <span class="t-kw">&lt;/outpost-if&gt;</span>
+            <span class="t-kw">&lt;outpost-if field="member" not-exists&gt;</span>
+              <span class="t-comment">&lt;!-- Not logged in — show login and register options --&gt;</span>
               <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-primary"</span><span class="t-tag">&gt;</span>Create a free account<span class="t-tag">&lt;/a&gt;</span>
               <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-secondary"</span><span class="t-tag">&gt;</span>Sign in<span class="t-tag">&lt;/a&gt;</span>
-            <span class="t-kw">{% endif %}</span>
+            <span class="t-kw">&lt;/outpost-if&gt;</span>
           <span class="t-tag">&lt;/div&gt;</span>
 
-        <span class="t-kw">{% endif %}</span>
-      <span class="t-kw">{% endif %}</span>
+        <span class="t-kw">&lt;/outpost-if&gt;</span>
+      <span class="t-kw">&lt;/outpost-if&gt;</span>
     <span class="t-tag">&lt;/article&gt;</span>
 
-  <span class="t-kw">{% else %}</span>
-    <span class="t-tag">&lt;p&gt;</span>Article not found.<span class="t-tag">&lt;/p&gt;</span>
-  <span class="t-kw">{% endsingle %}</span>
+  <span class="t-kw">&lt;/outpost-each&gt;</span>
+  <span class="t-tag">&lt;p&gt;</span>Article not found.<span class="t-tag">&lt;/p&gt;</span>
 <span class="t-tag">&lt;/main&gt;</span>
 
-<span class="t-kw">{% include 'footer' %}</span></code></pre>
+<span class="t-kw">&lt;outpost-include partial="footer" /&gt;</span></code></pre>
 
     <h2>5. Protecting a whole page</h2>
     <p>To require a paid membership to view an entire page — for example a members-only dashboard — set the page's visibility in the editor to <strong>Paid</strong>. Outpost enforces this at the router level; the page template is never rendered for unauthorised visitors.</p>
@@ -181,21 +183,22 @@
     <p>Show different navigation links depending on the member's login state. This goes in your <code>partials/nav.html</code>.</p>
 
     <pre><code><span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"main-nav"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for item in menu.main %}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ item.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ item.label }}</span><span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-kw">&lt;outpost-menu name="main"&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">&lt;span data-outpost="url"&gt;#&lt;/span&gt;</span>"</span><span class="t-tag">&gt;</span><span class="t-out">&lt;span data-outpost="label"&gt;Link&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-kw">&lt;/outpost-menu&gt;</span>
 
-  <span class="t-comment">{# Auth-aware member links #}</span>
-  <span class="t-kw">{% if member %}</span>
-    <span class="t-kw">{% if paid_member %}</span>
+  <span class="t-comment">&lt;!-- Auth-aware member links --&gt;</span>
+  <span class="t-kw">&lt;outpost-if field="member" exists&gt;</span>
+    <span class="t-kw">&lt;outpost-if field="paid_member" exists&gt;</span>
       <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"member-badge"</span><span class="t-tag">&gt;</span>Paid<span class="t-tag">&lt;/span&gt;</span>
-    <span class="t-kw">{% endif %}</span>
+    <span class="t-kw">&lt;/outpost-if&gt;</span>
     <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/profile"</span><span class="t-tag">&gt;</span>My Account<span class="t-tag">&lt;/a&gt;</span>
     <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/logout"</span><span class="t-tag">&gt;</span>Sign Out<span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% else %}</span>
+  <span class="t-kw">&lt;/outpost-if&gt;</span>
+  <span class="t-kw">&lt;outpost-if field="member" not-exists&gt;</span>
     <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
     <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-primary"</span><span class="t-tag">&gt;</span>Join Free<span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-kw">{% endif %}</span>
+  <span class="t-kw">&lt;/outpost-if&gt;</span>
 <span class="t-tag">&lt;/nav&gt;</span></code></pre>
 
     <h2>7. The two-tier model</h2>
@@ -206,9 +209,9 @@
         <tr><th>Variable</th><th>True when</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>{% if member %}</code></td><td>Visitor is logged in (free or paid)</td></tr>
-        <tr><td><code>{% if paid_member %}</code></td><td>Visitor is logged in with a paid subscription</td></tr>
-        <tr><td><code>{% if free_member %}</code></td><td>Visitor is logged in but does not have paid status</td></tr>
+        <tr><td><code>&lt;outpost-if field="member" exists&gt;</code></td><td>Visitor is logged in (free or paid)</td></tr>
+        <tr><td><code>&lt;outpost-if field="paid_member" exists&gt;</code></td><td>Visitor is logged in with a paid subscription</td></tr>
+        <tr><td><code>&lt;outpost-if field="free_member" exists&gt;</code></td><td>Visitor is logged in but does not have paid status</td></tr>
       </tbody>
     </table>
 
@@ -224,21 +227,21 @@
     <p>Show the full list of articles to everyone, but mark paid-only items so visitors know what to expect before clicking.</p>
 
     <pre><code><span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"articles-list"</span><span class="t-tag">&gt;</span>
-  <span class="t-kw">{% for article in collection.article paginate:10 %}</span>
+  <span class="t-kw">&lt;outpost-each collection="article" paginate="10"&gt;</span>
     <span class="t-tag">&lt;article</span> <span class="t-attr">class</span>=<span class="t-string">"article-row"</span><span class="t-tag">&gt;</span>
       <span class="t-tag">&lt;h2&gt;</span>
-        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ article.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ article.title }}</span><span class="t-tag">&lt;/a&gt;</span>
-        <span class="t-kw">{% if article.tier == "paid" %}</span>
+        <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">&lt;span data-outpost="url"&gt;#&lt;/span&gt;</span>"</span><span class="t-tag">&gt;</span><span class="t-out">&lt;span data-outpost="title"&gt;Article Title&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
+        <span class="t-kw">&lt;outpost-if field="tier" is="paid"&gt;</span>
           <span class="t-tag">&lt;span</span> <span class="t-attr">class</span>=<span class="t-string">"tier-badge"</span><span class="t-tag">&gt;</span>Members<span class="t-tag">&lt;/span&gt;</span>
-        <span class="t-kw">{% endif %}</span>
+        <span class="t-kw">&lt;/outpost-if&gt;</span>
       <span class="t-tag">&lt;/h2&gt;</span>
-      <span class="t-kw">{% if article.excerpt %}</span>
-        <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ article.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
-      <span class="t-kw">{% endif %}</span>
+      <span class="t-kw">&lt;outpost-if field="excerpt" exists&gt;</span>
+        <span class="t-tag">&lt;p&gt;</span><span class="t-out">&lt;span data-outpost="excerpt"&gt;Article teaser&lt;/span&gt;</span><span class="t-tag">&lt;/p&gt;</span>
+      <span class="t-kw">&lt;/outpost-if&gt;</span>
     <span class="t-tag">&lt;/article&gt;</span>
-  <span class="t-kw">{% endfor %}</span>
+  <span class="t-kw">&lt;/outpost-each&gt;</span>
 <span class="t-tag">&lt;/div&gt;</span>
-<span class="t-kw">{% pagination %}</span></code></pre>
+<span class="t-kw">&lt;outpost-pagination /&gt;</span></code></pre>
 
     <h2>9. Upgrade flow with a payment provider</h2>
     <p>Outpost does not include a built-in payment gateway. The recommended approach is to use a third-party payment provider (such as Stripe or Lemon Squeezy) and update the member's status via the Member API after a successful payment.</p>
@@ -286,9 +289,9 @@ http_response_code(200);</code></pre>
     <h2>10. Customising the login page appearance</h2>
     <p>The built-in login page at <code>/outpost/login</code> uses the admin CSS. To create a branded login experience, create a <code>login.html</code> template at your site root that posts to the Member API login endpoint directly.</p>
 
-    <pre><code><span class="t-comment">{# login.html — custom branded login page #}</span>
-<span class="t-kw">{% include 'head' %}</span>
-<span class="t-kw">{% include 'nav' %}</span>
+    <pre><code><span class="t-comment">&lt;!-- login.html — custom branded login page --&gt;</span>
+<span class="t-kw">&lt;outpost-include partial="head" /&gt;</span>
+<span class="t-kw">&lt;outpost-include partial="nav" /&gt;</span>
 
 <span class="t-tag">&lt;main</span> <span class="t-attr">class</span>=<span class="t-string">"auth-page"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"auth-box"</span><span class="t-tag">&gt;</span>
@@ -309,40 +312,41 @@ http_response_code(200);</code></pre>
   <span class="t-tag">&lt;/div&gt;</span>
 <span class="t-tag">&lt;/main&gt;</span>
 
-<span class="t-kw">{% include 'footer' %}</span></code></pre>
+<span class="t-kw">&lt;outpost-include partial="footer" /&gt;</span></code></pre>
 
     <h2>11. Conditional layout based on member state</h2>
     <p>You can use member conditionals anywhere in a template — not just around content. A common pattern is to show different homepage layouts to logged-in members versus visitors:</p>
 
-    <pre><code><span class="t-kw">{% include 'head' %}</span>
-<span class="t-kw">{% include 'nav' %}</span>
+    <pre><code><span class="t-kw">&lt;outpost-include partial="head" /&gt;</span>
+<span class="t-kw">&lt;outpost-include partial="nav" /&gt;</span>
 
 <span class="t-tag">&lt;main&gt;</span>
-  <span class="t-kw">{% if member %}</span>
-    <span class="t-comment">{# Personalised dashboard for logged-in members #}</span>
+  <span class="t-kw">&lt;outpost-if field="member" exists&gt;</span>
+    <span class="t-comment">&lt;!-- Personalised dashboard for logged-in members --&gt;</span>
     <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"member-dashboard"</span><span class="t-tag">&gt;</span>
       <span class="t-tag">&lt;h1&gt;</span>Welcome back<span class="t-tag">&lt;/h1&gt;</span>
       <span class="t-tag">&lt;h2&gt;</span>Latest for members<span class="t-tag">&lt;/h2&gt;</span>
       <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"articles-grid"</span><span class="t-tag">&gt;</span>
-        <span class="t-kw">{% for article in collection.article limit:6 %}</span>
+        <span class="t-kw">&lt;outpost-each collection="article" limit="6"&gt;</span>
           <span class="t-tag">&lt;article&gt;</span>
-            <span class="t-tag">&lt;h3&gt;&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ article.url }}</span>"</span><span class="t-tag">&gt;</span><span class="t-out">{{ article.title }}</span><span class="t-tag">&lt;/a&gt;&lt;/h3&gt;</span>
-            <span class="t-out">{{ article.excerpt }}</span>
+            <span class="t-tag">&lt;h3&gt;&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">&lt;span data-outpost="url"&gt;#&lt;/span&gt;</span>"</span><span class="t-tag">&gt;</span><span class="t-out">&lt;span data-outpost="title"&gt;Article Title&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;&lt;/h3&gt;</span>
+            <span class="t-out">&lt;span data-outpost="excerpt"&gt;Article teaser&lt;/span&gt;</span>
           <span class="t-tag">&lt;/article&gt;</span>
-        <span class="t-kw">{% endfor %}</span>
+        <span class="t-kw">&lt;/outpost-each&gt;</span>
       <span class="t-tag">&lt;/div&gt;</span>
     <span class="t-tag">&lt;/section&gt;</span>
-  <span class="t-kw">{% else %}</span>
-    <span class="t-comment">{# Marketing landing page for logged-out visitors #}</span>
+  <span class="t-kw">&lt;/outpost-if&gt;</span>
+  <span class="t-kw">&lt;outpost-if field="member" not-exists&gt;</span>
+    <span class="t-comment">&lt;!-- Marketing landing page for logged-out visitors --&gt;</span>
     <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-string">"hero"</span><span class="t-tag">&gt;</span>
-      <span class="t-tag">&lt;h1&gt;</span><span class="t-out">{{ @site_name }}</span><span class="t-tag">&lt;/h1&gt;</span>
-      <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ @site_tagline }}</span><span class="t-tag">&lt;/p&gt;</span>
+      <span class="t-tag">&lt;h1&gt;</span><span class="t-out">&lt;span data-outpost="site_name" data-scope="global"&gt;Site Name&lt;/span&gt;</span><span class="t-tag">&lt;/h1&gt;</span>
+      <span class="t-tag">&lt;p&gt;</span><span class="t-out">&lt;span data-outpost="site_tagline" data-scope="global"&gt;Your tagline here&lt;/span&gt;</span><span class="t-tag">&lt;/p&gt;</span>
       <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span> <span class="t-attr">class</span>=<span class="t-string">"btn-primary"</span><span class="t-tag">&gt;</span>Get started free<span class="t-tag">&lt;/a&gt;</span>
     <span class="t-tag">&lt;/section&gt;</span>
-  <span class="t-kw">{% endif %}</span>
+  <span class="t-kw">&lt;/outpost-if&gt;</span>
 <span class="t-tag">&lt;/main&gt;</span>
 
-<span class="t-kw">{% include 'footer' %}</span></code></pre>
+<span class="t-kw">&lt;outpost-include partial="footer" /&gt;</span></code></pre>
 
     <h2>12. Routing for member pages</h2>
     <p>In v5, routing is automatic. Create <code>.html</code> files at your site root and the router maps them to URLs. For example, create <code>login.html</code> at the site root and it is accessible at <code>/login</code>:</p>
@@ -369,27 +373,27 @@ http_response_code(200);</code></pre>
       </thead>
       <tbody>
         <tr>
-          <td><code>{% if member %}</code></td>
+          <td><code>&lt;outpost-if field="member" exists&gt;</code></td>
           <td>Visitor is logged in (any tier)</td>
           <td>Show member-only UI; hide login/register links</td>
         </tr>
         <tr>
-          <td><code>{% if paid_member %}</code></td>
+          <td><code>&lt;outpost-if field="paid_member" exists&gt;</code></td>
           <td>Visitor is logged in with paid status</td>
           <td>Show premium content</td>
         </tr>
         <tr>
-          <td><code>{% if free_member %}</code></td>
+          <td><code>&lt;outpost-if field="free_member" exists&gt;</code></td>
           <td>Logged in but not paid</td>
           <td>Show upgrade CTA to free members specifically</td>
         </tr>
         <tr>
-          <td><code>{{ member.email }}</code></td>
+          <td><code>&lt;span data-outpost="member.email"&gt;Email&lt;/span&gt;</code></td>
           <td>Always when logged in</td>
           <td>Personalised greeting</td>
         </tr>
         <tr>
-          <td><code>{{ member.name }}</code></td>
+          <td><code>&lt;span data-outpost="member.name"&gt;Name&lt;/span&gt;</code></td>
           <td>When member has set a display name</td>
           <td>Personalised greeting</td>
         </tr>

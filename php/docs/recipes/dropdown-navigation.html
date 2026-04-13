@@ -54,21 +54,21 @@
     <pre><code><span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-string">"site-header"</span><span class="t-tag">&gt;</span>
   <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"header-inner"</span><span class="t-tag">&gt;</span>
 
-    <span class="t-comment">{# Logo #}</span>
-    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/"</span> <span class="t-attr">class</span>=<span class="t-string">"site-logo"</span><span class="t-tag">&gt;</span><span class="t-out">{{ @site_name }}</span><span class="t-tag">&lt;/a&gt;</span>
+    <span class="t-comment">&lt;!-- Logo --&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/"</span> <span class="t-attr">class</span>=<span class="t-string">"site-logo"</span><span class="t-tag">&gt;</span><span class="t-out">&lt;span data-outpost="site_name" data-scope="global"&gt;Site Name&lt;/span&gt;</span><span class="t-tag">&lt;/a&gt;</span>
 
-    <span class="t-comment">{# Desktop nav #}</span>
+    <span class="t-comment">&lt;!-- Desktop nav --&gt;</span>
     <span class="t-tag">&lt;nav</span> <span class="t-attr">class</span>=<span class="t-string">"site-nav"</span> <span class="t-attr">id</span>=<span class="t-string">"site-nav"</span> <span class="t-attr">aria-label</span>=<span class="t-string">"Main navigation"</span><span class="t-tag">&gt;</span>
-      <span class="t-kw">{% for item in menu.main %}</span>
+      <span class="t-kw">&lt;outpost-menu name="main"&gt;</span>
 
-        <span class="t-kw">{% if item.children %}</span>
+        <span class="t-kw">&lt;outpost-if field="item.children" exists&gt;</span>
 
-          <span class="t-comment">{# Parent item — has a dropdown #}</span>
+          <span class="t-comment">&lt;!-- Parent item — has a dropdown --&gt;</span>
           <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"nav-item has-dropdown"</span><span class="t-tag">&gt;</span>
             <span class="t-tag">&lt;button</span> <span class="t-attr">class</span>=<span class="t-string">"nav-link nav-parent"</span>
                     <span class="t-attr">aria-expanded</span>=<span class="t-string">"false"</span>
                     <span class="t-attr">aria-haspopup</span>=<span class="t-string">"true"</span><span class="t-tag">&gt;</span>
-              <span class="t-out">{{ item.label }}</span>
+              <span class="t-out">&lt;span data-outpost="label"&gt;Label&lt;/span&gt;</span>
               <span class="t-tag">&lt;svg</span> <span class="t-attr">class</span>=<span class="t-string">"chevron"</span>
                    <span class="t-attr">width</span>=<span class="t-string">"10"</span> <span class="t-attr">height</span>=<span class="t-string">"6"</span>
                    <span class="t-attr">viewBox</span>=<span class="t-string">"0 0 10 6"</span>
@@ -82,33 +82,34 @@
             <span class="t-tag">&lt;/button&gt;</span>
 
             <span class="t-tag">&lt;ul</span> <span class="t-attr">class</span>=<span class="t-string">"dropdown"</span> <span class="t-attr">role</span>=<span class="t-string">"menu"</span><span class="t-tag">&gt;</span>
-              <span class="t-kw">{% for child in item.children %}</span>
+              <span class="t-kw">&lt;outpost-each repeat="item.children"&gt;</span>
                 <span class="t-tag">&lt;li</span> <span class="t-attr">role</span>=<span class="t-string">"none"</span><span class="t-tag">&gt;</span>
-                  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ child.url }}</span>"</span>
+                  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"</span><span class="t-out">&lt;span data-outpost="url"&gt;#&lt;/span&gt;</span><span class="t-string">"</span>
                      <span class="t-attr">class</span>=<span class="t-string">"dropdown-link"</span>
                      <span class="t-attr">role</span>=<span class="t-string">"menuitem"</span>
-                     <span class="t-attr">target</span>=<span class="t-string">"<span class="t-out">{{ child.target }}</span>"</span><span class="t-tag">&gt;</span>
-                    <span class="t-out">{{ child.label }}</span>
+                     <span class="t-attr">target</span>=<span class="t-string">"</span><span class="t-out">&lt;span data-outpost="target"&gt;_self&lt;/span&gt;</span><span class="t-string">"</span><span class="t-tag">&gt;</span>
+                    <span class="t-out">&lt;span data-outpost="label"&gt;Child Label&lt;/span&gt;</span>
                   <span class="t-tag">&lt;/a&gt;</span>
                 <span class="t-tag">&lt;/li&gt;</span>
-              <span class="t-kw">{% endfor %}</span>
+              <span class="t-kw">&lt;/outpost-each&gt;</span>
             <span class="t-tag">&lt;/ul&gt;</span>
           <span class="t-tag">&lt;/div&gt;</span>
 
-        <span class="t-kw">{% else %}</span>
+        <span class="t-kw">&lt;/outpost-if&gt;</span>
+        <span class="t-kw">&lt;outpost-if field="item.children" not-exists&gt;</span>
 
-          <span class="t-comment">{# Flat item — no dropdown #}</span>
-          <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"<span class="t-out">{{ item.url }}</span>"</span>
+          <span class="t-comment">&lt;!-- Flat item — no dropdown --&gt;</span>
+          <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"</span><span class="t-out">&lt;span data-outpost="url"&gt;#&lt;/span&gt;</span><span class="t-string">"</span>
              <span class="t-attr">class</span>=<span class="t-string">"nav-link"</span>
-             <span class="t-attr">target</span>=<span class="t-string">"<span class="t-out">{{ item.target }}</span>"</span><span class="t-tag">&gt;</span>
-            <span class="t-out">{{ item.label }}</span>
+             <span class="t-attr">target</span>=<span class="t-string">"</span><span class="t-out">&lt;span data-outpost="target"&gt;_self&lt;/span&gt;</span><span class="t-string">"</span><span class="t-tag">&gt;</span>
+            <span class="t-out">&lt;span data-outpost="label"&gt;Label&lt;/span&gt;</span>
           <span class="t-tag">&lt;/a&gt;</span>
 
-        <span class="t-kw">{% endif %}</span>
-      <span class="t-kw">{% endfor %}</span>
+        <span class="t-kw">&lt;/outpost-if&gt;</span>
+      <span class="t-kw">&lt;/outpost-menu&gt;</span>
     <span class="t-tag">&lt;/nav&gt;</span>
 
-    <span class="t-comment">{# Mobile hamburger button #}</span>
+    <span class="t-comment">&lt;!-- Mobile hamburger button --&gt;</span>
     <span class="t-tag">&lt;button</span> <span class="t-attr">class</span>=<span class="t-string">"nav-hamburger"</span>
             <span class="t-attr">id</span>=<span class="t-string">"nav-hamburger"</span>
             <span class="t-attr">aria-label</span>=<span class="t-string">"Toggle navigation"</span>
@@ -439,17 +440,17 @@ document.addEventListener('keydown', e => {
     <h2>7. Nesting limit</h2>
     <p>Outpost's navigation system supports one level of children — parent items and their direct children. Grandchildren (three levels deep) are not stored or exposed in the menu data. If you need three levels, the recommended approach is to use two separate menus: a primary nav and a secondary contextual nav on relevant pages.</p>
 
-    <pre><code><span class="t-comment">{# Supported structure: #}</span>
-<span class="t-kw">{% for item in menu.main %}</span>
-  <span class="t-comment">{# item = top level #}</span>
-  <span class="t-kw">{% if item.children %}</span>
-    <span class="t-kw">{% for child in item.children %}</span>
-      <span class="t-comment">{# child = one level deep — this is the maximum #}</span>
-    <span class="t-kw">{% endfor %}</span>
-  <span class="t-kw">{% endif %}</span>
-<span class="t-kw">{% endfor %}</span>
+    <pre><code><span class="t-comment">&lt;!-- Supported structure: --&gt;</span>
+<span class="t-kw">&lt;outpost-menu name="main"&gt;</span>
+  <span class="t-comment">&lt;!-- item = top level --&gt;</span>
+  <span class="t-kw">&lt;outpost-if field="item.children" exists&gt;</span>
+    <span class="t-kw">&lt;outpost-each repeat="item.children"&gt;</span>
+      <span class="t-comment">&lt;!-- child = one level deep — this is the maximum --&gt;</span>
+    <span class="t-kw">&lt;/outpost-each&gt;</span>
+  <span class="t-kw">&lt;/outpost-if&gt;</span>
+<span class="t-kw">&lt;/outpost-menu&gt;</span>
 
-<span class="t-comment">{# Not supported — child.children does not exist #}</span></code></pre>
+<span class="t-comment">&lt;!-- Not supported — child.children does not exist --&gt;</span></code></pre>
 
     <h2>Next steps</h2>
     <ul>
