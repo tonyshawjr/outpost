@@ -170,6 +170,8 @@ class OutpostAuth {
                     'username' => $user['username'],
                     'role' => $user['role'],
                 ];
+                // Regenerate session ID to prevent session fixation attacks
+                session_regenerate_id(true);
                 // Populate session vars so role/grant checks work for API key auth
                 $_SESSION['outpost_user_id'] = $user['id'];
                 $_SESSION['outpost_role'] = $user['role'];
