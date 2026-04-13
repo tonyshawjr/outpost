@@ -13,6 +13,8 @@
  *   - Multipart text/HTML emails
  */
 
+require_once __DIR__ . '/ranger.php';
+
 class OutpostMailer {
 
     private string $host;
@@ -41,6 +43,10 @@ class OutpostMailer {
         $s = [];
         foreach ($rows as $r) {
             $s[$r['key']] = $r['value'];
+        }
+        // Decrypt SMTP password (backward-compatible with plaintext)
+        if (!empty($s['smtp_password'])) {
+            $s['smtp_password'] = safe_decrypt($s['smtp_password']);
         }
         return new self($s);
     }

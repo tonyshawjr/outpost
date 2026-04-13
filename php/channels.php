@@ -4,6 +4,8 @@
  * Sync external REST APIs into local cache for template rendering.
  */
 
+require_once __DIR__ . '/ranger.php';
+
 // ── Fetch helpers ───────────────────────────────────────
 
 /**
@@ -41,9 +43,12 @@ function channel_fetch_api(array $config): array {
         $headers[] = $name . ': ' . $value;
     }
 
-    // Auth
+    // Auth — decrypt credentials (backward-compatible with plaintext)
     $authType = $config['auth_type'] ?? 'none';
     $authConfig = $config['auth_config'] ?? [];
+    foreach ($authConfig as $ak => $av) {
+        if (is_string($av) && $av !== '') $authConfig[$ak] = safe_decrypt($av);
+    }
     switch ($authType) {
         case 'api_key':
             $headerName = $authConfig['api_key_header'] ?? 'X-API-Key';
@@ -116,9 +121,12 @@ function channel_fetch_rss(array $config): array {
         'User-Agent: Outpost-CMS/1.0',
     ];
 
-    // Auth (some feeds require it)
+    // Auth (some feeds require it) — decrypt credentials
     $authType = $config['auth_type'] ?? 'none';
     $authConfig = $config['auth_config'] ?? [];
+    foreach ($authConfig as $ak => $av) {
+        if (is_string($av) && $av !== '') $authConfig[$ak] = safe_decrypt($av);
+    }
     switch ($authType) {
         case 'api_key':
             $headerName = $authConfig['api_key_header'] ?? 'X-API-Key';
@@ -249,9 +257,12 @@ function channel_fetch_csv(array $config): array {
         'User-Agent: Outpost-CMS/1.0',
     ];
 
-    // Auth
+    // Auth — decrypt credentials (backward-compatible with plaintext)
     $authType = $config['auth_type'] ?? 'none';
     $authConfig = $config['auth_config'] ?? [];
+    foreach ($authConfig as $ak => $av) {
+        if (is_string($av) && $av !== '') $authConfig[$ak] = safe_decrypt($av);
+    }
     switch ($authType) {
         case 'api_key':
             $headerName = $authConfig['api_key_header'] ?? 'X-API-Key';

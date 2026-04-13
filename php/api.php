@@ -775,8 +775,9 @@ function handle_reset_password(): void {
     if (!$token) {
         json_error('Reset token required');
     }
-    if (strlen($password) < 8) {
-        json_error('Password must be at least 8 characters');
+    $pwError = outpost_validate_password($password);
+    if ($pwError) {
+        json_error($pwError);
     }
 
     $user = OutpostDB::fetchOne(
@@ -3477,14 +3478,21 @@ function handle_settings_update(): void {
         'feature_flags', 'jwt_secret', 'ranger_key', 'totp_signing_key',
     ];
 
+    // Keys whose values should be encrypted at rest
+    $encryptedKeys = ['smtp_password'];
+
     foreach ($data as $key => $value) {
         if (!is_string($key) || $key === '') continue;
         if (in_array($key, $blockedKeys, true)) {
             json_error('Setting "' . $key . '" cannot be updated via this endpoint', 403);
         }
+        $storeValue = (string) $value;
+        if (in_array($key, $encryptedKeys, true) && $storeValue !== '') {
+            $storeValue = ranger_encrypt($storeValue);
+        }
         OutpostDB::query(
             'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
-            [$key, (string) $value]
+            [$key, $storeValue]
         );
     }
 
@@ -4156,7 +4164,8 @@ function handle_user_create(): void {
 
     if (!$username || !$password) json_error('Username and password are required');
     if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Invalid email address');
-    if (strlen($password) < 8) json_error('Password must be at least 8 characters');
+    $pwError = outpost_validate_password($password);
+    if ($pwError) json_error($pwError);
 
     // Validate role
     if (!in_array($role, OUTPOST_ALL_ROLES)) json_error('Invalid role');
@@ -4235,7 +4244,8 @@ function handle_user_update(): void {
 
     // Password change (optional — only if provided)
     if (!empty($data['password'])) {
-        if (strlen($data['password']) < 8) json_error('Password must be at least 8 characters');
+        $pwError = outpost_validate_password($data['password']);
+        if ($pwError) json_error($pwError);
         $update['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
     }
 
@@ -7000,6 +7010,35 @@ function handle_channel_get(): void {
  * Mask sensitive auth credentials in channel config JSON.
  * Returns the config as a decoded array with auth values masked.
  */
+/**
+ * Encrypt auth_config credential values within a channel config array.
+ */
+function outpost_encrypt_channel_auth(array $config): array {
+    if (isset($config['auth_config']) && is_array($config['auth_config'])) {
+        foreach ($config['auth_config'] as $key => $val) {
+            if (is_string($val) && $val !== '' && $val !== '••••••••') {
+                $config['auth_config'][$key] = ranger_encrypt($val);
+            }
+        }
+    }
+    return $config;
+}
+
+/**
+ * Decrypt auth_config credential values within a channel config array.
+ * Backward-compatible: plaintext values pass through unchanged.
+ */
+function outpost_decrypt_channel_auth(array $config): array {
+    if (isset($config['auth_config']) && is_array($config['auth_config'])) {
+        foreach ($config['auth_config'] as $key => $val) {
+            if (is_string($val) && $val !== '') {
+                $config['auth_config'][$key] = safe_decrypt($val);
+            }
+        }
+    }
+    return $config;
+}
+
 function outpost_mask_channel_config(string $configJson): array {
     $config = json_decode($configJson, true) ?: [];
     if (isset($config['auth_config']) && is_array($config['auth_config'])) {
@@ -7035,7 +7074,7 @@ function handle_channel_create(): void {
         'slug'           => $slug,
         'name'           => $name,
         'type'           => $type,
-        'config'         => json_encode($data['config'] ?? new \stdClass()),
+        'config'         => json_encode(outpost_encrypt_channel_auth($data['config'] ?? [])),
         'field_map'      => json_encode($data['field_map'] ?? []),
         'cache_ttl'      => (int)($data['cache_ttl'] ?? 3600),
         'url_pattern'    => $data['url_pattern'] ?? null,
@@ -7064,10 +7103,21 @@ function handle_channel_update(): void {
                 // Preserve existing auth credentials when masked values are sent back
                 $newConfig = $data[$key];
                 $oldConfig = json_decode($current['config'] ?? '{}', true) ?: [];
+                $preservedKeys = [];
                 if (isset($newConfig['auth_config']) && isset($oldConfig['auth_config'])) {
                     foreach ($newConfig['auth_config'] as $ak => $av) {
                         if ($av === '••••••••' && isset($oldConfig['auth_config'][$ak])) {
+                            // Keep existing (already encrypted) value
                             $newConfig['auth_config'][$ak] = $oldConfig['auth_config'][$ak];
+                            $preservedKeys[] = $ak;
+                        }
+                    }
+                }
+                // Encrypt only new plaintext auth credentials (skip preserved ones)
+                if (isset($newConfig['auth_config']) && is_array($newConfig['auth_config'])) {
+                    foreach ($newConfig['auth_config'] as $ak => $av) {
+                        if (is_string($av) && $av !== '' && !in_array($ak, $preservedKeys, true)) {
+                            $newConfig['auth_config'][$ak] = ranger_encrypt($av);
                         }
                     }
                 }
