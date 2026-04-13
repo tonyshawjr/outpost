@@ -142,6 +142,9 @@ try {
     }
 
     if ($isIntrospection) {
+        if (!graphql_authenticate()) {
+            graphql_respond(['errors' => [['message' => 'Authentication required for introspection']]]);
+        }
         $data = resolve_introspection($selections, $document['fragments'] ?? []);
         graphql_respond(['data' => $data]);
     }
