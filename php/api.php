@@ -4168,6 +4168,11 @@ function handle_user_create(): void {
         json_error('Only admins can assign admin or developer roles', 403);
     }
 
+    // Only super_admin can assign super_admin
+    if ($role === 'super_admin' && $currentRole !== 'super_admin') {
+        json_error('Only super admins can assign the super_admin role', 403);
+    }
+
     $existing = OutpostDB::fetchOne('SELECT id FROM users WHERE username = ?', [$username]);
     if ($existing) json_error('Username already exists');
 
@@ -4219,6 +4224,12 @@ function handle_user_update(): void {
             json_error('Only admins can change roles', 403);
         }
         if (!in_array($data['role'], OUTPOST_ALL_ROLES)) json_error('Invalid role');
+
+        // Only super_admin can assign super_admin
+        if ($data['role'] === 'super_admin' && $currentRole !== 'super_admin') {
+            json_error('Only super admins can assign the super_admin role', 403);
+        }
+
         $update['role'] = $data['role'];
     }
 
