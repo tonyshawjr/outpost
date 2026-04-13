@@ -19,6 +19,9 @@ if (file_exists($adminIndex)) {
     // Serve the compiled Svelte SPA
     $html = file_get_contents($adminIndex);
 
+    // Generate a nonce for CSP
+    $nonce = base64_encode(random_bytes(16));
+
     // Inject CSRF token and base path for the SPA
     require_once __DIR__ . '/auth.php';
     OutpostAuth::init();
@@ -32,12 +35,23 @@ if (file_exists($adminIndex)) {
 
     $html = str_replace(
         '</head>',
-        "<script>window.__OUTPOST_CONFIG__ = {$config};</script>\n</head>",
+        "<script nonce=\"{$nonce}\">window.__OUTPOST_CONFIG__ = {$config};</script>\n</head>",
         $html
     );
 
     // Rewrite asset paths: ./assets/ → ./admin/assets/ since index.php serves from parent dir
     $html = str_replace('./assets/', './admin/assets/', $html);
+
+    // Security headers for admin panel
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
 
     echo $html;
 } else {
