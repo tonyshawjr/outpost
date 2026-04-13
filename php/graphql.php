@@ -14,24 +14,54 @@
 ob_start();
 ini_set('display_errors', '0');
 
-// ── CORS & headers ──────────────────────────────────────
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
-
-// ── Bootstrap ───────────────────────────────────────────
+// ── Bootstrap (loaded early for CORS settings lookup) ───
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/http-security.php';
 require_once __DIR__ . '/roles.php';
 require_once __DIR__ . '/auth.php';
+
+// ── CORS & headers ──────────────────────────────────────
+$_gql_cors_origins = null;
+try {
+    $_gql_cors_row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'api_cors_origins'");
+    if ($_gql_cors_row && $_gql_cors_row['value']) $_gql_cors_origins = $_gql_cors_row['value'];
+} catch (\Throwable $e) {}
+
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    $origin = $_SERVER['HTTP_ORIGIN'];
+    $isLocalDev = preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin);
+
+    if ($isLocalDev) {
+        header("Access-Control-Allow-Origin: {$origin}");
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    } elseif ($_gql_cors_origins === '*') {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Headers: Content-Type');
+    } elseif ($_gql_cors_origins) {
+        $allowed = array_map('trim', explode(',', $_gql_cors_origins));
+        if (in_array($origin, $allowed, true)) {
+            header("Access-Control-Allow-Origin: {$origin}");
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        }
+    }
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+} elseif ($_gql_cors_origins === '*') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Headers: Content-Type');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+}
+
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('Cache-Control: no-store');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 // Rate limit: 120 requests per 60 seconds per IP
 outpost_ip_rate_limit('graphql_api', 120, 60);
