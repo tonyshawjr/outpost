@@ -326,7 +326,7 @@ function shield_check_file_integrity(): array {
 
     foreach ($coreFiles as $filePath) {
         $relativePath = str_replace(OUTPOST_DIR, '', $filePath);
-        $currentHash = md5_file($filePath);
+        $currentHash = hash_file('sha256', $filePath);
 
         $stored = OutpostDB::fetchOne(
             "SELECT hash FROM shield_file_hashes WHERE file_path = ?",
