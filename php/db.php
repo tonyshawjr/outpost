@@ -44,7 +44,17 @@ class OutpostDB {
         return self::query($sql, $params)->fetchAll();
     }
 
+    private static function validateIdentifier(string $name, string $type = 'column'): void {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $name)) {
+            throw new \InvalidArgumentException("Invalid {$type} name: {$name}");
+        }
+    }
+
     public static function insert(string $table, array $data): int {
+        self::validateIdentifier($table, 'table');
+        foreach (array_keys($data) as $col) {
+            self::validateIdentifier($col, 'column');
+        }
         $columns = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         self::query(
@@ -55,6 +65,10 @@ class OutpostDB {
     }
 
     public static function update(string $table, array $data, string $where, array $whereParams = []): int {
+        self::validateIdentifier($table, 'table');
+        foreach (array_keys($data) as $col) {
+            self::validateIdentifier($col, 'column');
+        }
         $set = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($data)));
         $stmt = self::query(
             "UPDATE {$table} SET {$set} WHERE {$where}",
@@ -64,6 +78,7 @@ class OutpostDB {
     }
 
     public static function delete(string $table, string $where, array $params = []): int {
+        self::validateIdentifier($table, 'table');
         $stmt = self::query("DELETE FROM {$table} WHERE {$where}", $params);
         return $stmt->rowCount();
     }
