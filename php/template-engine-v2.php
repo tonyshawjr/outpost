@@ -893,6 +893,16 @@ class OutpostTemplateV2 {
                     $type = $tm[1];
                 }
 
+                // Region: structural no-op — strip data attributes, leave inner HTML untouched
+                if ($type === 'region') {
+                    if (!$editorMode) {
+                        $allAttrs = preg_replace('/\s*data-outpost="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-type="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-label="[^"]*"/', '', $allAttrs);
+                    }
+                    return '<' . $tag . $allAttrs . '>' . $defaultContent . $closeTag;
+                }
+
                 // Parse data-bind for attribute bindings: data-bind="attr:field,attr2:field2"
                 $bindings = [];
                 if (preg_match('/data-bind="([^"]+)"/', $allAttrs, $bm)) {
@@ -1224,6 +1234,18 @@ class OutpostTemplateV2 {
                 if (preg_match('/data-type="([^"]+)"/', $allAttrs, $tm)) {
                     $type = $tm[1];
                 }
+
+                // Region: structural no-op — strip data attributes, leave inner HTML untouched
+                if ($type === 'region') {
+                    if (!$editorMode) {
+                        $allAttrs = preg_replace('/\s*data-outpost="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-type="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-label="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-scope="[^"]*"/', '', $allAttrs);
+                    }
+                    return '<' . $tag . $allAttrs . '>' . $defaultContent . $closeTag;
+                }
+
                 $isGlobal = (bool) preg_match('/data-scope="global"/', $allAttrs);
 
                 // Extract data-label before stripping
