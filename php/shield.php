@@ -144,7 +144,10 @@ function shield_check_request(): void {
         shield_log_traffic($ip, $path, $method);
     }
 
-    // 4. Security headers
+    // 4. Baseline security headers (always applied, non-toggleable)
+    shield_baseline_headers();
+
+    // 5. Full security headers (toggleable via config)
     if ($config['security_headers']) {
         shield_add_security_headers();
     }
@@ -379,6 +382,15 @@ function shield_check_file_integrity(): array {
     ];
 }
 
+// ── Baseline Headers (always applied, non-toggleable) ────
+function shield_baseline_headers(): void {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 // ── Security Headers ─────────────────────────────────────
 function shield_add_security_headers(): void {
     header('X-Content-Type-Options: nosniff');
@@ -386,6 +398,10 @@ function shield_add_security_headers(): void {
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
 }
 
 // ── Traffic Logging ──────────────────────────────────────
