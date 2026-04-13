@@ -84,6 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 function mcp_response(mixed $id, array $result): never {
     ob_end_clean();
     header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store');
     echo json_encode([
         'jsonrpc' => '2.0',
         'id' => $id,
@@ -95,6 +97,8 @@ function mcp_response(mixed $id, array $result): never {
 function mcp_error(mixed $id, int $code, string $message, mixed $data = null): never {
     ob_end_clean();
     header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store');
     $err = ['code' => $code, 'message' => $message];
     if ($data !== null) $err['data'] = $data;
     echo json_encode([

@@ -35,6 +35,7 @@ require_once __DIR__ . '/redirects.php';
 require_once __DIR__ . '/search.php';
 
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
 // GitHub repository for auto-updater
 define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');

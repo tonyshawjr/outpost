@@ -53,6 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+header('X-Content-Type-Options: nosniff');
+header('Cache-Control: no-store');
+
 // ── JWT bearer token detection ───────────────────────────
 $_jwt_member = null;
 $_jwt_auth = false;

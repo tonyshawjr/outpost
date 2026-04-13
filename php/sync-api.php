@@ -38,6 +38,9 @@ define('SYNC_EXTENSIONS', [
 
 // ── Headers ───────────────────────────────────────────────
 header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Cache-Control: no-store');
 
 // HTTPS enforcement — skip for localhost
 $_sync_host  = $_SERVER['HTTP_HOST'] ?? '';
