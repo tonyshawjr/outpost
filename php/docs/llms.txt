@@ -4,7 +4,7 @@
 
 ## Documentation
 
-- [Full Developer Docs](/outpost/docs/): Complete reference for themes, template syntax, collections, members, API, and deploy
+- [Full Developer Docs](/outpost/docs/): Complete reference for site structure, template syntax, collections, members, API, and deploy
 - [Template Syntax Reference](/outpost/docs/template-syntax/): All template tags
 - [Collection Loops](/outpost/docs/loops/collection-loops.html): Looping over collection items with options
 - [Flexible Content Loops](/outpost/docs/loops/flexible-content-loops.html): Layout builder loops with named layouts
@@ -63,7 +63,7 @@ your-site/                       # OUTPOST_SITE_ROOT — the content source
     footer.html                  # </body></html>
   assets/
     style.css
-  theme.json                     # optional — framework flag, metadata
+  theme.json                     # Legacy — removed in v5.0
   .htaccess                      # Apache rewrite rules (auto-generated on install)
   outpost/                       # entire CMS engine
     admin/                       # built Svelte SPA (do not edit directly)
@@ -128,7 +128,7 @@ Links in templates must use **route paths** (the URL visitors see), never templa
 
 In collection loops use `<span data-outpost="url"></span>` — Outpost generates correct URLs automatically. In menu loops use `<span data-outpost="url"></span>` — already contains the configured route path.
 
-**When converting static HTML sites to Outpost themes, update every `<a href="page.html">` to `<a href="/page">`.**
+**When converting static HTML sites to Outpost sites, update every `<a href="page.html">` to `<a href="/page">`.**
 
 ### Defining custom routes
 
@@ -145,7 +145,7 @@ Dynamic routes use collections: create a collection with URL pattern `/event/{sl
 
 **What you cannot do:**
 - Multi-segment static routes like `/docs/getting-started` — template files map 1:1 to single-segment paths. Use query params (`/docs?page=getting-started`) or collection URL patterns instead.
-- Custom PHP route handlers — the router is not extensible. For custom server-side logic, create a standalone PHP file (e.g. `/custom-api.php`) outside the theme.
+- Custom PHP route handlers — the router is not extensible. For custom server-side logic, create a standalone PHP file (e.g. `/custom-api.php`) outside the CMS.
 - Route parameters beyond `{slug}` — collections and channels support only `{slug}` in URL patterns.
 
 ### Adding a new route
@@ -190,14 +190,16 @@ Route the custom PHP file via Apache rewrite (`RewriteRule ^search$ search.php [
 ### Asset paths must be absolute
 
 Always use absolute paths starting with `/` for CSS, JS, images, and fonts:
-- Correct: `/outpost/themes/my-theme/assets/style.css`
+- Correct: `/assets/style.css`
 - Wrong: `assets/style.css` (breaks on `/about`, `/post/hello-world`, etc.)
 
 Relative paths resolve differently per page URL. On `/about`, `assets/style.css` becomes `/about/assets/style.css` — a 404.
 
-## theme.json (optional)
+## theme.json (Removed in v5.0)
 
-An optional `theme.json` at the site root provides metadata and enables the CSS framework.
+> **Removed in v5.0.** The theme layer no longer exists. The following section is retained for reference only if maintaining pre-v5 sites.
+
+An optional `theme.json` at the site root previously provided metadata and enabled the CSS framework.
 
 ```json
 {
@@ -596,8 +598,8 @@ All loop types support `<outpost-else>` for empty-state fallbacks (v1.9.3). This
 | `data-outpost="field" data-type="focal"` | Focal point as CSS `X% Y%` for `object-position` |
 | `data-outpost="field" data-type="edit"` | Opt-in on-page editing (append to any type: `data-outpost="field" data-type="image" data-edit`) |
 | `data-outpost="@global"` | Output global field |
-| `<span data-outpost="title"></span>Default` | `<title>` tag (legacy — use `<outpost-seo />` in new themes) |
-| `<span data-outpost="description"></span>Default` | `<meta name="description">` tag (legacy — use `<outpost-seo />` in new themes) |
+| `<span data-outpost="title"></span>Default` | `<title>` tag (legacy — use `<outpost-seo />` in new sites) |
+| `<span data-outpost="description"></span>Default` | `<meta name="description">` tag (legacy — use `<outpost-seo />` in new sites) |
 | `<outpost-seo />` | Full SEO block: title, description, OG, Twitter Card, canonical, JSON-LD, robots |
 | `<outpost-each collection="slug">` | Collection loop |
 | `<outpost-single collection="slug">` | Single item by slug |
@@ -619,7 +621,7 @@ All loop types support `<outpost-else>` for empty-state fallbacks (v1.9.3). This
 
 ### Engine Detection
 
-Themes are automatically detected as v2 if `index.html` contains `data-outpost=` or `<outpost-` patterns. No configuration needed — the engine is selected per-theme at render time.
+Themes are automatically detected as v2 if `index.html` contains `data-outpost=` or `<outpost-` patterns. No configuration needed — the engine is selected per-site at render time.
 
 ### Fields
 
@@ -1451,7 +1453,7 @@ Render a builder form in any template:
 <outpost-form slug="contact" />
 ```
 
-This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required. Outpost injects no default form styles — your theme CSS has full control.
+This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required. Outpost injects no default form styles — your site CSS has full control.
 
 **Rendered HTML structure** (example with name, email, message fields):
 
@@ -1965,7 +1967,7 @@ Place `<outpost-seo />` once in `head.html`. It outputs a complete SEO block aut
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <outpost-seo />
-  <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+  <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
 ```
@@ -2014,7 +2016,7 @@ Place `<outpost-seo />` once in `head.html`. It outputs a complete SEO block aut
 }
 ```
 
-`<outpost-seo />` replaces `<span data-outpost="title"></span>` and `<span data-outpost="description"></span>`. Do not use both — `<outpost-seo />` already outputs `<title>` and description. Individual meta tags still work in legacy themes.
+`<outpost-seo />` replaces `<span data-outpost="title"></span>` and `<span data-outpost="description"></span>`. Do not use both — `<outpost-seo />` already outputs `<title>` and description. Individual meta tags still work in legacy sites using v1 syntax.
 
 ## WordPress Import
 
@@ -2052,9 +2054,9 @@ v2 autocomplete (v4.1.1): Context-aware completions triggered by:
 - Typing `<!-- outpost` — suggests block comment and settings comment patterns
 
 Endpoints added to `code-editor.php`:
-- `code/files` GET — list theme code files
-- `code/read` GET — read a theme file
-- `code/write` POST — write a theme file
+- `code/files` GET — list site code files
+- `code/read` GET — read a site file
+- `code/write` POST — write a site file
 - `code/create` POST — create file or folder
 - `code/rename` POST — rename/move (validates extension)
 - `code/delete` DELETE — recursive for directories
@@ -2126,13 +2128,13 @@ Supports demo HTML sites at the site root — pure HTML/CSS pages that can be an
 
 ### Insert Asset
 
-Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the theme's `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
+Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the site root `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
 
 - `.css` → `<link rel="stylesheet" href="/assets/{path}">`
 - `.js` → `<script src="/assets/{path}"></script>`
 - images → `<img src="/assets/{path}" alt="">`
 
-Powered by the `code/assets` API endpoint which scans the theme's `assets/` directory recursively.
+Powered by the `code/assets` API endpoint which scans the site root `assets/` directory recursively.
 
 ### Forge Site Analysis
 
@@ -2829,7 +2831,7 @@ Key columns:
 
 **`pages`:** `id`, `title`, `slug`, `body`, `meta_title`, `meta_description`, `og_image`, `visibility` (`'public'|'members'|'paid'`), `status` (`'published'|'draft'`), `locked` (0|1 — admin-only lock), `sort_order`, `created_at`, `updated_at`
 
-**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name). In v5, `theme` is always empty string.
+**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name). The `theme` column is vestigial from pre-v5; always empty string in v5+.
 
 **`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`. `sort_field` only accepts: `created_at`, `updated_at`, `published_at`, `slug`, `sort_order` — invalid values default to `created_at`.
 
@@ -2888,7 +2890,7 @@ Cache bypass: `?nocache=1` in URL (development only).
 
 **CDN / reverse proxy:** Place Cloudflare, Fastly, or Nginx caching in front of the site. Outpost's HTML cache headers respect standard cache-control. Static assets in `assets/` at the site root can be served directly by the web server with long cache headers.
 
-**Template warm-up:** After deploying a new theme or clearing the template cache, the first request for each page compiles the template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
+**Template warm-up:** After deploying new site templates or clearing the template cache, the first request for each page compiles the template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
 
 **SQLite tuning** (optional, in a custom bootstrap):
 ```php
@@ -3215,7 +3217,7 @@ const res = await fetch('/outpost/api.php?action=content/items&collection=post&c
 Runs automatically on fresh installs. Generates `.htaccess` for Apache URL rewriting. Checks `setup_completed` setting via `auth/me`. Existing sites auto-skip via migration detection (if pages or collections exist, `setup_completed` is set to `1`).
 
 ### Content Packs
-JSON files in `content-packs/` directory. Manifest: `packs.json` (array of pack defs with id, name, description, icon, themes array). Per-theme pack files: `{theme}-{pack}.json` (e.g. `personal-blog.json`). Each contains: settings, globals, collections (with schema + items + folders), menus. The `blank` pack has no file — just activates the theme. Applied in a single SQLite transaction via `POST setup/apply`.
+JSON files in `content-packs/` directory. Manifest: `packs.json` (array of pack defs with id, name, description, icon, themes array). Pack files: `{pack}.json` (e.g. `personal-blog.json`). Each contains: settings, globals, collections (with schema + items + folders), menus. The `blank` pack has no file — just activates the theme. Applied in a single SQLite transaction via `POST setup/apply`.
 
 ### Getting Started Checklist
 Dashboard card after wizard completion. 5 items: add_logo, edit_homepage, create_post, setup_navigation, configure_brand. Dynamically computed via `GET setup/checklist`. Dismiss via `POST setup/checklist/dismiss` (persists in settings table).
@@ -3228,9 +3230,9 @@ Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, 
 
 ### Setup API Endpoints
 
-- `GET setup/packs` — returns available content pack metadata filtered by theme
-- `POST setup/apply` — applies wizard choices (site_name, theme, pack) in transaction
-- `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
+- `GET setup/packs` — returns available content pack metadata
+- `POST setup/apply` — applies wizard choices (site_name, pack) in transaction
+- `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_site)
 - `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings
 
 ## Collaboration & Comments (v3.3.0)
@@ -3427,7 +3429,7 @@ No Outpost account or subscription required — bring your own API key.
 
 ### Example Requests
 - "Create a blog collection with title, excerpt, featured_image, and body fields"
-- "Build me a restaurant theme with homepage, menu, and contact pages"
+- "Build me a restaurant site with homepage, menu, and contact pages"
 - "Upload this image from Unsplash: [URL]"
 - "Turn on dark mode"
 - "Add a new admin user called Sarah"
@@ -3481,7 +3483,7 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - `upload_media` — upload a file to the media library
 - `upload_media_from_url` — download an image from a URL and add to media library
 
-**Site file tools:**
+**Site file tools** (named `theme_file` for historical reasons; all operate on files at the site root):
 - `create_theme_file` — create a new file at the site root
 - `update_theme_file` — update file contents at the site root
 - `delete_theme_file` — delete a file from the site root
@@ -3512,7 +3514,7 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - `query_database` — run read-only SELECT queries against the SQLite database
 - `debug_template` — check a template file for syntax errors and render issues
 - `search_docs` — search the Outpost developer documentation
-- `get_system_info` — get CMS version, PHP version, active theme, database stats
+- `get_system_info` — get CMS version, PHP version, database stats
 
 **Frontend tools:**
 - `frontend_action` — toggle dark mode, open/close navigation, or trigger other UI actions
@@ -3575,7 +3577,7 @@ Lodge has its own sub-router in `front-router.php`. All URLs live under a config
 | `/lodge/create/posts` | `lodge/create.html` | `$_GET['collection'] = 'posts'` |
 | `/lodge/profile` | `lodge/profile.html` | — |
 
-Templates go in `themes/{theme}/lodge/` subdirectory. Falls back from `{custom-slug}/` to `lodge/`. All routes require member auth — unauthenticated users redirect to login.
+Templates go in the `lodge/` subdirectory at the site root. Falls back from `{custom-slug}/` to `lodge/`. All routes require member auth — unauthenticated users redirect to login.
 
 ### Lodge API endpoints (member-api.php)
 
