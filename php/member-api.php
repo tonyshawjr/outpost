@@ -438,11 +438,35 @@ if ($action === 'register' && $method === 'POST') {
 
         // Store custom meta fields (e.g. is_military, is_first_responder)
         if ($memberId && !empty($data['meta']) && is_array($data['meta'])) {
-            $existing = OutpostDB::fetchOne('SELECT meta FROM users WHERE id = ?', [$memberId]);
-            $meta = ($existing && $existing['meta']) ? json_decode($existing['meta'], true) : [];
-            if (!is_array($meta)) $meta = [];
-            $meta = array_merge($meta, $data['meta']);
-            OutpostDB::update('users', ['meta' => json_encode($meta)], 'id = ?', [$memberId]);
+            // Define allowed meta keys (configurable via settings)
+            $defaultAllowed = ['is_military', 'is_first_responder', 'company', 'phone'];
+            $customFields = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'member_meta_fields'");
+            $allowedKeys = $customFields ? json_decode($customFields['value'], true) : null;
+            if (!is_array($allowedKeys)) $allowedKeys = $defaultAllowed;
+
+            // Validate and sanitize meta values
+            $sanitized = [];
+            foreach ($data['meta'] as $key => $value) {
+                if (!in_array($key, $allowedKeys, true)) continue;
+                // Only accept string, bool, and int types
+                if (is_string($value)) {
+                    if (strlen($value) > 1024) continue; // enforce max size
+                    $sanitized[$key] = $value;
+                } elseif (is_bool($value)) {
+                    $sanitized[$key] = $value;
+                } elseif (is_int($value)) {
+                    $sanitized[$key] = $value;
+                }
+                // silently drop arrays, objects, floats, null
+            }
+
+            if (!empty($sanitized)) {
+                $existing = OutpostDB::fetchOne('SELECT meta FROM users WHERE id = ?', [$memberId]);
+                $meta = ($existing && $existing['meta']) ? json_decode($existing['meta'], true) : [];
+                if (!is_array($meta)) $meta = [];
+                $meta = array_merge($meta, $sanitized);
+                OutpostDB::update('users', ['meta' => json_encode($meta)], 'id = ?', [$memberId]);
+            }
         }
 
         // Record signup event for funnels
