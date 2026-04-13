@@ -440,11 +440,11 @@ function sync_ensure_tables(): void {
 }
 
 function sync_get_ip(): string {
-    foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'] as $key) {
-        if (!empty($_SERVER[$key])) {
-            $ip = trim(explode(',', $_SERVER[$key])[0]);
-            if (filter_var($ip, FILTER_VALIDATE_IP)) return $ip;
-        }
+    // Only use REMOTE_ADDR for rate limiting. X-Forwarded-For and X-Real-IP
+    // are trivially spoofable by clients and allow rate limit bypass.
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (filter_var($ip, FILTER_VALIDATE_IP)) {
+        return $ip;
     }
     return 'unknown';
 }
