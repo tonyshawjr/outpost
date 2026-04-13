@@ -72,7 +72,7 @@ if (empty($_sync_key_stored)) {
     sync_error(401, 'Sync API not configured. Generate an API key in Outpost Settings.');
 }
 
-if (!hash_equals($_sync_key_stored, $_sync_key_provided)) {
+if (!password_verify($_sync_key_provided, $_sync_key_stored)) {
     sync_record_failed_attempt($_sync_ip);
     sync_error(401, 'Invalid API key');
 }

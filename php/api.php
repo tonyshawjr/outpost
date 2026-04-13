@@ -3626,24 +3626,33 @@ function handle_boost_optimize_db(): void {
 function handle_sync_key_get(): void {
     $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'sync_api_key'");
 
-    if (!$row || empty($row['value'])) {
-        // Auto-generate on first access
-        $key = bin2hex(random_bytes(32));
-        OutpostDB::query(
-            "INSERT INTO settings (key, value) VALUES ('sync_api_key', ?)
-             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            [$key]
-        );
-    } else {
-        $key = $row['value'];
-    }
-
     $last_pull = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'sync_last_pull'");
     $last_push = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'sync_last_push'");
 
+    // If no key exists, generate one and return it (shown once)
+    if (!$row || empty($row['value'])) {
+        $key = bin2hex(random_bytes(32));
+        $hash = password_hash($key, PASSWORD_BCRYPT, ['cost' => 10]);
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('sync_api_key', ?)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [$hash]
+        );
+        json_response([
+            'key_set'     => true,
+            'key'         => $key,
+            'key_masked'  => substr($key, 0, 8) . str_repeat('•', 48) . substr($key, -4),
+            'message'     => 'Save this key now — it cannot be retrieved again.',
+            'last_pull'   => $last_pull['value'] ?? null,
+            'last_push'   => $last_push['value'] ?? null,
+        ]);
+        return;
+    }
+
+    // Key already exists — only show that it's set (hash is stored, raw key is gone)
     json_response([
         'key_set'     => true,
-        'key_masked'  => substr($key, 0, 8) . '••••••••••••••••••••••••••••••••••••••••••••••••' . substr($key, -4),
+        'key_masked'  => '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••',
         'last_pull'   => $last_pull['value'] ?? null,
         'last_push'   => $last_push['value'] ?? null,
     ]);
@@ -3651,15 +3660,17 @@ function handle_sync_key_get(): void {
 
 function handle_sync_key_regenerate(): void {
     $key = bin2hex(random_bytes(32));
+    $hash = password_hash($key, PASSWORD_BCRYPT, ['cost' => 10]);
     OutpostDB::query(
         "INSERT INTO settings (key, value) VALUES ('sync_api_key', ?)
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-        [$key]
+        [$hash]
     );
     json_response([
         'success'    => true,
         'key'        => $key,
-        'key_masked' => substr($key, 0, 8) . '••••••••••••••••••••••••••••••••••••••••••••••••' . substr($key, -4),
+        'key_masked' => substr($key, 0, 8) . str_repeat('•', 48) . substr($key, -4),
+        'message'    => 'Save this key now — it cannot be retrieved again.',
     ]);
 }
 
