@@ -2112,10 +2112,13 @@ function ranger_tool_upload_media(array $input): array {
 
     // SSRF guard — block private/internal IPs
     try {
-        outpost_ssrf_guard($url);
+        $resolvedIp = outpost_ssrf_guard($url);
     } catch (\RuntimeException $e) {
         return ['error' => 'URL blocked: ' . $e->getMessage()];
     }
+    $parsedUrl = parse_url($url);
+    $resolveHost = $parsedUrl['host'];
+    $resolvePort = $parsedUrl['port'] ?? ($parsedUrl['scheme'] === 'https' ? 443 : 80);
 
     // Download the image
     $ch = curl_init($url);
@@ -2126,6 +2129,7 @@ function ranger_tool_upload_media(array $input): array {
         CURLOPT_MAXREDIRS => 5,
         CURLOPT_USERAGENT => 'Outpost-CMS/1.0',
         CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_RESOLVE => ["{$resolveHost}:{$resolvePort}:{$resolvedIp}"],
     ]);
     $data = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

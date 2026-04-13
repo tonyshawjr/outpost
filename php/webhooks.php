@@ -6,6 +6,8 @@
  * Immediate delivery with queue-based retry via cron.
  */
 
+require_once __DIR__ . '/ranger.php';
+
 // ── Database Migration ───────────────────────────────────
 function ensure_webhooks_tables(): void {
     $db = OutpostDB::connect();
@@ -82,7 +84,7 @@ function webhook_attempt_delivery(int $deliveryId, array $webhook, string $paylo
             'User-Agent: Outpost-CMS/1.0',
             'X-Outpost-Event: ' . (json_decode($payload, true)['event'] ?? ''),
             'X-Outpost-Delivery: ' . $deliveryId,
-            'X-Outpost-Signature: sha256=' . hash_hmac('sha256', $payload, $webhook['secret']),
+            'X-Outpost-Signature: sha256=' . hash_hmac('sha256', $payload, safe_decrypt($webhook['secret'])),
         ];
 
         // Add custom headers
@@ -92,7 +94,10 @@ function webhook_attempt_delivery(int $deliveryId, array $webhook, string $paylo
         }
 
         // SSRF guard — block private IPs and dangerous protocols
-        outpost_ssrf_guard($webhook['url']);
+        $resolvedIp = outpost_ssrf_guard($webhook['url']);
+        $parsed = parse_url($webhook['url']);
+        $host = $parsed['host'];
+        $port = $parsed['port'] ?? ($parsed['scheme'] === 'https' ? 443 : 80);
 
         $ch = curl_init($webhook['url']);
         curl_setopt_array($ch, [
@@ -106,6 +111,7 @@ function webhook_attempt_delivery(int $deliveryId, array $webhook, string $paylo
             CURLOPT_MAXREDIRS       => 3,
             CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_RESOLVE         => ["{$host}:{$port}:{$resolvedIp}"],
         ]);
 
         $body       = curl_exec($ch);
@@ -236,7 +242,7 @@ function handle_webhook_create(): void {
     $name = trim($data['name'] ?? '');
     if (!$url) json_error('URL is required');
     if (!filter_var($url, FILTER_VALIDATE_URL)) json_error('Invalid URL');
-    try { outpost_ssrf_guard($url); } catch (\RuntimeException $e) { json_error($e->getMessage()); }
+    try { outpost_ssrf_guard($url); } catch (\RuntimeException $e) { json_error($e->getMessage()); } // validation only
 
     $events  = $data['events'] ?? ['*'];
     $headers = $data['headers'] ?? (object)[];
@@ -246,7 +252,7 @@ function handle_webhook_create(): void {
     $id = OutpostDB::insert('webhooks', [
         'name'    => $name,
         'url'     => $url,
-        'secret'  => $secret,
+        'secret'  => ranger_encrypt($secret),
         'events'  => json_encode(array_values($events)),
         'headers' => json_encode($headers),
         'active'  => $active ? 1 : 0,
@@ -270,7 +276,7 @@ function handle_webhook_update(): void {
     if (isset($data['name']))    $update['name']    = trim($data['name']);
     if (isset($data['url'])) {
         if (!filter_var($data['url'], FILTER_VALIDATE_URL)) json_error('Invalid URL');
-        try { outpost_ssrf_guard($data['url']); } catch (\RuntimeException $e) { json_error($e->getMessage()); }
+        try { outpost_ssrf_guard($data['url']); } catch (\RuntimeException $e) { json_error($e->getMessage()); } // validation only
         $update['url'] = trim($data['url']);
     }
     if (isset($data['events']))  $update['events']  = json_encode(array_values($data['events']));
@@ -296,7 +302,7 @@ function handle_webhook_regenerate_secret(): void {
 
     $secret = bin2hex(random_bytes(32));
     OutpostDB::update('webhooks', [
-        'secret'     => $secret,
+        'secret'     => ranger_encrypt($secret),
         'updated_at' => date('Y-m-d H:i:s'),
     ], 'id = ?', [$id]);
 

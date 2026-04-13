@@ -16,10 +16,13 @@ function channel_fetch_api(array $config): array {
 
     // SSRF guard — block private IPs and dangerous protocols
     try {
-        outpost_ssrf_guard($url);
+        $resolvedIp = outpost_ssrf_guard($url);
     } catch (\RuntimeException $e) {
         return ['status' => 0, 'body' => '', 'decoded' => null, 'error' => $e->getMessage()];
     }
+    $parsedUrl = parse_url($url);
+    $resolveHost = $parsedUrl['host'];
+    $resolvePort = $parsedUrl['port'] ?? ($parsedUrl['scheme'] === 'https' ? 443 : 80);
 
     $method = strtoupper($config['method'] ?? 'GET');
 
@@ -62,6 +65,7 @@ function channel_fetch_api(array $config): array {
         CURLOPT_HTTPHEADER     => $headers,
         CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_RESOLVE        => ["{$resolveHost}:{$resolvePort}:{$resolvedIp}"],
     ]);
 
     if ($method === 'POST') {
@@ -98,10 +102,13 @@ function channel_fetch_rss(array $config): array {
 
     // SSRF guard
     try {
-        outpost_ssrf_guard($url);
+        $resolvedIp = outpost_ssrf_guard($url);
     } catch (\RuntimeException $e) {
         return ['items' => [], 'error' => $e->getMessage()];
     }
+    $parsedUrl = parse_url($url);
+    $resolveHost = $parsedUrl['host'];
+    $resolvePort = $parsedUrl['port'] ?? ($parsedUrl['scheme'] === 'https' ? 443 : 80);
 
     $ch = curl_init($url);
     $headers = [
@@ -134,6 +141,7 @@ function channel_fetch_rss(array $config): array {
         CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_MAXFILESIZE     => 10 * 1024 * 1024, // 10MB limit
+        CURLOPT_RESOLVE         => ["{$resolveHost}:{$resolvePort}:{$resolvedIp}"],
     ]);
 
     $body = curl_exec($ch);
@@ -227,10 +235,13 @@ function channel_fetch_csv(array $config): array {
 
     // SSRF guard
     try {
-        outpost_ssrf_guard($url);
+        $resolvedIp = outpost_ssrf_guard($url);
     } catch (\RuntimeException $e) {
         return ['items' => [], 'error' => $e->getMessage()];
     }
+    $parsedUrl = parse_url($url);
+    $resolveHost = $parsedUrl['host'];
+    $resolvePort = $parsedUrl['port'] ?? ($parsedUrl['scheme'] === 'https' ? 443 : 80);
 
     $ch = curl_init($url);
     $headers = [
@@ -263,6 +274,7 @@ function channel_fetch_csv(array $config): array {
         CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_MAXFILESIZE     => 10 * 1024 * 1024, // 10MB limit
+        CURLOPT_RESOLVE         => ["{$resolveHost}:{$resolvePort}:{$resolvedIp}"],
     ]);
 
     $body = curl_exec($ch);

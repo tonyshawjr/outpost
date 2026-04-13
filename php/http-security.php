@@ -8,9 +8,13 @@
 /**
  * Validate a URL is safe for server-side requests.
  * Blocks private/internal IPs, dangerous protocols, and cloud metadata endpoints.
- * Throws RuntimeException on unsafe URLs.
+ * Returns the resolved IP address so callers can pin it with CURLOPT_RESOLVE
+ * to prevent DNS rebinding (TOCTOU between validation and connection).
+ *
+ * @return string Resolved IP address — callers MUST use this with CURLOPT_RESOLVE
+ * @throws RuntimeException on unsafe URLs
  */
-function outpost_ssrf_guard(string $url): void {
+function outpost_ssrf_guard(string $url): string {
     $parsed = parse_url($url);
     $scheme = strtolower($parsed['scheme'] ?? '');
 
@@ -39,6 +43,8 @@ function outpost_ssrf_guard(string $url): void {
     if (in_array($host, $blockedHosts, true) || in_array($ip, $blockedHosts, true)) {
         throw new \RuntimeException('Requests to metadata endpoints are not allowed');
     }
+
+    return $ip;
 }
 
 /**
