@@ -111,11 +111,11 @@ if (!OutpostMember::check()) {
 }
 ?&gt;</code></pre>
     <p>Then include this partial at the top of the template:</p>
-    <pre><code>{% include 'member-gate' %}
+    <pre><code>&lt;outpost-include partial="member-gate" /&gt;
 
 &lt;!-- rest of template renders only for logged-in members --&gt;
-{{ title }}
-{{ body | raw }}</code></pre>
+&lt;h1 data-outpost="title"&gt;Page Title&lt;/h1&gt;
+&lt;div data-outpost="body" data-type="richtext"&gt;Page content&lt;/div&gt;</code></pre>
 
     <h3>Blocking paid-only content</h3>
     <pre><code>&lt;?php

@@ -104,7 +104,7 @@
       <tbody>
         <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
         <tr><td><code>name</code></td><td>TEXT</td><td>Display name shown in admin (e.g. "Blog Posts").</td></tr>
-        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>URL and template identifier (e.g. <code>post</code>). Used in <code>{% for item in collection.post %}</code>.</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>URL and template identifier (e.g. <code>post</code>). Used in <code>&lt;outpost-each collection="post"&gt;</code>.</td></tr>
         <tr><td><code>schema</code></td><td>TEXT</td><td>JSON array of field definitions. Each entry: <code>{"name":"title","type":"text"}</code>.</td></tr>
         <tr><td><code>url_pattern</code></td><td>TEXT</td><td>URL template for single items, e.g. <code>/post/{slug}</code>. The <code>{slug}</code> token is replaced at render time.</td></tr>
         <tr><td><code>sort_field</code></td><td>TEXT</td><td>Default sort column (e.g. <code>created_at</code>, <code>title</code>).</td></tr>
@@ -144,7 +144,7 @@
     </table>
 
     <div class="callout callout-tip">
-      <strong>Template access.</strong> In collection loops, <code>{{ item.published_at }}</code> outputs a human-readable date like "March 4, 2026". The raw ISO value is not exposed to templates.
+      <strong>Template access.</strong> In collection loops, <code>&lt;span data-outpost="published_at"&gt;Date&lt;/span&gt;</code> outputs a human-readable date like "March 4, 2026". The raw ISO value is not exposed to templates.
     </div>
 
     <hr>
@@ -275,7 +275,7 @@
       <tbody>
         <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
         <tr><td><code>name</code></td><td>TEXT</td><td>Display name (e.g. "Categories").</td></tr>
-        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Identifier used in templates: <code>{% for label in folder.category %}</code>.</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Identifier used in templates: <code>&lt;outpost-each folder="category"&gt;</code>.</td></tr>
         <tr><td><code>type</code></td><td>TEXT</td><td><code>'flat'</code> (tags) or <code>'hierarchical'</code> (categories with parent/child nesting).</td></tr>
         <tr><td><code>schema</code></td><td>TEXT</td><td>JSON array of custom field definitions attached to each label (e.g. a label image or description).</td></tr>
         <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
@@ -334,7 +334,7 @@
       <tbody>
         <tr><td><code>id</code></td><td>INTEGER PK</td><td>Auto-increment primary key.</td></tr>
         <tr><td><code>name</code></td><td>TEXT</td><td>Display name in the admin (e.g. "Main Navigation").</td></tr>
-        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Identifier used in templates: <code>{% for item in menu.main %}</code>.</td></tr>
+        <tr><td><code>slug</code></td><td>TEXT UNIQUE</td><td>Identifier used in templates: <code>&lt;outpost-menu name="main"&gt;</code>.</td></tr>
         <tr><td><code>items</code></td><td>TEXT</td><td>JSON array of menu item objects. Each item: <code>{"label":"Home","url":"/","target":"_self","children":[]}</code>.</td></tr>
         <tr><td><code>created_at</code></td><td>TEXT</td><td>ISO 8601 timestamp.</td></tr>
       </tbody>
@@ -486,7 +486,7 @@
       </thead>
       <tbody>
         <tr><td><code>idx_fields_page_theme</code></td><td>fields</td><td><code>page_id, theme</code></td><td>Fast field lookup on every page render.</td></tr>
-        <tr><td><code>idx_collection_items_coll_status</code></td><td>collection_items</td><td><code>collection_id, status</code></td><td>Fast filtering in collection loops (<code>{% for item in collection.* %}</code>).</td></tr>
+        <tr><td><code>idx_collection_items_coll_status</code></td><td>collection_items</td><td><code>collection_id, status</code></td><td>Fast filtering in collection loops (<code>&lt;outpost-each collection="*"&gt;</code>).</td></tr>
         <tr><td><code>idx_hits_path</code></td><td>analytics_hits</td><td><code>path</code></td><td>Analytics queries by page path.</td></tr>
         <tr><td><code>idx_hits_created</code></td><td>analytics_hits</td><td><code>created_at</code></td><td>Analytics time-range queries.</td></tr>
         <tr><td><code>idx_hits_session</code></td><td>analytics_hits</td><td><code>session_id</code></td><td>Unique visitor counting.</td></tr>

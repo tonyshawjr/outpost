@@ -21,7 +21,7 @@
     <h2>What Is Conditional Logic?</h2>
     <p>Conditional logic lets you define rules on individual fields in a collection schema that control whether the field is visible in the admin editor. When the condition is not met, the field is hidden from the editor &mdash; reducing clutter and guiding editors through complex content structures.</p>
 
-    <div class="callout callout-note"><strong>Note</strong> &mdash; Conditional logic is <strong>UI-only</strong>. It affects field visibility in the admin editor but has no effect on template rendering. All fields and their values are always available in templates regardless of conditional logic rules. Use template <code>{% if %}</code> tags if you need to conditionally render content on the front end.</div>
+    <div class="callout callout-note"><strong>Note</strong> &mdash; Conditional logic is <strong>UI-only</strong>. It affects field visibility in the admin editor but has no effect on template rendering. All fields and their values are always available in templates regardless of conditional logic rules. Use template <code>&lt;outpost-if&gt;</code> tags if you need to conditionally render content on the front end.</div>
 
     <h2>Setting Up Conditional Logic</h2>
     <p>Conditional logic is configured per field in the collection schema builder:</p>
@@ -111,22 +111,20 @@ Schema:
   cta_title       (text)           &rarr; show when: show_cta equals "true"
   cta_url         (link)           &rarr; show when: show_cta equals "true"
   cta_button_text (text)           &rarr; show when: show_cta equals "true"</code></pre>
-    <p>The corresponding template uses standard <code>{% if %}</code> tags to conditionally render the CTA section on the front end:</p>
-    <pre><code>{% single post from collection.post %}
-  &lt;article&gt;
-    &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
-    &lt;div class="prose"&gt;{{ post.body | raw }}&lt;/div&gt;
+    <p>The corresponding template uses <code>&lt;outpost-if&gt;</code> tags to conditionally render the CTA section on the front end:</p>
+    <pre><code>&lt;article&gt;
+  &lt;h1 data-outpost="title"&gt;Post Title&lt;/h1&gt;
+  &lt;div data-outpost="body" data-type="richtext"&gt;Post content here&lt;/div&gt;
 
-    {% if post.show_cta %}
-      &lt;div class="post-cta"&gt;
-        &lt;h3&gt;{{ post.cta_title }}&lt;/h3&gt;
-        &lt;a href="{{ post.cta_url | link }}" class="btn btn-primary"&gt;
-          {{ post.cta_button_text }}
-        &lt;/a&gt;
-      &lt;/div&gt;
-    {% endif %}
-  &lt;/article&gt;
-{% endsingle %}</code></pre>
+  &lt;outpost-if field="show_cta" exists&gt;
+    &lt;div class="post-cta"&gt;
+      &lt;h3 data-outpost="cta_title"&gt;CTA Title&lt;/h3&gt;
+      &lt;a data-outpost="cta_url" data-type="link" href="#" class="btn btn-primary"&gt;
+        &lt;span data-outpost="cta_button_text"&gt;Click Here&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/outpost-if&gt;
+&lt;/article&gt;</code></pre>
 
     <h3>Event with conditional pricing</h3>
     <pre><code>Collection: Events (slug: event)
@@ -155,11 +153,11 @@ Schema:
     <ul>
       <li><strong>UI-only</strong> &mdash; Conditional logic controls field visibility in the admin editor only. It does not affect data storage or template rendering. A hidden field retains its value &mdash; it is not cleared when hidden.</li>
       <li><strong>No cascading</strong> &mdash; Conditions reference one controlling field at a time. You cannot create compound conditions (e.g., "show when field A equals X AND field B equals Y"). For complex scenarios, consider using a single controlling field with more specific values.</li>
-      <li><strong>Template independence</strong> &mdash; Always use template <code>{% if %}</code> tags for front-end visibility. The conditional logic system in the schema builder and the template conditional system are completely independent &mdash; they serve different purposes.</li>
+      <li><strong>Template independence</strong> &mdash; Always use template <code>&lt;outpost-if&gt;</code> tags for front-end visibility. The conditional logic system in the schema builder and the template conditional system are completely independent &mdash; they serve different purposes.</li>
       <li><strong>Toggle values</strong> &mdash; Toggle fields store <code>"true"</code> or <code>""</code> (empty string). Use <code>equals "true"</code> to check for an enabled toggle.</li>
     </ul>
 
-    <div class="callout callout-tip"><strong>Tip</strong> &mdash; When using conditional logic with toggle fields, pair the admin-side condition (<code>show when: show_cta equals "true"</code>) with a matching template condition (<code>{% if post.show_cta %}</code>). This keeps the editor and the front end in sync &mdash; fields hidden from the editor will also be hidden from visitors.</div>
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; When using conditional logic with toggle fields, pair the admin-side condition (<code>show when: show_cta equals "true"</code>) with a matching template condition (<code>&lt;outpost-if field="show_cta" exists&gt;</code>). This keeps the editor and the front end in sync &mdash; fields hidden from the editor will also be hidden from visitors.</div>
 
   </div>
 </main>

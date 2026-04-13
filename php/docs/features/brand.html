@@ -107,7 +107,7 @@
     <p>This file lives inside <code>content/</code>, so it is included in backups and safe from the auto-updater.</p>
 
     <h2>Logo and favicon sync</h2>
-    <p>When you set a logo or favicon in Brand settings, the values are automatically synced to the <code>@site_logo</code> and <code>@site_favicon</code> global fields. This means your existing template tags &mdash; <code>{{ @site_logo | image }}</code> and <code>{{ @site_favicon | image }}</code> &mdash; work without any changes.</p>
+    <p>When you set a logo or favicon in Brand settings, the values are automatically synced to the <code>@site_logo</code> and <code>@site_favicon</code> global fields. This means your existing template tags &mdash; <code>&lt;img data-outpost="site_logo" data-type="image" data-scope="global" src="logo.png"&gt;</code> and <code>&lt;img data-outpost="site_favicon" data-type="image" data-scope="global" src="favicon.png"&gt;</code> &mdash; work without any changes.</p>
 
     <h2>API endpoints</h2>
     <table>

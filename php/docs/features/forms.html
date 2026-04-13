@@ -60,7 +60,7 @@
 
     <h3>Rendering in templates</h3>
     <p>Add this template tag wherever you want the form to appear:</p>
-    <pre><code>{&#37; form 'contact' &#37;}</code></pre>
+    <pre><code>&lt;outpost-form slug="contact" /&gt;</code></pre>
     <p>This renders a complete <code>&lt;form&gt;</code> element with all fields, labels, validation attributes, honeypot, and a submit button. No JavaScript is required — the form submits via standard POST.</p>
 
     <h3>Rendered HTML output</h3>
@@ -198,7 +198,7 @@
         <tr>
           <td><code>_form_id</code></td>
           <td>No</td>
-          <td>Builder form ID — auto-injected by <code>{% form %}</code> tag</td>
+          <td>Builder form ID — auto-injected by <code>&lt;outpost-form&gt;</code> tag</td>
         </tr>
         <tr>
           <td><code>_hp_*</code></td>

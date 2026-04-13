@@ -22,11 +22,11 @@
     <p>Outpost uses a two-layer approach to prevent cross-site scripting (XSS) and HTML injection:</p>
     <ol>
       <li><strong>Input sanitization</strong> — richtext HTML is cleaned through an allowlist filter before being stored in the database.</li>
-      <li><strong>Output escaping</strong> — all template output is HTML-escaped by default. Raw HTML is only output when explicitly requested with the <code>| raw</code> filter, and only for richtext fields where HTML is intentional.</li>
+      <li><strong>Output escaping</strong> — all template output is HTML-escaped by default. Raw HTML is only output when explicitly requested with <code>data-type="richtext"</code>, and only for richtext fields where HTML is intentional.</li>
     </ol>
 
     <div class="callout callout-note">
-      <strong>Stored clean, not escaped-on-output.</strong> Richtext fields store sanitized HTML. When you use <code>{{ body | raw }}</code>, the stored HTML renders as-is. The sanitizer ran when the content was saved — not when it's displayed.
+      <strong>Stored clean, not escaped-on-output.</strong> Richtext fields store sanitized HTML. When you use <code>&lt;div data-outpost="body" data-type="richtext"&gt;&lt;/div&gt;</code>, the stored HTML renders as-is. The sanitizer ran when the content was saved — not when it's displayed.
     </div>
 
     <hr>
@@ -198,13 +198,13 @@
     </table>
 
     <div class="callout callout-note">
-      SVG sanitization runs at upload time. The cleaned SVG is stored on disk and the original is discarded. When an SVG is displayed with <code>{{ field | image }}</code>, the URL is output-escaped but the SVG content itself is served as-is from disk.
+      SVG sanitization runs at upload time. The cleaned SVG is stored on disk and the original is discarded. When an SVG is displayed with <code>&lt;img data-outpost="field" data-type="image" src="default.svg"&gt;</code>, the URL is output-escaped but the SVG content itself is served as-is from disk.
     </div>
 
     <hr>
 
     <h2>Template Output Escaping</h2>
-    <p>The template compiler generates <code>htmlspecialchars()</code> calls for all text output by default. The only escape hatch is the <code>| raw</code> filter.</p>
+    <p>The template compiler generates <code>htmlspecialchars()</code> calls for all text output by default. The only escape hatch is the <code>data-type="richtext"</code> attribute.</p>
 
     <table class="schema-table">
       <thead>
@@ -212,47 +212,47 @@
       </thead>
       <tbody>
         <tr>
-          <td><code>{{ title }}</code></td>
+          <td><code>&lt;span data-outpost="title"&gt;Default&lt;/span&gt;</code></td>
           <td>Plain text</td>
           <td>Yes — <code>htmlspecialchars()</code> with <code>ENT_QUOTES</code></td>
         </tr>
         <tr>
-          <td><code>{{ title | textarea }}</code></td>
+          <td><code>&lt;p data-outpost="title" data-type="textarea"&gt;Default&lt;/p&gt;</code></td>
           <td>Plain text with line breaks</td>
           <td>Yes — escaped then <code>nl2br()</code></td>
         </tr>
         <tr>
-          <td><code>{{ body | raw }}</code></td>
+          <td><code>&lt;div data-outpost="body" data-type="richtext"&gt;Default&lt;/div&gt;</code></td>
           <td>Sanitized HTML</td>
           <td>No — outputs stored HTML as-is</td>
         </tr>
         <tr>
-          <td><code>{{ hero | image }}</code></td>
+          <td><code>&lt;img data-outpost="hero" data-type="image" src="default.jpg"&gt;</code></td>
           <td>File URL</td>
           <td>Yes — <code>htmlspecialchars()</code></td>
         </tr>
         <tr>
-          <td><code>{{ @site_name }}</code></td>
+          <td><code>&lt;span data-outpost="site_name" data-scope="global"&gt;Default&lt;/span&gt;</code></td>
           <td>Global text</td>
           <td>Yes — <code>htmlspecialchars()</code></td>
         </tr>
         <tr>
-          <td><code>{{ @bio | raw }}</code></td>
+          <td><code>&lt;div data-outpost="bio" data-type="richtext" data-scope="global"&gt;Default&lt;/div&gt;</code></td>
           <td>Global richtext HTML</td>
           <td>No — outputs stored HTML as-is</td>
         </tr>
         <tr>
-          <td><code>{{ item.title }}</code></td>
+          <td><code>&lt;span data-outpost="title"&gt;Default&lt;/span&gt;</code> (in loop)</td>
           <td>Collection item field</td>
           <td>Yes — <code>htmlspecialchars()</code></td>
         </tr>
         <tr>
-          <td><code>{{ item.body | raw }}</code></td>
+          <td><code>&lt;div data-outpost="body" data-type="richtext"&gt;Default&lt;/div&gt;</code> (in loop)</td>
           <td>Collection item richtext</td>
           <td>No — richtext fields only</td>
         </tr>
         <tr>
-          <td><code>{{ item.excerpt | or_body }}</code></td>
+          <td><code>&lt;span data-outpost="excerpt"&gt;Default&lt;/span&gt;</code> (with or_body)</td>
           <td>Plain text excerpt</td>
           <td>Yes — strips HTML, then escapes</td>
         </tr>
@@ -260,7 +260,7 @@
     </table>
 
     <div class="callout callout-warn">
-      <strong>Never use <code>| raw</code> on user-controlled text fields.</strong> Only use it on richtext fields (<code>field_type = 'richtext'</code>) that have already been sanitized on save. Using <code>| raw</code> on a plain text or textarea field would allow stored XSS.
+      <strong>Never use <code>data-type="richtext"</code> on user-controlled text fields.</strong> Only use it on richtext fields (<code>field_type = 'richtext'</code>) that have already been sanitized on save. Using <code>data-type="richtext"</code> on a plain text or textarea field would allow stored XSS.
     </div>
 
     <hr>
@@ -269,7 +269,7 @@
     <p>The <code>or_body</code> filter is used in collection loops to generate a plain-text excerpt. It takes the field value (typically an excerpt field), and if that's empty it falls back to the item's <code>body</code> richtext, strips all HTML tags, and returns the first 40 words.</p>
 
     <pre><code><span class="token comment">&lt;!-- Uses excerpt if set, otherwise auto-generates from body --&gt;</span>
-{{ item.excerpt | or_body }}</code></pre>
+&lt;span data-outpost="excerpt"&gt;Excerpt text&lt;/span&gt;</code></pre>
 
     <p>The PHP equivalent:</p>
     <pre><code><span class="token keyword">function</span> <span class="token function">outpost_auto_excerpt</span><span class="token punctuation">(</span><span class="token variable">$text</span><span class="token punctuation">,</span> <span class="token variable">$words</span> <span class="token operator">=</span> <span class="token number">40</span><span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">string</span> <span class="token punctuation">{</span>

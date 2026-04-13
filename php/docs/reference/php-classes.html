@@ -276,7 +276,7 @@
         <tr><td><code>cms_image(string $name, string $default): void</code></td><td>Outputs an image URL, HTML-escaped. Registers the field as type <code>image</code> for the admin picker.</td></tr>
         <tr><td><code>cms_link(string $name, string $default): void</code></td><td>Outputs a link URL, HTML-escaped.</td></tr>
         <tr><td><code>cms_select(string $name, string $default, array $options): void</code></td><td>Outputs the selected option value, HTML-escaped. Options are stored as JSON for the admin select UI.</td></tr>
-        <tr><td><code>cms_toggle(string $name, bool $default): bool</code></td><td>Returns <code>true</code> or <code>false</code>. Used in <code>{% if toggle_field %}</code> conditionals.</td></tr>
+        <tr><td><code>cms_toggle(string $name, bool $default): bool</code></td><td>Returns <code>true</code> or <code>false</code>. Used in <code>&lt;outpost-if field="toggle_field" exists&gt;</code> conditionals.</td></tr>
         <tr><td><code>cms_color(string $name, string $default): void</code></td><td>Outputs a color hex value, HTML-escaped.</td></tr>
         <tr><td><code>cms_number(string $name, string $default): void</code></td><td>Outputs a numeric field value, HTML-escaped.</td></tr>
         <tr><td><code>cms_date(string $name, string $default): void</code></td><td>Outputs a date field value, HTML-escaped.</td></tr>
@@ -285,7 +285,7 @@
         <tr><td><code>cms_collection_list(string $slug, callable $callback, array $opts): void</code></td><td>Iterates published items in a collection, calling <code>$callback</code> with each escaped item array. Supports limit, ordering, folder filtering, and pagination.</td></tr>
         <tr><td><code>cms_collection_single(string $slug): ?array</code></td><td>Finds a single collection item by slug from the URL path or <code>?slug=</code> query param. Returns the item array or <code>null</code>.</td></tr>
         <tr><td><code>cms_pagination(): void</code></td><td>Renders HTML pagination links after a <code>paginate:</code> collection loop. Preserves existing query params.</td></tr>
-        <tr><td><code>cms_gallery_items(string $name): array</code></td><td>Returns gallery items as <code>[['url' => '...']]</code> for use in <code>{% for img in gallery.field %}</code> loops.</td></tr>
+        <tr><td><code>cms_gallery_items(string $name): array</code></td><td>Returns gallery items as <code>[['url' => '...']]</code> for use in <code>&lt;outpost-each repeat="field"&gt;</code> loops.</td></tr>
         <tr><td><code>cms_repeater_items(string $name): array</code></td><td>Returns repeater rows as arrays of escaped key→value maps.</td></tr>
         <tr><td><code>cms_menu_items(string $slug): array</code></td><td>Returns a navigation menu's items as escaped arrays with <code>label</code>, <code>url</code>, <code>target</code>, and <code>children</code> keys.</td></tr>
         <tr><td><code>cms_folder_labels(string $folder_slug): array</code></td><td>Returns all labels for a folder with <code>name</code>, <code>slug</code>, and <code>count</code> (published item count).</td></tr>
@@ -304,7 +304,7 @@
     </table>
 
     <div class="callout callout-tip">
-      <strong>Template development note.</strong> You never call these functions directly in templates — the template compiler converts tags like <code>{{ title }}</code> into <code>&lt;?php cms_text('title', ''); ?&gt;</code> automatically. The functions are listed here for PHP developers extending the engine or building custom endpoints.
+      <strong>Template development note.</strong> You never call these functions directly in templates — the template compiler converts tags like <code>&lt;span data-outpost="title"&gt;Default&lt;/span&gt;</code> into <code>&lt;?php cms_text('title', 'Default'); ?&gt;</code> automatically. The functions are listed here for PHP developers extending the engine or building custom endpoints.
     </div>
 
   </div>

@@ -72,8 +72,8 @@
 
     <p>To make the login and register URLs configurable by the admin (without editing template files), define them as global fields and use the <code>| link</code> filter:</p>
 
-    <pre><code><span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @login_url | link }}"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
-<span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"{{ @register_url | link }}"</span><span class="t-tag">&gt;</span>Join<span class="t-tag">&lt;/a&gt;</span></code></pre>
+    <pre><code><span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"login_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">data-scope</span>=<span class="t-string">"global"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
+<span class="t-tag">&lt;a</span> <span class="t-attr">data-outpost</span>=<span class="t-string">"register_url"</span> <span class="t-attr">data-type</span>=<span class="t-string">"link"</span> <span class="t-attr">data-scope</span>=<span class="t-string">"global"</span> <span class="t-attr">href</span>=<span class="t-string">"#"</span><span class="t-tag">&gt;</span>Join<span class="t-tag">&lt;/a&gt;</span></code></pre>
 
     <h2>Login page</h2>
     <p>The login page at <code>/outpost/login</code> provides:</p>
@@ -175,27 +175,22 @@ define('OUTPOST_LOGIN_REDIRECT', '/dashboard');</code></pre>
     <h2>Checking login state in templates</h2>
     <p>Templates have two built-in variables for checking member status:</p>
 
-    <pre><code><span class="t-comment">{# Check if any member is logged in #}</span>
-<span class="t-kw">{% if</span> <span class="t-out">member</span> <span class="t-kw">%}</span>
+    <pre><code><span class="t-comment">&lt;!-- Check if any member is logged in --&gt;</span>
+<span class="t-kw">&lt;outpost-if field="member" exists&gt;</span>
   <span class="t-tag">&lt;p&gt;</span>Welcome back!<span class="t-tag">&lt;/p&gt;</span>
   <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/profile"</span><span class="t-tag">&gt;</span>My Profile<span class="t-tag">&lt;/a&gt;</span>
   <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/logout"</span><span class="t-tag">&gt;</span>Sign Out<span class="t-tag">&lt;/a&gt;</span>
-<span class="t-kw">{% else %}</span>
-  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/login"</span><span class="t-tag">&gt;</span>Sign In<span class="t-tag">&lt;/a&gt;</span>
-  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/outpost/register"</span><span class="t-tag">&gt;</span>Create Account<span class="t-tag">&lt;/a&gt;</span>
-<span class="t-kw">{% endif %}</span>
+<span class="t-kw">&lt;/outpost-if&gt;</span>
 
-<span class="t-comment">{# Check specifically for paid members #}</span>
-<span class="t-kw">{% if</span> <span class="t-out">paid_member</span> <span class="t-kw">%}</span>
+<span class="t-comment">&lt;!-- Check specifically for paid members --&gt;</span>
+<span class="t-kw">&lt;outpost-if field="paid_member" exists&gt;</span>
   <span class="t-tag">&lt;div</span> <span class="t-attr">class</span>=<span class="t-string">"premium-content"</span><span class="t-tag">&gt;</span>
-    <span class="t-out">{{ premium_body | raw }}</span>
+    <span class="t-out">&lt;div data-outpost="premium_body" data-type="richtext"&gt;Premium content here&lt;/div&gt;</span>
   <span class="t-tag">&lt;/div&gt;</span>
-<span class="t-kw">{% else %}</span>
-  <span class="t-tag">&lt;p&gt;</span>This content is for paid members. <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-string">"/upgrade"</span><span class="t-tag">&gt;</span>Upgrade your account.<span class="t-tag">&lt;/a&gt;&lt;/p&gt;</span>
-<span class="t-kw">{% endif %}</span></code></pre>
+<span class="t-kw">&lt;/outpost-if&gt;</span></code></pre>
 
     <div class="callout callout-tip">
-      <strong>Tip</strong> — <code>{% if member %}</code> is true for both <code>free_member</code> and <code>paid_member</code> roles. <code>{% if paid_member %}</code> is only true for <code>paid_member</code>. To show content to free members but not to guests, use <code>{% if member %}</code>. To show content only to paid members, use <code>{% if paid_member %}</code>.
+      <strong>Tip</strong> — <code>&lt;outpost-if field="member" exists&gt;</code> is true for both <code>free_member</code> and <code>paid_member</code> roles. <code>&lt;outpost-if field="paid_member" exists&gt;</code> is only true for <code>paid_member</code>. To show content to free members but not to guests, use <code>&lt;outpost-if field="member" exists&gt;</code>. To show content only to paid members, use <code>&lt;outpost-if field="paid_member" exists&gt;</code>.
     </div>
 
     <h2>Protecting pages from the admin</h2>

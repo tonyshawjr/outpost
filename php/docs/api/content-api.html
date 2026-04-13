@@ -559,8 +559,8 @@ menu.items.forEach(item => {
     {
       "label": "CMS Fields",
       "rows": [
-        { "syntax": "{{ field_name }}", "description": "Editable text field — HTML-escaped output" },
-        { "syntax": "{{ field_name | raw }}", "description": "Rich text (HTML) field — output as-is, no escaping" },
+        { "syntax": "&lt;span data-outpost=\"field_name\"&gt;Default&lt;/span&gt;", "description": "Editable text field — HTML-escaped output" },
+        { "syntax": "&lt;div data-outpost=\"field_name\" data-type=\"richtext\"&gt;Default&lt;/div&gt;", "description": "Rich text (HTML) field — output as-is, no escaping" },
         ...
       ]
     },

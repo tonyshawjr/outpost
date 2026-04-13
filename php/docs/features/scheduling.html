@@ -47,7 +47,7 @@
       </thead>
       <tbody>
         <tr>
-          <td>Collection loops (<code>{% for %}</code>)</td>
+          <td>Collection loops (<code>&lt;outpost-each&gt;</code>)</td>
           <td>Not included — excluded by <code>status = 'published'</code> filter</td>
         </tr>
         <tr>
@@ -196,13 +196,13 @@ date_default_timezone_set(<span class="t-string">'UTC'</span>);</code></pre>
 
     <h2>Scheduling and collection loops</h2>
     <p>Collection loops always filter by <code>status = 'published'</code>. This means scheduled items never appear in your <code>&lt;outpost-each&gt;</code> collection loops until after the lazy publish check promotes them. There is nothing special to add to your templates — the filtering is built into the loop handler.</p>
-    <pre><code><span class="t-comment">{# This loop only shows published items. Scheduled items are excluded automatically. #}</span>
-<span class="t-kw">{% for</span> post <span class="t-kw">in</span> collection.post <span class="t-kw">%}</span>
+    <pre><code><span class="t-comment">&lt;!-- This loop only shows published items. Scheduled items are excluded automatically. --&gt;</span>
+<span class="t-kw">&lt;outpost-each collection="post"&gt;</span>
   <span class="t-tag">&lt;article&gt;</span>
-    <span class="t-tag">&lt;h2&gt;</span><span class="t-out">{{ post.title }}</span><span class="t-tag">&lt;/h2&gt;</span>
-    <span class="t-tag">&lt;p&gt;</span><span class="t-out">{{ post.excerpt }}</span><span class="t-tag">&lt;/p&gt;</span>
+    <span class="t-tag">&lt;h2&gt;</span><span class="t-out">&lt;span data-outpost="title"&gt;Post Title&lt;/span&gt;</span><span class="t-tag">&lt;/h2&gt;</span>
+    <span class="t-tag">&lt;p&gt;</span><span class="t-out">&lt;span data-outpost="excerpt"&gt;Excerpt&lt;/span&gt;</span><span class="t-tag">&lt;/p&gt;</span>
   <span class="t-tag">&lt;/article&gt;</span>
-<span class="t-kw">{% endfor %}</span></code></pre>
+<span class="t-kw">&lt;/outpost-each&gt;</span></code></pre>
 
     <h2>Advanced: external cron endpoint</h2>
     <p>For most sites, the built-in auto-publish is all you need. If your site has extremely low traffic and you need guaranteed timing, Outpost also provides a key-authenticated cron endpoint that can be called from an external cron job or monitoring service:</p>
