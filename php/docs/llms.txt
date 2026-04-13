@@ -187,6 +187,49 @@ Bootstrap files: `config.php` (constants), `db.php` (OutpostDB), `engine.php` (t
 
 Route the custom PHP file via Apache rewrite (`RewriteRule ^search$ search.php [L]`), Nginx location block, or by adding a check in `front-router.php`.
 
+### How the front controller renders templates (index.php internals)
+
+The site-root `index.php` is the production front controller. Here is its routing pipeline:
+
+```php
+// 1. Bootstrap
+require_once $outpostDir . '/config.php';
+require_once $outpostDir . '/db.php';
+
+// 2. Special routes handled first (sitemap, robots, RSS feeds)
+// /sitemap.xml → sitemap.php
+// /robots.txt  → sitemap.php (robots generator)
+// /feed        → feed.php
+
+// 3. Boost page cache — serves cached HTML if available
+require_once $outpostDir . '/boost.php';
+
+// 4. Template engine detection — v2 (data attributes) or v1 (Liquid)
+$themeDir = OUTPOST_SITE_ROOT;  // v5: site root IS the content source
+$useV2 = outpost_detect_engine_version($themeDir);
+require_once $outpostDir . ($useV2 ? '/template-engine-v2.php' : '/template-engine.php');
+
+// 5. Route matching (first match wins):
+//    a) Lodge member portal routes (/lodge/*)
+//    b) Direct page match: /about → about.html, / → index.html
+//    c) Collection URL patterns: /post/{slug} → post.html
+//    d) Channel URL patterns: /listing/{slug} → listing.html
+//    e) No match → 404.html or plain 404
+
+// 6. Render the matched template
+outpost_init();                                    // runs migrations, loads field registry
+outpost_render_template($templateFile, $themeDir); // compiles + executes cached PHP
+```
+
+Key functions in `engine.php`:
+- `outpost_init()` — bootstraps the template system (field registry, migrations, page detection)
+- `outpost_render_template($file, $siteRoot, $editorMode)` — compiles an HTML template to PHP (or loads from cache), then executes it
+- `outpost_detect_engine_version($siteRoot)` — returns `true` for v2 (data attributes) if `index.html` contains `data-outpost=`
+- `outpost_resolve_field($name, $type, $default)` — resolves a field value from the database (called by compiled templates)
+- `cms_text($name)`, `cms_image($name)`, `cms_link($name)` — lower-level field accessors used by compiled v1 templates
+
+To extend routing, create a standalone PHP file (not inside engine.php) and add an Apache/Nginx rewrite rule. The front controller is not designed to be modified — it is replaced on every Outpost update.
+
 ### Asset paths must be absolute
 
 Always use absolute paths starting with `/` for CSS, JS, images, and fonts:
