@@ -108,6 +108,21 @@ try {
 require_once $configFile;
 require_once $outpostDir . '/db.php';
 
+// Apply security headers to front-end pages
+require_once $outpostDir . '/shield.php';
+shield_baseline_headers();
+try {
+    if (file_exists(OUTPOST_DB_PATH)) {
+        $shieldConfig = shield_get_config();
+        if ($shieldConfig['security_headers']) {
+            shield_add_security_headers();
+        }
+    }
+} catch (\Throwable $e) {
+    // DB may not exist yet during install — baseline headers still apply
+}
+header('Content-Type: text/html; charset=utf-8');
+
 // ── URL Redirects (checked early, before theme routing) ──
 if (file_exists(OUTPOST_DB_PATH) && file_exists($outpostDir . '/redirects.php')) {
     require_once $outpostDir . '/redirects.php';
