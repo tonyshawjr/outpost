@@ -276,7 +276,7 @@
     <div class="callout callout-tip"><strong>Tip</strong> — It is safe to delete the entire <code>cache/</code> directory at any time. Outpost will recreate it on the next request. Clearing the cache after a deploy is good practice to ensure visitors see fresh content immediately.</div>
 
     <h2>Core PHP Files</h2>
-    <p>These files are the engine of Outpost. They are replaced on every deploy when you update the CMS. Do not modify them — all customisation happens in theme files.</p>
+    <p>These files are the engine of Outpost. They are replaced on every deploy when you update the CMS. Do not modify them — all customisation happens in your site's HTML files at the site root.</p>
 
     <h3>engine.php</h3>
     <p>The core CMS functions library. Contains all the functions that theme templates compile down to: <code>cms_text()</code>, <code>cms_richtext()</code>, <code>cms_image()</code>, <code>cms_global()</code>, <code>cms_collection_list()</code>, <code>cms_collection_single()</code>, <code>cms_meta_title()</code>, <code>outpost_init()</code>, and many more. This file is included at the top of every compiled template.</p>
@@ -305,7 +305,7 @@
     <p>Member session helper functions. Provides <code>cms_require_member()</code> and <code>cms_require_paid_member()</code> — called by the router when a page has restricted visibility. Also exposes member data to templates.</p>
 
     <h3>form.php</h3>
-    <p>Form submission handler. Processes POST requests from front-end forms, validates fields, optionally emails the submission, and saves it to the database. Referenced by the <code>{% form %}</code> template tag.</p>
+    <p>Form submission handler. Processes POST requests from front-end forms, validates fields, optionally emails the submission, and saves it to the database. Referenced by the <code>&lt;outpost-form slug="name" /&gt;</code> template tag.</p>
 
     <h3>sync-api.php</h3>
     <p>The builder sync API. Used by the Outpost desktop builder application to push and pull theme files over HTTP. Not relevant for typical web server deployments.</p>
@@ -399,7 +399,7 @@
   vite.config.js
   package.json</code></pre>
 
-    <p>This source is only needed on a developer machine where you are building custom admin modifications. It is not present on a production server and is not required for normal theme or content work.</p>
+    <p>This source is only needed on a developer machine where you are building custom admin modifications. It is not present on a production server and is not required for normal site development or content work.</p>
 
   </div>
 </main>

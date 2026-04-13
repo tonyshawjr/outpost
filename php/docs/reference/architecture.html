@@ -75,7 +75,7 @@ $weather = json_decode(file_get_contents('https://api.example.com/weather?city=n
 &lt;div class="weather"&gt;
   &lt;span&gt;&lt;?= htmlspecialchars($weather['temp'] ?? 'N/A') ?&gt;&deg;F&lt;/span&gt;
 &lt;/div&gt;</code></pre>
-    <pre><code>{&#37; include 'weather-widget' &#37;}</code></pre>
+    <pre><code>&lt;outpost-include partial="weather-widget" /&gt;</code></pre>
 
     <h3>Pre-processing with a cron job</h3>
     <p>For periodic tasks (syncing data, sending emails, cleaning up), create a PHP script and run it via cron. You can use Outpost's database classes:</p>

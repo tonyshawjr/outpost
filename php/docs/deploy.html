@@ -374,7 +374,7 @@ scp cms/php/admin/assets/index-*.css user@server:/var/www/html/outpost/admin/ass
 0 2 * * * cp /var/www/html/outpost/content/data/cms.db /backups/cms-$(date +\%Y\%m\%d).db
 0 2 * * * find /backups/ -name "cms-*.db" -mtime +30 -delete</code></pre>
 
-    <p>For a full site backup (database + uploads + themes), use the built-in backup feature in <strong>Admin &rarr; Settings &rarr; Backups</strong>, or <code>rsync</code> the entire <code>content/</code> directory to an off-site server.</p>
+    <p>For a full site backup (database + uploads + site templates), use the built-in backup feature in <strong>Admin &rarr; Settings &rarr; Backups</strong>, or <code>rsync</code> the entire <code>content/</code> directory to an off-site server.</p>
 
     <h2>Upgrading from Beta to Stable</h2>
 
