@@ -235,7 +235,7 @@ class OutpostMember {
     private static function isRateLimited(): bool {
         // Session-based check
         $attempts = $_SESSION['member_login_attempts'] ?? [];
-        $window = time() - 60;
+        $window = time() - 300;
         $attempts = array_filter($attempts, fn($t) => $t > $window);
         $_SESSION['member_login_attempts'] = $attempts;
         if (count($attempts) >= 5) return true;
