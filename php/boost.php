@@ -344,6 +344,8 @@ function boost_get_hit_rate(): array {
 function boost_set_static_headers(string $filePath): void {
     $config = boost_get_config();
 
+    header('X-Content-Type-Options: nosniff');
+
     // Developer mode — send no-cache headers
     if (boost_is_bypassed() || !$config['browser_cache']) {
         header('Cache-Control: no-cache, no-store, must-revalidate');
