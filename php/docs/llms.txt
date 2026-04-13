@@ -1248,10 +1248,85 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 - Template filter: `data-outpost="field" data-type="focal"` outputs `X% Y%` for CSS
 - Use with `object-position` or `background-position`:
 ```html
-<img src="<img data-outpost="hero_image" data-type="image">" style="object-fit: cover; object-position: data-outpost="hero_image" data-type="focal";">
+<img data-outpost="hero_image" data-type="image" src="placeholder.jpg"
+     style="object-fit: cover; object-position: 50% 50%;">
+<!-- The focal point value is available via a separate field output: -->
+<span data-outpost="hero_image" data-type="focal" hidden></span>
 ```
 - Works on collection items: `<span data-outpost="featured_image" data-type="focal"></span>`
 - Returns `50% 50%` if no custom focal point set
+
+### Retrieving image URLs
+
+All uploaded files are publicly accessible at `/outpost/content/uploads/{filename}`. The media manager stores the filename in the database; templates and API responses output the full relative path.
+
+**In templates (v2 data-attribute syntax):**
+```html
+<!-- Basic image field — outputs the stored URL as the src attribute -->
+<img data-outpost="hero_image" data-type="image" src="placeholder.jpg" alt="Hero">
+
+<!-- Image with conditional (only render if field has a value) -->
+<outpost-if field="profile_photo" exists>
+  <img data-outpost="profile_photo" data-type="image" src="" alt="Profile">
+</outpost-if>
+
+<!-- Global image (shared across all pages) -->
+<img data-outpost="site_logo" data-scope="global" data-type="image" src="logo.png" alt="Logo">
+
+<!-- Collection item image inside a loop -->
+<outpost-each collection="team">
+  <div class="card">
+    <img data-outpost="photo" data-type="image" src="default-avatar.jpg" alt="">
+    <h3 data-outpost="name">Name</h3>
+  </div>
+</outpost-each>
+```
+
+**In PHP (standalone scripts or custom endpoints):**
+```php
+<?php
+require_once __DIR__ . '/outpost/config.php';
+require_once __DIR__ . '/outpost/db.php';
+
+// Get a specific media item by filename
+$media = OutpostDB::fetchOne("SELECT * FROM media WHERE filename = ?", ['my-image.webp']);
+$publicUrl = '/outpost/content/uploads/' . $media['filename'];
+// Result: /outpost/content/uploads/my-image.webp
+
+// Get image from a page field
+require_once __DIR__ . '/outpost/engine.php';
+outpost_init();
+$imageUrl = outpost_resolve_field('hero_image', 'image', '');
+// Result: /outpost/content/uploads/1234567890_hero.webp
+
+// Get image from a collection item's data JSON
+$item = OutpostDB::fetchOne(
+    "SELECT data FROM collection_items WHERE collection_id = ? AND slug = ?",
+    [1, 'my-post']
+);
+$data = json_decode($item['data'], true);
+$imageUrl = $data['featured_image'] ?? '';
+// Result: /outpost/content/uploads/1234567890_featured.webp
+```
+
+**In the Content API (headless/JavaScript):**
+```javascript
+// Fetch a collection item and construct full image URL
+const res = await fetch('/outpost/content-api.php?collection=team&slug=jane-doe');
+const { item } = await res.json();
+const imageUrl = item.photo; // "/outpost/content/uploads/1234567890_jane.webp"
+
+// Use in an <img> tag
+document.querySelector('.avatar').src = imageUrl;
+```
+
+**Key facts:**
+- Upload directory: `outpost/content/uploads/` (publicly accessible)
+- Thumbnails: `outpost/content/uploads/thumb_{filename}` (400×300px max)
+- Images wider than 2400px are auto-scaled down
+- JPEG/PNG auto-converted to WebP (configurable)
+- The `data-type="image"` attribute tells the template engine to set the element's `src` attribute to the stored URL
+- The Content API returns image field values as relative paths (e.g., `/outpost/content/uploads/filename.webp`)
 
 **Media folders:**
 - Organize files into folders (up to 3 levels of nesting)
@@ -2938,9 +3013,96 @@ Cache bypass: `?nocache=1` in URL (development only).
 **SQLite tuning** (optional, in a custom bootstrap):
 ```php
 $db = OutpostDB::connect();
-$db->exec("PRAGMA cache_size = -20000");    // 20 MB page cache
+$db->exec("PRAGMA cache_size = -20000");    // 20 MB page cache (default: ~2 MB)
 $db->exec("PRAGMA mmap_size = 268435456");  // 256 MB memory-mapped I/O
 ```
+
+**Database optimization API:**
+```bash
+# Optimize SQLite database (VACUUM + ANALYZE + integrity check)
+curl -X POST "https://example.com/outpost/api.php?action=boost/optimize-db" \
+  -H "Authorization: Bearer op_your_api_key"
+```
+This runs `VACUUM` (reclaims space, defragments), `ANALYZE` (updates query planner statistics), and `integrity_check`. Run monthly or after large content imports/deletions.
+
+### Complete high-traffic optimization strategy
+
+For sites expecting 10,000+ daily visitors or heavy API consumption:
+
+**Layer 1 — Boost page cache (built-in, enabled by default):**
+- Fully rendered HTML pages served as static files — zero PHP/SQLite execution
+- TTL: 1 hour default (configurable via `OUTPOST_CACHE_TTL`)
+- Auto-invalidated on content save
+- Admin users bypass cache automatically
+- API: `POST api.php?action=boost/clear-cache` to manually purge
+
+**Layer 2 — CDN / reverse proxy (recommended for high traffic):**
+- Place Cloudflare, Fastly, or Nginx in front of the site
+- Static assets (`/assets/`, `/outpost/content/uploads/`) get long cache headers
+- HTML pages respect `Cache-Control` headers from Boost
+- Configure CDN to cache `/outpost/content-api.php` responses with short TTL (60s)
+
+**Layer 3 — Query optimization (template design):**
+```html
+<!-- BAD: Multiple loops querying same collection -->
+<outpost-each collection="post" limit="3"><!-- featured --></outpost-each>
+<outpost-each collection="post" limit="10"><!-- all posts --></outpost-each>
+
+<!-- GOOD: Single loop with limit -->
+<outpost-each collection="post" limit="10" orderby="published_at">
+  <!-- Use CSS/JS to feature first 3 -->
+</outpost-each>
+```
+- Each `<outpost-each>` runs a SQL query — minimize loop count per page
+- Use `limit:N` to cap results (default returns ALL published items)
+- Use `paginate:N` for large collections — renders N items per page with pagination controls
+- Use `filteredby:folder_slug` to narrow results instead of loading everything
+
+**Layer 4 — Content API pagination (for headless consumers):**
+```bash
+# Paginated API requests
+curl "https://example.com/outpost/content-api.php?collection=products&limit=20&offset=0"
+curl "https://example.com/outpost/content-api.php?collection=products&limit=20&offset=20"
+```
+- Always set `limit` on API requests — unbounded queries on large collections are slow
+- Use `offset` for pagination
+- Response includes `total` count for building pagination UI
+
+**Layer 5 — SQLite connection tuning:**
+```php
+// In a custom bootstrap or outpost/config.php
+// These are already set by default — only change if benchmarking shows improvement
+$db = OutpostDB::connect();
+$db->exec("PRAGMA journal_mode=WAL");       // Already default — concurrent reads
+$db->exec("PRAGMA busy_timeout=5000");      // Already default — 5s wait on lock
+$db->exec("PRAGMA cache_size = -20000");    // Optional: increase to 20 MB
+$db->exec("PRAGMA mmap_size = 268435456");  // Optional: 256 MB memory-mapped I/O
+$db->exec("PRAGMA synchronous = NORMAL");   // Optional: faster writes (slight durability tradeoff)
+```
+
+**Layer 6 — Template pre-warming:**
+```bash
+# After deploy, warm all page templates so first visitors don't wait for compilation
+curl -s https://example.com/ > /dev/null
+curl -s https://example.com/about > /dev/null
+curl -s https://example.com/services > /dev/null
+curl -s https://example.com/blog > /dev/null
+# Or use Boost's built-in preloader via admin panel
+```
+
+**Layer 7 — Monitoring:**
+- Boost logs cache hit/miss rates in `outpost/cache/boost_hits.log`
+- Shield logs request patterns in `shield_traffic` table
+- Built-in analytics tracks pageviews, referrers, top pages (zero external dependencies)
+- `GET api.php?action=boost/stats` returns cache hit rate, total pages cached, cache size
+
+**What Outpost handles automatically (no configuration needed):**
+- WAL mode for concurrent reads
+- Prepared statements (PDO) prevent SQL injection and allow query plan reuse
+- Template compilation caching (only recompiles when source file changes)
+- HTML page cache with auto-invalidation on content changes
+- WebP auto-conversion (25-50% smaller images)
+- Minification and compression via Boost (optional)
 
 ## Architecture — Design Philosophy
 
