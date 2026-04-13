@@ -313,7 +313,7 @@ $all_pass = !in_array(false, array_column($checks, 'pass'));
                 <input type="hidden" name="step" value="install">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required minlength="3"
-                       value="<?= htmlspecialchars($_POST['username'] ?? 'admin') ?>">
+                       value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" placeholder="Choose a username">
 
                 <label for="email">Email (optional)</label>
                 <input type="email" id="email" name="email"
