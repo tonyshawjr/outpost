@@ -1933,6 +1933,11 @@ function outpost_migrate_v5(): void {
     // 4. Write .htaccess at site root if not present
     outpost_v5_write_htaccess();
 
+    // 4b. Deploy v5 front-controller (index.php) to site root
+    // The updater only replaces files inside outpost/ — the site-root index.php
+    // must be updated separately to use the v5 theme-less routing.
+    outpost_v5_write_front_controller();
+
     // 5. Set migration flag
     $db->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v5_migrated', '1')");
 

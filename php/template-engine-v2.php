@@ -226,7 +226,7 @@ class OutpostTemplateV2 {
             '/<outpost-form\s+slug="([^"]+)"\s*\/?\s*(?:><\/outpost-form>)?/i',
             function ($m) {
                 $slug = $m[1];
-                return "<?php require_once __DIR__ . '/forms-engine.php'; cms_form('" . addslashes($slug) . "'); ?>";
+                return "<?php require_once OUTPOST_DIR . 'forms-engine.php'; cms_form('" . addslashes($slug) . "'); ?>";
             },
             $html
         );
@@ -1325,7 +1325,7 @@ class OutpostTemplateV2 {
             function ($m) use ($editorMode) {
                 $inner = $m[1];
                 $php = '<?php ';
-                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "members.php"; ';
                 $php .= 'if (OutpostMember::check()) { ';
                 $php .= '$_lodge_member = OutpostMember::currentMember(); ';
                 $php .= '$_lodge_full = OutpostDB::fetchOne("SELECT id, username, email, display_name, avatar, bio, tier FROM users WHERE id = ?", [$_lodge_member["id"]]); ';
@@ -1353,7 +1353,7 @@ class OutpostTemplateV2 {
                 $compiledInner = self::compileItemFields($inner, $editorMode);
 
                 $php = '<?php ';
-                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "members.php"; ';
                 $php .= 'if (OutpostMember::check()) { ';
                 $php .= '$_lodge_member = OutpostMember::currentMember(); ';
                 $php .= '$_lodge_col = OutpostDB::fetchOne("SELECT * FROM collections WHERE slug = ? AND lodge_enabled = 1", [' . $slugPhp . ']); ';
@@ -1392,8 +1392,8 @@ class OutpostTemplateV2 {
                 $action = $attrs['action'] ?? '/outpost/member-api.php';
 
                 $php = '<?php ';
-                $php .= 'require_once __DIR__ . "/../members.php"; ';
-                $php .= 'require_once __DIR__ . "/../lodge.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "members.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "lodge.php"; ';
                 $php .= 'if (OutpostMember::check()) { ';
                 $php .= '$_lf_col = OutpostDB::fetchOne("SELECT * FROM collections WHERE slug = ? AND lodge_enabled = 1", [' . $slugPhp . ']); ';
                 $php .= 'if ($_lf_col) { ';
