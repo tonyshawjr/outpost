@@ -64,6 +64,19 @@
       </svg>
     </button>
 
+    <a
+      class="ope-iconrail-btn ope-admin-link"
+      href="/outpost/admin/"
+      title="Back to Admin"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      </svg>
+    </a>
+
     <div class="ope-iconrail-avatar" title={userName || 'User'}>
       {#if userAvatar}
         <img src={userAvatar} alt="" />
@@ -148,6 +161,11 @@
   @keyframes ope-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
+  }
+
+  .ope-admin-link {
+    text-decoration: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
   }
 
   .ope-iconrail-avatar {
