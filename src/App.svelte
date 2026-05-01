@@ -40,6 +40,8 @@
   import CodeEditor from '$pages/CodeEditor.svelte';
   import TemplateReference from '$pages/TemplateReference.svelte';
   import Brand from '$pages/Brand.svelte';
+  import Design from '$pages/Design.svelte';
+  import PageBuilder from '$pages/PageBuilder.svelte';
 
   import Globals from '$pages/Globals.svelte';
   import Navigation from '$pages/Navigation.svelte';
@@ -243,6 +245,14 @@
           {:else}
             <AccessDenied />
           {/if}
+        {:else if route === 'design'}
+          {#if hasSettingsAccess}
+            <Design />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'page-builder'}
+          <PageBuilder />
         {:else if route === 'backups'}
           {#if hasSettingsAccess}
             <Backups />

@@ -110,6 +110,13 @@ export const pages = {
     request('pages', { method: 'DELETE', params: { id } }),
 };
 
+// Page Blocks (v6 block-based page editor)
+export const pageBlocks = {
+  get: (id) => request('pages/blocks', { params: { id } }),
+  save: (id, blocks) => request('pages/blocks', { method: 'PUT', params: { id }, body: { blocks } }),
+  render: (id) => request('pages/blocks/render', { params: { id } }),
+};
+
 // Fields
 export const fields = {
   list: (pageId) =>
@@ -359,6 +366,21 @@ export const brand = {
     request('brand'),
   save: (values) =>
     request('brand', { method: 'PUT', body: values }),
+};
+
+// Brand/Theme settings (used by Design page — live preview Brand/Theme tabs)
+// TODO(v6): backend may need a richer payload returning { blueprint, saved }.
+// For now this aliases to /brand which Design.svelte expects to return that shape.
+export const brandSettings = {
+  get: () => request('brand'),
+  save: (data) => request('brand', { method: 'PUT', body: data }),
+};
+
+// Blocks (v6 block library — used by PageBuilder)
+export const blocks = {
+  list: () => request('blocks'),
+  get: (slug) => request('blocks/get', { params: { slug } }),
+  create: (name) => request('blocks/create', { method: 'POST', body: { name } }),
 };
 
 export const fonts = {

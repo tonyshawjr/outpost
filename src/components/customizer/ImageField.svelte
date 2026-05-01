@@ -1,123 +1,119 @@
 <script>
-  import MediaPicker from '$components/MediaPicker.svelte';
+  let { key = '', label = '', value = '', onchange = () => {} } = $props();
 
-  let { key, label, value = '', onchange = () => {} } = $props();
+  let dragOver = $state(false);
 
-  let showPicker = $state(false);
-
-  function handleSelect(media) {
-    onchange(key, media.path);
-    showPicker = false;
+  function openMediaPicker() {
+    // Use native file picker as simple fallback
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        // Create object URL for preview; actual upload handled by parent
+        const url = URL.createObjectURL(file);
+        onchange(key, url);
+      }
+    };
+    input.click();
   }
 
-  function handleClear() {
+  function clearImage() {
     onchange(key, '');
+  }
+
+  function handlePaste(text) {
+    if (text && (text.startsWith('/') || text.startsWith('http'))) {
+      onchange(key, text.trim());
+    }
   }
 </script>
 
 <div class="image-field">
-  <div class="image-field-label">{label}</div>
-  <div class="image-field-controls">
-    {#if value}
-      <div class="image-preview">
-        <img src={value} alt={label} />
-        <div class="image-actions">
-          <button class="btn btn-secondary btn-sm" onclick={() => { showPicker = true; }}>Change</button>
-          <button class="image-remove" onclick={handleClear}>Remove</button>
-        </div>
+  <label class="image-label">{label}</label>
+  {#if value}
+    <div class="image-preview-wrap">
+      <img src={value} alt={label} class="image-preview" />
+      <div class="image-actions">
+        <button class="btn btn-ghost btn-sm" type="button" onclick={openMediaPicker}>Change</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick={clearImage} style="color: var(--danger, #dc3545);">Remove</button>
       </div>
-    {:else}
-      <button class="image-choose" onclick={() => { showPicker = true; }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <span>Choose {label.toLowerCase()}</span>
-      </button>
-    {/if}
-  </div>
+    </div>
+  {:else}
+    <button
+      class="image-upload-btn"
+      type="button"
+      onclick={openMediaPicker}
+      class:drag-over={dragOver}
+      ondragover={(e) => { e.preventDefault(); dragOver = true; }}
+      ondragleave={() => { dragOver = false; }}
+      ondrop={(e) => {
+        e.preventDefault();
+        dragOver = false;
+        const text = e.dataTransfer?.getData('text/plain');
+        if (text) handlePaste(text);
+      }}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>Upload or drag image</span>
+    </button>
+  {/if}
 </div>
 
-{#if showPicker}
-  <MediaPicker
-    onselect={handleSelect}
-    onclose={() => { showPicker = false; }}
-  />
-{/if}
-
 <style>
-  .image-field {
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .image-field:last-child {
-    border-bottom: none;
-  }
-
-  .image-field-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-primary);
+  .image-field { margin-bottom: var(--space-lg, 16px); }
+  .image-label {
+    display: block;
+    font-size: 12px;
     font-weight: 500;
-    margin-bottom: 8px;
+    color: var(--sec);
+    margin-bottom: var(--space-xs, 4px);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
-
-  .image-preview {
+  .image-preview-wrap {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    padding: 12px;
+    background: var(--bg-secondary, #f5f5f5);
+    border-radius: var(--radius-sm, 6px);
+    border: 1px solid var(--border-primary, #e5e5e5);
   }
-
-  .image-preview img {
-    width: 64px;
-    height: 64px;
+  .image-preview {
+    max-width: 100%;
+    max-height: 120px;
     object-fit: contain;
-    border-radius: var(--radius-md);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    border-radius: 4px;
   }
-
   .image-actions {
     display: flex;
-    align-items: center;
     gap: 8px;
   }
-
-  .image-remove {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
-    transition: color 0.15s;
-  }
-
-  .image-remove:hover {
-    color: var(--color-danger);
-  }
-
-  .image-choose {
+  .image-upload-btn {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 12px 16px;
-    background: var(--bg-secondary);
-    border: 1px dashed var(--border-color);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
     width: 100%;
-    transition: border-color 0.15s, color 0.15s;
+    padding: 24px;
+    background: var(--bg-secondary, #f5f5f5);
+    border: 2px dashed var(--border-primary, #ddd);
+    border-radius: var(--radius-sm, 6px);
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 13px;
+    transition: border-color 0.15s, background 0.15s;
   }
-
-  .image-choose:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .image-choose svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
+  .image-upload-btn:hover, .image-upload-btn.drag-over {
+    border-color: var(--accent, #1a73e8);
+    background: var(--accent-bg, #f0f6ff);
   }
 </style>

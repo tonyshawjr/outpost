@@ -1,168 +1,172 @@
 <script>
-  import { onMount } from 'svelte';
-  import { fontsByCategory, googleFontsPreviewUrl } from '$lib/google-fonts.js';
-  import { fonts as fontsApi } from '$lib/api.js';
+  let { key = '', label = '', value = '', defaultValue = '', onchange = () => {} } = $props();
 
-  let { key, label, value = '', defaultValue = 'Inter', onchange = () => {} } = $props();
+  let searchQuery = $state('');
+  let showDropdown = $state(false);
+  let loading = $state(false);
+  let fonts = $state([]);
 
-  let selectedFont = $state('');
-  let groups = $state(fontsByCategory());
-  let fontsLoaded = $state(false);
-  let previewLink = null;
+  const systemFonts = [
+    'System Default',
+    'Inter',
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Montserrat',
+    'Poppins',
+    'Raleway',
+    'Nunito',
+    'Playfair Display',
+    'Merriweather',
+    'Source Sans Pro',
+    'PT Sans',
+    'Oswald',
+    'DM Sans',
+    'Space Grotesk',
+    'Libre Baskerville',
+    'Crimson Text',
+    'Work Sans',
+    'Rubik',
+    'Fira Sans',
+    'IBM Plex Sans',
+    'IBM Plex Serif',
+    'JetBrains Mono',
+    'Outfit',
+    'Sora',
+    'Manrope',
+    'Plus Jakarta Sans',
+    'Geist',
+  ];
 
-  $effect(() => {
-    selectedFont = value || defaultValue;
-  });
+  let filtered = $derived(
+    searchQuery
+      ? systemFonts.filter(f => f.toLowerCase().includes(searchQuery.toLowerCase()))
+      : systemFonts
+  );
 
-  function loadPreviewFonts() {
-    if (previewLink) previewLink.remove();
-    const allFonts = Object.values(groups).flat();
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    const families = allFonts
-      .map(f => f.name.replace(/ /g, '+') + ':wght@400;700')
-      .join('&family=');
-    link.href = `https://fonts.googleapis.com/css2?family=${families}&display=swap&text=AaBbCc`;
-    link.onload = () => { fontsLoaded = true; };
-    document.head.appendChild(link);
-    previewLink = link;
+  function selectFont(font) {
+    onchange(key, font);
+    showDropdown = false;
+    searchQuery = '';
   }
 
-  onMount(() => {
-    // Load custom fonts from API, merge with curated list
-    fontsApi.list().then(data => {
-      if (data.fonts?.length) {
-        groups = fontsByCategory(data.fonts);
-      }
-      loadPreviewFonts();
-    }).catch(() => {
-      // Fallback to curated-only
-      loadPreviewFonts();
-    });
-
-    return () => { if (previewLink) previewLink.remove(); };
-  });
-
-  function handleChange(e) {
-    selectedFont = e.target.value;
-    onchange(key, e.target.value);
+  function clearFont() {
+    onchange(key, '');
   }
-
-  function resetToDefault() {
-    selectedFont = defaultValue;
-    onchange(key, defaultValue);
-  }
-
-  let isModified = $derived(value && value !== defaultValue);
 </script>
 
 <div class="font-field">
-  <div class="font-field-label">{label}</div>
-  <div class="font-field-controls">
-    <div class="font-select-wrap">
-      <select class="font-select" value={selectedFont} onchange={handleChange} aria-label={label}>
-        <option value="System Default">System Default</option>
-        {#each Object.entries(groups) as [category, fonts]}
-          <optgroup label={category}>
-            {#each fonts as font}
-              <option value={font.name} style="font-family: '{font.name}', sans-serif">{font.name}</option>
-            {/each}
-          </optgroup>
-        {/each}
-      </select>
-    </div>
-    {#if isModified}
-      <button class="font-reset" onclick={resetToDefault} title="Reset to default" aria-label="Reset {label} to default">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5.1L1 10"/></svg>
+  <label class="font-label">{label}</label>
+  <div class="font-input-wrap">
+    <button
+      class="font-input"
+      type="button"
+      onclick={() => { showDropdown = !showDropdown; }}
+    >
+      <span class="font-input-value" style={value && value !== 'System Default' ? `font-family: '${value}', sans-serif` : ''}>
+        {value || defaultValue || 'Select font...'}
+      </span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    {#if value}
+      <button class="font-clear" type="button" onclick={clearFont} title="Reset to default">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     {/if}
   </div>
-  <div class="font-preview" style="font-family: '{selectedFont}', sans-serif">
-    The quick brown fox jumps over the lazy dog
-  </div>
+  {#if showDropdown}
+    <div class="font-dropdown">
+      <input
+        class="font-search"
+        type="text"
+        placeholder="Search fonts..."
+        bind:value={searchQuery}
+      />
+      <div class="font-list">
+        {#each filtered as font}
+          <button
+            class="font-option"
+            class:active={value === font}
+            type="button"
+            onclick={() => selectFont(font)}
+            style={font !== 'System Default' ? `font-family: '${font}', sans-serif` : ''}
+          >
+            {font}
+          </button>
+        {/each}
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
-  .font-field {
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .font-field:last-child {
-    border-bottom: none;
-  }
-
-  .font-field-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-primary);
+  .font-field { position: relative; margin-bottom: var(--space-lg, 16px); }
+  .font-label {
+    display: block;
+    font-size: 12px;
     font-weight: 500;
-    margin-bottom: 8px;
+    color: var(--sec);
+    margin-bottom: var(--space-xs, 4px);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
-
-  .font-field-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .font-select-wrap {
+  .font-input-wrap { display: flex; align-items: center; gap: 4px; }
+  .font-input {
     flex: 1;
-  }
-
-  .font-select {
-    width: 100%;
-    font-size: 13px;
-    padding: 7px 10px;
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: border-color 0.15s;
-    appearance: auto;
-  }
-
-  .font-select:hover {
-    border-color: var(--border-color);
-  }
-
-  .font-select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  .font-preview {
-    margin-top: 8px;
-    font-size: 15px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    padding: 8px 10px;
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-  }
-
-  .font-reset {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-secondary, #f5f5f5);
+    border: 1px solid var(--border-primary, #e5e5e5);
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text);
+    text-align: left;
+  }
+  .font-input:hover { border-color: var(--border-hover, #ccc); }
+  .font-input-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .font-clear {
+    background: none; border: none; color: var(--dim); cursor: pointer;
+    padding: 4px; border-radius: 4px;
+  }
+  .font-clear:hover { color: var(--text); }
+  .font-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--bg-primary, #fff);
+    border: 1px solid var(--border-primary, #e5e5e5);
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    margin-top: 4px;
+  }
+  .font-search {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 1px solid var(--border-primary, #e5e5e5);
+    font-size: 13px;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+  }
+  .font-list { max-height: 240px; overflow-y: auto; padding: 4px; }
+  .font-option {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
     background: none;
     border: none;
-    border-radius: var(--radius-sm);
-    color: var(--text-tertiary);
+    text-align: left;
+    font-size: 14px;
+    color: var(--text);
     cursor: pointer;
-    transition: color 0.15s;
-    flex-shrink: 0;
+    border-radius: 4px;
   }
-
-  .font-reset:hover {
-    color: var(--accent);
-  }
-
-  .font-reset svg {
-    width: 14px;
-    height: 14px;
-  }
+  .font-option:hover { background: var(--bg-hover, #f0f0f0); }
+  .font-option.active { background: var(--accent-bg, #e8f0fe); color: var(--accent, #1a73e8); font-weight: 500; }
 </style>
