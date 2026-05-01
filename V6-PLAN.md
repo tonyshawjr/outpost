@@ -392,6 +392,33 @@ The scheduler is the marquee differentiator. Spec:
 
 ---
 
+## ⚠️ Critical architectural discovery (2026-05-01)
+
+While implementing Track 3 composition tools, discovered that Outpost's data model does **not** match Sites' page-builder model:
+
+- **Outpost pages are template-driven.** A `page` row has `id`, `path`, `title`, `meta_*`. The actual content lives in `.html` template files in the active theme. Per-page editable values live in the `fields` table keyed by `page_id` + `field_name` (the `data-outpost` attribute name).
+- **There is no `page_blocks` table or block-instances-per-page concept.** Sites/Shopify-style "page = ordered list of block instances" is a different paradigm.
+- **Channels in Outpost are external data feeds (REST/RSS/CSV)**, not custom post types in the WordPress sense. They have a `field_map` for incoming data shape, not a schema for editor-authored fields.
+
+**What this means for v6:**
+
+1. **Sites' PageBuilder.svelte cannot be ported into Outpost as-is.** It assumes a block-instances-per-page data model that doesn't exist. Porting it without the data model would produce a non-functional UI.
+
+2. **Two paths forward:**
+   - **(a) Keep Outpost's template-driven model.** Pages are HTML templates with `data-outpost` markers. The "page builder" UX becomes: pick a template, fill in the marked fields. This is what Outpost already does — Tony can already edit pages and see changes today.
+   - **(b) Add a page-blocks data model to Outpost.** New table, new engine logic to render block-instances within templates, migration for existing pages. Substantial scope.
+
+3. **The Sites starter theme that landed in commit `0b72ee8` has 18 blocks, but they are theme-defined HTML chunks, not yet block *instances on pages*.** They're available to Forge for wrapping, and to MCP via `list_blocks`, but there's no UI yet that says "drop block X onto page Y."
+
+4. **Recommended v6 sequencing:**
+   - Honor Outpost's template-driven model for the v6 ship. The "page builder" in v6 is the existing template-fields admin, dressed in Sites' design language.
+   - Defer the Sites-style page-blocks data model to v6.x or v7. It's a real product capability but a large engineering scope.
+   - The Sites starter theme's block files become source material for Forge-wrapping templates and for future block-composition work.
+
+This contradicts earlier sections of this plan that assumed `compose_page` would be a near-term v6 deliverable. Updating: `compose_page`, `add_block_to_page`, `set_block_field` are stubs in the MCP server that return explicit errors with TODO(v6) tags. Reconsider at v6.5.
+
+---
+
 ## Open questions (deferred until they block work)
 
 1. **Boost admin feature list** — need to read `php/boost.php` to inventory before redesigning.

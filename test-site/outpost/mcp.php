@@ -22,6 +22,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/sanitizer.php';
 require_once __DIR__ . '/roles.php';
+require_once __DIR__ . '/blocks.php';
 
 // ── Constants ────────────────────────────────────────────
 define('MCP_PROTOCOL_VERSION', '2025-03-26');
@@ -84,6 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 function mcp_response(mixed $id, array $result): never {
     ob_end_clean();
     header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store');
     echo json_encode([
         'jsonrpc' => '2.0',
         'id' => $id,
@@ -95,6 +98,8 @@ function mcp_response(mixed $id, array $result): never {
 function mcp_error(mixed $id, int $code, string $message, mixed $data = null): never {
     ob_end_clean();
     header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store');
     $err = ['code' => $code, 'message' => $message];
     if ($data !== null) $err['data'] = $data;
     echo json_encode([
@@ -296,6 +301,14 @@ function handle_mcp_tools_call(mixed $id, array $params): never {
         'list_media'       => 'mcp_tool_list_media',
         'search_content'   => 'mcp_tool_search_content',
         'get_schema'       => 'mcp_tool_get_schema',
+        'list_blocks'      => 'mcp_tool_list_blocks',
+        'get_block_schema' => 'mcp_tool_get_block_schema',
+        'list_channels'    => 'mcp_tool_list_channels',
+        'get_channel_schema' => 'mcp_tool_get_channel_schema',
+        'list_templates'   => 'mcp_tool_list_templates',
+        'compose_page'     => 'mcp_tool_compose_page',
+        'add_block_to_page' => 'mcp_tool_add_block_to_page',
+        'set_block_field'  => 'mcp_tool_set_block_field',
     ];
 
     if (!isset($tools[$toolName])) {
@@ -303,7 +316,7 @@ function handle_mcp_tools_call(mixed $id, array $params): never {
     }
 
     // Rate-limit mutation tools (create, update, delete)
-    $mutationTools = ['create_item', 'update_item', 'delete_item', 'update_page_fields', 'update_globals'];
+    $mutationTools = ['create_item', 'update_item', 'delete_item', 'update_page_fields', 'update_globals', 'compose_page', 'add_block_to_page', 'set_block_field'];
     if (in_array($toolName, $mutationTools, true)) {
         OutpostAuth::checkApiRateLimit();
     }
@@ -482,6 +495,108 @@ function mcp_get_tool_definitions(): array {
                     'limit' => ['type' => 'integer', 'default' => 20],
                 ],
                 'required' => ['query'],
+            ],
+        ],
+        [
+            'name' => 'list_blocks',
+            'description' => 'List all blocks available in the active theme. Each block includes slug, name, description, category, icon, and field schema. Use this before composing pages so you know what blocks exist and what fields each one accepts.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => new \stdClass(),
+                'required' => [],
+            ],
+        ],
+        [
+            'name' => 'get_block_schema',
+            'description' => 'Get the full schema for a single block by slug, including all field definitions and the raw HTML/CSS file paths.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'slug' => ['type' => 'string', 'description' => 'Block slug (e.g. "hero", "faq-accordion")'],
+                ],
+                'required' => ['slug'],
+            ],
+        ],
+        [
+            'name' => 'list_channels',
+            'description' => 'List all channels (external data sources — REST API, RSS, CSV — that flow content into the site). Returns slug, name, type, status, url_pattern, and the field map describing each channel\'s data shape.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => new \stdClass(),
+                'required' => [],
+            ],
+        ],
+        [
+            'name' => 'get_channel_schema',
+            'description' => 'Get the full schema for a single channel by slug, including its field map (data shape), config metadata, sort settings, and url_pattern.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'slug' => ['type' => 'string', 'description' => 'Channel slug (e.g. "github-issues", "rss-feed")'],
+                ],
+                'required' => ['slug'],
+            ],
+        ],
+        [
+            'name' => 'list_templates',
+            'description' => 'List the page templates available in the active theme. Prefers a "templates" array declared in theme.json (or blueprint.json), and falls back to scanning *.html files in the theme\'s templates/ directory or the theme root. Used by the page composer to pick a template for a new page.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => new \stdClass(),
+                'required' => [],
+            ],
+        ],
+        [
+            'name' => 'compose_page',
+            'description' => 'Create a new page with a sequence of blocks pre-populated. Inputs: title, optional slug, optional template, blocks array. NOTE: Outpost\'s current page model stores per-page editable values in the fields table keyed by data-outpost field names — there is no DB-backed list of block instances on a page. Page composition therefore requires a page-builder data model that has not yet been built. This tool returns an explicit error until that model lands.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'title' => ['type' => 'string', 'description' => 'Page title'],
+                    'slug' => ['type' => 'string', 'description' => 'Optional URL slug; derived from title if omitted'],
+                    'template' => ['type' => 'string', 'description' => 'Optional template slug (e.g. "page", "landing")'],
+                    'blocks' => [
+                        'type' => 'array',
+                        'description' => 'Ordered list of blocks to insert',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'slug' => ['type' => 'string'],
+                                'fields' => ['type' => 'object'],
+                            ],
+                            'required' => ['slug'],
+                        ],
+                    ],
+                ],
+                'required' => ['title', 'blocks'],
+            ],
+        ],
+        [
+            'name' => 'add_block_to_page',
+            'description' => 'Insert a block instance into an existing page at an optional position. NOTE: Outpost does not yet store per-page block instances in the database — pages are filesystem HTML templates and the fields table only holds individual data-outpost values. This tool returns an explicit error until the page-builder data model is added.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'page_id' => ['type' => 'integer', 'description' => 'Target page ID'],
+                    'block_slug' => ['type' => 'string', 'description' => 'Block slug to insert'],
+                    'position' => ['type' => 'integer', 'description' => 'Optional 0-based insertion index; appends if omitted'],
+                    'fields' => ['type' => 'object', 'description' => 'Initial field values for the block'],
+                ],
+                'required' => ['page_id', 'block_slug'],
+            ],
+        ],
+        [
+            'name' => 'set_block_field',
+            'description' => 'Update a single field value on a single block instance attached to a page. NOTE: Blocked on the same missing data model as compose_page and add_block_to_page — pages do not store block instances in the database yet. Block-level *theme settings* (CSS variables) can already be set via update_page_fields using the `setting_{block}_{name}` field-name convention.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'page_id' => ['type' => 'integer'],
+                    'block_id' => ['type' => 'integer'],
+                    'field_key' => ['type' => 'string'],
+                    'value' => ['description' => 'New field value (string, number, boolean, or object)'],
+                ],
+                'required' => ['page_id', 'block_id', 'field_key', 'value'],
             ],
         ],
         [
@@ -1251,4 +1366,307 @@ function mcp_resource_collection(mixed $id, string $uri, string $slug): never {
             ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
         ]],
     ]);
+}
+
+// ── Block introspection (v6 Track 3) ─────────────────────
+
+function mcp_tool_list_blocks(mixed $id, array $args): never {
+    $blocks = outpost_scan_blocks();
+    $out = [];
+    foreach ($blocks as $b) {
+        $out[] = [
+            'slug'        => $b['slug'],
+            'name'        => $b['name'],
+            'description' => $b['description'],
+            'category'    => $b['category'],
+            'icon'        => $b['icon'],
+            'fields'      => $b['fields'],
+        ];
+    }
+    mcp_tool_result($id, [
+        'theme'  => outpost_get_active_theme(),
+        'count'  => count($out),
+        'blocks' => $out,
+    ]);
+}
+
+function mcp_tool_get_block_schema(mixed $id, array $args): never {
+    $slug = $args['slug'] ?? '';
+    if (!preg_match('/^[a-z0-9_-]+$/', $slug)) {
+        mcp_tool_result($id, 'Error: invalid slug. Use lowercase letters, digits, hyphens, underscores only.', true);
+    }
+    $block = outpost_get_block($slug);
+    if ($block === null) {
+        mcp_tool_result($id, "Error: block '{$slug}' not found in active theme.", true);
+    }
+    mcp_tool_result($id, [
+        'slug'        => $block['slug'],
+        'name'        => $block['name'],
+        'description' => $block['description'],
+        'category'    => $block['category'],
+        'icon'        => $block['icon'],
+        'fields'      => $block['fields'],
+        'has_css'     => $block['has_css'],
+    ]);
+}
+
+// ── Channels (v6 Track 3) ────────────────────────────────
+
+/**
+ * Shape one channels-table row into the public MCP envelope.
+ * Pulls the field_map JSON column out as the channel's "fields" schema.
+ * Pulls a description out of config JSON if present.
+ * Strips encrypted auth credentials so they never leak through MCP.
+ */
+function _mcp_shape_channel(array $row): array {
+    $config = json_decode($row['config'] ?? '{}', true);
+    if (!is_array($config)) $config = [];
+    // Never expose auth credentials (even encrypted) over MCP
+    if (isset($config['auth_config'])) unset($config['auth_config']);
+
+    $fieldMap = json_decode($row['field_map'] ?? '[]', true);
+    if (!is_array($fieldMap)) $fieldMap = [];
+
+    return [
+        'slug'           => $row['slug'],
+        'name'           => $row['name'],
+        'description'    => is_string($config['description'] ?? null) ? $config['description'] : '',
+        'type'           => $row['type'] ?? 'api',
+        'status'         => $row['status'] ?? 'active',
+        'url_pattern'    => $row['url_pattern'] ?? null,
+        'sort_field'     => $row['sort_field'] ?? null,
+        'sort_direction' => $row['sort_direction'] ?? 'desc',
+        'cache_ttl'      => isset($row['cache_ttl']) ? (int) $row['cache_ttl'] : null,
+        'max_items'      => isset($row['max_items']) ? (int) $row['max_items'] : null,
+        'last_sync_at'   => $row['last_sync_at'] ?? null,
+        'fields'         => $fieldMap,
+        'config'         => $config,
+    ];
+}
+
+function mcp_tool_list_channels(mixed $id, array $args): never {
+    try {
+        $rows = OutpostDB::fetchAll(
+            'SELECT * FROM channels WHERE status = ? ORDER BY name ASC',
+            ['active']
+        );
+    } catch (\Throwable $e) {
+        // Channels table may not exist yet (channels is a feature flag-able subsystem)
+        mcp_tool_result($id, ['count' => 0, 'channels' => []]);
+    }
+
+    $out = [];
+    foreach ($rows as $row) {
+        $out[] = _mcp_shape_channel($row);
+    }
+    mcp_tool_result($id, ['count' => count($out), 'channels' => $out]);
+}
+
+function mcp_tool_get_channel_schema(mixed $id, array $args): never {
+    $slug = $args['slug'] ?? '';
+    if (!preg_match('/^[a-z0-9_-]+$/', $slug)) {
+        mcp_tool_result($id, 'Error: invalid slug. Use lowercase letters, digits, hyphens, underscores only.', true);
+    }
+
+    try {
+        $row = OutpostDB::fetchOne('SELECT * FROM channels WHERE slug = ?', [$slug]);
+    } catch (\Throwable $e) {
+        mcp_tool_result($id, "Error: channels subsystem is not initialized.", true);
+    }
+
+    if (!$row) {
+        mcp_tool_result($id, "Error: channel '{$slug}' not found.", true);
+    }
+
+    mcp_tool_result($id, _mcp_shape_channel($row));
+}
+
+// ── Templates (v6 Track 3) ───────────────────────────────
+
+/**
+ * Return the templates available in the active theme.
+ * Order of preference for the source of truth:
+ *   1. theme.json (or blueprint.json) "templates" array.
+ *   2. files in {themeDir}/templates/*.html
+ *   3. files in {themeDir}/*.html (excluding partials/blocks/styles dirs)
+ */
+function mcp_tool_list_templates(mixed $id, array $args): never {
+    $theme = outpost_get_active_theme();
+    $themeDir = OUTPOST_THEMES_DIR . $theme . '/';
+
+    if (!is_dir($themeDir)) {
+        mcp_tool_result($id, [
+            'theme'     => $theme,
+            'source'    => 'none',
+            'count'     => 0,
+            'templates' => [],
+        ]);
+    }
+
+    // 1. Try theme.json or blueprint.json's templates[] array first
+    $manifestFiles = ['theme.json', 'blueprint.json'];
+    foreach ($manifestFiles as $manifestFile) {
+        $manifestPath = $themeDir . $manifestFile;
+        if (!file_exists($manifestPath)) continue;
+        $raw = file_get_contents($manifestPath);
+        if ($raw === false) continue;
+        $manifest = json_decode($raw, true);
+        if (!is_array($manifest)) continue;
+        if (!isset($manifest['templates']) || !is_array($manifest['templates'])) continue;
+
+        $out = [];
+        foreach ($manifest['templates'] as $t) {
+            if (!is_array($t)) continue;
+            $slug = is_string($t['slug'] ?? null) ? $t['slug'] : '';
+            if ($slug === '' || !preg_match('/^[a-z0-9_-]+$/', $slug)) continue;
+            $entry = [
+                'slug' => $slug,
+                'name' => is_string($t['name'] ?? null) ? $t['name'] : ucwords(str_replace(['-', '_'], ' ', $slug)),
+            ];
+            if (isset($t['description']) && is_string($t['description'])) {
+                $entry['description'] = $t['description'];
+            }
+            $out[] = $entry;
+        }
+        if (!empty($out)) {
+            mcp_tool_result($id, [
+                'theme'     => $theme,
+                'source'    => $manifestFile,
+                'count'     => count($out),
+                'templates' => $out,
+            ]);
+        }
+    }
+
+    // 2. Scan {theme}/templates/*.html
+    $templatesDir = $themeDir . 'templates/';
+    if (is_dir($templatesDir)) {
+        $files = glob($templatesDir . '*.html') ?: [];
+        $out = [];
+        foreach ($files as $file) {
+            $slug = pathinfo($file, PATHINFO_FILENAME);
+            if (!preg_match('/^[a-z0-9_-]+$/', $slug)) continue;
+            $out[] = [
+                'slug' => $slug,
+                'name' => ucwords(str_replace(['-', '_'], ' ', $slug)),
+            ];
+        }
+        if (!empty($out)) {
+            usort($out, fn($a, $b) => strcmp($a['slug'], $b['slug']));
+            mcp_tool_result($id, [
+                'theme'     => $theme,
+                'source'    => 'templates-dir',
+                'count'     => count($out),
+                'templates' => $out,
+            ]);
+        }
+    }
+
+    // 3. Fallback: scan theme root for .html files (legacy flat layout)
+    $files = glob($themeDir . '*.html') ?: [];
+    $out = [];
+    foreach ($files as $file) {
+        $slug = pathinfo($file, PATHINFO_FILENAME);
+        if (!preg_match('/^[a-z0-9_-]+$/', $slug)) continue;
+        $out[] = [
+            'slug' => $slug,
+            'name' => ucwords(str_replace(['-', '_'], ' ', $slug)),
+        ];
+    }
+    usort($out, fn($a, $b) => strcmp($a['slug'], $b['slug']));
+
+    mcp_tool_result($id, [
+        'theme'     => $theme,
+        'source'    => 'theme-root',
+        'count'     => count($out),
+        'templates' => $out,
+    ]);
+}
+
+// ── Page composition (v6 Track 3 — blocked on data model) ─
+
+/**
+ * Shared error returned by compose_page, add_block_to_page, set_block_field.
+ *
+ * Outpost's current page model:
+ *   - `pages` table: id, path, title, meta_*, timestamps. No blocks column.
+ *   - `fields` table: per-page key/value field content keyed by `page_id` +
+ *     `field_name` (the data-outpost attribute on the rendered template).
+ *   - Pages render from filesystem .html template files in the active theme,
+ *     not from a DB-backed list of block instances.
+ *
+ * The block-as-page-composition model (Sites/Shopify-style ordered block
+ * instances per page) has not been added yet. Until a `page_blocks` (or
+ * equivalent) table lands and the engine is taught to render from it, these
+ * three tools return this explicit error rather than guess at a schema.
+ *
+ * Workaround for now: callers can already (a) edit a template file directly,
+ * or (b) use update_page_fields to set per-page field values, or (c) write
+ * block-level theme settings via the `setting_{block}_{name}` field_name
+ * convention used by handle_editor_block_settings_save in smart-forge.php.
+ */
+function _mcp_page_blocks_unimplemented_error(): string {
+    return 'Error: page-as-blocks composition is not yet supported. Outpost stores per-page values in the fields table keyed by data-outpost field names, not as an ordered list of block instances. A page_blocks data model is required before compose_page / add_block_to_page / set_block_field can be implemented. Use update_page_fields for per-field edits in the meantime.';
+}
+
+function mcp_tool_compose_page(mixed $id, array $args): never {
+    // Validate inputs first so the client gets useful feedback even though
+    // the operation can't complete yet.
+    $title = is_string($args['title'] ?? null) ? trim($args['title']) : '';
+    $blocks = $args['blocks'] ?? null;
+
+    if ($title === '') {
+        mcp_tool_result($id, 'Error: title is required', true);
+    }
+    if (!is_array($blocks)) {
+        mcp_tool_result($id, 'Error: blocks must be an array', true);
+    }
+    if (isset($args['slug']) && is_string($args['slug']) && $args['slug'] !== ''
+        && !preg_match('/^[a-z0-9-]+$/', $args['slug'])) {
+        mcp_tool_result($id, 'Error: slug must be lowercase letters, numbers, and hyphens only', true);
+    }
+    if (isset($args['template']) && is_string($args['template']) && $args['template'] !== ''
+        && !preg_match('/^[a-z0-9_-]+$/', $args['template'])) {
+        mcp_tool_result($id, 'Error: invalid template slug', true);
+    }
+
+    // TODO(v6): implement once the page_blocks data model + engine renderer lands.
+    mcp_tool_result($id, _mcp_page_blocks_unimplemented_error(), true);
+}
+
+function mcp_tool_add_block_to_page(mixed $id, array $args): never {
+    $pageId = (int) ($args['page_id'] ?? 0);
+    $blockSlug = $args['block_slug'] ?? '';
+
+    if (!$pageId) {
+        mcp_tool_result($id, 'Error: page_id is required', true);
+    }
+    if (!is_string($blockSlug) || !preg_match('/^[a-z0-9_-]+$/', $blockSlug)) {
+        mcp_tool_result($id, 'Error: block_slug is required and must be lowercase letters, digits, hyphens, underscores only', true);
+    }
+
+    // TODO(v6): implement once the page_blocks data model lands.
+    mcp_tool_result($id, _mcp_page_blocks_unimplemented_error(), true);
+}
+
+function mcp_tool_set_block_field(mixed $id, array $args): never {
+    $pageId = (int) ($args['page_id'] ?? 0);
+    $blockId = (int) ($args['block_id'] ?? 0);
+    $fieldKey = $args['field_key'] ?? '';
+
+    if (!$pageId) {
+        mcp_tool_result($id, 'Error: page_id is required', true);
+    }
+    if (!$blockId) {
+        mcp_tool_result($id, 'Error: block_id is required', true);
+    }
+    if (!is_string($fieldKey) || !preg_match('/^[a-zA-Z0-9_-]+$/', $fieldKey)) {
+        mcp_tool_result($id, 'Error: field_key must be alphanumeric with hyphens or underscores only', true);
+    }
+    if (!array_key_exists('value', $args)) {
+        mcp_tool_result($id, 'Error: value is required', true);
+    }
+
+    // TODO(v6): implement once the page_blocks data model lands.
+    mcp_tool_result($id, _mcp_page_blocks_unimplemented_error(), true);
 }
