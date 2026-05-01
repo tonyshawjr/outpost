@@ -239,16 +239,24 @@ class OutpostTemplateV2 {
     // ─── Block Comments ──────────────────────────────────────
 
     /**
-     * v6: <outpost-page-blocks /> → renders cms_page_blocks() output.
-     * Self-closing or with closing tag both supported.
+     * v6: <outpost-page-blocks /> and {{blocks}} → renders cms_page_blocks().
+     * Both forms supported. {{blocks}} is the Sites starter-theme convention;
+     * <outpost-page-blocks /> is the canonical v6 form. Self-closing or with
+     * closing tag both supported.
      */
     private static function compilePageBlocks(string $html): string {
-        if (stripos($html, '<outpost-page-blocks') === false) {
+        $hasTag = stripos($html, '<outpost-page-blocks') !== false;
+        $hasMustache = strpos($html, '{{blocks}}') !== false;
+        if (!$hasTag && !$hasMustache) {
             return $html;
         }
         $rendered = function_exists('cms_page_blocks') ? cms_page_blocks() : '';
-        // Match self-closing or paired form
-        $html = preg_replace('#<outpost-page-blocks\s*/?>(?:</outpost-page-blocks>)?#i', $rendered, $html);
+        if ($hasTag) {
+            $html = preg_replace('#<outpost-page-blocks\s*/?>(?:</outpost-page-blocks>)?#i', $rendered, $html);
+        }
+        if ($hasMustache) {
+            $html = str_replace('{{blocks}}', $rendered, $html);
+        }
         return $html;
     }
 
