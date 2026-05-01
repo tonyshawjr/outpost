@@ -195,6 +195,22 @@ if ($_outpost_use_v2) {
     require_once $outpostDir . '/template-engine.php';
 }
 
+if (!function_exists('outpost_resolve_single_template')) {
+    function outpost_resolve_single_template(string $themeDir, string $type): ?string {
+        $candidates = [
+            "/single-{$type}.html",
+            "/{$type}.html",
+            '/single.html',
+            '/post.html',
+        ];
+        foreach ($candidates as $rel) {
+            $path = $themeDir . $rel;
+            if (file_exists($path)) return $path;
+        }
+        return null;
+    }
+}
+
 // Parse request path
 $reqUri   = $_SERVER['REQUEST_URI'];
 $reqPath  = '/' . trim(parse_url($reqUri, PHP_URL_PATH), '/');
@@ -353,13 +369,8 @@ if (!$templateFile) {
                 $_outpost_current_item       = $data;
                 $_outpost_current_collection = $col['slug'];
             }
-            // Try collection-slug.html first, then generic post.html
-            $colTemplate = $themeDir . '/' . $col['slug'] . '.html';
-            if (file_exists($colTemplate)) {
-                $templateFile = $colTemplate;
-            } elseif (file_exists($themeDir . '/post.html')) {
-                $templateFile = $themeDir . '/post.html';
-            }
+            // Walk template hierarchy: single-{slug}.html → {slug}.html → single.html → post.html
+            $templateFile = outpost_resolve_single_template($themeDir, $col['slug']);
             break;
         }
     }
@@ -377,11 +388,9 @@ if (!$templateFile) {
         $regexPattern = '#^' . str_replace('\{slug\}', '([^/]+)', preg_quote($pattern, '#')) . '$#';
         if (preg_match($regexPattern, $reqPath, $matches)) {
             $_GET['slug'] = $matches[1];
-            // Try channel-slug.html, then generic channel.html
-            $chanTemplate = $themeDir . '/' . $chan['slug'] . '.html';
-            if (file_exists($chanTemplate)) {
-                $templateFile = $chanTemplate;
-            } elseif (file_exists($themeDir . '/channel.html')) {
+            // Walk template hierarchy: single-{slug}.html → {slug}.html → single.html → post.html → channel.html
+            $templateFile = outpost_resolve_single_template($themeDir, $chan['slug']);
+            if (!$templateFile && file_exists($themeDir . '/channel.html')) {
                 $templateFile = $themeDir . '/channel.html';
             }
             break;
