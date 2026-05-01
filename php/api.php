@@ -265,6 +265,10 @@ match (true) {
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
     $action === 'pages' && $method === 'DELETE' && isset($_GET['id']) => handle_page_delete(),
 
+    // v6: Page blocks (Sites-style page builder)
+    $action === 'pages/blocks' && $method === 'GET' => handle_page_blocks_get(),
+    $action === 'pages/blocks' && $method === 'PUT' => handle_page_blocks_save(),
+
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
 
@@ -1493,6 +1497,89 @@ function handle_pages_list(): void {
     }
 
     json_response(['pages' => $pages]);
+}
+
+// v6: Page blocks API — Sites-style page builder support
+function handle_page_blocks_get(): void {
+    $id = (int) ($_GET['id'] ?? 0);
+    if (!$id) json_error('Page id required', 400);
+
+    $page = OutpostDB::fetchOne('SELECT id, path, title FROM pages WHERE id = ?', [$id]);
+    if (!$page) json_error('Page not found', 404);
+
+    $rows = OutpostDB::fetchAll(
+        'SELECT * FROM page_blocks WHERE page_id = ? ORDER BY position ASC',
+        [$id]
+    );
+    $blocks = [];
+    foreach ($rows as $r) {
+        $blocks[] = [
+            'id'         => (int) $r['id'],
+            'block_slug' => $r['block_slug'],
+            'position'   => (int) $r['position'],
+            'fields'     => json_decode($r['fields'] ?: '{}', true) ?: new \stdClass(),
+            'settings'   => json_decode($r['settings'] ?: '{}', true) ?: new \stdClass(),
+            'updated_at' => $r['updated_at'],
+        ];
+    }
+
+    json_response([
+        'page' => $page,
+        'blocks' => $blocks,
+    ]);
+}
+
+function handle_page_blocks_save(): void {
+    $id = (int) ($_GET['id'] ?? 0);
+    if (!$id) json_error('Page id required', 400);
+
+    $page = OutpostDB::fetchOne('SELECT id FROM pages WHERE id = ?', [$id]);
+    if (!$page) json_error('Page not found', 404);
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body) || !isset($body['blocks']) || !is_array($body['blocks'])) {
+        json_error('blocks array required', 400);
+    }
+
+    // Validate every block against the active theme's block library if available
+    $available = [];
+    if (function_exists('outpost_scan_blocks')) {
+        foreach (outpost_scan_blocks() as $b) $available[$b['slug']] = true;
+    }
+    foreach ($body['blocks'] as $i => $b) {
+        $slug = $b['block_slug'] ?? ($b['slug'] ?? '');
+        if (!is_string($slug) || !preg_match('/^[a-z0-9_-]+$/', $slug)) {
+            json_error("blocks[{$i}].block_slug invalid", 400);
+        }
+        if ($available && !isset($available[$slug])) {
+            json_error("block '{$slug}' not in active theme", 400);
+        }
+    }
+
+    // Replace strategy: clear page's blocks, re-insert in order. Simple and atomic.
+    $db = OutpostDB::connect();
+    $db->beginTransaction();
+    try {
+        OutpostDB::query('DELETE FROM page_blocks WHERE page_id = ?', [$id]);
+        foreach ($body['blocks'] as $position => $b) {
+            $slug = $b['block_slug'] ?? $b['slug'];
+            OutpostDB::insert('page_blocks', [
+                'page_id'    => $id,
+                'block_slug' => $slug,
+                'position'   => (int) $position,
+                'fields'     => json_encode($b['fields'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE),
+                'settings'   => json_encode($b['settings'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE),
+            ]);
+        }
+        $db->commit();
+    } catch (\Throwable $e) {
+        $db->rollBack();
+        json_error('Failed to save blocks: ' . $e->getMessage(), 500);
+    }
+
+    OutpostDB::update('pages', ['updated_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
+
+    json_response(['ok' => true, 'count' => count($body['blocks'])]);
 }
 
 function handle_page_get(): void {

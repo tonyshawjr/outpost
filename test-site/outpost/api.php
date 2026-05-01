@@ -35,6 +35,7 @@ require_once __DIR__ . '/redirects.php';
 require_once __DIR__ . '/search.php';
 
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 
 // GitHub repository for auto-updater
 define('OUTPOST_GITHUB_REPO', 'tonyshawjr/outpost');
@@ -162,7 +163,7 @@ OutpostAuth::requireAuth();
 // CSRF check on mutations (skip for API key auth — CSRF only protects browser sessions)
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
     if (!OutpostAuth::isApiKeyAuth()) {
-        if ($action !== 'media/upload' && $action !== 'import/wordpress' && $action !== 'backup/restore') {
+        if ($action !== 'media/upload') {
             OutpostAuth::validateCsrf();
         }
     }
@@ -263,6 +264,10 @@ match (true) {
     $action === 'pages' && $method === 'GET' && isset($_GET['id']) => handle_page_get(),
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
     $action === 'pages' && $method === 'DELETE' && isset($_GET['id']) => handle_page_delete(),
+
+    // v6: Page blocks (Sites-style page builder)
+    $action === 'pages/blocks' && $method === 'GET' => handle_page_blocks_get(),
+    $action === 'pages/blocks' && $method === 'PUT' => handle_page_blocks_save(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -775,8 +780,9 @@ function handle_reset_password(): void {
     if (!$token) {
         json_error('Reset token required');
     }
-    if (strlen($password) < 8) {
-        json_error('Password must be at least 8 characters');
+    $pwError = outpost_validate_password($password);
+    if ($pwError) {
+        json_error($pwError);
     }
 
     $user = OutpostDB::fetchOne(
@@ -1254,7 +1260,7 @@ function handle_totp_verify(): void {
         if (!$code) {
             json_error('Authentication code required', 400);
         }
-        if (!OutpostTOTP::verifyCode($user['totp_secret'], $code)) {
+        if (!OutpostTOTP::verifyCode(safe_decrypt($user['totp_secret']), $code)) {
             // Record failed attempt for rate limiting
             $rlAttempts[] = $now;
             OutpostDB::query(
@@ -1291,9 +1297,9 @@ function handle_totp_setup(): void {
     $user = OutpostDB::fetchOne('SELECT * FROM users WHERE id = ?', [$sessionUser['id']]);
     if (!$user) json_error('User not found', 404);
 
-    // Generate a new secret (not yet enabled)
+    // Generate a new secret (not yet enabled) — encrypt at rest
     $secret = OutpostTOTP::generateSecret();
-    OutpostDB::update('users', ['totp_secret' => $secret], 'id = ?', [$user['id']]);
+    OutpostDB::update('users', ['totp_secret' => ranger_encrypt($secret)], 'id = ?', [$user['id']]);
 
     $uri = OutpostTOTP::buildUri($secret, $user['username']);
 
@@ -1315,7 +1321,7 @@ function handle_totp_enable(): void {
         json_error('Run setup first', 400);
     }
 
-    if (!OutpostTOTP::verifyCode($user['totp_secret'], $code)) {
+    if (!OutpostTOTP::verifyCode(safe_decrypt($user['totp_secret']), $code)) {
         json_error('Invalid code. Make sure your authenticator app is synced.', 400);
     }
 
@@ -1491,6 +1497,89 @@ function handle_pages_list(): void {
     }
 
     json_response(['pages' => $pages]);
+}
+
+// v6: Page blocks API — Sites-style page builder support
+function handle_page_blocks_get(): void {
+    $id = (int) ($_GET['id'] ?? 0);
+    if (!$id) json_error('Page id required', 400);
+
+    $page = OutpostDB::fetchOne('SELECT id, path, title FROM pages WHERE id = ?', [$id]);
+    if (!$page) json_error('Page not found', 404);
+
+    $rows = OutpostDB::fetchAll(
+        'SELECT * FROM page_blocks WHERE page_id = ? ORDER BY position ASC',
+        [$id]
+    );
+    $blocks = [];
+    foreach ($rows as $r) {
+        $blocks[] = [
+            'id'         => (int) $r['id'],
+            'block_slug' => $r['block_slug'],
+            'position'   => (int) $r['position'],
+            'fields'     => json_decode($r['fields'] ?: '{}', true) ?: new \stdClass(),
+            'settings'   => json_decode($r['settings'] ?: '{}', true) ?: new \stdClass(),
+            'updated_at' => $r['updated_at'],
+        ];
+    }
+
+    json_response([
+        'page' => $page,
+        'blocks' => $blocks,
+    ]);
+}
+
+function handle_page_blocks_save(): void {
+    $id = (int) ($_GET['id'] ?? 0);
+    if (!$id) json_error('Page id required', 400);
+
+    $page = OutpostDB::fetchOne('SELECT id FROM pages WHERE id = ?', [$id]);
+    if (!$page) json_error('Page not found', 404);
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body) || !isset($body['blocks']) || !is_array($body['blocks'])) {
+        json_error('blocks array required', 400);
+    }
+
+    // Validate every block against the active theme's block library if available
+    $available = [];
+    if (function_exists('outpost_scan_blocks')) {
+        foreach (outpost_scan_blocks() as $b) $available[$b['slug']] = true;
+    }
+    foreach ($body['blocks'] as $i => $b) {
+        $slug = $b['block_slug'] ?? ($b['slug'] ?? '');
+        if (!is_string($slug) || !preg_match('/^[a-z0-9_-]+$/', $slug)) {
+            json_error("blocks[{$i}].block_slug invalid", 400);
+        }
+        if ($available && !isset($available[$slug])) {
+            json_error("block '{$slug}' not in active theme", 400);
+        }
+    }
+
+    // Replace strategy: clear page's blocks, re-insert in order. Simple and atomic.
+    $db = OutpostDB::connect();
+    $db->beginTransaction();
+    try {
+        OutpostDB::query('DELETE FROM page_blocks WHERE page_id = ?', [$id]);
+        foreach ($body['blocks'] as $position => $b) {
+            $slug = $b['block_slug'] ?? $b['slug'];
+            OutpostDB::insert('page_blocks', [
+                'page_id'    => $id,
+                'block_slug' => $slug,
+                'position'   => (int) $position,
+                'fields'     => json_encode($b['fields'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE),
+                'settings'   => json_encode($b['settings'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE),
+            ]);
+        }
+        $db->commit();
+    } catch (\Throwable $e) {
+        $db->rollBack();
+        json_error('Failed to save blocks: ' . $e->getMessage(), 500);
+    }
+
+    OutpostDB::update('pages', ['updated_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
+
+    json_response(['ok' => true, 'count' => count($body['blocks'])]);
 }
 
 function handle_page_get(): void {
@@ -3471,11 +3560,27 @@ function handle_settings_get(): void {
 function handle_settings_update(): void {
     $data = get_json_body();
 
+    // Keys that must never be writable via the settings API
+    $blockedKeys = [
+        'sync_api_key', 'cron_key', 'shield_config',
+        'feature_flags', 'jwt_secret', 'ranger_key', 'totp_signing_key',
+    ];
+
+    // Keys whose values should be encrypted at rest
+    $encryptedKeys = ['smtp_password'];
+
     foreach ($data as $key => $value) {
         if (!is_string($key) || $key === '') continue;
+        if (in_array($key, $blockedKeys, true)) {
+            json_error('Setting "' . $key . '" cannot be updated via this endpoint', 403);
+        }
+        $storeValue = (string) $value;
+        if (in_array($key, $encryptedKeys, true) && $storeValue !== '') {
+            $storeValue = ranger_encrypt($storeValue);
+        }
         OutpostDB::query(
             'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
-            [$key, (string) $value]
+            [$key, $storeValue]
         );
     }
 
@@ -3617,24 +3722,33 @@ function handle_boost_optimize_db(): void {
 function handle_sync_key_get(): void {
     $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'sync_api_key'");
 
-    if (!$row || empty($row['value'])) {
-        // Auto-generate on first access
-        $key = bin2hex(random_bytes(32));
-        OutpostDB::query(
-            "INSERT INTO settings (key, value) VALUES ('sync_api_key', ?)
-             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            [$key]
-        );
-    } else {
-        $key = $row['value'];
-    }
-
     $last_pull = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'sync_last_pull'");
     $last_push = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'sync_last_push'");
 
+    // If no key exists, generate one and return it (shown once)
+    if (!$row || empty($row['value'])) {
+        $key = bin2hex(random_bytes(32));
+        $hash = password_hash($key, PASSWORD_BCRYPT, ['cost' => 10]);
+        OutpostDB::query(
+            "INSERT INTO settings (key, value) VALUES ('sync_api_key', ?)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            [$hash]
+        );
+        json_response([
+            'key_set'     => true,
+            'key'         => $key,
+            'key_masked'  => substr($key, 0, 8) . str_repeat('•', 48) . substr($key, -4),
+            'message'     => 'Save this key now — it cannot be retrieved again.',
+            'last_pull'   => $last_pull['value'] ?? null,
+            'last_push'   => $last_push['value'] ?? null,
+        ]);
+        return;
+    }
+
+    // Key already exists — only show that it's set (hash is stored, raw key is gone)
     json_response([
         'key_set'     => true,
-        'key_masked'  => substr($key, 0, 8) . '••••••••••••••••••••••••••••••••••••••••••••••••' . substr($key, -4),
+        'key_masked'  => '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••',
         'last_pull'   => $last_pull['value'] ?? null,
         'last_push'   => $last_push['value'] ?? null,
     ]);
@@ -3642,15 +3756,17 @@ function handle_sync_key_get(): void {
 
 function handle_sync_key_regenerate(): void {
     $key = bin2hex(random_bytes(32));
+    $hash = password_hash($key, PASSWORD_BCRYPT, ['cost' => 10]);
     OutpostDB::query(
         "INSERT INTO settings (key, value) VALUES ('sync_api_key', ?)
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-        [$key]
+        [$hash]
     );
     json_response([
         'success'    => true,
         'key'        => $key,
-        'key_masked' => substr($key, 0, 8) . '••••••••••••••••••••••••••••••••••••••••••••••••' . substr($key, -4),
+        'key_masked' => substr($key, 0, 8) . str_repeat('•', 48) . substr($key, -4),
+        'message'    => 'Save this key now — it cannot be retrieved again.',
     ]);
 }
 
@@ -4136,7 +4252,8 @@ function handle_user_create(): void {
 
     if (!$username || !$password) json_error('Username and password are required');
     if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Invalid email address');
-    if (strlen($password) < 8) json_error('Password must be at least 8 characters');
+    $pwError = outpost_validate_password($password);
+    if ($pwError) json_error($pwError);
 
     // Validate role
     if (!in_array($role, OUTPOST_ALL_ROLES)) json_error('Invalid role');
@@ -4146,6 +4263,11 @@ function handle_user_create(): void {
     $currentRole = $currentUser['role'] ?? '';
     if (in_array($role, ['admin', 'developer']) && !in_array($currentRole, ['super_admin', 'admin'])) {
         json_error('Only admins can assign admin or developer roles', 403);
+    }
+
+    // Only super_admin can assign super_admin
+    if ($role === 'super_admin' && $currentRole !== 'super_admin') {
+        json_error('Only super admins can assign the super_admin role', 403);
     }
 
     $existing = OutpostDB::fetchOne('SELECT id FROM users WHERE username = ?', [$username]);
@@ -4199,12 +4321,19 @@ function handle_user_update(): void {
             json_error('Only admins can change roles', 403);
         }
         if (!in_array($data['role'], OUTPOST_ALL_ROLES)) json_error('Invalid role');
+
+        // Only super_admin can assign super_admin
+        if ($data['role'] === 'super_admin' && $currentRole !== 'super_admin') {
+            json_error('Only super admins can assign the super_admin role', 403);
+        }
+
         $update['role'] = $data['role'];
     }
 
     // Password change (optional — only if provided)
     if (!empty($data['password'])) {
-        if (strlen($data['password']) < 8) json_error('Password must be at least 8 characters');
+        $pwError = outpost_validate_password($data['password']);
+        if ($pwError) json_error($pwError);
         $update['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
     }
 
@@ -5802,7 +5931,8 @@ function handle_test_smtp(): void {
         );
         json_response(['success' => true, 'message' => "Test email sent to {$toEmail}"]);
     } catch (Throwable $e) {
-        json_error('SMTP test failed: ' . $e->getMessage());
+        error_log('SMTP test failed: ' . $e->getMessage());
+        json_error('SMTP test failed. Check server logs for details.');
     }
 }
 
@@ -6969,6 +7099,35 @@ function handle_channel_get(): void {
  * Mask sensitive auth credentials in channel config JSON.
  * Returns the config as a decoded array with auth values masked.
  */
+/**
+ * Encrypt auth_config credential values within a channel config array.
+ */
+function outpost_encrypt_channel_auth(array $config): array {
+    if (isset($config['auth_config']) && is_array($config['auth_config'])) {
+        foreach ($config['auth_config'] as $key => $val) {
+            if (is_string($val) && $val !== '' && $val !== '••••••••') {
+                $config['auth_config'][$key] = ranger_encrypt($val);
+            }
+        }
+    }
+    return $config;
+}
+
+/**
+ * Decrypt auth_config credential values within a channel config array.
+ * Backward-compatible: plaintext values pass through unchanged.
+ */
+function outpost_decrypt_channel_auth(array $config): array {
+    if (isset($config['auth_config']) && is_array($config['auth_config'])) {
+        foreach ($config['auth_config'] as $key => $val) {
+            if (is_string($val) && $val !== '') {
+                $config['auth_config'][$key] = safe_decrypt($val);
+            }
+        }
+    }
+    return $config;
+}
+
 function outpost_mask_channel_config(string $configJson): array {
     $config = json_decode($configJson, true) ?: [];
     if (isset($config['auth_config']) && is_array($config['auth_config'])) {
@@ -7004,7 +7163,7 @@ function handle_channel_create(): void {
         'slug'           => $slug,
         'name'           => $name,
         'type'           => $type,
-        'config'         => json_encode($data['config'] ?? new \stdClass()),
+        'config'         => json_encode(outpost_encrypt_channel_auth($data['config'] ?? [])),
         'field_map'      => json_encode($data['field_map'] ?? []),
         'cache_ttl'      => (int)($data['cache_ttl'] ?? 3600),
         'url_pattern'    => $data['url_pattern'] ?? null,
@@ -7033,10 +7192,21 @@ function handle_channel_update(): void {
                 // Preserve existing auth credentials when masked values are sent back
                 $newConfig = $data[$key];
                 $oldConfig = json_decode($current['config'] ?? '{}', true) ?: [];
+                $preservedKeys = [];
                 if (isset($newConfig['auth_config']) && isset($oldConfig['auth_config'])) {
                     foreach ($newConfig['auth_config'] as $ak => $av) {
                         if ($av === '••••••••' && isset($oldConfig['auth_config'][$ak])) {
+                            // Keep existing (already encrypted) value
                             $newConfig['auth_config'][$ak] = $oldConfig['auth_config'][$ak];
+                            $preservedKeys[] = $ak;
+                        }
+                    }
+                }
+                // Encrypt only new plaintext auth credentials (skip preserved ones)
+                if (isset($newConfig['auth_config']) && is_array($newConfig['auth_config'])) {
+                    foreach ($newConfig['auth_config'] as $ak => $av) {
+                        if (is_string($av) && $av !== '' && !in_array($ak, $preservedKeys, true)) {
+                            $newConfig['auth_config'][$ak] = ranger_encrypt($av);
                         }
                     }
                 }
