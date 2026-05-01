@@ -37,6 +37,7 @@ function outpost_init(): void {
     // Run migrations (idempotent)
     ensure_fields_theme_column();
     ensure_indexes();
+    outpost_ensure_page_blocks_table();
     outpost_migrate_v5();
 
     // v5: no theme layer — always empty
@@ -1850,6 +1851,126 @@ function ensure_indexes(): void {
     $db->exec("CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status)");
 }
 
+/**
+ * v6: render the ordered list of block instances for the current page.
+ * Returns concatenated HTML — one block template per row in page_blocks,
+ * with data-outpost markers substituted from each block instance's stored
+ * field values. Designer-authorable; safe to drop into any theme template.
+ *
+ * Usage in PHP templates: <?= cms_page_blocks() ?>
+ * Usage in v2 HTML templates: <outpost-page-blocks />
+ */
+function cms_page_blocks(?int $pageId = null): string {
+    global $_outpost_page_id;
+    $pageId = $pageId ?? ($_outpost_page_id ?? null);
+    if (!$pageId) return '';
+
+    $rows = OutpostDB::fetchAll(
+        'SELECT * FROM page_blocks WHERE page_id = ? ORDER BY position ASC',
+        [$pageId]
+    );
+    if (!$rows) return '';
+
+    if (!function_exists('outpost_get_block_html')) {
+        require_once __DIR__ . '/blocks.php';
+    }
+
+    $out = [];
+    foreach ($rows as $row) {
+        $tpl = outpost_get_block_html($row['block_slug']);
+        if ($tpl === '') continue;
+        $fields = json_decode($row['fields'] ?: '{}', true) ?: [];
+        $out[] = _cms_render_block_html($tpl, $fields, (int) $row['id']);
+    }
+    return implode("\n", $out);
+}
+
+/**
+ * Substitute data-outpost markers in a block template with values from $fields.
+ * Uses DOMDocument so we don't break on tricky HTML. Falls back to a regex
+ * pass on any text/href/src markers DOMDocument couldn't reach (rare).
+ */
+function _cms_render_block_html(string $html, array $fields, int $blockInstanceId): string {
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    // Wrap so DOMDocument doesn't add <html><body> around fragments
+    $dom->loadHTML('<?xml encoding="UTF-8"><div id="__op_root">' . $html . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+
+    $xpath = new DOMXPath($dom);
+    foreach ($xpath->query('//*[@data-outpost]') as $node) {
+        if (!$node instanceof DOMElement) continue;
+        $key = $node->getAttribute('data-outpost');
+        if (!array_key_exists($key, $fields)) continue;
+        $value = (string) $fields[$key];
+        $type = $node->getAttribute('data-type'); // optional hint
+
+        if ($type === 'image' || strtolower($node->nodeName) === 'img') {
+            $node->setAttribute('src', $value);
+        } elseif ($type === 'link' || strtolower($node->nodeName) === 'a') {
+            $node->setAttribute('href', $value);
+            // Allow text override via a sibling field key, e.g. {key}_text
+            if (array_key_exists($key . '_text', $fields)) {
+                while ($node->firstChild) $node->removeChild($node->firstChild);
+                $node->appendChild($dom->createTextNode((string) $fields[$key . '_text']));
+            }
+        } elseif ($type === 'richtext') {
+            // Replace inner HTML with the richtext value (assumed pre-sanitized upstream)
+            while ($node->firstChild) $node->removeChild($node->firstChild);
+            $frag = $dom->createDocumentFragment();
+            @$frag->appendXML($value);
+            if ($frag->hasChildNodes()) {
+                $node->appendChild($frag);
+            } else {
+                $node->appendChild($dom->createTextNode($value));
+            }
+        } else {
+            // Default: text replacement
+            while ($node->firstChild) $node->removeChild($node->firstChild);
+            $node->appendChild($dom->createTextNode($value));
+        }
+    }
+
+    // Tag the root with data-outpost-block so the editor can target it
+    $root = $dom->getElementById('__op_root');
+    if ($root) {
+        $first = $root->firstChild;
+        if ($first instanceof DOMElement) {
+            $first->setAttribute('data-outpost-block', (string) $blockInstanceId);
+        }
+        $inner = '';
+        foreach ($root->childNodes as $child) {
+            $inner .= $dom->saveHTML($child);
+        }
+        return $inner;
+    }
+    return $html;
+}
+
+/**
+ * v6: ensure page_blocks table exists.
+ * Stores ordered block instances per page (Sites-style page builder data model).
+ * Idempotent — safe to call on every request.
+ */
+function outpost_ensure_page_blocks_table(): void {
+    $db = OutpostDB::connect();
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS page_blocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            page_id INTEGER NOT NULL,
+            block_slug TEXT NOT NULL,
+            position INTEGER NOT NULL DEFAULT 0,
+            fields TEXT NOT NULL DEFAULT '{}',
+            settings TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_page_blocks_page_pos ON page_blocks(page_id, position)");
+}
+
 // ── v5 Migration: Remove theme layer ─────────────────────
 /**
  * One-time migration from v4 (theme-based) to v5 (themeless).
@@ -1915,13 +2036,28 @@ function outpost_migrate_v5(): void {
     }
 
     // 3d. Clear theme references in DB
+    // Delete themed duplicates first to avoid UNIQUE constraint violations,
+    // then clear theme on remaining rows
+    $db->exec("DELETE FROM fields WHERE theme != '' AND EXISTS (
+        SELECT 1 FROM fields f2 WHERE f2.page_id = fields.page_id
+        AND f2.field_name = fields.field_name AND f2.theme = ''
+    )");
     $db->exec("UPDATE fields SET theme = '' WHERE theme != ''");
+    $db->exec("DELETE FROM page_field_registry WHERE theme != '' AND EXISTS (
+        SELECT 1 FROM page_field_registry p2 WHERE p2.path = page_field_registry.path
+        AND p2.field_name = page_field_registry.field_name AND p2.theme = ''
+    )");
     $db->exec("UPDATE page_field_registry SET theme = '' WHERE theme != ''");
     $db->exec("DELETE FROM settings WHERE key = 'active_theme'");
     $db->exec("DELETE FROM settings WHERE key LIKE 'last_template_scan_%'");
 
     // 4. Write .htaccess at site root if not present
     outpost_v5_write_htaccess();
+
+    // 4b. Deploy v5 front-controller (index.php) to site root
+    // The updater only replaces files inside outpost/ — the site-root index.php
+    // must be updated separately to use the v5 theme-less routing.
+    outpost_v5_write_front_controller();
 
     // 5. Set migration flag
     $db->exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('v5_migrated', '1')");

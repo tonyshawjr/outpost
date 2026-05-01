@@ -1605,13 +1605,7 @@ function mcp_tool_list_templates(mixed $id, array $args): never {
  * block-level theme settings via the `setting_{block}_{name}` field_name
  * convention used by handle_editor_block_settings_save in smart-forge.php.
  */
-function _mcp_page_blocks_unimplemented_error(): string {
-    return 'Error: page-as-blocks composition is not yet supported. Outpost stores per-page values in the fields table keyed by data-outpost field names, not as an ordered list of block instances. A page_blocks data model is required before compose_page / add_block_to_page / set_block_field can be implemented. Use update_page_fields for per-field edits in the meantime.';
-}
-
 function mcp_tool_compose_page(mixed $id, array $args): never {
-    // Validate inputs first so the client gets useful feedback even though
-    // the operation can't complete yet.
     $title = is_string($args['title'] ?? null) ? trim($args['title']) : '';
     $blocks = $args['blocks'] ?? null;
 
@@ -1619,34 +1613,117 @@ function mcp_tool_compose_page(mixed $id, array $args): never {
         mcp_tool_result($id, 'Error: title is required', true);
     }
     if (!is_array($blocks)) {
-        mcp_tool_result($id, 'Error: blocks must be an array', true);
+        mcp_tool_result($id, 'Error: blocks must be an array of { slug, fields }', true);
     }
-    if (isset($args['slug']) && is_string($args['slug']) && $args['slug'] !== ''
-        && !preg_match('/^[a-z0-9-]+$/', $args['slug'])) {
+
+    $slug = $args['slug'] ?? '';
+    if ($slug === '') {
+        $slug = preg_replace('/[^a-z0-9]+/', '-', strtolower($title));
+        $slug = trim($slug, '-');
+    }
+    if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
         mcp_tool_result($id, 'Error: slug must be lowercase letters, numbers, and hyphens only', true);
     }
-    if (isset($args['template']) && is_string($args['template']) && $args['template'] !== ''
-        && !preg_match('/^[a-z0-9_-]+$/', $args['template'])) {
+
+    $path = '/' . $slug;
+    if (OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path])) {
+        mcp_tool_result($id, "Error: a page already exists at path '{$path}'", true);
+    }
+
+    $template = $args['template'] ?? '';
+    if ($template !== '' && !preg_match('/^[a-z0-9_-]+$/', $template)) {
         mcp_tool_result($id, 'Error: invalid template slug', true);
     }
 
-    // TODO(v6): implement once the page_blocks data model + engine renderer lands.
-    mcp_tool_result($id, _mcp_page_blocks_unimplemented_error(), true);
+    // Validate every block against the available block library before any DB writes.
+    $availableBlocks = [];
+    if (function_exists('outpost_scan_blocks')) {
+        foreach (outpost_scan_blocks() as $b) $availableBlocks[$b['slug']] = $b;
+    }
+    foreach ($blocks as $i => $b) {
+        $bs = $b['slug'] ?? '';
+        if (!is_string($bs) || !preg_match('/^[a-z0-9_-]+$/', $bs)) {
+            mcp_tool_result($id, "Error: blocks[{$i}].slug invalid or missing", true);
+        }
+        if ($availableBlocks && !isset($availableBlocks[$bs])) {
+            mcp_tool_result($id, "Error: block '{$bs}' is not available in the active theme. Call list_blocks to see what is.", true);
+        }
+        if (isset($b['fields']) && !is_array($b['fields'])) {
+            mcp_tool_result($id, "Error: blocks[{$i}].fields must be an object", true);
+        }
+    }
+
+    // Insert page row.
+    $pageId = OutpostDB::insert('pages', [
+        'path'             => $path,
+        'title'            => $title,
+        'meta_title'       => $args['meta_title']       ?? '',
+        'meta_description' => $args['meta_description'] ?? '',
+    ]);
+
+    // Insert block instances in order.
+    foreach ($blocks as $position => $b) {
+        OutpostDB::insert('page_blocks', [
+            'page_id'    => $pageId,
+            'block_slug' => $b['slug'],
+            'position'   => (int) $position,
+            'fields'     => json_encode($b['fields'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE),
+            'settings'   => json_encode($b['settings'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE),
+        ]);
+    }
+
+    mcp_tool_result($id, [
+        'page_id'  => $pageId,
+        'path'     => $path,
+        'title'    => $title,
+        'block_count' => count($blocks),
+    ]);
 }
 
 function mcp_tool_add_block_to_page(mixed $id, array $args): never {
     $pageId = (int) ($args['page_id'] ?? 0);
     $blockSlug = $args['block_slug'] ?? '';
 
-    if (!$pageId) {
-        mcp_tool_result($id, 'Error: page_id is required', true);
-    }
+    if (!$pageId) mcp_tool_result($id, 'Error: page_id is required', true);
     if (!is_string($blockSlug) || !preg_match('/^[a-z0-9_-]+$/', $blockSlug)) {
-        mcp_tool_result($id, 'Error: block_slug is required and must be lowercase letters, digits, hyphens, underscores only', true);
+        mcp_tool_result($id, 'Error: block_slug is required (lowercase letters, digits, hyphens, underscores)', true);
+    }
+    if (!OutpostDB::fetchOne('SELECT id FROM pages WHERE id = ?', [$pageId])) {
+        mcp_tool_result($id, "Error: page {$pageId} not found", true);
+    }
+    if (function_exists('outpost_get_block') && !outpost_get_block($blockSlug)) {
+        mcp_tool_result($id, "Error: block '{$blockSlug}' not found in active theme", true);
     }
 
-    // TODO(v6): implement once the page_blocks data model lands.
-    mcp_tool_result($id, _mcp_page_blocks_unimplemented_error(), true);
+    $fields = is_array($args['fields'] ?? null) ? $args['fields'] : [];
+    $settings = is_array($args['settings'] ?? null) ? $args['settings'] : [];
+
+    // Determine position. If client gave one, shift later blocks down.
+    if (isset($args['position'])) {
+        $position = (int) $args['position'];
+        OutpostDB::query(
+            'UPDATE page_blocks SET position = position + 1 WHERE page_id = ? AND position >= ?',
+            [$pageId, $position]
+        );
+    } else {
+        $row = OutpostDB::fetchOne('SELECT MAX(position) AS m FROM page_blocks WHERE page_id = ?', [$pageId]);
+        $position = $row && $row['m'] !== null ? (int) $row['m'] + 1 : 0;
+    }
+
+    $blockId = OutpostDB::insert('page_blocks', [
+        'page_id'    => $pageId,
+        'block_slug' => $blockSlug,
+        'position'   => $position,
+        'fields'     => json_encode($fields, JSON_UNESCAPED_UNICODE),
+        'settings'   => json_encode($settings, JSON_UNESCAPED_UNICODE),
+    ]);
+
+    mcp_tool_result($id, [
+        'block_id'   => $blockId,
+        'page_id'    => $pageId,
+        'block_slug' => $blockSlug,
+        'position'   => $position,
+    ]);
 }
 
 function mcp_tool_set_block_field(mixed $id, array $args): never {
@@ -1654,12 +1731,8 @@ function mcp_tool_set_block_field(mixed $id, array $args): never {
     $blockId = (int) ($args['block_id'] ?? 0);
     $fieldKey = $args['field_key'] ?? '';
 
-    if (!$pageId) {
-        mcp_tool_result($id, 'Error: page_id is required', true);
-    }
-    if (!$blockId) {
-        mcp_tool_result($id, 'Error: block_id is required', true);
-    }
+    if (!$pageId) mcp_tool_result($id, 'Error: page_id is required', true);
+    if (!$blockId) mcp_tool_result($id, 'Error: block_id is required', true);
     if (!is_string($fieldKey) || !preg_match('/^[a-zA-Z0-9_-]+$/', $fieldKey)) {
         mcp_tool_result($id, 'Error: field_key must be alphanumeric with hyphens or underscores only', true);
     }
@@ -1667,6 +1740,24 @@ function mcp_tool_set_block_field(mixed $id, array $args): never {
         mcp_tool_result($id, 'Error: value is required', true);
     }
 
-    // TODO(v6): implement once the page_blocks data model lands.
-    mcp_tool_result($id, _mcp_page_blocks_unimplemented_error(), true);
+    $row = OutpostDB::fetchOne('SELECT * FROM page_blocks WHERE id = ? AND page_id = ?', [$blockId, $pageId]);
+    if (!$row) {
+        mcp_tool_result($id, "Error: block {$blockId} not found on page {$pageId}", true);
+    }
+
+    $fields = json_decode($row['fields'] ?: '{}', true) ?: [];
+    $fields[$fieldKey] = $args['value'];
+
+    OutpostDB::update(
+        'page_blocks',
+        ['fields' => json_encode($fields, JSON_UNESCAPED_UNICODE), 'updated_at' => date('Y-m-d H:i:s')],
+        'id = ?',
+        [$blockId]
+    );
+
+    mcp_tool_result($id, [
+        'block_id'  => $blockId,
+        'field_key' => $fieldKey,
+        'fields'    => $fields,
+    ]);
 }

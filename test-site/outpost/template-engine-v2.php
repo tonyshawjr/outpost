@@ -109,6 +109,10 @@ class OutpostTemplateV2 {
         // Step 2c: Process <outpost-form slug="..." />
         $html = self::compileForms($html);
 
+        // Step 2d (v6): Process <outpost-page-blocks /> — render the page's
+        // ordered list of block instances from the page_blocks table.
+        $html = self::compilePageBlocks($html);
+
         // Step 3: Process block comments and settings
         $html = self::compileBlocks($html, $editorMode);
 
@@ -226,13 +230,27 @@ class OutpostTemplateV2 {
             '/<outpost-form\s+slug="([^"]+)"\s*\/?\s*(?:><\/outpost-form>)?/i',
             function ($m) {
                 $slug = $m[1];
-                return "<?php require_once __DIR__ . '/forms-engine.php'; cms_form('" . addslashes($slug) . "'); ?>";
+                return "<?php require_once OUTPOST_DIR . 'forms-engine.php'; cms_form('" . addslashes($slug) . "'); ?>";
             },
             $html
         );
     }
 
     // ─── Block Comments ──────────────────────────────────────
+
+    /**
+     * v6: <outpost-page-blocks /> → renders cms_page_blocks() output.
+     * Self-closing or with closing tag both supported.
+     */
+    private static function compilePageBlocks(string $html): string {
+        if (stripos($html, '<outpost-page-blocks') === false) {
+            return $html;
+        }
+        $rendered = function_exists('cms_page_blocks') ? cms_page_blocks() : '';
+        // Match self-closing or paired form
+        $html = preg_replace('#<outpost-page-blocks\s*/?>(?:</outpost-page-blocks>)?#i', $rendered, $html);
+        return $html;
+    }
 
     /**
      * Process <!-- outpost:blockname --> and <!-- outpost:blockname global --> comments.
@@ -893,6 +911,16 @@ class OutpostTemplateV2 {
                     $type = $tm[1];
                 }
 
+                // Region: structural no-op — strip data attributes, leave inner HTML untouched
+                if ($type === 'region') {
+                    if (!$editorMode) {
+                        $allAttrs = preg_replace('/\s*data-outpost="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-type="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-label="[^"]*"/', '', $allAttrs);
+                    }
+                    return '<' . $tag . $allAttrs . '>' . $defaultContent . $closeTag;
+                }
+
                 // Parse data-bind for attribute bindings: data-bind="attr:field,attr2:field2"
                 $bindings = [];
                 if (preg_match('/data-bind="([^"]+)"/', $allAttrs, $bm)) {
@@ -1224,6 +1252,18 @@ class OutpostTemplateV2 {
                 if (preg_match('/data-type="([^"]+)"/', $allAttrs, $tm)) {
                     $type = $tm[1];
                 }
+
+                // Region: structural no-op — strip data attributes, leave inner HTML untouched
+                if ($type === 'region') {
+                    if (!$editorMode) {
+                        $allAttrs = preg_replace('/\s*data-outpost="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-type="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-label="[^"]*"/', '', $allAttrs);
+                        $allAttrs = preg_replace('/\s*data-scope="[^"]*"/', '', $allAttrs);
+                    }
+                    return '<' . $tag . $allAttrs . '>' . $defaultContent . $closeTag;
+                }
+
                 $isGlobal = (bool) preg_match('/data-scope="global"/', $allAttrs);
 
                 // Extract data-label before stripping
@@ -1325,7 +1365,7 @@ class OutpostTemplateV2 {
             function ($m) use ($editorMode) {
                 $inner = $m[1];
                 $php = '<?php ';
-                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "members.php"; ';
                 $php .= 'if (OutpostMember::check()) { ';
                 $php .= '$_lodge_member = OutpostMember::currentMember(); ';
                 $php .= '$_lodge_full = OutpostDB::fetchOne("SELECT id, username, email, display_name, avatar, bio, tier FROM users WHERE id = ?", [$_lodge_member["id"]]); ';
@@ -1353,7 +1393,7 @@ class OutpostTemplateV2 {
                 $compiledInner = self::compileItemFields($inner, $editorMode);
 
                 $php = '<?php ';
-                $php .= 'require_once __DIR__ . "/../members.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "members.php"; ';
                 $php .= 'if (OutpostMember::check()) { ';
                 $php .= '$_lodge_member = OutpostMember::currentMember(); ';
                 $php .= '$_lodge_col = OutpostDB::fetchOne("SELECT * FROM collections WHERE slug = ? AND lodge_enabled = 1", [' . $slugPhp . ']); ';
@@ -1392,8 +1432,8 @@ class OutpostTemplateV2 {
                 $action = $attrs['action'] ?? '/outpost/member-api.php';
 
                 $php = '<?php ';
-                $php .= 'require_once __DIR__ . "/../members.php"; ';
-                $php .= 'require_once __DIR__ . "/../lodge.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "members.php"; ';
+                $php .= 'require_once OUTPOST_DIR . "lodge.php"; ';
                 $php .= 'if (OutpostMember::check()) { ';
                 $php .= '$_lf_col = OutpostDB::fetchOne("SELECT * FROM collections WHERE slug = ? AND lodge_enabled = 1", [' . $slugPhp . ']); ';
                 $php .= 'if ($_lf_col) { ';

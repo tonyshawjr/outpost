@@ -44,7 +44,17 @@ class OutpostDB {
         return self::query($sql, $params)->fetchAll();
     }
 
+    private static function validateIdentifier(string $name, string $type = 'column'): void {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $name)) {
+            throw new \InvalidArgumentException("Invalid {$type} name: {$name}");
+        }
+    }
+
     public static function insert(string $table, array $data): int {
+        self::validateIdentifier($table, 'table');
+        foreach (array_keys($data) as $col) {
+            self::validateIdentifier($col, 'column');
+        }
         $columns = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         self::query(
@@ -55,6 +65,10 @@ class OutpostDB {
     }
 
     public static function update(string $table, array $data, string $where, array $whereParams = []): int {
+        self::validateIdentifier($table, 'table');
+        foreach (array_keys($data) as $col) {
+            self::validateIdentifier($col, 'column');
+        }
         $set = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($data)));
         $stmt = self::query(
             "UPDATE {$table} SET {$set} WHERE {$where}",
@@ -64,6 +78,7 @@ class OutpostDB {
     }
 
     public static function delete(string $table, string $where, array $params = []): int {
+        self::validateIdentifier($table, 'table');
         $stmt = self::query("DELETE FROM {$table} WHERE {$where}", $params);
         return $stmt->rowCount();
     }
@@ -228,11 +243,25 @@ class OutpostDB {
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
+            -- v6: ordered list of block instances per page (Sites-style page builder)
+            CREATE TABLE IF NOT EXISTS page_blocks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                page_id INTEGER NOT NULL,
+                block_slug TEXT NOT NULL,
+                position INTEGER NOT NULL DEFAULT 0,
+                fields TEXT NOT NULL DEFAULT '{}',
+                settings TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE
+            );
+
             CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme);
             CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status);
             CREATE INDEX IF NOT EXISTS idx_revisions_entity ON revisions(entity_type, entity_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_media_folder_items_folder ON media_folder_items(folder_id);
             CREATE INDEX IF NOT EXISTS idx_media_folder_items_media ON media_folder_items(media_id);
+            CREATE INDEX IF NOT EXISTS idx_page_blocks_page_pos ON page_blocks(page_id, position);
         ");
     }
 }

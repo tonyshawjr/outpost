@@ -109,6 +109,10 @@ class OutpostTemplateV2 {
         // Step 2c: Process <outpost-form slug="..." />
         $html = self::compileForms($html);
 
+        // Step 2d (v6): Process <outpost-page-blocks /> — render the page's
+        // ordered list of block instances from the page_blocks table.
+        $html = self::compilePageBlocks($html);
+
         // Step 3: Process block comments and settings
         $html = self::compileBlocks($html, $editorMode);
 
@@ -233,6 +237,20 @@ class OutpostTemplateV2 {
     }
 
     // ─── Block Comments ──────────────────────────────────────
+
+    /**
+     * v6: <outpost-page-blocks /> → renders cms_page_blocks() output.
+     * Self-closing or with closing tag both supported.
+     */
+    private static function compilePageBlocks(string $html): string {
+        if (stripos($html, '<outpost-page-blocks') === false) {
+            return $html;
+        }
+        $rendered = function_exists('cms_page_blocks') ? cms_page_blocks() : '';
+        // Match self-closing or paired form
+        $html = preg_replace('#<outpost-page-blocks\s*/?>(?:</outpost-page-blocks>)?#i', $rendered, $html);
+        return $html;
+    }
 
     /**
      * Process <!-- outpost:blockname --> and <!-- outpost:blockname global --> comments.

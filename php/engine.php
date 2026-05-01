@@ -1852,6 +1852,103 @@ function ensure_indexes(): void {
 }
 
 /**
+ * v6: render the ordered list of block instances for the current page.
+ * Returns concatenated HTML — one block template per row in page_blocks,
+ * with data-outpost markers substituted from each block instance's stored
+ * field values. Designer-authorable; safe to drop into any theme template.
+ *
+ * Usage in PHP templates: <?= cms_page_blocks() ?>
+ * Usage in v2 HTML templates: <outpost-page-blocks />
+ */
+function cms_page_blocks(?int $pageId = null): string {
+    global $_outpost_page_id;
+    $pageId = $pageId ?? ($_outpost_page_id ?? null);
+    if (!$pageId) return '';
+
+    $rows = OutpostDB::fetchAll(
+        'SELECT * FROM page_blocks WHERE page_id = ? ORDER BY position ASC',
+        [$pageId]
+    );
+    if (!$rows) return '';
+
+    if (!function_exists('outpost_get_block_html')) {
+        require_once __DIR__ . '/blocks.php';
+    }
+
+    $out = [];
+    foreach ($rows as $row) {
+        $tpl = outpost_get_block_html($row['block_slug']);
+        if ($tpl === '') continue;
+        $fields = json_decode($row['fields'] ?: '{}', true) ?: [];
+        $out[] = _cms_render_block_html($tpl, $fields, (int) $row['id']);
+    }
+    return implode("\n", $out);
+}
+
+/**
+ * Substitute data-outpost markers in a block template with values from $fields.
+ * Uses DOMDocument so we don't break on tricky HTML. Falls back to a regex
+ * pass on any text/href/src markers DOMDocument couldn't reach (rare).
+ */
+function _cms_render_block_html(string $html, array $fields, int $blockInstanceId): string {
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    // Wrap so DOMDocument doesn't add <html><body> around fragments
+    $dom->loadHTML('<?xml encoding="UTF-8"><div id="__op_root">' . $html . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+
+    $xpath = new DOMXPath($dom);
+    foreach ($xpath->query('//*[@data-outpost]') as $node) {
+        if (!$node instanceof DOMElement) continue;
+        $key = $node->getAttribute('data-outpost');
+        if (!array_key_exists($key, $fields)) continue;
+        $value = (string) $fields[$key];
+        $type = $node->getAttribute('data-type'); // optional hint
+
+        if ($type === 'image' || strtolower($node->nodeName) === 'img') {
+            $node->setAttribute('src', $value);
+        } elseif ($type === 'link' || strtolower($node->nodeName) === 'a') {
+            $node->setAttribute('href', $value);
+            // Allow text override via a sibling field key, e.g. {key}_text
+            if (array_key_exists($key . '_text', $fields)) {
+                while ($node->firstChild) $node->removeChild($node->firstChild);
+                $node->appendChild($dom->createTextNode((string) $fields[$key . '_text']));
+            }
+        } elseif ($type === 'richtext') {
+            // Replace inner HTML with the richtext value (assumed pre-sanitized upstream)
+            while ($node->firstChild) $node->removeChild($node->firstChild);
+            $frag = $dom->createDocumentFragment();
+            @$frag->appendXML($value);
+            if ($frag->hasChildNodes()) {
+                $node->appendChild($frag);
+            } else {
+                $node->appendChild($dom->createTextNode($value));
+            }
+        } else {
+            // Default: text replacement
+            while ($node->firstChild) $node->removeChild($node->firstChild);
+            $node->appendChild($dom->createTextNode($value));
+        }
+    }
+
+    // Tag the root with data-outpost-block so the editor can target it
+    $root = $dom->getElementById('__op_root');
+    if ($root) {
+        $first = $root->firstChild;
+        if ($first instanceof DOMElement) {
+            $first->setAttribute('data-outpost-block', (string) $blockInstanceId);
+        }
+        $inner = '';
+        foreach ($root->childNodes as $child) {
+            $inner .= $dom->saveHTML($child);
+        }
+        return $inner;
+    }
+    return $html;
+}
+
+/**
  * v6: ensure page_blocks table exists.
  * Stores ordered block instances per page (Sites-style page builder data model).
  * Idempotent — safe to call on every request.
