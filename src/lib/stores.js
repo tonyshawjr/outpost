@@ -71,10 +71,10 @@ export const sidebarOpen = writable(true);
 export const searchOpen = writable(false);
 export const rangerOpen = writable(false);
 function getInitialDarkMode() {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
   const saved = localStorage.getItem('outpost-dark-mode');
   if (saved !== null) return saved === 'true';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return true; // dark by default (Sites visual identity)
 }
 
 function createDarkModeStore() {

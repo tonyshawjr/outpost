@@ -63,7 +63,6 @@
   import Redirects from '$pages/Redirects.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
-  import TopBar from '$components/TopBar.svelte';
   import RightSidebar from '$components/RightSidebar.svelte';
   import MobileNav from '$components/MobileNav.svelte';
   import Toast from '$components/Toast.svelte';
@@ -76,6 +75,7 @@
   onMount(async () => {
     const unsub = darkMode.subscribe((dark) => {
       document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.classList.toggle('light', !dark);
     });
 
     const handleSessionExpired = () => { sessionExpired = true; };
@@ -161,7 +161,6 @@
   <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'} class:ranger-open={$rangerOpen}>
     <Sidebar />
     <div class="app-main">
-      <TopBar />
       <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
           {#if hasCodeAccess}
