@@ -70,6 +70,10 @@ export const revisionReloadSignal = writable(0);
 export const sidebarOpen = writable(true);
 export const searchOpen = writable(false);
 export const rangerOpen = writable(false);
+// v6: Sites used activeModule for catalog/pathways/sites switching.
+// Outpost has a single module surface; this is a pass-through so ported
+// Sidebar/components don't need rewriting.
+export const activeModule = writable('outpost');
 function getInitialDarkMode() {
   if (typeof window === 'undefined') return true;
   const saved = localStorage.getItem('outpost-dark-mode');
