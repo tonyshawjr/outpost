@@ -166,22 +166,38 @@ A migration utility (`php/scripts/migrate-blueprint-to-theme.php`) handles the c
 
 ---
 
-## Track 3: MCP introspection + composition tools
+## Track 3: MCP introspection + composition tools — **first slice landed**
 
-**Pre-implementation discovery (2026-05-01):** `cms/php/blocks.php` exists in the Outpost repo but is currently **dead code**:
-- It uses the constant `KENII_CONTENT_DIR` (line 27) which is **not defined** in Outpost — Outpost defines `OUTPOST_CONTENT_DIR` and `OUTPOST_THEMES_DIR` in `config.php`.
-- It uses `kenii_*` function names (`kenii_scan_blocks`, `kenii_get_blocks_dir`, `kenii_get_active_theme`, `_kenii_parse_block`, `_kenii_auto_detect_fields`).
-- It is not `require_once`'d anywhere in the Outpost codebase.
+**Status:** `list_blocks` and `get_block_schema` shipped (commit `351190f`, 2026-05-01). Outpost-ization of blocks.php complete.
 
-This file was ported from Sites but never integrated. Before Track 3 MCP tools can call into a block scanner, blocks.php needs to be Outpost-ized:
+**What shipped:**
+- `php/blocks.php` Outpost-ized: functions renamed `kenii_*` → `outpost_*`, constant swapped to `OUTPOST_THEMES_DIR`. `kenii_*` aliases preserved for backwards compatibility (remove in v7).
+- `php/mcp.php` requires `blocks.php`.
+- New MCP tool `list_blocks` — returns all blocks in active theme with slug, name, description, category, icon, fields. No input args.
+- New MCP tool `get_block_schema` — returns full schema for one block by slug. Validates slug pattern. Clean error on missing block.
+- Total MCP tools: 15 → 17.
+- Both files lint clean (`php -l`).
 
-1. Rename functions: `kenii_scan_blocks` → `outpost_scan_blocks`, etc. (keep kenii_* aliases for one major version if Sites still uses the file).
-2. Replace `KENII_CONTENT_DIR` with `OUTPOST_THEMES_DIR` (which is already `OUTPOST_CONTENT_DIR . 'themes/'`).
-3. Replace the `settings` table lookup for `active_theme` with whatever Outpost's actual active-theme resolution is (verify against existing Outpost theme code).
-4. Wire up: `require_once $outpostDir . '/blocks.php';` in `engine.php` or wherever block discovery is needed.
-5. Verify: scan `php/content/themes/forge-playground/` — note that `forge-playground` doesn't currently have a `blocks/` folder. Confirm whether the active Outpost theme convention puts blocks elsewhere, or whether forge-playground is pre-block (Forge-tagged HTML files instead).
+**What's left in Track 3 (still spec'd, not yet built):**
+- `list_channels` — enumerate custom post types
+- `get_channel_schema` — detailed channel field schema
+- `list_templates` — templates available in active theme
+- `compose_page` — create a page with blocks pre-populated
+- `add_block_to_page` — insert block into existing page
+- `set_block_field` — update one field on one block
+- `list_theme_files` — enumerate template + partial files
 
-**This is the prerequisite work before Track 3 MCP `list_blocks` can be implemented.** ~half-day of focused integration work, mostly safe (renaming + constant substitution + one require_once).
+The unblock for "Claude Code, build me a page" workflow happens when `compose_page` lands. Until then, AI clients can *introspect* (know what blocks/channels exist) but not *compose* (build pages from blocks).
+
+---
+
+### Original Track 3 prerequisite notes (now resolved)
+
+- It used `KENII_CONTENT_DIR` (undefined in Outpost — Outpost defines `OUTPOST_CONTENT_DIR` and `OUTPOST_THEMES_DIR` in `config.php`).
+- It used `kenii_*` function names.
+- It was not `require_once`'d anywhere.
+
+Resolved in commit `351190f`: file Outpost-ized, `kenii_*` aliases preserved for BC, wired into `mcp.php`. Engine.php integration deferred until pages need server-side block rendering (blocks.php is currently called only from MCP).
 
 
 
