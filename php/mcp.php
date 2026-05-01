@@ -22,6 +22,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/sanitizer.php';
 require_once __DIR__ . '/roles.php';
+require_once __DIR__ . '/blocks.php';
 
 // ── Constants ────────────────────────────────────────────
 define('MCP_PROTOCOL_VERSION', '2025-03-26');
@@ -300,6 +301,8 @@ function handle_mcp_tools_call(mixed $id, array $params): never {
         'list_media'       => 'mcp_tool_list_media',
         'search_content'   => 'mcp_tool_search_content',
         'get_schema'       => 'mcp_tool_get_schema',
+        'list_blocks'      => 'mcp_tool_list_blocks',
+        'get_block_schema' => 'mcp_tool_get_block_schema',
     ];
 
     if (!isset($tools[$toolName])) {
@@ -486,6 +489,26 @@ function mcp_get_tool_definitions(): array {
                     'limit' => ['type' => 'integer', 'default' => 20],
                 ],
                 'required' => ['query'],
+            ],
+        ],
+        [
+            'name' => 'list_blocks',
+            'description' => 'List all blocks available in the active theme. Each block includes slug, name, description, category, icon, and field schema. Use this before composing pages so you know what blocks exist and what fields each one accepts.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => new \stdClass(),
+                'required' => [],
+            ],
+        ],
+        [
+            'name' => 'get_block_schema',
+            'description' => 'Get the full schema for a single block by slug, including all field definitions and the raw HTML/CSS file paths.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'slug' => ['type' => 'string', 'description' => 'Block slug (e.g. "hero", "faq-accordion")'],
+                ],
+                'required' => ['slug'],
             ],
         ],
         [
@@ -1254,5 +1277,47 @@ function mcp_resource_collection(mixed $id, string $uri, string $slug): never {
                 'recent_items' => $items,
             ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
         ]],
+    ]);
+}
+
+// ── Block introspection (v6 Track 3) ─────────────────────
+
+function mcp_tool_list_blocks(mixed $id, array $args): never {
+    $blocks = outpost_scan_blocks();
+    $out = [];
+    foreach ($blocks as $b) {
+        $out[] = [
+            'slug'        => $b['slug'],
+            'name'        => $b['name'],
+            'description' => $b['description'],
+            'category'    => $b['category'],
+            'icon'        => $b['icon'],
+            'fields'      => $b['fields'],
+        ];
+    }
+    mcp_tool_result($id, [
+        'theme'  => outpost_get_active_theme(),
+        'count'  => count($out),
+        'blocks' => $out,
+    ]);
+}
+
+function mcp_tool_get_block_schema(mixed $id, array $args): never {
+    $slug = $args['slug'] ?? '';
+    if (!preg_match('/^[a-z0-9_-]+$/', $slug)) {
+        mcp_tool_result($id, 'Error: invalid slug. Use lowercase letters, digits, hyphens, underscores only.', true);
+    }
+    $block = outpost_get_block($slug);
+    if ($block === null) {
+        mcp_tool_result($id, "Error: block '{$slug}' not found in active theme.", true);
+    }
+    mcp_tool_result($id, [
+        'slug'        => $block['slug'],
+        'name'        => $block['name'],
+        'description' => $block['description'],
+        'category'    => $block['category'],
+        'icon'        => $block['icon'],
+        'fields'      => $block['fields'],
+        'has_css'     => $block['has_css'],
     ]);
 }
