@@ -1,0 +1,11 @@
+{
+  "name": "News Feed",
+  "slug": "news-feed",
+  "category": "content",
+  "icon": "newspaper",
+  "description": "Latest news and announcements from posts",
+  "fields": [
+    { "key": "feed_title", "label": "Section title", "type": "text", "target": "content", "default": "Latest News" },
+    { "key": "feed_count", "label": "Number of posts", "type": "text", "target": "setting", "default": "3" }
+  ]
+}

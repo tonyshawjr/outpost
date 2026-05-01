@@ -1,0 +1,11 @@
+{
+  "name": "Course List",
+  "slug": "course-list",
+  "category": "data",
+  "icon": "list",
+  "description": "Catalog-driven list of courses with code, title, credits, and description",
+  "fields": [
+    { "key": "list_title", "label": "Title", "type": "text", "target": "content", "default": "Course Catalog" },
+    { "key": "list_subtitle", "label": "Subtitle", "type": "text", "target": "content", "default": "Browse available courses" }
+  ]
+}

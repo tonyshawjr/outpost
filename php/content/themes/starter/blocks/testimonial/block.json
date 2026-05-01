@@ -1,0 +1,14 @@
+{
+  "name": "Testimonial",
+  "slug": "testimonial",
+  "category": "content",
+  "icon": "message-square",
+  "description": "Student or alumni testimonial with photo and quote",
+  "fields": [
+    { "key": "quote", "label": "Quote", "type": "richtext", "target": "content", "default": "This program changed my life. The faculty truly care about student success." },
+    { "key": "author_name", "label": "Name", "type": "text", "target": "content", "default": "Sarah Johnson" },
+    { "key": "author_title", "label": "Title / Program", "type": "text", "target": "content", "default": "Nursing Graduate, Class of 2025" },
+    { "key": "author_photo", "label": "Photo", "type": "image", "target": "content" },
+    { "key": "bg_color", "label": "Background", "type": "color", "target": "setting", "default": "#f8f9fa" }
+  ]
+}

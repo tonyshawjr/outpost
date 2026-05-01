@@ -1,0 +1,12 @@
+{
+  "name": "Compass Explorer",
+  "slug": "compass-embed",
+  "category": "data",
+  "icon": "compass",
+  "description": "Embedded Compass career exploration widget",
+  "fields": [
+    { "key": "compass_title", "label": "Title", "type": "text", "target": "content", "default": "Find Your Path" },
+    { "key": "compass_subtitle", "label": "Subtitle", "type": "text", "target": "content", "default": "Explore careers and programs that match your interests" },
+    { "key": "bg_color", "label": "Background color", "type": "color", "target": "setting", "default": "#7C3AED" }
+  ]
+}

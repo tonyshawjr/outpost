@@ -1,0 +1,17 @@
+{
+  "name": "Stats Row",
+  "slug": "stats-row",
+  "category": "content",
+  "icon": "bar-chart-2",
+  "description": "A row of 3-4 stat numbers with labels",
+  "fields": [
+    { "key": "stat1_number", "label": "Stat 1 number", "type": "text", "target": "content", "default": "95%" },
+    { "key": "stat1_label", "label": "Stat 1 label", "type": "text", "target": "content", "default": "Graduation Rate" },
+    { "key": "stat2_number", "label": "Stat 2 number", "type": "text", "target": "content", "default": "200+" },
+    { "key": "stat2_label", "label": "Stat 2 label", "type": "text", "target": "content", "default": "Programs Offered" },
+    { "key": "stat3_number", "label": "Stat 3 number", "type": "text", "target": "content", "default": "15:1" },
+    { "key": "stat3_label", "label": "Stat 3 label", "type": "text", "target": "content", "default": "Student-Faculty Ratio" },
+    { "key": "stat4_number", "label": "Stat 4 number", "type": "text", "target": "content", "default": "50K+" },
+    { "key": "stat4_label", "label": "Stat 4 label", "type": "text", "target": "content", "default": "Alumni Worldwide" }
+  ]
+}

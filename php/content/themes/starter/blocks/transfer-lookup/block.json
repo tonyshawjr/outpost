@@ -1,0 +1,12 @@
+{
+  "name": "Transfer Lookup",
+  "slug": "transfer-lookup",
+  "category": "data",
+  "icon": "arrow-left-right",
+  "description": "Transfer credit search tool placeholder",
+  "fields": [
+    { "key": "lookup_title", "label": "Title", "type": "text", "target": "content", "default": "Transfer Credit Lookup" },
+    { "key": "lookup_subtitle", "label": "Subtitle", "type": "text", "target": "content", "default": "See how your credits transfer to our programs" },
+    { "key": "bg_color", "label": "Background color", "type": "color", "target": "setting", "default": "#f8f9fa" }
+  ]
+}

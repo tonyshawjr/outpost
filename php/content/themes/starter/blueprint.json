@@ -1,0 +1,94 @@
+{
+  "name": "Starter",
+  "version": "1.0.0",
+  "author": "Kenii",
+  "brand": {
+    "accent_color": "#7C3AED",
+    "heading_font": "Inter",
+    "body_font": "Inter"
+  },
+  "settings": {
+    "nav_layout": {
+      "label": "Navigation layout",
+      "type": "select",
+      "options": ["logo-left", "logo-center", "logo-right"],
+      "default": "logo-left"
+    },
+    "header_style": {
+      "label": "Header style",
+      "type": "select",
+      "options": ["landing", "highlight", "magazine"],
+      "default": "landing"
+    },
+    "site_bg_color": {
+      "label": "Site background",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    "header_footer_color": {
+      "label": "Header & footer color",
+      "type": "color",
+      "default": "#111827"
+    },
+    "header_text": {
+      "label": "Header text",
+      "type": "text",
+      "default": "",
+      "placeholder": "Defaults to site description"
+    },
+    "bg_image": {
+      "label": "Background image",
+      "type": "toggle",
+      "default": true
+    },
+    "post_feed_style": {
+      "label": "Post feed style",
+      "type": "select",
+      "options": ["list", "grid", "cards"],
+      "default": "grid"
+    },
+    "show_feed_images": {
+      "label": "Show images in feed",
+      "type": "toggle",
+      "default": true
+    },
+    "show_author": {
+      "label": "Show author",
+      "type": "toggle",
+      "default": true
+    },
+    "show_publish_date": {
+      "label": "Show publish date",
+      "type": "toggle",
+      "default": true
+    },
+    "show_post_meta": {
+      "label": "Show post metadata",
+      "type": "toggle",
+      "default": true
+    },
+    "enable_drop_caps": {
+      "label": "Enable drop caps",
+      "type": "toggle",
+      "default": false
+    },
+    "show_related": {
+      "label": "Show related articles",
+      "type": "toggle",
+      "default": true
+    }
+  },
+  "templates": [
+    { "slug": "page", "name": "Full Width" },
+    { "slug": "post", "name": "Blog Post" },
+    { "slug": "landing", "name": "Landing Page" }
+  ],
+  "blocks": [
+    "hero", "content-section", "two-column", "cta-band", "stats-row",
+    "testimonial", "faq-accordion", "news-feed", "contact-card",
+    "video-embed", "image-gallery",
+    "program-grid", "course-list", "compass-embed", "transfer-lookup",
+    "apply-now", "financial-aid-callout",
+    "accreditation-badge"
+  ]
+}

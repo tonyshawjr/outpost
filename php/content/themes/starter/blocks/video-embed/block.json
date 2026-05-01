@@ -1,0 +1,12 @@
+{
+  "name": "Video Embed",
+  "slug": "video-embed",
+  "category": "media",
+  "icon": "play-circle",
+  "description": "Responsive video embed with title and optional caption",
+  "fields": [
+    { "key": "video_url", "label": "Video URL", "type": "text", "target": "content", "default": "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+    { "key": "video_title", "label": "Video title", "type": "text", "target": "content", "default": "Campus Tour" },
+    { "key": "caption", "label": "Caption", "type": "text", "target": "content", "default": "" }
+  ]
+}

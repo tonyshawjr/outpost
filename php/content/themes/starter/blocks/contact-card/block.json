@@ -1,0 +1,16 @@
+{
+  "name": "Contact Card",
+  "slug": "contact-card",
+  "category": "content",
+  "icon": "phone",
+  "description": "Department or staff contact information",
+  "fields": [
+    { "key": "contact_name", "label": "Name", "type": "text", "target": "content", "default": "Admissions Office" },
+    { "key": "contact_title", "label": "Title / Department", "type": "text", "target": "content", "default": "Office of Admissions" },
+    { "key": "contact_phone", "label": "Phone", "type": "text", "target": "content", "default": "(555) 123-4567" },
+    { "key": "contact_email", "label": "Email", "type": "text", "target": "content", "default": "admissions@college.edu" },
+    { "key": "contact_hours", "label": "Office Hours", "type": "text", "target": "content", "default": "Mon-Fri 8:00 AM - 5:00 PM" },
+    { "key": "contact_location", "label": "Location", "type": "text", "target": "content", "default": "Building A, Room 101" },
+    { "key": "contact_photo", "label": "Photo", "type": "image", "target": "content" }
+  ]
+}

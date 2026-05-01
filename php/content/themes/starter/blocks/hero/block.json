@@ -1,0 +1,14 @@
+{
+  "name": "Hero Banner",
+  "slug": "hero",
+  "category": "layout",
+  "icon": "layout",
+  "description": "Full-width hero with headline, subtitle, and call-to-action button",
+  "fields": [
+    { "key": "hero_title", "label": "Headline", "type": "text", "target": "content", "default": "Welcome to Our College" },
+    { "key": "hero_subtitle", "label": "Subtitle", "type": "text", "target": "content", "default": "Discover your future with us" },
+    { "key": "hero_cta_text", "label": "Button text", "type": "text", "target": "content", "default": "Explore Programs" },
+    { "key": "hero_cta_url", "label": "Button link", "type": "text", "target": "content", "default": "/programs" },
+    { "key": "bg_color", "label": "Background color", "type": "color", "target": "setting", "default": "#7C3AED" }
+  ]
+}

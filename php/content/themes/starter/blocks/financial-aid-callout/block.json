@@ -1,0 +1,15 @@
+{
+  "name": "Financial Aid Callout",
+  "slug": "financial-aid-callout",
+  "category": "cta",
+  "icon": "dollar-sign",
+  "description": "Two-column financial aid callout with stat highlight",
+  "fields": [
+    { "key": "aid_headline", "label": "Headline", "type": "text", "target": "content", "default": "Financial Aid & Scholarships" },
+    { "key": "aid_body", "label": "Body text", "type": "richtext", "target": "content", "default": "We believe cost should never be a barrier to education. Over 70% of our students receive some form of financial assistance." },
+    { "key": "aid_button_text", "label": "Button text", "type": "text", "target": "content", "default": "Explore Financial Aid" },
+    { "key": "aid_button_url", "label": "Button link", "type": "text", "target": "content", "default": "/financial-aid" },
+    { "key": "stat_number", "label": "Stat number", "type": "text", "target": "content", "default": "70%" },
+    { "key": "stat_label", "label": "Stat label", "type": "text", "target": "content", "default": "of students receive aid" }
+  ]
+}

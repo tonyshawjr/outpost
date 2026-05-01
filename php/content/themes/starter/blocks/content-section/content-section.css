@@ -1,0 +1,7 @@
+/* Content Section — only keep richtext spacing */
+.kenii-content-section p {
+  margin: 0 0 16px;
+}
+.kenii-content-section p:last-child {
+  margin-bottom: 0;
+}

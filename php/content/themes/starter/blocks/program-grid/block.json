@@ -1,0 +1,11 @@
+{
+  "name": "Program Grid",
+  "slug": "program-grid",
+  "category": "data",
+  "icon": "grid-3x3",
+  "description": "Grid display of programs from the catalog",
+  "fields": [
+    { "key": "grid_title", "label": "Title", "type": "text", "target": "content", "default": "Explore Our Programs" },
+    { "key": "grid_subtitle", "label": "Subtitle", "type": "text", "target": "content", "default": "Find the program that's right for you" }
+  ]
+}

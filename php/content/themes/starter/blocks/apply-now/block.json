@@ -1,0 +1,15 @@
+{
+  "name": "Apply Now",
+  "slug": "apply-now",
+  "category": "cta",
+  "icon": "clipboard-check",
+  "description": "Full-width application call-to-action with deadline notice",
+  "fields": [
+    { "key": "apply_headline", "label": "Headline", "type": "text", "target": "content", "default": "Ready to Get Started?" },
+    { "key": "apply_subtitle", "label": "Subtitle", "type": "text", "target": "content", "default": "Apply today — it only takes 15 minutes" },
+    { "key": "apply_button_text", "label": "Button text", "type": "text", "target": "content", "default": "Start Your Application" },
+    { "key": "apply_button_url", "label": "Button link", "type": "text", "target": "content", "default": "/apply" },
+    { "key": "deadline_text", "label": "Deadline text", "type": "text", "target": "content", "default": "Fall 2026 deadline: August 1" },
+    { "key": "bg_color", "label": "Background color", "type": "color", "target": "setting", "default": "#7C3AED" }
+  ]
+}

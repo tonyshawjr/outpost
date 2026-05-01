@@ -1,0 +1,22 @@
+<!-- outpost:program-grid -->
+<section class="kenii-program-grid">
+  <div class="kenii-program-grid__inner">
+    <div class="kenii-program-grid__header">
+      <h2 class="kenii-program-grid__title" data-outpost="grid_title">Explore Our Programs</h2>
+      <p class="kenii-program-grid__subtitle" data-outpost="grid_subtitle">Find the program that's right for you</p>
+    </div>
+    <div class="kenii-program-grid__cards">
+      <outpost-each collection="programs">
+        <a class="kenii-program-grid__card" href="{{url}}">
+          <h3 class="kenii-program-grid__card-title">{{title}}</h3>
+          <span class="kenii-program-grid__card-area">{{area}}</span>
+          <span class="kenii-program-grid__card-credentials">{{credential_count}} credential(s)</span>
+        </a>
+      </outpost-each>
+    </div>
+    <div class="kenii-program-grid__footer">
+      <a class="kenii-program-grid__view-all" href="/programs">View All Programs</a>
+    </div>
+  </div>
+</section>
+<!-- /outpost:program-grid -->

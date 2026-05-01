@@ -1,0 +1,13 @@
+{
+  "name": "CTA Band",
+  "slug": "cta-band",
+  "category": "layout",
+  "icon": "megaphone",
+  "description": "Colored banner with headline and call-to-action button",
+  "fields": [
+    { "key": "cta_headline", "label": "Headline", "type": "text", "target": "content", "default": "Ready to get started?" },
+    { "key": "cta_button_text", "label": "Button text", "type": "text", "target": "content", "default": "Apply Now" },
+    { "key": "cta_button_url", "label": "Button link", "type": "text", "target": "content", "default": "/apply" },
+    { "key": "bg_color", "label": "Background color", "type": "color", "target": "setting", "default": "#7C3AED" }
+  ]
+}

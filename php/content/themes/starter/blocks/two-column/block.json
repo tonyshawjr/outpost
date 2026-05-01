@@ -1,0 +1,13 @@
+{
+  "name": "Two Column",
+  "slug": "two-column",
+  "category": "layout",
+  "icon": "columns",
+  "description": "Two columns with text on one side and image on the other",
+  "fields": [
+    { "key": "col_title", "label": "Title", "type": "text", "target": "content", "default": "Why Choose Us" },
+    { "key": "col_body", "label": "Body", "type": "richtext", "target": "content", "default": "We offer an exceptional education experience." },
+    { "key": "col_image", "label": "Image", "type": "image", "target": "content", "default": "" },
+    { "key": "layout", "label": "Layout", "type": "select", "target": "setting", "options": ["text-left", "text-right"], "default": "text-left" }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Image Gallery",
+  "slug": "image-gallery",
+  "category": "media",
+  "icon": "images",
+  "description": "Grid gallery of images with optional captions",
+  "fields": [
+    { "key": "gallery_title", "label": "Section title", "type": "text", "target": "content", "default": "Campus Gallery" },
+    { "key": "image_1", "label": "Image 1", "type": "image", "target": "content" },
+    { "key": "caption_1", "label": "Caption 1", "type": "text", "target": "content", "default": "" },
+    { "key": "image_2", "label": "Image 2", "type": "image", "target": "content" },
+    { "key": "caption_2", "label": "Caption 2", "type": "text", "target": "content", "default": "" },
+    { "key": "image_3", "label": "Image 3", "type": "image", "target": "content" },
+    { "key": "caption_3", "label": "Caption 3", "type": "text", "target": "content", "default": "" },
+    { "key": "image_4", "label": "Image 4", "type": "image", "target": "content" },
+    { "key": "caption_4", "label": "Caption 4", "type": "text", "target": "content", "default": "" },
+    { "key": "image_5", "label": "Image 5", "type": "image", "target": "content" },
+    { "key": "caption_5", "label": "Caption 5", "type": "text", "target": "content", "default": "" },
+    { "key": "image_6", "label": "Image 6", "type": "image", "target": "content" },
+    { "key": "caption_6", "label": "Caption 6", "type": "text", "target": "content", "default": "" },
+    { "key": "columns", "label": "Columns", "type": "select", "target": "setting", "default": "3", "options": ["2", "3", "4"] }
+  ]
+}

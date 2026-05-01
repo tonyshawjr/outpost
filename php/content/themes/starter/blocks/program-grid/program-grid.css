@@ -1,0 +1,90 @@
+.kenii-program-grid {
+  padding: var(--kenii-space-3xl) var(--kenii-page-padding);
+}
+.kenii-program-grid__inner {
+  max-width: var(--kenii-container-max);
+  margin: 0 auto;
+}
+.kenii-program-grid__header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.kenii-program-grid__title {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: var(--kenii-font-heading);
+  color: var(--kenii-black);
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+.kenii-program-grid__subtitle {
+  font-size: 18px;
+  color: var(--kenii-gray-500);
+  margin: 0;
+  line-height: 1.5;
+}
+.kenii-program-grid__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--kenii-space-lg);
+}
+.kenii-program-grid__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--kenii-space-lg);
+  border: 1px solid var(--kenii-gray-200);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s;
+  background: var(--kenii-white);
+}
+.kenii-program-grid__card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--kenii-shadow-md);
+}
+.kenii-program-grid__card-title {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--kenii-font-heading);
+  color: var(--kenii-black);
+  margin: 0;
+}
+.kenii-program-grid__card-area {
+  font-size: 13px;
+  color: var(--kenii-primary);
+  font-weight: 500;
+}
+.kenii-program-grid__card-credentials {
+  font-size: 13px;
+  color: var(--kenii-gray-400);
+}
+.kenii-program-grid__footer {
+  text-align: center;
+  margin-top: 36px;
+}
+.kenii-program-grid__view-all {
+  display: inline-block;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--kenii-primary);
+  border: 2px solid var(--kenii-primary);
+  border-radius: var(--kenii-radius);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.kenii-program-grid__view-all:hover {
+  background: var(--kenii-primary);
+  color: var(--kenii-white);
+}
+@media (max-width: 1024px) {
+  .kenii-program-grid__cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .kenii-program-grid { padding: 40px 16px; }
+  .kenii-program-grid__title { font-size: 24px; }
+  .kenii-program-grid__subtitle { font-size: 16px; }
+  .kenii-program-grid__cards { grid-template-columns: 1fr; }
+}

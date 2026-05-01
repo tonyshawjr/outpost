@@ -1,0 +1,12 @@
+{
+  "name": "Content Section",
+  "slug": "content-section",
+  "category": "content",
+  "icon": "file-text",
+  "description": "Simple content block with title and rich text body",
+  "fields": [
+    { "key": "section_title", "label": "Title", "type": "text", "target": "content", "default": "About Us" },
+    { "key": "section_body", "label": "Body", "type": "richtext", "target": "content", "default": "Share your story here." },
+    { "key": "bg_color", "label": "Background color", "type": "color", "target": "setting", "default": "#ffffff" }
+  ]
+}

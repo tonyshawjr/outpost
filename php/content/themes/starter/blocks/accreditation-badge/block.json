@@ -1,0 +1,12 @@
+{
+  "name": "Accreditation Badge",
+  "slug": "accreditation-badge",
+  "category": "compliance",
+  "icon": "shield-check",
+  "description": "Understated accreditation notice with link",
+  "fields": [
+    { "key": "badge_text", "label": "Accreditation text", "type": "richtext", "target": "content", "default": "Accredited by the Southern Association of Colleges and Schools Commission on Colleges (SACSCOC) to award associate degrees." },
+    { "key": "badge_link", "label": "Link URL", "type": "text", "target": "content", "default": "https://www.sacscoc.org" },
+    { "key": "badge_link_text", "label": "Link text", "type": "text", "target": "content", "default": "Learn more about our accreditation" }
+  ]
+}

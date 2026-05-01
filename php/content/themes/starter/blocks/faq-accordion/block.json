@@ -1,0 +1,18 @@
+{
+  "name": "FAQ Accordion",
+  "slug": "faq-accordion",
+  "category": "content",
+  "icon": "help-circle",
+  "description": "Expandable frequently asked questions",
+  "fields": [
+    { "key": "faq_title", "label": "Section title", "type": "text", "target": "content", "default": "Frequently Asked Questions" },
+    { "key": "faq_1_q", "label": "Question 1", "type": "text", "target": "content", "default": "How do I apply?" },
+    { "key": "faq_1_a", "label": "Answer 1", "type": "richtext", "target": "content", "default": "Visit our admissions page to start your application online." },
+    { "key": "faq_2_q", "label": "Question 2", "type": "text", "target": "content", "default": "What financial aid is available?" },
+    { "key": "faq_2_a", "label": "Answer 2", "type": "richtext", "target": "content", "default": "We offer federal grants, scholarships, and work-study programs." },
+    { "key": "faq_3_q", "label": "Question 3", "type": "text", "target": "content", "default": "When does registration open?" },
+    { "key": "faq_3_a", "label": "Answer 3", "type": "richtext", "target": "content", "default": "Registration typically opens 6 weeks before the start of each semester." },
+    { "key": "faq_4_q", "label": "Question 4", "type": "text", "target": "content", "default": "Do you offer online classes?" },
+    { "key": "faq_4_a", "label": "Answer 4", "type": "richtext", "target": "content", "default": "Yes, we offer a growing selection of fully online and hybrid courses." }
+  ]
+}
