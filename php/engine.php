@@ -37,6 +37,7 @@ function outpost_init(): void {
     // Run migrations (idempotent)
     ensure_fields_theme_column();
     ensure_indexes();
+    outpost_ensure_page_blocks_table();
     outpost_migrate_v5();
 
     // v5: no theme layer — always empty
@@ -1848,6 +1849,29 @@ function ensure_indexes(): void {
     $db = OutpostDB::connect();
     $db->exec("CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status)");
+}
+
+/**
+ * v6: ensure page_blocks table exists.
+ * Stores ordered block instances per page (Sites-style page builder data model).
+ * Idempotent — safe to call on every request.
+ */
+function outpost_ensure_page_blocks_table(): void {
+    $db = OutpostDB::connect();
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS page_blocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            page_id INTEGER NOT NULL,
+            block_slug TEXT NOT NULL,
+            position INTEGER NOT NULL DEFAULT 0,
+            fields TEXT NOT NULL DEFAULT '{}',
+            settings TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_page_blocks_page_pos ON page_blocks(page_id, position)");
 }
 
 // ── v5 Migration: Remove theme layer ─────────────────────

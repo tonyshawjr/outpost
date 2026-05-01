@@ -243,11 +243,25 @@ class OutpostDB {
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
+            -- v6: ordered list of block instances per page (Sites-style page builder)
+            CREATE TABLE IF NOT EXISTS page_blocks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                page_id INTEGER NOT NULL,
+                block_slug TEXT NOT NULL,
+                position INTEGER NOT NULL DEFAULT 0,
+                fields TEXT NOT NULL DEFAULT '{}',
+                settings TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE
+            );
+
             CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme);
             CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status);
             CREATE INDEX IF NOT EXISTS idx_revisions_entity ON revisions(entity_type, entity_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_media_folder_items_folder ON media_folder_items(folder_id);
             CREATE INDEX IF NOT EXISTS idx_media_folder_items_media ON media_folder_items(media_id);
+            CREATE INDEX IF NOT EXISTS idx_page_blocks_page_pos ON page_blocks(page_id, position);
         ");
     }
 }
