@@ -268,6 +268,11 @@ match (true) {
     // v6: Page blocks (Sites-style page builder)
     $action === 'pages/blocks' && $method === 'GET' => handle_page_blocks_get(),
     $action === 'pages/blocks' && $method === 'PUT' => handle_page_blocks_save(),
+    $action === 'pages/blocks/render' && $method === 'GET' => handle_page_blocks_render(),
+
+    // v6: Block library (active theme)
+    $action === 'blocks' && $method === 'GET' => handle_blocks_list(),
+    $action === 'blocks/get' && $method === 'GET' => handle_blocks_get(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -1580,6 +1585,52 @@ function handle_page_blocks_save(): void {
     OutpostDB::update('pages', ['updated_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
 
     json_response(['ok' => true, 'count' => count($body['blocks'])]);
+}
+
+// v6: Block library API — backs the PageBuilder block picker
+function handle_blocks_list(): void {
+    if (!function_exists('outpost_scan_blocks')) {
+        require_once __DIR__ . '/blocks.php';
+    }
+    $blocks = outpost_scan_blocks();
+    // Strip absolute file paths from response (security: don't leak server paths)
+    foreach ($blocks as &$b) {
+        unset($b['html_file'], $b['css_file']);
+    }
+    json_response(['blocks' => $blocks]);
+}
+
+function handle_blocks_get(): void {
+    if (!function_exists('outpost_get_block')) {
+        require_once __DIR__ . '/blocks.php';
+    }
+    $slug = $_GET['slug'] ?? '';
+    if (!is_string($slug) || !preg_match('/^[a-z0-9_-]+$/', $slug)) {
+        json_error('Invalid slug', 400);
+    }
+    $block = outpost_get_block($slug);
+    if (!$block) json_error('Block not found in active theme', 404);
+    unset($block['html_file'], $block['css_file']);
+    // Include raw HTML + CSS for the editor to show previews
+    if (function_exists('outpost_get_block_html')) {
+        $block['html'] = outpost_get_block_html($slug);
+    }
+    if (function_exists('outpost_get_block_css')) {
+        $block['css'] = outpost_get_block_css($slug);
+    }
+    json_response($block);
+}
+
+function handle_page_blocks_render(): void {
+    $id = (int) ($_GET['id'] ?? 0);
+    if (!$id) json_error('Page id required', 400);
+    if (!OutpostDB::fetchOne('SELECT id FROM pages WHERE id = ?', [$id])) {
+        json_error('Page not found', 404);
+    }
+    if (!function_exists('cms_page_blocks')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    json_response(['html' => cms_page_blocks($id)]);
 }
 
 function handle_page_get(): void {
