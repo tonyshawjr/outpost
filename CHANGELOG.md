@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.2] — 2026-05-01
+
+Visual identity port + Code Editor scoping fix. The big visible change beta.1 was missing.
+
+### Added
+- **Sites design language** ported across the admin shell: dark-first palette (purple accent), Sites' typography scale, spacing primitives, `:root.dark` and `:root.light` token blocks.
+- **Sidebar redesigned** with Sites' visual structure (`.sb-*` classes, grouped sections, bottom user card with dropdown for Profile / Search / theme toggle / Sign out). All Outpost-specific nav items preserved (Channels, Lodge, Releases, Workflows, Redirects, Review Links, Analytics, Calendar, Backups, Forms, etc.).
+- **Dashboard rewritten** with Sites' Ghost-inspired layout (greeting + 3-card stats + line chart + bar/donut row + tabbed recent activity). Generic Outpost data sources (no Kenii-specific widgets).
+- **Page Builder + Design** admin pages — already in beta.1; visible now that the Sidebar surfaces them under Build.
+
+### Changed
+- **Dark theme is the default** on first install (matches Sites' first-impression). Existing localStorage preference still respected.
+- **Code Editor scoped to OUTPOST_THEMES_DIR** instead of OUTPOST_SITE_ROOT. The editor now only exposes themes (starter/, forge-playground/, personal/, skeleton/) — never reaches outside the themes directory.
+- **App.svelte** drops the TopBar (Sites folds top utility into the sidebar bottom card). Watermark footer with version pill preserved.
+- **stores.js** adds `activeModule` writable for forward-compatibility with ported components.
+
+### Notes / Known Issues
+- Design panel still mounts to a `brandSettings.get()` shape that needs server-side adaptation — Page Builder works fully.
+- Several admin sub-pages (CollectionList, MediaLibrary, Brand, Forms, Workflows, etc.) inherit the new design tokens but haven't yet had a section-specific port from Sites. Those will land in subsequent betas as section-by-section work continues.
+
+---
+
 ## [6.0.0-beta.1] — 2026-05-01
 
 First public beta of Outpost v6. Sites-style page builder, foundation for AI-driven content composition. **Beta — try on staging first.** Existing v5 sites upgrade in place; data is preserved; the new `page_blocks` table is created on first request after upgrade via an idempotent migration.
