@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.1] — 2026-05-01
+
+First public beta of Outpost v6. Sites-style page builder, foundation for AI-driven content composition. **Beta — try on staging first.** Existing v5 sites upgrade in place; data is preserved; the new `page_blocks` table is created on first request after upgrade via an idempotent migration.
+
+### Added
+- **Sites starter theme** — 18 blocks (hero, content-section, two-column, cta-band, stats-row, testimonial, faq-accordion, news-feed, contact-card, video-embed, image-gallery + 7 institution-specific). Each block is a folder with `block.json`, `{slug}.html` with `data-outpost` markers, and `{slug}.css`.
+- **Block registry** — `php/blocks.php` scans the active theme's `blocks/` folder. Auto-detects fields from `data-outpost` attrs when no `block.json` is present.
+- **`page_blocks` data model** — new SQLite table storing ordered block instances per page (`id, page_id, block_slug, position, fields JSON, settings JSON`).
+- **`cms_page_blocks()` engine helper** — reads `page_blocks` for the current page, renders each block via DOMDocument substitution (text / image / link / richtext field types). Tags rendered block roots with `data-outpost-block` for editor targeting.
+- **`<outpost-page-blocks />` template element** + **`{{blocks}}`** alias — drop into any v2 HTML template to render the page's block instances.
+- **Page Builder admin** — Sites' PageBuilder.svelte ported. Drag-drop block layout, inline field editing, live preview.
+- **Design panel admin** — Sites' Design.svelte ported. Live-preview Brand/Theme tabs.
+- **Template hierarchy** — `outpost_resolve_single_template()` walks `single-{type}.html` → `{type}.html` → `single.html` → `post.html`. Used by collection routing and channel routing.
+- **8 new MCP tools** — `list_blocks`, `get_block_schema`, `list_channels`, `get_channel_schema`, `list_templates`, `compose_page`, `add_block_to_page`, `set_block_field`. Total MCP tools: 23 (was 15).
+- **5 new REST API endpoints** — `GET pages/blocks`, `PUT pages/blocks`, `GET pages/blocks/render`, `GET blocks`, `GET blocks/get`.
+
+### Changed
+- `php/blocks.php` Outpost-ized — functions renamed `kenii_*` → `outpost_*`. Aliases preserved for one major version (remove in v7).
+
+### Notes / Known Issues
+- Design panel mounts but its `brandSettings.get()` API expects a `{ blueprint, saved }` shape that Outpost's existing `/brand` endpoint doesn't yet return. Page Builder works fully; Design tab is a beta-quality first-mount.
+- Two non-blocking Svelte 5 deprecation warnings in PageBuilder.svelte about `<svelte:component>` — cosmetic.
+- `compose_page` MCP tool errors if you reference a block that's not in the active theme's library — call `list_blocks` first.
+
+---
+
 ## [5.1.3] — 2026-04-13
 
 ### Fixed
