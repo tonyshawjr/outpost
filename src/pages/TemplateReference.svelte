@@ -873,16 +873,16 @@
 <style>
   /* ── Root / Layout ───────────────────────────────────────── */
   .tr-root {
-    --tr-hover: var(--bg-hover);
-    --tr-active: var(--bg-active);
+    --tr-hover: var(--hover);
+    --tr-active: var(--hover);
 
     display: flex;
     height: calc(100vh - 60px);
     overflow: hidden;
     margin: calc(-1 * var(--space-2xl));
     margin-top: calc(-1 * var(--space-xl));
-    background: var(--bg-primary);
-    font-family: var(--font-sans);
+    background: var(--bg);
+    font-family: var(--font);
     font-size: 15px;
     color: var(--text);
     line-height: 1.6;
@@ -896,7 +896,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg-primary);
+    background: var(--bg);
   }
 
   .tr-col1-nav {
@@ -921,7 +921,7 @@
     background: none;
     border: none;
     border-bottom: 1px solid var(--border-light);
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 15px;
     color: var(--text);
     cursor: pointer;
@@ -931,7 +931,7 @@
   .tr-nav-row:hover { background: var(--tr-hover); }
   .tr-nav-row.active { background: var(--forest-light); color: var(--forest); font-weight: 500; }
   .tr-nav-row.active .tr-chevron { stroke: var(--forest); opacity: 0.7; }
-  .tr-chevron { color: var(--text-light); flex-shrink: 0; }
+  .tr-chevron { color: var(--dim); flex-shrink: 0; }
 
   .tr-nav-back {
     display: flex;
@@ -943,7 +943,7 @@
     background: none;
     border: none;
     border-bottom: 1px solid var(--border-light);
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 13px;
     color: var(--text-muted);
     cursor: pointer;
@@ -960,7 +960,7 @@
     padding: 0 16px;
     background: none;
     border: none;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 14px;
     color: var(--text);
     cursor: pointer;
@@ -989,7 +989,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg-primary);
+    background: var(--bg);
   }
 
   .tr-col2-empty {
@@ -998,7 +998,7 @@
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    color: var(--text-light);
+    color: var(--dim);
     padding: 24px;
     text-align: center;
   }
@@ -1010,7 +1010,7 @@
   }
 
   .tr-fields-title {
-    font-family: var(--font-serif);
+    font-family: var(--font);
     font-size: 18px;
     font-weight: 600;
     color: var(--text);
@@ -1051,7 +1051,7 @@
     border-bottom: 1px solid var(--border-light);
     cursor: pointer;
     text-align: left;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     transition: background var(--transition-fast);
   }
   .tr-field-row:hover { background: var(--tr-hover); }
@@ -1088,7 +1088,7 @@
   .tr-field-snip {
     font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--text-secondary);
+    color: var(--sec);
     white-space: nowrap;
     flex-shrink: 0;
     max-width: 115px;
@@ -1102,8 +1102,8 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-light);
-    background: var(--bg-primary);
+    color: var(--dim);
+    background: var(--bg);
     border-bottom: 1px solid var(--border-light);
   }
 
@@ -1117,7 +1117,7 @@
   .tr-globals-note code {
     font-family: var(--font-mono);
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--sec);
     background: var(--tr-hover);
     padding: 1px 5px;
     border-radius: 4px;
@@ -1130,7 +1130,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg-primary);
+    background: var(--bg);
   }
 
   .tr-col3-empty {
@@ -1139,7 +1139,7 @@
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    color: var(--text-light);
+    color: var(--dim);
     text-align: center;
   }
 
@@ -1199,7 +1199,7 @@
     background: none;
     border: none;
     border-radius: 5px;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 12px;
     color: var(--code-comment);
     cursor: pointer;
@@ -1273,7 +1273,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 28px 32px;
-    background: var(--bg-primary);
+    background: var(--bg);
   }
 
   .tr-syntax-section {
@@ -1297,7 +1297,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-tertiary);
+    background: var(--hover);
     border-radius: var(--radius-sm);
     padding: 10px 14px;
     gap: 8px;

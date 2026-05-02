@@ -95,18 +95,18 @@
   }
   .form-hint {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: var(--space-xs);
   }
   .form-hint code {
     font-family: var(--font-mono);
-    background: var(--bg-tertiary);
+    background: var(--hover);
     padding: 1px 4px;
     border-radius: 3px;
   }
   .settings-section-desc code {
     font-family: var(--font-mono);
-    background: var(--bg-tertiary);
+    background: var(--hover);
     padding: 1px 4px;
     border-radius: 3px;
   }

@@ -1,12 +1,14 @@
 <script>
   import { onMount } from 'svelte';
   import { items as itemsApi, collections as collectionsApi, folders as foldersApi, workflows as workflowsApi, comments as commentsApi } from '$lib/api.js';
-  import { currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin, user } from '$lib/stores.js';
+  import { currentRoute, currentCollectionSlug, collectionsList, navigate, addToast, currentStatusFilter, isAdmin, user } from '$lib/stores.js';
   import { formatDateOnly } from '$lib/utils.js';
   import EmptyState from '$components/EmptyState.svelte';
   import LabelSidebar from '$components/LabelSidebar.svelte';
+  import Checkbox from '$components/Checkbox.svelte';
 
-  let activeSlug = $derived($currentCollectionSlug);
+  let routeName = $derived($currentRoute);
+  let activeSlug = $derived($currentCollectionSlug || routeName);
   let colls = $derived($collectionsList);
   let activeColl = $derived(colls.find((c) => c.slug === activeSlug));
   let items = $state([]);
@@ -321,19 +323,22 @@
 
   async function createNewItem() {
     if (!activeSlug || !activeColl || creatingItem) return;
+
+    if (activeSlug === 'pages') {
+      navigate('page-builder', { pageId: 0 });
+      return;
+    }
+
     creatingItem = true;
     try {
-      // Auto-generate a unique slug
       const timestamp = Date.now().toString(36);
       const slug = `untitled-${timestamp}`;
-
       const result = await itemsApi.create({
         collection_id: activeColl.id,
         slug,
         data: { title: '' },
         status: 'draft',
       });
-
       const newId = result.item?.id || result.id;
       if (newId) {
         navigate('collection-editor', { itemId: newId, collectionSlug: activeSlug });
@@ -371,7 +376,11 @@
   }
 
   function editItem(item) {
-    navigate('collection-editor', { itemId: item.id, collectionSlug: activeSlug });
+    if (activeSlug === 'pages') {
+      navigate('page-builder', { pageId: item.id });
+    } else {
+      navigate('collection-editor', { itemId: item.id, collectionSlug: activeSlug });
+    }
   }
 
   function setStatusFilter(status) {
@@ -569,14 +578,9 @@
       {:else}
         <!-- Column Headers -->
         <div class="list-col-headers">
-          <label class="col-h-check" onclick={(e) => e.stopPropagation()}>
-            <input
-              type="checkbox"
-              checked={allVisibleSelected}
-              onchange={toggleSelectAll}
-              class="bulk-checkbox"
-            />
-          </label>
+          <div class="col-h-check" onclick={(e) => e.stopPropagation()}>
+            <Checkbox checked={allVisibleSelected} onchange={toggleSelectAll} />
+          </div>
           <span class="col-h-left">TITLE</span>
           <div class="col-h-right">
             <span class="col-h-status">STATUS</span>
@@ -608,14 +612,9 @@
               ondragstart={(e) => hasFolders && onItemDragStart(e, item)}
               ondragend={() => dragItemId = null}
             >
-              <label class="row-check" onclick={(e) => e.stopPropagation()}>
-                <input
-                  type="checkbox"
-                  checked={selected.has(item.id)}
-                  onchange={(e) => toggleSelect(item.id, e)}
-                  class="bulk-checkbox"
-                />
-              </label>
+              <div class="row-check" onclick={(e) => e.stopPropagation()}>
+                <Checkbox checked={selected.has(item.id)} onchange={() => { const next = new Set(selected); if (next.has(item.id)) next.delete(item.id); else next.add(item.id); selected = next; }} />
+              </div>
               <div class="list-row-left">
                 <div class="list-row-title">{getItemTitle(item)}</div>
                 <div class="list-row-subtitle">{getItemSubtitle(item)}</div>
@@ -703,12 +702,14 @@
   .list-col-headers {
     display: flex;
     align-items: center;
-    padding: var(--space-sm) var(--space-lg);
-    font-size: 11px;
+    gap: 14px;
+    padding: 10px 28px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-    border-bottom: 1px solid var(--border-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
     user-select: none;
   }
 
@@ -744,17 +745,17 @@
     gap: 4px;
     background: none;
     border: none;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     padding: 0;
     text-transform: uppercase;
     white-space: nowrap;
   }
-  .sort-btn:hover { color: var(--text-primary); }
+  .sort-btn:hover { color: var(--text); }
 
   /* ── Checkbox ──────────────────────────────────────── */
   .col-h-check,
@@ -762,7 +763,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
+    width: 32px;
     flex-shrink: 0;
     cursor: pointer;
   }
@@ -770,7 +771,7 @@
   .bulk-checkbox {
     width: 15px;
     height: 15px;
-    accent-color: var(--text-primary);
+    accent-color: var(--text);
     cursor: pointer;
     margin: 0;
     opacity: 0.35;
@@ -790,14 +791,14 @@
     align-items: center;
     gap: var(--space-md);
     padding: var(--space-sm) var(--space-lg);
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-primary);
+    background: var(--hover);
+    border-bottom: 1px solid var(--border);
   }
 
   .bulk-count {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     white-space: nowrap;
   }
 
@@ -826,7 +827,7 @@
     justify-content: center;
     background: none;
     border: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     padding: 4px;
     border-radius: var(--radius-sm);
@@ -835,7 +836,7 @@
   }
 
   .bulk-clear:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   /* ── Rows ─────────────────────────────────────────── */
@@ -847,41 +848,39 @@
   .list-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: var(--space-md) var(--space-lg);
+    gap: 14px;
+    padding: 14px 28px;
     cursor: pointer;
-    transition: background var(--transition-fast);
-    border-radius: 0;
+    transition: background .08s;
+    border-bottom: 1px solid var(--border);
   }
 
   .list-row:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .list-row.selected {
-    background: var(--bg-tertiary);
+    background: var(--hover);
   }
 
   .list-row-left {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .list-row-title {
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text-primary);
-    line-height: 1.3;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text);
   }
 
   .list-row-subtitle {
-    font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
-    margin-top: 2px;
+    font-size: 13px;
+    color: var(--dim);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 600px;
   }
 
   .list-row-right {
@@ -897,7 +896,7 @@
     align-items: center;
     gap: 3px;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     white-space: nowrap;
     padding: 2px 6px;
     border-radius: 4px;
@@ -905,13 +904,13 @@
   }
 
   .list-row:hover .comment-badge {
-    color: var(--text-secondary);
-    background: var(--bg-tertiary);
+    color: var(--sec);
+    background: var(--hover);
   }
 
   .list-row-time {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
     white-space: nowrap;
   }
 
@@ -975,9 +974,9 @@
     border-radius: 99px;
     font-size: 13px;
     font-weight: 500;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-primary);
+    background: var(--hover);
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 
   .filter-pill-dot {
@@ -998,7 +997,7 @@
     background: none;
     border: none;
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     padding: 2px 4px;
     border-radius: var(--radius-sm);
@@ -1006,7 +1005,7 @@
   }
 
   .filter-clear:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .status-scheduled {
@@ -1086,7 +1085,7 @@
     font-size: 13px;
     margin-bottom: 12px;
     background: var(--bg-primary, #fff);
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .schedule-modal-actions {
@@ -1125,8 +1124,8 @@
     top: 100%;
     left: 0;
     margin-top: 4px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-primary);
+    background: var(--bg);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     min-width: 160px;
@@ -1142,19 +1141,19 @@
     border: none;
     background: none;
     font-size: 13px;
-    color: var(--text-primary);
+    color: var(--text);
     text-align: left;
     cursor: pointer;
     transition: background 0.1s;
   }
   .label-dropdown-item:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .label-dropdown-empty {
     padding: 8px 14px;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   /* ── Workflow status & transitions ──────────────────── */
@@ -1172,8 +1171,8 @@
     top: 100%;
     right: 0;
     margin-top: 4px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-primary);
+    background: var(--bg);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     min-width: 140px;
@@ -1190,14 +1189,14 @@
     border: none;
     background: none;
     font-size: 13px;
-    color: var(--text-primary);
+    color: var(--text);
     text-align: left;
     cursor: pointer;
     transition: background 0.1s;
   }
 
   .wf-transition-item:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .wf-transition-dot {

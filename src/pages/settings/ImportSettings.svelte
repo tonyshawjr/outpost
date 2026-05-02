@@ -143,28 +143,28 @@
     gap: 28px;
   }
   .import-row { display: flex; flex-direction: column; gap: 6px; }
-  .form-hint { font-size: 12px; color: var(--text-tertiary); margin: 0; }
+  .form-hint { font-size: 12px; color: var(--dim); margin: 0; }
   .radio-group { display: flex; flex-direction: column; gap: 8px; }
-  .radio-option { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--text-primary); }
+  .radio-option { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; color: var(--text); }
   .drop-zone {
-    border: 1.5px dashed var(--border-secondary);
+    border: 1.5px dashed var(--border);
     border-radius: 10px; padding: 36px 24px; text-align: center;
     transition: border-color 0.15s, background 0.15s; background: transparent;
   }
-  .drop-zone.dragging { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, transparent); }
-  .drop-zone-label { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: var(--text-tertiary); }
-  .drop-zone-file { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--text-primary); }
-  .drop-zone-clear { background: none; border: none; cursor: pointer; color: var(--text-tertiary); padding: 0 4px; font-size: 14px; line-height: 1; }
-  .drop-zone-clear:hover { color: var(--text-primary); }
+  .drop-zone.dragging { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 5%, transparent); }
+  .drop-zone-label { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: var(--dim); }
+  .drop-zone-file { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--text); }
+  .drop-zone-clear { background: none; border: none; cursor: pointer; color: var(--dim); padding: 0 4px; font-size: 14px; line-height: 1; }
+  .drop-zone-clear:hover { color: var(--text); }
   .import-actions { display: flex; gap: 12px; }
   .import-result { padding: 16px 20px; border-radius: 8px; font-size: 14px; }
   .import-result.success { background: color-mix(in srgb, var(--success) 8%, transparent); border: 1px solid color-mix(in srgb, var(--success) 20%, transparent); }
   .import-result.error { background: color-mix(in srgb, var(--error) 8%, transparent); border: 1px solid color-mix(in srgb, var(--error) 20%, transparent); }
   .result-row { display: flex; justify-content: space-between; padding: 4px 0; }
-  .result-label { color: var(--text-tertiary); }
+  .result-label { color: var(--dim); }
   .result-val { font-weight: 600; }
   .result-errors { margin-top: 12px; font-size: 13px; }
-  .result-errors summary { cursor: pointer; color: var(--text-tertiary); }
+  .result-errors summary { cursor: pointer; color: var(--dim); }
   .result-errors ul { margin: 8px 0 0 16px; }
   .result-errors li { margin-bottom: 4px; }
 </style>

@@ -14,7 +14,7 @@
   let formPassword = $state('');
   let formRole = $state('admin');
 
-  const config = window.__OUTPOST_CONFIG__ || {};
+  const config = window.__KENII_CONFIG__ || {};
   const currentUserId = config.user?.id;
   let admin = $derived($isAdmin);
 
@@ -122,7 +122,7 @@
   {:else if usersList.length === 0}
     <div class="empty-state">
       <div class="empty-state-title">No users yet</div>
-      <p style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+      <p style="font-size: var(--font-size-sm); color: var(--sec);">
         Create your first user to get started.
       </p>
     </div>
@@ -253,7 +253,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .users-list {
     display: flex;
@@ -268,7 +268,7 @@
     cursor: pointer;
   }
   .users-row:hover {
-    background-color: var(--bg-hover);
+    background-color: var(--hover);
   }
   .users-col-name {
     flex: 1;
@@ -307,25 +307,25 @@
   .user-name {
     font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .user-email {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .user-role {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
   .user-active {
     font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .user-delete-btn {
     opacity: 0;
@@ -333,7 +333,7 @@
     border: none;
     padding: var(--space-xs);
     cursor: pointer;
-    color: var(--text-tertiary);
+    color: var(--dim);
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -343,7 +343,7 @@
   .users-row:hover .user-delete-btn { opacity: 1; }
   .user-delete-btn:hover {
     color: var(--danger, #e53e3e);
-    background-color: var(--bg-tertiary);
+    background-color: var(--hover);
   }
 
   @media (max-width: 768px) {

@@ -82,7 +82,7 @@
   }
 
   .dash-greeting {
-    font-family: var(--font-serif);
+    font-family: var(--font);
     font-size: 28px;
     font-weight: 600;
     color: var(--text);

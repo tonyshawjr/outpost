@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { backup as backupApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let backups = $state([]);
   let loading = $state(true);
@@ -271,14 +272,9 @@
       <div class="bk-settings-loading">Loading settings...</div>
     {:else}
       <div class="bk-settings">
-        <label class="bk-toggle-row">
-          <input
-            type="checkbox"
-            bind:checked={autoEnabled}
-            onchange={handleSettingChange}
-          />
-          <span>Enable automatic backups</span>
-        </label>
+        <div class="bk-toggle-row">
+          <Checkbox bind:checked={autoEnabled} onchange={handleSettingChange} label="Enable automatic backups" />
+        </div>
 
         {#if autoEnabled}
           <div class="bk-settings-fields">
@@ -333,7 +329,7 @@
   /* ── Section layout ── */
   .bk-section {
     padding: var(--space-xl) 0;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   .bk-label {
@@ -341,13 +337,13 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: var(--space-md);
   }
 
   .bk-desc {
     font-size: var(--text-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 0 0 var(--space-md);
     line-height: 1.5;
   }
@@ -359,13 +355,13 @@
 
   .bk-empty-text {
     font-size: var(--text-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin: 0;
   }
 
   /* ── Table ── */
   .bk-table {
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
   }
@@ -375,13 +371,13 @@
     grid-template-columns: 1fr 80px 160px 160px;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
-    background: var(--bg-secondary);
+    background: var(--raised);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-    border-bottom: 1px solid var(--border-primary);
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
   }
 
   .bk-table-row {
@@ -391,8 +387,8 @@
     padding: var(--space-sm) var(--space-md);
     align-items: center;
     font-size: var(--text-sm);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-primary);
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
     transition: background 0.1s;
   }
 
@@ -401,7 +397,7 @@
   }
 
   .bk-table-row:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .bk-filename {
@@ -414,7 +410,7 @@
 
   .bk-col-size,
   .bk-col-date {
-    color: var(--text-secondary);
+    color: var(--sec);
     font-size: 13px;
   }
 
@@ -430,9 +426,9 @@
     padding: 0;
     font-size: 13px;
     font-weight: 500;
-    color: var(--accent);
+    color: var(--purple);
     cursor: pointer;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     transition: opacity 0.1s;
   }
 
@@ -454,31 +450,31 @@
 
   .bk-file-input {
     font-size: var(--text-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .bk-file-input::file-selector-button {
     padding: 6px 14px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border-primary);
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     margin-right: var(--space-sm);
     transition: background 0.1s, border-color 0.1s;
   }
 
   .bk-file-input::file-selector-button:hover {
-    background: var(--bg-secondary);
-    border-color: var(--border-secondary);
+    background: var(--raised);
+    border-color: var(--border);
   }
 
   .bk-file-name {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     font-family: var(--font-mono);
   }
 
@@ -516,10 +512,10 @@
     align-items: flex-start;
     gap: 8px;
     padding: 10px 14px;
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-radius: var(--radius-sm);
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     line-height: 1.5;
   }
 
@@ -532,7 +528,7 @@
   /* ── Settings ── */
   .bk-settings-loading {
     font-size: var(--text-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
     padding: var(--space-md) 0;
   }
 
@@ -541,7 +537,7 @@
     align-items: center;
     gap: var(--space-sm);
     font-size: var(--text-sm);
-    color: var(--text-primary);
+    color: var(--text);
     cursor: pointer;
     margin-bottom: var(--space-md);
   }
@@ -549,7 +545,7 @@
   .bk-toggle-row input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: var(--accent);
+    accent-color: var(--purple);
     cursor: pointer;
   }
 
@@ -571,17 +567,17 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .bk-select {
     padding: 6px 28px 6px 10px;
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--text);
     font-size: var(--text-sm);
-    font-family: var(--font-sans);
+    font-family: var(--font);
     cursor: pointer;
     appearance: auto;
     transition: border-color 0.1s;
@@ -589,7 +585,7 @@
 
   .bk-select:hover,
   .bk-select:focus {
-    border-color: var(--border-secondary);
+    border-color: var(--border);
     outline: none;
   }
 
@@ -598,22 +594,22 @@
     padding: 6px 10px;
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--text);
     font-size: var(--text-sm);
-    font-family: var(--font-sans);
+    font-family: var(--font);
     transition: border-color 0.1s;
   }
 
   .bk-number-input:hover,
   .bk-number-input:focus {
-    border-color: var(--border-secondary);
+    border-color: var(--border);
     outline: none;
   }
 
   .bk-field-hint {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .bk-settings-actions {

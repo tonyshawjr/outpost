@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { boost as boostApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let loading = $state(true);
   let saving = $state(false);
@@ -112,7 +113,7 @@
   {#if loading}
     <div style="display: flex; align-items: center; gap: var(--space-sm);">
       <div class="spinner-sm"></div>
-      <span style="font-size: var(--font-size-sm); color: var(--text-tertiary);">Loading Boost status...</span>
+      <span style="font-size: var(--font-size-sm); color: var(--dim);">Loading Boost status...</span>
     </div>
   {:else}
 
@@ -129,12 +130,7 @@
             {/if}
           </p>
         </div>
-        <button
-          class="toggle toggle-lg"
-          class:active={config.developer_mode}
-          onclick={() => toggleConfig('developer_mode')}
-          type="button"
-        ></button>
+        <Checkbox checked={config.developer_mode} onchange={() => toggleConfig('developer_mode')} />
       </div>
     </div>
 
@@ -145,12 +141,7 @@
           <h4 class="boost-block-title">Enable Boost</h4>
           <p class="boost-block-desc">Master switch for all performance optimizations.</p>
         </div>
-        <button
-          class="toggle"
-          class:active={config.enabled}
-          onclick={() => toggleConfig('enabled')}
-          type="button"
-        ></button>
+        <Checkbox checked={config.enabled} onchange={() => toggleConfig('enabled')} />
       </div>
     </div>
 
@@ -198,12 +189,7 @@
             <h4 class="boost-block-title">Page Caching</h4>
             <p class="boost-block-desc">Cache full HTML pages for anonymous visitors. Dramatically reduces server load.</p>
           </div>
-          <button
-            class="toggle"
-            class:active={config.page_cache}
-            onclick={() => toggleConfig('page_cache')}
-            type="button"
-          ></button>
+          <Checkbox checked={config.page_cache} onchange={() => toggleConfig('page_cache')} />
         </div>
 
         {#if config.page_cache}
@@ -256,12 +242,7 @@
             <h4 class="boost-block-title">Browser Caching</h4>
             <p class="boost-block-desc">Set Cache-Control, ETag, and Expires headers on static assets.</p>
           </div>
-          <button
-            class="toggle"
-            class:active={config.browser_cache}
-            onclick={() => toggleConfig('browser_cache')}
-            type="button"
-          ></button>
+          <Checkbox checked={config.browser_cache} onchange={() => toggleConfig('browser_cache')} />
         </div>
 
         {#if config.browser_cache}
@@ -313,13 +294,7 @@
               {/if}
             </p>
           </div>
-          <button
-            class="toggle"
-            class:active={config.compression}
-            onclick={() => toggleConfig('compression')}
-            type="button"
-            disabled={status && !status.compression?.gzip_available}
-          ></button>
+          <Checkbox checked={config.compression} onchange={() => toggleConfig('compression')} />
         </div>
       </div>
 
@@ -330,12 +305,7 @@
             <h4 class="boost-block-title">HTML Minification</h4>
             <p class="boost-block-desc">Strip whitespace and comments from HTML output. Preserves &lt;pre&gt;, &lt;code&gt;, &lt;script&gt;, and &lt;style&gt; content.</p>
           </div>
-          <button
-            class="toggle"
-            class:active={config.html_minify}
-            onclick={() => toggleConfig('html_minify')}
-            type="button"
-          ></button>
+          <Checkbox checked={config.html_minify} onchange={() => toggleConfig('html_minify')} />
         </div>
       </div>
 
@@ -346,12 +316,7 @@
             <h4 class="boost-block-title">Lazy Loading</h4>
             <p class="boost-block-desc">Auto-add <code>loading="lazy"</code> to images and iframes.</p>
           </div>
-          <button
-            class="toggle"
-            class:active={config.lazy_loading}
-            onclick={() => toggleConfig('lazy_loading')}
-            type="button"
-          ></button>
+          <Checkbox checked={config.lazy_loading} onchange={() => toggleConfig('lazy_loading')} />
         </div>
 
         {#if config.lazy_loading}
@@ -379,7 +344,7 @@
 
         {#if status}
           <div style="display: flex; align-items: center; gap: var(--space-lg); margin-bottom: var(--space-md);">
-            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+            <div style="font-size: var(--font-size-sm); color: var(--sec);">
               Current size: <strong>{status.database?.size_human ?? '—'}</strong>
             </div>
           </div>
@@ -404,7 +369,7 @@
     <!-- Save Bar -->
     {#if dirty}
       <div class="boost-save-bar">
-        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Unsaved changes</span>
+        <span style="font-size: var(--font-size-sm); color: var(--sec);">Unsaved changes</span>
         <button class="btn btn-primary" onclick={save} disabled={saving} type="button">
           {saving ? 'Saving...' : 'Save Settings'}
         </button>
@@ -416,7 +381,7 @@
 <style>
   /* Developer Mode Card */
   .dev-mode-card {
-    border: 2px solid var(--border-primary);
+    border: 2px solid var(--border);
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin-bottom: var(--space-xl);
@@ -435,31 +400,21 @@
   .dev-mode-title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin: 0 0 var(--space-xs);
   }
   .dev-mode-desc {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 0;
     max-width: 420px;
-  }
-
-  /* Large toggle for dev mode */
-  .toggle-lg {
-    width: 52px !important;
-    height: 28px !important;
-  }
-  .toggle-lg::after {
-    width: 22px !important;
-    height: 22px !important;
   }
 
   /* Boost blocks */
   .boost-block {
     margin-top: var(--space-xl);
     padding-top: var(--space-xl);
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
   .boost-block:first-of-type {
     margin-top: var(--space-lg);
@@ -473,31 +428,31 @@
   .boost-block-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin: 0 0 var(--space-xs);
   }
   .boost-block-desc {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 0;
   }
   .boost-block-desc code {
     font-family: var(--font-mono);
     font-size: 12px;
-    background: var(--bg-tertiary);
+    background: var(--hover);
     padding: 1px 4px;
     border-radius: 3px;
   }
   .boost-sub {
     margin-top: var(--space-lg);
     padding-left: var(--space-md);
-    border-left: 2px solid var(--border-secondary);
+    border-left: 2px solid var(--border);
   }
   .boost-disabled-msg {
     margin-top: var(--space-xl);
     padding: var(--space-lg);
     text-align: center;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: var(--font-size-sm);
   }
 
@@ -512,7 +467,7 @@
     display: flex;
     flex-direction: column;
     padding: var(--space-md);
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
   }
   .stat-label {
@@ -520,18 +475,18 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: var(--space-xs);
   }
   .stat-value {
     font-size: 22px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     font-family: var(--font-mono, monospace);
   }
   .stat-sub {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 2px;
   }
 
@@ -549,7 +504,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: var(--space-xs);
   }
   .input-sm {
@@ -558,12 +513,12 @@
   }
   .hint-inline {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     white-space: nowrap;
   }
   .form-hint {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: var(--space-xs);
   }
 
@@ -577,8 +532,8 @@
     gap: var(--space-md);
     padding: var(--space-md) var(--space-lg);
     margin-top: var(--space-xl);
-    background: var(--bg-primary);
-    border-top: 1px solid var(--border-primary);
+    background: var(--bg);
+    border-top: 1px solid var(--border);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
     box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
   }
@@ -587,8 +542,8 @@
   .spinner-sm {
     width: 16px;
     height: 16px;
-    border: 2px solid var(--border-secondary);
-    border-top-color: var(--accent);
+    border: 2px solid var(--border);
+    border-top-color: var(--purple);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }

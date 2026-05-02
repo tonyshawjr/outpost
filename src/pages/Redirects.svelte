@@ -3,6 +3,7 @@
   import { redirects as redirectsApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import EmptyState from '$components/EmptyState.svelte';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let redirectsList = $state([]);
   let loading = $state(true);
@@ -283,10 +284,7 @@
           <textarea class="field-input" placeholder="Optional notes..." bind:value={formNotes} rows="2"></textarea>
         </div>
         <div class="form-field">
-          <label class="field-label toggle-label">
-            <input type="checkbox" bind:checked={formActive} />
-            Active
-          </label>
+          <Checkbox bind:checked={formActive} label="Active" />
         </div>
       </div>
       <div class="form-actions">
@@ -366,7 +364,7 @@
 
 <style>
   .redirects-panel {
-    background: var(--bg-elevated, var(--bg-secondary));
+    background: var(--bg-elevated, var(--raised));
     border: 1px solid var(--border);
     border-radius: var(--radius-lg, 8px);
     padding: 16px 20px;
@@ -385,12 +383,12 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .panel-desc {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: 8px;
   }
 
@@ -412,7 +410,7 @@
   }
 
   .test-result code {
-    background: var(--bg-hover);
+    background: var(--hover);
     padding: 1px 4px;
     border-radius: 3px;
     font-size: 12px;
@@ -420,12 +418,12 @@
 
   .test-match {
     background: rgba(34, 197, 94, 0.1);
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .test-no-match {
-    background: var(--bg-hover);
-    color: var(--text-secondary);
+    background: var(--hover);
+    color: var(--sec);
   }
 
   .import-textarea {
@@ -453,7 +451,7 @@
 
   .field-hint {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .toggle-label {
@@ -493,9 +491,9 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     border-bottom: 1px solid var(--border);
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .redirect-row {
@@ -514,7 +512,7 @@
   }
 
   .redirect-row:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .redirect-row.inactive {
@@ -533,13 +531,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .col-hits {
     text-align: right;
     font-variant-numeric: tabular-nums;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: 12px;
   }
 
@@ -555,8 +553,8 @@
     font-variant-numeric: tabular-nums;
     padding: 1px 6px;
     border-radius: var(--radius-sm, 4px);
-    background: var(--bg-hover);
-    color: var(--text-secondary);
+    background: var(--hover);
+    color: var(--sec);
   }
 
   .type-301 { color: var(--accent, #4A8B72); }
@@ -566,7 +564,7 @@
   .redirect-notes {
     padding: 2px 16px 8px 16px;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     border-bottom: 1px solid var(--border-subtle, var(--border));
   }
 
@@ -577,7 +575,7 @@
   .loading-state, .empty-filter {
     padding: 40px;
     text-align: center;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: 14px;
   }
 

@@ -149,7 +149,7 @@
   <div class="login-card">
     <div class="login-logo">
       <img src={outpostLogo} alt="Outpost" style="height: 20px; width: auto;" />
-      <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 4px;">Content Management</div>
+      <div style="font-size: 0.8rem; color: var(--dim); margin-top: 4px;">Content Management</div>
     </div>
 
     {#if message}
@@ -380,7 +380,7 @@
 
   .login-subtitle {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin-bottom: 20px;
   }
 
@@ -406,7 +406,7 @@
 
   .login-info {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     background: var(--bg-secondary, #f5f5f5);
     border-radius: 6px;
     padding: 12px 14px;
@@ -423,7 +423,7 @@
     border: none;
     padding: 0;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     text-decoration: underline;
     text-underline-offset: 2px;

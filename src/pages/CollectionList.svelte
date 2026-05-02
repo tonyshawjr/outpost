@@ -6,6 +6,7 @@
   import EmptyState from '$components/EmptyState.svelte';
   import ContextualTip from '$components/ContextualTip.svelte';
   import { tips } from '$lib/tips.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let colls = $derived($collectionsList);
   let loading = $state(true);
@@ -31,7 +32,7 @@
   let formFeedEnabled = $state(false);
   let formSitemapEnabled = $state(true);
 
-  // Lodge settings
+  // Lodge settings (Outpost-only — member-portal hooks)
   let formLodgeEnabled = $state(false);
   let formLodgeConfig = $state({
     allow_create: true,
@@ -314,12 +315,12 @@
         <div class="card" style="cursor: pointer;" onclick={() => viewItems(coll)} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && viewItems(coll)}>
           <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-md);">
             <div>
-              <div style="font-family: var(--font-serif); font-size: 18px; font-weight: 600;">{coll.name}</div>
-              <div style="font-size: var(--font-size-sm); color: var(--text-tertiary); margin-top: 2px;">{coll.url_pattern || `/${coll.slug}/{slug}`}</div>
+              <div style="font-family: var(--font); font-size: 18px; font-weight: 600;">{coll.name}</div>
+              <div style="font-size: var(--font-size-sm); color: var(--dim); margin-top: 2px;">{coll.url_pattern || `/${coll.slug}/{slug}`}</div>
             </div>
             <span class="badge badge-success" style="font-size: 14px; padding: 4px 12px;">{coll.item_count ?? 0}</span>
           </div>
-          <div style="font-size: var(--font-size-sm); color: var(--text-tertiary); margin-bottom: var(--space-md);">
+          <div style="font-size: var(--font-size-sm); color: var(--dim); margin-bottom: var(--space-md);">
             {fieldCount} field{fieldCount !== 1 ? 's' : ''}: {Object.keys(schema).slice(0, 3).join(', ')}{fieldCount > 3 ? '...' : ''}
           </div>
           <div style="display: flex; gap: var(--space-xs);">
@@ -351,12 +352,12 @@
         <div class="form-group">
           <label class="form-label" for="coll-slug">Slug</label>
           <input id="coll-slug" class="input" type="text" bind:value={formSlug} placeholder="blog-posts" />
-          <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Template identifier — used in <code style="font-size:11px">collection.{formSlug || 'slug'}</code></span>
+          <span style="font-size: var(--font-size-xs); color: var(--dim);">Template identifier — used in <code style="font-size:11px">collection.{formSlug || 'slug'}</code></span>
         </div>
       {:else}
         <div class="form-group">
           <label class="form-label">Slug</label>
-          <div style="font-size: var(--font-size-sm); color: var(--text-tertiary); padding: 6px 0;">
+          <div style="font-size: var(--font-size-sm); color: var(--dim); padding: 6px 0;">
             <code style="font-size: 12px;">{formSlug}</code>
             <span style="margin-left: 6px; font-size: var(--font-size-xs);">Template identifier — cannot be changed after creation</span>
           </div>
@@ -365,7 +366,7 @@
       <div class="form-group">
         <label class="form-label" for="coll-singular">Singular Name</label>
         <input id="coll-singular" class="input" type="text" bind:value={formSingularName} placeholder="Blog Post" />
-        <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Used for "Add Blog Post" buttons</span>
+        <span style="font-size: var(--font-size-xs); color: var(--dim);">Used for "Add Blog Post" buttons</span>
       </div>
       <div class="form-group">
         <label class="form-label" for="coll-url">URL Pattern</label>
@@ -373,11 +374,8 @@
       </div>
 
       <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
-          <input type="checkbox" bind:checked={formRequireReview} style="accent-color: var(--accent);" />
-          Require review before publishing
-        </label>
-        <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Editors must submit for review; admins approve or reject.</span>
+        <Checkbox bind:checked={formRequireReview} label="Require review before publishing" />
+        <span style="font-size: var(--font-size-xs); color: var(--dim);">Editors must submit for review; admins approve or reject.</span>
       </div>
 
       {#if availableWorkflows.length > 0}
@@ -389,76 +387,53 @@
               <option value={wf.id}>{wf.name} ({wf.stages.length} stages)</option>
             {/each}
           </select>
-          <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">
+          <span style="font-size: var(--font-size-xs); color: var(--dim);">
             Assign a workflow to define custom approval stages for this collection.
-            <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--accent);">Manage workflows</a>
+            <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--purple);">Manage workflows</a>
           </span>
         </div>
       {/if}
 
       <!-- Syndication Settings -->
       <div style="margin-top: var(--space-md);">
-        <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary);">Syndication</span>
+        <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim);">Syndication</span>
         <div style="margin-top: var(--space-xs); display: flex; flex-direction: column; gap: 6px;">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
-            <input type="checkbox" bind:checked={formFeedEnabled} style="accent-color: var(--accent);" />
-            Include in RSS feed
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
-            <input type="checkbox" bind:checked={formSitemapEnabled} style="accent-color: var(--accent);" />
-            Include in sitemap
-          </label>
+          <Checkbox bind:checked={formFeedEnabled} label="Include in RSS feed" />
+          <Checkbox bind:checked={formSitemapEnabled} label="Include in sitemap" />
         </div>
       </div>
 
-      <!-- Lodge Settings -->
+      <!-- Lodge Settings (Outpost-only — member portal hooks) -->
       {#if editingColl}
         <div class="lodge-section">
           <div class="lodge-section-header">
-            <span class="lodge-section-label">LODGE</span>
-            <button
-              class="toggle"
-              class:active={formLodgeEnabled}
-              onclick={() => { formLodgeEnabled = !formLodgeEnabled; }}
-              type="button"
-            ></button>
+            <span class="lodge-section-label">Lodge</span>
+            <Checkbox bind:checked={formLodgeEnabled} />
           </div>
-          <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 0 0 var(--space-sm);">Allow members to create and manage their own content in this collection.</p>
+          <p style="font-size: var(--font-size-xs); color: var(--dim); margin: 0 0 var(--space-sm);">Allow members to create and manage their own content in this collection.</p>
 
           {#if formLodgeEnabled}
             <div class="lodge-options">
               <div class="lodge-toggle-row">
-                <label class="lodge-toggle-label">
-                  <input type="checkbox" bind:checked={formLodgeConfig.allow_create} style="accent-color: var(--accent);" />
-                  Allow Create
-                </label>
+                <Checkbox bind:checked={formLodgeConfig.allow_create} label="Allow Create" />
                 <span class="lodge-toggle-desc">Members can create new items</span>
               </div>
               <div class="lodge-toggle-row">
-                <label class="lodge-toggle-label">
-                  <input type="checkbox" bind:checked={formLodgeConfig.allow_edit} style="accent-color: var(--accent);" />
-                  Allow Edit
-                </label>
+                <Checkbox bind:checked={formLodgeConfig.allow_edit} label="Allow Edit" />
                 <span class="lodge-toggle-desc">Members can edit their own items</span>
               </div>
               <div class="lodge-toggle-row">
-                <label class="lodge-toggle-label">
-                  <input type="checkbox" bind:checked={formLodgeConfig.allow_delete} style="accent-color: var(--accent);" />
-                  Allow Delete
-                </label>
+                <Checkbox bind:checked={formLodgeConfig.allow_delete} label="Allow Delete" />
                 <span class="lodge-toggle-desc">Members can delete their own items</span>
               </div>
               <div class="lodge-toggle-row">
-                <label class="lodge-toggle-label">
-                  <input type="checkbox" bind:checked={formLodgeConfig.require_approval} style="accent-color: var(--accent);" />
-                  Require Approval
-                </label>
+                <Checkbox bind:checked={formLodgeConfig.require_approval} label="Require Approval" />
                 <span class="lodge-toggle-desc">Submissions require admin approval before publishing</span>
               </div>
               <div class="lodge-field-row">
                 <label class="lodge-field-label">Max Items Per Member</label>
                 <input class="input" type="number" min="0" style="width: 100px; height: 30px; font-size: 13px;" bind:value={formLodgeConfig.max_items_per_member} />
-                <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">0 = unlimited</span>
+                <span style="font-size: var(--font-size-xs); color: var(--dim);">0 = unlimited</span>
               </div>
 
               {#if formSchema.filter(f => f.name || f.label).length > 0}
@@ -467,47 +442,41 @@
                   <label class="lodge-field-label">Editable Fields</label>
                   <div class="lodge-field-checks">
                     {#each schemaFields as fieldName}
-                      <label class="lodge-check-label">
-                        <input type="checkbox"
-                          checked={formLodgeConfig.editable_fields.includes(fieldName)}
-                          onchange={(e) => {
-                            if (e.target.checked) {
-                              formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
-                              formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
-                            } else {
-                              formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
-                            }
-                          }}
-                          style="accent-color: var(--accent);"
-                        />
-                        {fieldName}
-                      </label>
+                      <Checkbox
+                        checked={formLodgeConfig.editable_fields.includes(fieldName)}
+                        onchange={(checked) => {
+                          if (checked) {
+                            formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
+                            formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                          } else {
+                            formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                          }
+                        }}
+                        label={fieldName}
+                      />
                     {/each}
                   </div>
-                  <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Fields members can edit. Leave empty to allow all fields.</span>
+                  <span style="font-size: var(--font-size-xs); color: var(--dim);">Fields members can edit. Leave empty to allow all fields.</span>
                 </div>
                 <div class="lodge-field-row" style="flex-direction: column; align-items: flex-start;">
                   <label class="lodge-field-label">Read-only Fields</label>
                   <div class="lodge-field-checks">
                     {#each schemaFields as fieldName}
-                      <label class="lodge-check-label">
-                        <input type="checkbox"
-                          checked={formLodgeConfig.readonly_fields.includes(fieldName)}
-                          onchange={(e) => {
-                            if (e.target.checked) {
-                              formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
-                              formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
-                            } else {
-                              formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
-                            }
-                          }}
-                          style="accent-color: var(--accent);"
-                        />
-                        {fieldName}
-                      </label>
+                      <Checkbox
+                        checked={formLodgeConfig.readonly_fields.includes(fieldName)}
+                        onchange={(checked) => {
+                          if (checked) {
+                            formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
+                            formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                          } else {
+                            formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                          }
+                        }}
+                        label={fieldName}
+                      />
                     {/each}
                   </div>
-                  <span style="font-size: var(--font-size-xs); color: var(--text-tertiary);">Fields visible to members but not editable.</span>
+                  <span style="font-size: var(--font-size-xs); color: var(--dim);">Fields visible to members but not editable.</span>
                 </div>
               {/if}
             </div>
@@ -517,7 +486,7 @@
 
       <div class="form-group">
         <label class="form-label">Content Fields</label>
-        <p style="font-size: var(--font-size-xs); color: var(--text-tertiary); margin-bottom: var(--space-sm);">
+        <p style="font-size: var(--font-size-xs); color: var(--dim); margin-bottom: var(--space-sm);">
           Define the fields each item in this collection will have.
         </p>
         {#each formSchema as field, i}
@@ -543,8 +512,7 @@
                   <option value="flexible">Flexible Content</option>
                 </select>
                 <label class="schema-required-toggle" title="Required">
-                  <input type="checkbox" bind:checked={field.required} style="display:none;" />
-                  <span class="schema-required-star" class:active={field.required}>*</span>
+                  <Checkbox bind:checked={field.required} />
                 </label>
               </div>
               <div class="schema-field-actions">
@@ -557,7 +525,7 @@
               </div>
             </div>
             <div class="schema-field-meta">
-              <span style="font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono);">{field.name || '—'}</span>
+              <span style="font-size: 11px; color: var(--dim); font-family: var(--font-mono);">{field.name || '—'}</span>
             </div>
             {#if expandedFields[i]}
               <div class="schema-field-options">
@@ -594,9 +562,7 @@
                   </div>
                   <div class="schema-opt-row">
                     <label class="schema-opt-label">Allow Multiple</label>
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary);">
-                      <input type="checkbox" bind:checked={field.relMultiple} /> Select more than one item
-                    </label>
+                    <Checkbox bind:checked={field.relMultiple} label="Select more than one item" />
                   </div>
                   <div class="schema-opt-row">
                     <label class="schema-opt-label">Max Items</label>
@@ -606,28 +572,26 @@
                   <div class="schema-opt-row">
                     <label class="schema-opt-label">Sub-fields (JSON)</label>
                     <textarea class="input schema-opt-input" bind:value={field.repeaterFields} placeholder={'[{"name": "day", "type": "select", "label": "Day", "options": ["Mon","Tue","Wed"]}]'} rows="6" style="height: auto; font-family: var(--font-mono); font-size: 12px;"></textarea>
-                    <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Define sub-fields as a JSON array. Each entry needs: name, type, label. For select fields add an options array. Types: text, textarea, select, toggle, number, date, image.</p>
+                    <p style="font-size: 11px; color: var(--dim); margin-top: 4px;">Define sub-fields as a JSON array. Each entry needs: name, type, label. For select fields add an options array. Types: text, textarea, select, toggle, number, date, image.</p>
                   </div>
                 {:else if field.type === 'flexible'}
                   <div class="schema-opt-row">
                     <label class="schema-opt-label">Layouts (JSON)</label>
                     <textarea class="input schema-opt-input" bind:value={field.flexLayouts} placeholder="Paste layout JSON here..." rows="6" style="height: auto; font-family: var(--font-mono); font-size: 12px;"></textarea>
-                    <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Define layout types with named sub-fields. Each layout has a label and fields object. Example: hero with title + image, cta with heading + url.</p>
+                    <p style="font-size: 11px; color: var(--dim); margin-top: 4px;">Define layout types with named sub-fields. Each layout has a label and fields object. Example: hero with title + image, cta with heading + url.</p>
                   </div>
                 {/if}
                 <!-- Conditional Logic (available for all field types) -->
-                <div class="schema-opt-row" style="margin-top: 8px; border-top: 1px solid var(--border-primary); padding-top: 10px;">
+                <div class="schema-opt-row" style="margin-top: 8px; border-top: 1px solid var(--border); padding-top: 10px;">
                   <label class="schema-opt-label" style="display: flex; align-items: center; gap: 6px;">
                     Conditional Logic
-                    <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); font-weight: normal;">
-                      <input type="checkbox" checked={field.conditions && field.conditions.length > 0} onchange={(e) => {
-                        if (e.target.checked) {
+                    <Checkbox checked={field.conditions && field.conditions.length > 0} onchange={(checked) => {
+                        if (checked) {
                           field.conditions = [{ field: '', operator: '==', value: '' }];
                         } else {
                           field.conditions = [];
                         }
-                      }} /> Enable
-                    </label>
+                      }} label="Enable" />
                   </label>
                   {#if field.conditions && field.conditions.length > 0}
                     {#each field.conditions as cond, ci}
@@ -652,7 +616,7 @@
                         </button>
                       </div>
                     {/each}
-                    <button class="btn btn-ghost btn-sm" onclick={() => { field.conditions = [...field.conditions, { field: '', operator: '==', value: '' }]; }} type="button" style="font-size: 11px; margin-top: 4px; color: var(--accent);">
+                    <button class="btn btn-ghost btn-sm" onclick={() => { field.conditions = [...field.conditions, { field: '', operator: '==', value: '' }]; }} type="button" style="font-size: 11px; margin-top: 4px; color: var(--purple);">
                       + Add condition
                     </button>
                   {/if}
@@ -688,7 +652,7 @@
       </div>
 
       <div style="padding: 0 var(--space-lg) var(--space-md);">
-        <p style="margin: 0 0 var(--space-md); color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.6;">
+        <p style="margin: 0 0 var(--space-md); color: var(--sec); font-size: var(--font-size-sm); line-height: 1.6;">
           This will permanently delete <strong>"{deleteTarget.name}"</strong>
           {#if deleteTarget.item_count > 0}
             and all <strong>{deleteTarget.item_count}</strong> {deleteTarget.item_count === 1 ? 'item' : 'items'} inside it.
@@ -727,11 +691,11 @@
 
 <style>
   .schema-field-card {
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: var(--space-md);
     margin-bottom: var(--space-sm);
-    background: var(--bg-tertiary);
+    background: var(--hover);
   }
 
   .schema-field-header {
@@ -778,7 +742,7 @@
   .schema-required-star {
     font-size: 18px;
     font-weight: 700;
-    color: var(--text-tertiary);
+    color: var(--dim);
     opacity: 0.4;
     transition: all 0.15s;
   }
@@ -791,7 +755,7 @@
   .schema-field-options {
     margin-top: var(--space-md);
     padding-top: var(--space-md);
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -806,7 +770,7 @@
   .schema-opt-label {
     font-size: 12px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--dim);
     min-width: 100px;
     flex-shrink: 0;
   }
@@ -834,12 +798,13 @@
     }
   }
 
+  /* Lodge section (Outpost-only) */
   .lodge-section {
     margin: var(--space-md) 0;
     padding: var(--space-md);
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    background: var(--bg-tertiary);
+    background: var(--hover);
   }
 
   .lodge-section-header {
@@ -854,7 +819,7 @@
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .lodge-options {
@@ -870,21 +835,9 @@
     padding: 4px 0;
   }
 
-  .lodge-toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    color: var(--text-primary);
-    font-weight: 500;
-    min-width: 160px;
-    margin: 0;
-  }
-
   .lodge-toggle-desc {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .lodge-field-row {
@@ -897,7 +850,7 @@
   .lodge-field-label {
     font-size: 12px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--dim);
     min-width: 160px;
     flex-shrink: 0;
   }
@@ -907,15 +860,5 @@
     flex-wrap: wrap;
     gap: var(--space-xs) var(--space-md);
     margin-top: 4px;
-  }
-
-  .lodge-check-label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    margin: 0;
   }
 </style>

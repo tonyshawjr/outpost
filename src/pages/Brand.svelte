@@ -4,6 +4,7 @@
   import { addToast } from '$lib/stores.js';
   import FontField from '$components/customizer/FontField.svelte';
   import ImageField from '$components/customizer/ImageField.svelte';
+  import ColorPicker from '$components/ColorPicker.svelte';
 
   let loading = $state(true);
   let saving = $state(false);
@@ -224,20 +225,12 @@
             {#each Object.entries(colorLabels) as [key, label]}
               {@const color = getColor(key)}
               <div class="color-tile-wrap">
-                <label class="color-tile" style="background: {color}">
-                  <input
-                    type="color"
-                    class="color-tile-input"
-                    value={color}
-                    oninput={(e) => handleColorInput(key, e)}
-                    aria-label={label}
-                  />
-                  {#if isColorModified(key)}
-                    <button class="color-tile-reset" onclick={(e) => { e.preventDefault(); e.stopPropagation(); resetColor(key); }} title="Reset to default" aria-label="Reset {label}">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5.1L1 10"/></svg>
-                    </button>
-                  {/if}
-                </label>
+                <ColorPicker value={color} onchange={(v) => { brand.colors[key] = v; dirty = true; }} />
+                {#if isColorModified(key)}
+                  <button class="color-tile-reset" onclick={(e) => { e.preventDefault(); e.stopPropagation(); resetColor(key); }} title="Reset to default" aria-label="Reset {label}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5.1L1 10"/></svg>
+                  </button>
+                {/if}
                 <span class="color-tile-label">{label}</span>
                 <span class="color-tile-hex">{color.toUpperCase()}</span>
               </div>
@@ -448,14 +441,14 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: 4px;
   }
 
   .brand-zone-desc {
     display: block;
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     line-height: 1.4;
   }
 
@@ -491,7 +484,7 @@
   }
 
   .color-tile:hover {
-    box-shadow: 0 0 0 2px var(--accent);
+    box-shadow: 0 0 0 2px var(--purple);
   }
 
   .color-tile-input {
@@ -537,18 +530,18 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .color-tile-hex {
     font-size: 11px;
     font-family: var(--font-mono);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   /* ── Palette preview ── */
   .palette-preview {
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-radius: var(--radius-lg);
     padding: 20px;
   }
@@ -594,7 +587,7 @@
 
   /* ── Type specimen ── */
   .type-specimen {
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-radius: var(--radius-lg);
     padding: 24px;
   }
@@ -604,7 +597,7 @@
     font-weight: 700;
     margin: 0 0 6px;
     line-height: 1.2;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .specimen-subheading {
@@ -612,14 +605,14 @@
     font-weight: 600;
     margin: 0 0 12px;
     line-height: 1.3;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .specimen-body {
     font-size: 1rem;
     line-height: 1.6;
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .specimen-divider {
@@ -646,7 +639,7 @@
     flex-shrink: 0;
     font-size: 11px;
     font-family: var(--font-mono);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .specimen-scale-size {
@@ -654,12 +647,12 @@
     flex-shrink: 0;
     font-size: 11px;
     font-family: var(--font-mono);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .specimen-scale-demo {
     line-height: 1.2;
-    color: var(--text-primary);
+    color: var(--text);
     font-weight: 600;
   }
 
@@ -675,7 +668,7 @@
   .brand-scale-label {
     font-size: var(--font-size-sm);
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .brand-scale-select {
@@ -684,8 +677,8 @@
     padding: 7px 10px;
     border: 1px solid transparent;
     border-radius: var(--radius-md);
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+    background: var(--raised);
+    color: var(--text);
     cursor: pointer;
     transition: border-color 0.15s;
     appearance: auto;
@@ -697,7 +690,7 @@
 
   .brand-scale-select:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--purple);
   }
 
   /* ── Identity ── */
@@ -710,7 +703,7 @@
   .brand-identity-hint {
     margin-top: 16px;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     line-height: 1.5;
   }
 
@@ -718,9 +711,9 @@
     font-family: var(--font-mono);
     font-size: 11px;
     padding: 1px 5px;
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   /* ── Manage Fonts ── */
@@ -734,7 +727,7 @@
   .manage-fonts-link {
     background: none;
     border: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: 12px;
     cursor: pointer;
     padding: 0;
@@ -743,7 +736,7 @@
   }
 
   .manage-fonts-link:hover {
-    color: var(--accent);
+    color: var(--purple);
   }
 
   /* ── Fonts Modal ── */
@@ -758,7 +751,7 @@
   }
 
   .modal-panel {
-    background: var(--bg-primary);
+    background: var(--bg);
     border-radius: var(--radius-lg);
     width: 480px;
     max-width: 90vw;
@@ -779,7 +772,7 @@
     font-size: 16px;
     font-weight: 600;
     margin: 0;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .modal-close {
@@ -792,12 +785,12 @@
     background: none;
     border: none;
     border-radius: var(--radius-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
   }
 
   .modal-close:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .modal-close svg {
@@ -821,13 +814,13 @@
 
   .fonts-helper-text {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 0 0 16px;
     line-height: 1.5;
   }
 
   .fonts-helper-text a {
-    color: var(--accent);
+    color: var(--purple);
     text-decoration: none;
   }
 
@@ -847,13 +840,13 @@
     padding: 7px 10px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--text);
   }
 
   .font-add-input:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--purple);
   }
 
   .font-add-category {
@@ -861,8 +854,8 @@
     padding: 7px 8px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--text);
     appearance: auto;
   }
 
@@ -893,12 +886,12 @@
     flex: 1;
     font-size: 13px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .custom-font-cat {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -913,7 +906,7 @@
     background: none;
     border: none;
     border-radius: var(--radius-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
   }
 
@@ -928,7 +921,7 @@
 
   .fonts-empty {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     text-align: center;
     padding: 20px 0;
     margin: 0;

@@ -3,6 +3,8 @@
   import { workflows as workflowsApi } from '$lib/api.js';
   import { addToast, navigate } from '$lib/stores.js';
   import EmptyState from '$components/EmptyState.svelte';
+  import ColorPicker from '$components/ColorPicker.svelte';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let workflowsList = $state([]);
   let loading = $state(true);
@@ -220,7 +222,7 @@
               </div>
               {#if i < wf.stages.length - 1}
                 <div class="wf-stage-arrow">
-                  <svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="var(--dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
               {/if}
             {/each}
@@ -280,7 +282,7 @@
             </div>
             {#if i < formStages.length - 1}
               <div class="wf-stage-arrow">
-                <svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M0 4h14M11 1l3 3-3 3" stroke="var(--dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </div>
             {/if}
           {/each}
@@ -297,11 +299,7 @@
         {#each formStages as stage, i (i)}
           <div class="wf-stage-card">
             <div class="wf-stage-card-header">
-              <input
-                type="color"
-                class="wf-color-input"
-                bind:value={stage.color}
-              />
+              <ColorPicker bind:value={stage.color} />
               <input
                 class="input wf-stage-name"
                 type="text"
@@ -324,15 +322,11 @@
               <div class="wf-transition-checks">
                 {#each formStages as target, ti}
                   {#if ti !== i}
-                    <label class="wf-check-label">
-                      <input
-                        type="checkbox"
-                        checked={(stage.can_move_to || []).includes(target.slug)}
-                        onchange={() => toggleTransition(i, target.slug)}
-                      />
+                    <div class="wf-check-label">
+                      <Checkbox checked={(stage.can_move_to || []).includes(target.slug)} onchange={() => toggleTransition(i, target.slug)} />
                       <span class="wf-check-dot" style="background: {target.color};"></span>
                       {target.name || target.slug}
-                    </label>
+                    </div>
                   {/if}
                 {/each}
               </div>
@@ -343,14 +337,10 @@
               <label class="wf-section-label">Who can move items here</label>
               <div class="wf-transition-checks">
                 {#each ROLE_OPTIONS as opt}
-                  <label class="wf-check-label">
-                    <input
-                      type="checkbox"
-                      checked={(stage.roles || []).includes(opt.value)}
-                      onchange={() => toggleRole(i, opt.value)}
-                    />
+                  <div class="wf-check-label">
+                    <Checkbox checked={(stage.roles || []).includes(opt.value)} onchange={() => toggleRole(i, opt.value)} />
                     {opt.label}
-                  </label>
+                  </div>
                 {/each}
               </div>
             </div>
@@ -385,15 +375,15 @@
   }
 
   .wf-card {
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: var(--space-lg);
-    background: var(--bg-primary);
+    background: var(--bg);
     transition: border-color 0.15s;
   }
 
   .wf-card:hover {
-    border-color: var(--border-secondary, var(--border-primary));
+    border-color: var(--border-secondary, var(--border));
   }
 
   .wf-card-header {
@@ -404,7 +394,7 @@
   }
 
   .wf-card-name {
-    font-family: var(--font-serif);
+    font-family: var(--font);
     font-size: 18px;
     font-weight: 600;
     display: flex;
@@ -413,20 +403,20 @@
   }
 
   .wf-default-badge {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     padding: 2px 6px;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: 3px;
   }
 
   .wf-card-meta {
     font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 2px;
   }
 
@@ -447,9 +437,9 @@
 
   .wf-pipeline-preview {
     padding: var(--space-sm) var(--space-md);
-    background: var(--bg-tertiary);
+    background: var(--hover);
     border-radius: var(--radius-md);
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
   }
 
   .wf-stage-dot-wrap {
@@ -469,7 +459,7 @@
   .wf-stage-label {
     font-size: 10px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--dim);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     white-space: nowrap;
@@ -483,11 +473,11 @@
 
   /* Stage editor cards */
   .wf-stage-card {
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: var(--space-md);
     margin-bottom: var(--space-sm);
-    background: var(--bg-tertiary);
+    background: var(--hover);
   }
 
   .wf-stage-card-header {
@@ -514,7 +504,7 @@
 
   .wf-stage-slug-display {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-family: var(--font-mono);
     flex-shrink: 0;
   }
@@ -522,7 +512,7 @@
   .wf-stage-section {
     margin-top: var(--space-sm);
     padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   .wf-section-label {
@@ -531,7 +521,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: 6px;
   }
 
@@ -546,12 +536,12 @@
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
   }
 
   .wf-check-label input[type="checkbox"] {
-    accent-color: var(--accent);
+    accent-color: var(--purple);
   }
 
   .wf-check-dot {
@@ -563,7 +553,7 @@
 
   .wf-hint {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .btn-danger-text {

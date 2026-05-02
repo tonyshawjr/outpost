@@ -3,6 +3,7 @@
   import { collections as collectionsApi, workflows as workflowsApi } from '$lib/api.js';
   import { currentCollectionSlug, collectionsList, navigate, addToast } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let collSlug = $derived($currentCollectionSlug);
   let collection = $state(null);
@@ -29,7 +30,7 @@
   let selectedFieldIndex = $state(null);
   let selectedField = $derived(selectedFieldIndex !== null ? formSchema[selectedFieldIndex] : null);
 
-  // Lodge settings
+  // Lodge settings (Outpost-only — member-portal hooks)
   let formLodgeEnabled = $state(false);
   let formLodgeConfig = $state({
     allow_create: true,
@@ -62,8 +63,8 @@
 
   // Badge colors by type
   const typeBadgeColors = {
-    text: { bg: 'var(--bg-tertiary)', color: 'var(--text-secondary)' },
-    textarea: { bg: 'var(--bg-tertiary)', color: 'var(--text-secondary)' },
+    text: { bg: 'var(--hover)', color: 'var(--sec)' },
+    textarea: { bg: 'var(--hover)', color: 'var(--sec)' },
     richtext: { bg: '#F3EEFA', color: '#7B5EA7' },
     image: { bg: '#E8F5F0', color: '#2D7A5F' },
     date: { bg: 'var(--warning-soft)', color: 'var(--warning)' },
@@ -71,11 +72,11 @@
     toggle: { bg: 'var(--success-soft)', color: 'var(--success)' },
     select: { bg: '#FAF0E6', color: '#A67C52' },
     color: { bg: 'var(--clay-light)', color: 'var(--clay)' },
-    link: { bg: 'var(--accent-soft)', color: 'var(--accent)' },
+    link: { bg: 'var(--purple-bg)', color: 'var(--purple)' },
     repeater: { bg: '#E8EFF8', color: '#4A6FA5' },
     gallery: { bg: '#EEF3E8', color: '#5C7A3A' },
     folder: { bg: 'var(--sage-light)', color: 'var(--sage)' },
-    relationship: { bg: 'var(--accent-soft)', color: 'var(--accent)' },
+    relationship: { bg: 'var(--purple-bg)', color: 'var(--purple)' },
     flexible: { bg: 'var(--warning-soft)', color: 'var(--warning)' },
   };
 
@@ -275,6 +276,7 @@
       formSchema = [{ name: '', type: 'text', label: '', required: false, placeholder: '', description: '', defaultValue: '', choices: '', repeaterFields: '[]', repeaterVisual: [], flexLayouts: '', relCollection: '', relMultiple: true, relMax: 0, conditions: [] }];
     }
 
+    // Lodge config (Outpost-only)
     formLodgeEnabled = !!(coll.lodge_enabled);
     try {
       const lc = typeof coll.lodge_config === 'string' ? JSON.parse(coll.lodge_config || '{}') : (coll.lodge_config || {});
@@ -418,10 +420,10 @@
         <h1 class="page-title">{formName || 'Collection Schema'}</h1>
         <p class="page-subtitle">
           <button class="sf-back-link" onclick={goBack} type="button">Collections</button>
-          <span style="color: var(--text-light); margin: 0 4px;">/</span>
+          <span style="color: var(--dim); margin: 0 4px;">/</span>
           <span>{formName}</span>
-          <span style="color: var(--text-light); margin: 0 4px;">/</span>
-          <span style="font-weight: 500; color: var(--text-secondary);">Schema</span>
+          <span style="color: var(--dim); margin: 0 4px;">/</span>
+          <span style="font-weight: 500; color: var(--sec);">Schema</span>
         </p>
       </div>
       <div class="page-header-actions">
@@ -463,7 +465,7 @@
               <input id="cs-per-page" class="input" type="number" min="1" max="100" bind:value={formItemsPerPage} />
             </div>
           </div>
-          <div style="display: flex; gap: var(--space-md); align-items: center; margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid var(--border-secondary);">
+          <div style="display: flex; gap: var(--space-md); align-items: center; margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid var(--border);">
             <code class="sf-slug-badge">{formSlug}</code>
             <input class="input" type="text" bind:value={formUrlPattern} placeholder="/{formSlug}/{'{slug}'}" style="font-family: var(--font-mono); font-size: 12px; flex: 1; height: 30px;" />
             <select class="input" bind:value={formSortField} style="width: 120px; height: 30px; font-size: 12px;">
@@ -506,7 +508,7 @@
                     <span class="sf-field-label">{field.label || 'Untitled field'}</span>
                     <span class="sf-field-name">{field.name || '---'}</span>
                   </div>
-                  <span class="sf-type-badge" style="background: {typeBadgeColors[field.type]?.bg || 'var(--bg-tertiary)'}; color: {typeBadgeColors[field.type]?.color || 'var(--text-secondary)'};">
+                  <span class="sf-type-badge" style="background: {typeBadgeColors[field.type]?.bg || 'var(--hover)'}; color: {typeBadgeColors[field.type]?.color || 'var(--sec)'};">
                     {typeLabels[field.type] || field.type}
                   </span>
                   <div class="sf-field-actions">
@@ -568,10 +570,7 @@
                       </div>
                       <div class="form-group" style="margin-bottom: 0;">
                         <label class="sf-label">Required</label>
-                        <label class="sf-toggle-row" style="padding-top: 6px;">
-                          <input type="checkbox" bind:checked={field.required} style="display:none;" />
-                          <button class="toggle" class:active={field.required} onclick={() => { field.required = !field.required; }} type="button"></button>
-                        </label>
+                        <Checkbox bind:checked={field.required} />
                       </div>
                     </div>
                     <div class="sf-inline-grid-2" style="margin-top: var(--space-sm);">
@@ -602,15 +601,13 @@
                     <div class="sf-conditions-row">
                       <div class="sf-conditions-toggle">
                         <span class="sf-label" style="margin-bottom: 0;">Conditional Logic</span>
-                        <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary);">
-                          <input type="checkbox" checked={field.conditions && field.conditions.length > 0} onchange={(e) => {
-                            if (e.target.checked) {
+                        <Checkbox checked={field.conditions && field.conditions.length > 0} onchange={(checked) => {
+                            if (checked) {
                               field.conditions = [{ field: '', operator: '==', value: '' }];
                             } else {
                               field.conditions = [];
                             }
-                          }} style="accent-color: var(--accent);" /> Enable
-                        </label>
+                          }} label="Enable" />
                       </div>
                       {#if field.conditions && field.conditions.length > 0}
                         {#each field.conditions as cond, ci}
@@ -661,11 +658,7 @@
 
             <div class="sf-advanced-body">
               <div class="sf-advanced-row">
-                <label class="sf-toggle-row" style="cursor: pointer;">
-                  <input type="checkbox" bind:checked={formRequireReview} style="display:none;" />
-                  <button class="toggle" class:active={formRequireReview} onclick={() => { formRequireReview = !formRequireReview; }} type="button"></button>
-                  <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Require review before publishing</span>
-                </label>
+                <Checkbox bind:checked={formRequireReview} label="Require review before publishing" />
                 <span class="sf-help">Editors must submit for review; admins approve or reject.</span>
               </div>
 
@@ -680,48 +673,36 @@
                   </select>
                   <span class="sf-help">
                     Assign a workflow to define custom approval stages.
-                    <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--accent);">Manage workflows</a>
+                    <a href="#" onclick={(e) => { e.preventDefault(); navigate('workflows'); }} style="color: var(--purple);">Manage workflows</a>
                   </span>
                 </div>
               {/if}
 
-              <!-- Lodge -->
+              <!-- Lodge (Outpost-only — member portal hooks) -->
               <div class="sf-lodge-card">
                 <div class="sf-lodge-header">
-                  <span class="sf-section-label">LODGE</span>
-                  <button class="toggle" class:active={formLodgeEnabled} onclick={() => { formLodgeEnabled = !formLodgeEnabled; }} type="button"></button>
+                  <span class="sf-section-label">Lodge</span>
+                  <Checkbox bind:checked={formLodgeEnabled} />
                 </div>
                 <span class="sf-help" style="display: block; margin-bottom: var(--space-sm);">Allow members to create and manage their own content in this collection.</span>
 
                 {#if formLodgeEnabled}
                   <div class="sf-lodge-options">
                     <div class="sf-lodge-toggle-row">
-                      <label class="sf-toggle-row" style="cursor: pointer;">
-                        <input type="checkbox" bind:checked={formLodgeConfig.allow_create} style="accent-color: var(--accent);" />
-                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Allow Create</span>
-                      </label>
-                      <span class="sf-help" style="padding-left: 26px;">Members can create new items</span>
+                      <Checkbox bind:checked={formLodgeConfig.allow_create} label="Allow Create" />
+                      <span class="sf-help" style="padding-left: 10px;">Members can create new items</span>
                     </div>
                     <div class="sf-lodge-toggle-row">
-                      <label class="sf-toggle-row" style="cursor: pointer;">
-                        <input type="checkbox" bind:checked={formLodgeConfig.allow_edit} style="accent-color: var(--accent);" />
-                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Allow Edit</span>
-                      </label>
-                      <span class="sf-help" style="padding-left: 26px;">Members can edit their own items</span>
+                      <Checkbox bind:checked={formLodgeConfig.allow_edit} label="Allow Edit" />
+                      <span class="sf-help" style="padding-left: 10px;">Members can edit their own items</span>
                     </div>
                     <div class="sf-lodge-toggle-row">
-                      <label class="sf-toggle-row" style="cursor: pointer;">
-                        <input type="checkbox" bind:checked={formLodgeConfig.allow_delete} style="accent-color: var(--accent);" />
-                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Allow Delete</span>
-                      </label>
-                      <span class="sf-help" style="padding-left: 26px;">Members can delete their own items</span>
+                      <Checkbox bind:checked={formLodgeConfig.allow_delete} label="Allow Delete" />
+                      <span class="sf-help" style="padding-left: 10px;">Members can delete their own items</span>
                     </div>
                     <div class="sf-lodge-toggle-row">
-                      <label class="sf-toggle-row" style="cursor: pointer;">
-                        <input type="checkbox" bind:checked={formLodgeConfig.require_approval} style="accent-color: var(--accent);" />
-                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);">Require Approval</span>
-                      </label>
-                      <span class="sf-help" style="padding-left: 26px;">Submissions require admin approval before publishing</span>
+                      <Checkbox bind:checked={formLodgeConfig.require_approval} label="Require Approval" />
+                      <span class="sf-help" style="padding-left: 10px;">Submissions require admin approval before publishing</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 4px; margin-top: var(--space-xs);">
                       <label class="sf-label">Max Items Per Member</label>
@@ -737,21 +718,18 @@
                         <label class="sf-label">Editable Fields</label>
                         <div class="sf-lodge-checks">
                           {#each schemaFields as fieldName}
-                            <label class="sf-lodge-check">
-                              <input type="checkbox"
-                                checked={formLodgeConfig.editable_fields.includes(fieldName)}
-                                onchange={(e) => {
-                                  if (e.target.checked) {
-                                    formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
-                                    formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
-                                  } else {
-                                    formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
-                                  }
-                                }}
-                                style="accent-color: var(--accent);"
-                              />
-                              {fieldName}
-                            </label>
+                            <Checkbox
+                              checked={formLodgeConfig.editable_fields.includes(fieldName)}
+                              onchange={(checked) => {
+                                if (checked) {
+                                  formLodgeConfig.editable_fields = [...formLodgeConfig.editable_fields, fieldName];
+                                  formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                                } else {
+                                  formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                                }
+                              }}
+                              label={fieldName}
+                            />
                           {/each}
                         </div>
                         <span class="sf-help">Fields members can edit. Leave empty to allow all fields.</span>
@@ -760,21 +738,18 @@
                         <label class="sf-label">Read-only Fields</label>
                         <div class="sf-lodge-checks">
                           {#each schemaFields as fieldName}
-                            <label class="sf-lodge-check">
-                              <input type="checkbox"
-                                checked={formLodgeConfig.readonly_fields.includes(fieldName)}
-                                onchange={(e) => {
-                                  if (e.target.checked) {
-                                    formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
-                                    formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
-                                  } else {
-                                    formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
-                                  }
-                                }}
-                                style="accent-color: var(--accent);"
-                              />
-                              {fieldName}
-                            </label>
+                            <Checkbox
+                              checked={formLodgeConfig.readonly_fields.includes(fieldName)}
+                              onchange={(checked) => {
+                                if (checked) {
+                                  formLodgeConfig.readonly_fields = [...formLodgeConfig.readonly_fields, fieldName];
+                                  formLodgeConfig.editable_fields = formLodgeConfig.editable_fields.filter(f => f !== fieldName);
+                                } else {
+                                  formLodgeConfig.readonly_fields = formLodgeConfig.readonly_fields.filter(f => f !== fieldName);
+                                }
+                              }}
+                              label={fieldName}
+                            />
                           {/each}
                         </div>
                         <span class="sf-help">Fields visible to members but not editable.</span>
@@ -783,6 +758,7 @@
                   </div>
                 {/if}
               </div>
+
             </div>
           </div>
         {/if}
@@ -816,10 +792,7 @@
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="sf-label">Required</label>
-                <label class="sf-toggle-row" style="padding-top: 6px;">
-                  <input type="checkbox" bind:checked={selectedField.required} style="display:none;" />
-                  <button class="toggle" class:active={selectedField.required} onclick={() => { selectedField.required = !selectedField.required; }} type="button"></button>
-                </label>
+                <Checkbox bind:checked={selectedField.required} />
               </div>
             </div>
 
@@ -862,9 +835,7 @@
                 <div class="sf-inline-grid-2">
                   <div class="form-group" style="margin-bottom: 0;">
                     <label class="sf-label">Allow Multiple</label>
-                    <label class="sf-toggle-row" style="padding-top: 4px;">
-                      <button class="toggle" class:active={selectedField.relMultiple} onclick={() => { selectedField.relMultiple = !selectedField.relMultiple; }} type="button"></button>
-                    </label>
+                    <Checkbox bind:checked={selectedField.relMultiple} />
                   </div>
                   <div class="form-group" style="margin-bottom: 0;">
                     <label class="sf-label">Max Items</label>
@@ -927,7 +898,7 @@
                             <option value="date">Date</option>
                             <option value="image">Image</option>
                           </select>
-                          <span class="sf-type-badge" style="background: {typeBadgeColors[sub.type]?.bg || 'var(--bg-tertiary)'}; color: {typeBadgeColors[sub.type]?.color || 'var(--text-secondary)'}; font-size: 10px; padding: 1px 6px;">
+                          <span class="sf-type-badge" style="background: {typeBadgeColors[sub.type]?.bg || 'var(--hover)'}; color: {typeBadgeColors[sub.type]?.color || 'var(--sec)'}; font-size: 10px; padding: 1px 6px;">
                             {typeLabels[sub.type] || sub.type}
                           </span>
                           <button class="sf-action-btn sf-delete-btn" onclick={() => removeRepeaterSubField(selectedFieldIndex, si)} aria-label="Remove sub-field" type="button" style="opacity: 1;">
@@ -974,15 +945,13 @@
             <div class="sf-conditions-section">
               <div class="sf-conditions-toggle">
                 <span class="sf-label" style="margin-bottom: 0;">Conditional Logic</span>
-                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary);">
-                  <input type="checkbox" checked={selectedField.conditions && selectedField.conditions.length > 0} onchange={(e) => {
-                    if (e.target.checked) {
+                <Checkbox checked={selectedField.conditions && selectedField.conditions.length > 0} onchange={(checked) => {
+                    if (checked) {
                       selectedField.conditions = [{ field: '', operator: '==', value: '' }];
                     } else {
                       selectedField.conditions = [];
                     }
-                  }} style="accent-color: var(--accent);" /> Enable
-                </label>
+                  }} label="Enable" />
               </div>
               {#if selectedField.conditions && selectedField.conditions.length > 0}
                 {#each selectedField.conditions as cond, ci}
@@ -1024,7 +993,7 @@
   .sf-back-link {
     background: none;
     border: none;
-    color: var(--accent);
+    color: var(--purple);
     font-size: inherit;
     cursor: pointer;
     padding: 0;
@@ -1036,7 +1005,7 @@
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-tertiary);
+    color: var(--dim);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-bottom: 4px;
@@ -1047,18 +1016,18 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .sf-section-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .sf-help {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 2px;
   }
 
@@ -1071,7 +1040,7 @@
   .sf-text-btn {
     background: none;
     border: none;
-    color: var(--accent);
+    color: var(--purple);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
@@ -1089,10 +1058,10 @@
     right: 0;
     top: 100%;
     margin-top: 4px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
+    background: transparent;
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     min-width: 200px;
     z-index: 50;
     padding: 4px;
@@ -1107,12 +1076,12 @@
     border: none;
     border-radius: var(--radius-sm);
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
   }
   .sf-overflow-item:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text);
   }
 
   /* ── Two-panel layout ──────────────────────────── */
@@ -1149,8 +1118,8 @@
   .sf-slug-badge {
     font-size: 12px;
     font-family: var(--font-mono);
-    color: var(--text-secondary);
-    background: var(--bg-tertiary);
+    color: var(--sec);
+    background: var(--hover);
     padding: 2px 8px;
     border-radius: 4px;
   }
@@ -1158,7 +1127,7 @@
   .sf-slug-hint {
     margin-left: 6px;
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   /* ── Fields section ────────────────────────────── */
@@ -1175,15 +1144,15 @@
 
   .sf-field-count {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   /* ── Field list ────────────────────────────────── */
   .sf-field-list {
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: var(--bg-card);
+    background: transparent;
   }
 
   .sf-sortable-ghost {
@@ -1191,7 +1160,7 @@
   }
 
   .sf-field-row {
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .sf-field-row:last-child {
@@ -1199,12 +1168,12 @@
   }
 
   .sf-field-row-selected {
-    background: var(--accent-soft);
+    background: var(--purple-bg);
     /* clean — no left accent border */
   }
 
   .sf-field-row-expanded {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   /* ── Row main (clickable strip) ────────────────── */
@@ -1219,7 +1188,7 @@
   }
 
   .sf-field-row-main:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .sf-field-row-selected .sf-field-row-main:hover {
@@ -1228,7 +1197,7 @@
 
   .sf-drag-handle {
     cursor: grab;
-    color: var(--text-light);
+    color: var(--dim);
     display: flex;
     align-items: center;
     padding: 4px 2px;
@@ -1256,7 +1225,7 @@
   .sf-field-label {
     font-size: 15px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
     line-height: 1.3;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1266,7 +1235,7 @@
   .sf-field-name {
     font-size: 11px;
     font-family: var(--font-mono);
-    color: var(--text-tertiary);
+    color: var(--dim);
     line-height: 1.2;
   }
 
@@ -1300,19 +1269,19 @@
     height: 28px;
     border: none;
     background: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     border-radius: var(--radius-sm);
     transition: all 0.1s;
   }
 
   .sf-action-btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text);
   }
 
   .sf-action-btn-active {
-    color: var(--accent);
+    color: var(--purple);
   }
 
   .sf-delete-btn:hover {
@@ -1324,8 +1293,8 @@
   .sf-inline-settings {
     padding: var(--space-md) var(--space-xl);
     padding-left: calc(var(--space-xl) + 18px);
-    border-top: 1px solid var(--border-secondary);
-    background: var(--bg-primary);
+    border-top: 1px solid var(--border);
+    background: var(--bg);
   }
 
   .sf-inline-grid-2 {
@@ -1339,10 +1308,10 @@
     width: 100%;
     padding: var(--space-md);
     margin-top: var(--space-sm);
-    border: 1px dashed var(--border-primary);
+    border: 1px dashed var(--border);
     border-radius: var(--radius-md);
     background: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -1350,9 +1319,9 @@
   }
 
   .sf-add-field-btn:hover:not(:disabled) {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-soft);
+    border-color: var(--purple);
+    color: var(--purple);
+    background: var(--purple-bg);
   }
 
   .sf-add-field-btn:disabled {
@@ -1364,7 +1333,7 @@
   .sf-conditions-section {
     margin-top: var(--space-lg);
     padding-top: var(--space-md);
-    border-top: 1px solid var(--border-secondary);
+    border-top: 1px solid var(--border);
   }
 
   .sf-conditions-toggle {
@@ -1377,7 +1346,7 @@
   .sf-conditions-row {
     margin-top: var(--space-md);
     padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-secondary);
+    border-top: 1px solid var(--border);
   }
 
   .sf-condition-row {
@@ -1389,10 +1358,10 @@
 
   /* ── RIGHT PANEL ───────────────────────────────── */
   .sf-panel {
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
+    background: transparent;
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
     position: sticky;
     top: var(--space-xl);
     max-height: calc(100vh - 120px);
@@ -1401,7 +1370,7 @@
 
   .sf-panel-header {
     padding: var(--space-lg) var(--space-xl);
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .sf-panel-title-row {
@@ -1414,14 +1383,14 @@
   .sf-panel-title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     display: block;
     line-height: 1.3;
   }
 
   .sf-panel-subtitle {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     display: block;
     margin-top: 2px;
   }
@@ -1434,14 +1403,14 @@
     height: 28px;
     border: none;
     background: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     border-radius: var(--radius-sm);
     flex-shrink: 0;
   }
   .sf-panel-close:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text);
   }
 
   .sf-panel-body {
@@ -1451,7 +1420,7 @@
   .sf-panel-type-settings {
     margin-top: var(--space-lg);
     padding-top: var(--space-md);
-    border-top: 1px solid var(--border-secondary);
+    border-top: 1px solid var(--border);
   }
 
   /* ── Repeater toolbar ──────────────────────────── */
@@ -1464,7 +1433,7 @@
 
   .sf-pill-toggle {
     display: inline-flex;
-    background: var(--bg-hover);
+    background: var(--hover);
     border: none;
     border-radius: 6px;
     padding: 2px;
@@ -1477,21 +1446,21 @@
     font-weight: 500;
     padding: 3px 10px;
     border-radius: 4px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     transition: all 0.15s;
   }
 
   .sf-pill-opt.selected {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    box-shadow: var(--shadow-sm);
+    background: var(--bg);
+    color: var(--text);
+    box-shadow: none;
   }
 
   /* ── Sub-field list in panel ───────────────────── */
   .sf-subfield-list {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--border-secondary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     overflow: hidden;
     /* clean — no left accent border */
@@ -1502,7 +1471,7 @@
     align-items: center;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
   }
 
@@ -1521,7 +1490,7 @@
   .sf-subfield-name {
     font-size: 10px;
     font-family: var(--font-mono);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .sf-subfield-options {
@@ -1540,7 +1509,7 @@
   .sf-advanced-header {
     margin-bottom: var(--space-md);
     padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .sf-advanced-body {
@@ -1553,50 +1522,6 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-  }
-
-  /* ── Lodge section ─────────────────────────────── */
-  .sf-lodge-card {
-    padding: var(--space-md);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    margin-top: var(--space-sm);
-  }
-
-  .sf-lodge-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-xs);
-  }
-
-  .sf-lodge-options {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-secondary);
-  }
-
-  .sf-lodge-toggle-row {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .sf-lodge-checks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 14px;
-  }
-
-  .sf-lodge-check {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    cursor: pointer;
   }
 
   /* ── Responsive ────────────────────────────────── */
@@ -1632,5 +1557,40 @@
     .sf-inline-settings {
       padding-left: var(--space-lg);
     }
+  }
+
+  /* Lodge (Outpost-only — member portal hooks) */
+  .sf-lodge-card {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--hover);
+  }
+
+  .sf-lodge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xs);
+  }
+
+  .sf-lodge-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .sf-lodge-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .sf-lodge-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-md);
+    margin-top: 4px;
   }
 </style>

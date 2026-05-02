@@ -2,6 +2,7 @@
   import { folders as foldersApi } from '$lib/api.js';
   import { currentFolderId, addToast, navigate } from '$lib/stores.js';
   import { required, slug as slugRule, validate, hasErrors } from '$lib/validation.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let folderId = $derived($currentFolderId);
   let folder = $state(null);
@@ -185,8 +186,7 @@
                 <option value="link">Link</option>
               </select>
               <label class="txe-required-toggle" title="Required">
-                <input type="checkbox" bind:checked={field.required} style="display:none;" />
-                <span class="txe-required-star" class:active={field.required}>*</span>
+                <Checkbox bind:checked={field.required} />
               </label>
             </div>
             <div class="txe-schema-meta">
@@ -255,15 +255,15 @@
   .txe-section-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin-bottom: var(--space-lg);
     padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .txe-section-hint {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: calc(-1 * var(--space-sm));
     margin-bottom: var(--space-lg);
   }
@@ -274,13 +274,13 @@
     display: block;
     font-size: 13px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin-bottom: 4px;
   }
 
   .txe-hint {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 4px;
   }
 
@@ -293,19 +293,19 @@
     padding: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--dim);
     background: none;
     border: none;
     cursor: pointer;
     transition: color 0.1s;
   }
 
-  .txe-type-btn.active { color: var(--text-primary); }
+  .txe-type-btn.active { color: var(--text); }
 
   /* Schema field builder */
   .txe-schema-row {
     padding: var(--space-md) 0;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .txe-schema-main {
@@ -322,7 +322,7 @@
   .txe-required-star {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-tertiary);
+    color: var(--dim);
     transition: color 0.1s;
     user-select: none;
   }
@@ -338,7 +338,7 @@
 
   .txe-schema-machine {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-family: var(--font-mono);
   }
 
@@ -349,14 +349,14 @@
 
   .txe-action {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     background: none;
     border: none;
     cursor: pointer;
     padding: 0;
   }
 
-  .txe-action:hover { color: var(--text-primary); }
+  .txe-action:hover { color: var(--text); }
   .txe-action-danger:hover { color: var(--danger); }
 
   .txe-schema-options {
@@ -375,7 +375,7 @@
 
   .txe-opt-label {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     flex: 0 0 100px;
   }
 
@@ -388,7 +388,7 @@
     margin-top: var(--space-md);
     font-size: 13px;
     font-weight: 500;
-    color: var(--accent);
+    color: var(--purple);
     background: none;
     border: none;
     cursor: pointer;
@@ -403,6 +403,6 @@
     gap: var(--space-sm);
     margin-top: var(--space-2xl);
     padding-top: var(--space-lg);
-    border-top: 1px solid var(--border-secondary);
+    border-top: 1px solid var(--border);
   }
 </style>

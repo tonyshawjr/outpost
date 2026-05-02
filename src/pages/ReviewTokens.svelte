@@ -482,7 +482,7 @@
     margin-bottom: 24px;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg, 8px);
-    background: var(--bg-primary);
+    background: var(--bg);
   }
 
   .create-form-inner {
@@ -515,8 +515,8 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 14px;
-    color: var(--text-primary);
-    background: var(--bg-primary);
+    color: var(--text);
+    background: var(--bg);
     box-sizing: border-box;
   }
 
@@ -556,13 +556,13 @@
   .token-name {
     font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin-bottom: 4px;
   }
 
   .token-meta {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin-bottom: 4px;
   }
 
@@ -593,7 +593,7 @@
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin-top: 4px;
   }
 
@@ -645,7 +645,7 @@
   }
 
   .feedback-panel {
-    background: var(--bg-primary);
+    background: var(--bg);
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     width: 640px;
@@ -683,21 +683,21 @@
   }
 
   .feedback-back:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--text);
+    background: var(--raised);
   }
 
   .feedback-title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin: 0;
     line-height: 1.3;
   }
 
   .feedback-subtitle {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 2px 0 0;
   }
 
@@ -717,8 +717,8 @@
   }
 
   .feedback-close:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--text);
+    background: var(--raised);
   }
 
   .feedback-filters {
@@ -736,19 +736,19 @@
     background: none;
     border: none;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     border-radius: 4px;
     transition: color 0.1s, background 0.1s;
   }
 
   .feedback-filter-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--text);
+    background: var(--raised);
   }
 
   .feedback-filter-btn.active {
-    color: var(--text-primary);
+    color: var(--text);
     font-weight: 600;
   }
 
@@ -818,7 +818,7 @@
     justify-content: center;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--sec);
     flex-shrink: 0;
   }
 
@@ -844,7 +844,7 @@
   .feedback-author {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .feedback-email {
@@ -878,7 +878,7 @@
 
   .feedback-comment-body {
     font-size: 14px;
-    color: var(--text-primary);
+    color: var(--text);
     line-height: 1.55;
     white-space: pre-wrap;
     word-break: break-word;
@@ -905,8 +905,8 @@
   }
 
   .feedback-action-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--text);
+    background: var(--raised);
   }
 
   .feedback-action-view {

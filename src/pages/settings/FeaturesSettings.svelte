@@ -2,6 +2,7 @@
   import { featureFlags as featureFlagsApi } from '$lib/api.js';
   import { featureFlags as featureFlagsStore, addToast } from '$lib/stores.js';
   import { onMount } from 'svelte';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let flags = $state({
     collections: true,
@@ -73,7 +74,7 @@
   <p class="settings-section-desc">Toggle which features appear in the admin sidebar. Disabled features hide from the menu but data is preserved.</p>
 
   {#if loading}
-    <p style="font-size: var(--font-size-sm); color: var(--text-tertiary);">Loading...</p>
+    <p style="font-size: var(--font-size-sm); color: var(--dim);">Loading...</p>
   {:else}
     <div class="features-list">
       {#each features as feat}
@@ -82,13 +83,7 @@
             <span class="feature-label">{feat.label}</span>
             <span class="feature-desc">{feat.desc}</span>
           </div>
-          <button
-            class="toggle"
-            class:active={flags[feat.key]}
-            onclick={() => toggle(feat.key)}
-            type="button"
-            disabled={saving}
-          ></button>
+          <Checkbox checked={flags[feat.key]} onchange={() => toggle(feat.key)} />
         </div>
       {/each}
     </div>
@@ -106,7 +101,7 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-md) 0;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border);
   }
   .feature-row:last-child {
     border-bottom: none;
@@ -119,90 +114,11 @@
   .feature-label {
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
   }
   .feature-desc {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
-  .lodge-config-section {
-    margin-top: var(--space-lg);
-    padding-top: var(--space-lg);
-    border-top: 1px solid var(--border-primary);
-  }
-
-  .lodge-config-title {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    margin: 0 0 var(--space-md);
-  }
-
-  .lodge-config-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-md);
-  }
-
-  .lodge-config-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .lodge-config-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-
-  .lodge-config-desc {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
-  }
-
-  .lodge-config-input-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .lodge-config-prefix {
-    font-size: 14px;
-    color: var(--text-tertiary);
-    font-family: var(--font-mono);
-  }
-
-  .lodge-config-input {
-    width: 140px;
-    height: 30px;
-    font-size: 13px;
-    font-family: var(--font-mono);
-  }
-
-  .lodge-pages-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: var(--space-sm);
-    align-items: end;
-    margin-top: var(--space-sm);
-  }
-
-  .lodge-page-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .lodge-page-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-tertiary);
-  }
 </style>

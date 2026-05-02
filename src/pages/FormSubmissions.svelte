@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { forms as formsApi, formBuilder } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let formsList      = $state([]);
   let builderForms   = $state([]);
@@ -334,12 +335,9 @@
                   class:unread={!sub.read_at}
                   onclick={() => selectSub(sub)}
                 >
-                  <input
-                    type="checkbox"
-                    class="subs-item-check"
-                    checked={selectedIds.has(sub.id)}
-                    onclick={(e) => { e.stopPropagation(); toggleSelect(sub.id); }}
-                  />
+                  <div class="subs-item-check" onclick={(e) => e.stopPropagation()}>
+                    <Checkbox checked={selectedIds.has(sub.id)} onchange={() => toggleSelect(sub.id)} />
+                  </div>
                   <button class="subs-star" class:starred={sub.starred} onclick={(e) => { e.stopPropagation(); toggleStar(sub); }}>
                     {sub.starred ? '★' : '☆'}
                   </button>
@@ -426,16 +424,16 @@
   .subs-layout {
     display: flex;
     gap: 0;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg, 8px);
     overflow: hidden;
     min-height: 500px;
-    background: var(--bg-card);
+    background: transparent;
   }
 
   .subs-sidebar {
     width: 220px;
-    border-right: 1px solid var(--border-primary);
+    border-right: 1px solid var(--border);
     padding: 8px 0;
     flex-shrink: 0;
     overflow-y: auto;
@@ -450,19 +448,19 @@
     background: none;
     border: none;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     text-align: left;
     transition: background 0.1s;
   }
 
   .subs-filter-item:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .subs-filter-item.active {
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: var(--purple-bg);
+    color: var(--purple);
     font-weight: 500;
   }
 
@@ -473,20 +471,20 @@
 
   .subs-filter-count {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .subs-status-filters {
     padding: 8px 0;
     margin-top: 8px;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   .subs-status-label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-weight: 500;
     padding: 4px 16px;
   }
@@ -494,18 +492,18 @@
   .subs-notify-section {
     padding: 8px 16px;
     margin-top: 8px;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   .subs-notify-input {
     width: 100%;
     padding: 4px 6px;
     font-size: 12px;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md, 6px);
     margin-top: 4px;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text);
   }
 
   .subs-notify-actions {
@@ -521,13 +519,13 @@
     background: none;
     border: none;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     padding: 4px 0;
   }
 
   .subs-notify-btn:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .subs-main {
@@ -542,8 +540,8 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: var(--accent-soft);
-    border-bottom: 1px solid var(--border-primary);
+    background: var(--purple-bg);
+    border-bottom: 1px solid var(--border);
     font-size: 13px;
     flex-shrink: 0;
   }
@@ -556,7 +554,7 @@
 
   .subs-list {
     width: 340px;
-    border-right: 1px solid var(--border-primary);
+    border-right: 1px solid var(--border);
     overflow-y: auto;
     flex-shrink: 0;
   }
@@ -571,7 +569,7 @@
   .subs-empty {
     padding: 40px;
     text-align: center;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: 14px;
   }
 
@@ -580,17 +578,17 @@
     align-items: flex-start;
     gap: 8px;
     padding: 10px 12px;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.1s;
   }
 
   .subs-item:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .subs-item.selected {
-    background: var(--accent-soft);
+    background: var(--purple-bg);
   }
 
   .subs-item.unread {
@@ -608,7 +606,7 @@
     border: none;
     cursor: pointer;
     font-size: 14px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     padding: 0;
     line-height: 1;
     margin-top: 1px;
@@ -633,7 +631,7 @@
 
   .subs-item-form {
     font-size: 13px;
-    color: var(--text-primary);
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -641,13 +639,13 @@
 
   .subs-item-date {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     flex-shrink: 0;
   }
 
   .subs-item-preview {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -663,7 +661,7 @@
 
   .subs-page-info {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .subs-detail {
@@ -677,7 +675,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: 14px;
   }
 
@@ -696,7 +694,7 @@
 
   .subs-detail-date {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .subs-detail-fields {
@@ -705,21 +703,21 @@
 
   .subs-detail-field {
     padding: 10px 0;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .subs-detail-label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-weight: 500;
     margin-bottom: 2px;
   }
 
   .subs-detail-value {
     font-size: 14px;
-    color: var(--text-primary);
+    color: var(--text);
     white-space: pre-wrap;
     word-break: break-word;
   }
@@ -727,14 +725,14 @@
   .subs-detail-meta {
     margin: 16px 0;
     padding: 12px 0;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   .subs-detail-meta-row {
     display: flex;
     justify-content: space-between;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     padding: 3px 0;
   }
 
@@ -752,7 +750,7 @@
   }
 
   .subs-detail-notes {
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
     padding-top: 12px;
   }
 
@@ -760,7 +758,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-weight: 500;
     margin-bottom: 6px;
   }
@@ -769,11 +767,11 @@
     width: 100%;
     padding: 6px 8px;
     font-size: 13px;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md, 6px);
     resize: vertical;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text);
   }
 
   .subs-notes-actions {
@@ -789,7 +787,7 @@
     background: none;
     border: none;
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     padding: 4px 0;
     white-space: pre-wrap;
@@ -797,7 +795,7 @@
   }
 
   .subs-notes-btn:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .btn-xs {
@@ -836,17 +834,17 @@
       flex-shrink: 0;
       padding: 6px 14px;
       font-size: 13px;
-      border: 1px solid var(--border-primary);
+      border: 1px solid var(--border);
       border-radius: 20px;
-      background: var(--bg-card);
-      color: var(--text-secondary);
+      background: transparent;
+      color: var(--sec);
       cursor: pointer;
       white-space: nowrap;
     }
     .subs-mobile-pill.active {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-      color: var(--accent);
+      background: var(--purple-bg);
+      border-color: var(--purple);
+      color: var(--purple);
       font-weight: 500;
     }
     .subs-mobile-badge {
@@ -855,7 +853,7 @@
       height: 16px;
       padding: 0 4px;
       margin-left: 4px;
-      background: var(--accent);
+      background: var(--purple);
       color: #fff;
       font-size: 10px;
       font-weight: 600;
@@ -889,7 +887,7 @@
     .subs-list {
       width: 100%;
       border-right: none;
-      border-bottom: 1px solid var(--border-primary);
+      border-bottom: 1px solid var(--border);
     }
 
     /* Touch-friendly list items */
@@ -939,7 +937,7 @@
       background: none;
       border: none;
       font-size: 18px;
-      color: var(--text-secondary);
+      color: var(--sec);
       cursor: pointer;
       padding: 4px 8px 4px 0;
       flex-shrink: 0;

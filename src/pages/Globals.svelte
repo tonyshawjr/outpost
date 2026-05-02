@@ -138,25 +138,25 @@
   .gl-code {
     font-family: var(--font-mono);
     font-size: 0.85em;
-    background: var(--bg-secondary);
+    background: var(--raised);
     padding: 1px 5px;
     border-radius: 3px;
   }
 
   .gl-fields {
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   .gl-empty {
     padding: var(--space-3xl) 0;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .gl-empty-title {
     font-size: var(--text-base);
     font-weight: 500;
     margin: 0 0 6px;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .gl-empty-hint {
@@ -167,7 +167,7 @@
   .gl-empty-hint code {
     font-family: var(--font-mono);
     font-size: 0.85em;
-    background: var(--bg-secondary);
+    background: var(--raised);
     padding: 1px 5px;
     border-radius: 3px;
   }
@@ -200,7 +200,7 @@
     border: 1px solid #e5d5a0;
     background: #fff;
     color: #92400e;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     white-space: nowrap;
   }
   .gl-conflict-btn:hover { background: #fef3c7; }

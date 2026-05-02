@@ -5,6 +5,7 @@
   import EmptyState from '$components/EmptyState.svelte';
   import ContextualTip from '$components/ContextualTip.svelte';
   import { tips } from '$lib/tips.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   // ── State ───────────────────────────────────────────────
   let menus = $state([]);
@@ -386,14 +387,7 @@
                     </button>
                   </div>
 
-                  <label class="nav-toggle" title="Open in new tab">
-                    <input
-                      type="checkbox"
-                      checked={item.target === '_blank'}
-                      onchange={(e) => updateItem(i, 'target', e.target.checked ? '_blank' : '_self')}
-                    />
-                    <span class="nav-toggle-track"></span>
-                  </label>
+                  <Checkbox checked={item.target === '_blank'} onchange={(checked) => updateItem(i, 'target', checked ? '_blank' : '_self')} />
 
                   <button class="nav-item-delete" onclick={() => removeItem(i)}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -435,14 +429,7 @@
                         </button>
                       </div>
 
-                      <label class="nav-toggle" title="Open in new tab">
-                        <input
-                          type="checkbox"
-                          checked={child.target === '_blank'}
-                          onchange={(e) => updateChild(i, j, 'target', e.target.checked ? '_blank' : '_self')}
-                        />
-                        <span class="nav-toggle-track"></span>
-                      </label>
+                      <Checkbox checked={child.target === '_blank'} onchange={(checked) => updateChild(i, j, 'target', checked ? '_blank' : '_self')} />
 
                       <button class="nav-item-delete" onclick={() => removeChild(i, j)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -511,7 +498,7 @@
   .nav-code {
     font-family: var(--font-mono);
     font-size: 0.85em;
-    background: var(--bg-secondary);
+    background: var(--raised);
     padding: 1px 5px;
     border-radius: 3px;
   }
@@ -521,7 +508,7 @@
     display: flex;
     gap: 0;
     align-items: flex-start;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
     padding-top: var(--space-xl);
   }
 
@@ -529,7 +516,7 @@
   .nav-sidebar {
     width: 180px;
     flex-shrink: 0;
-    border-right: 1px solid var(--border-primary);
+    border-right: 1px solid var(--border);
     padding-right: var(--space-lg);
     margin-right: var(--space-xl);
   }
@@ -559,17 +546,17 @@
   }
 
   .nav-menu-item:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .nav-menu-item.active {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .nav-menu-name {
     font-size: var(--text-sm);
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
     line-height: 1.3;
   }
 
@@ -590,16 +577,16 @@
     width: 100%;
     font-size: var(--text-sm);
     background: none;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 5px 8px;
-    color: var(--text-primary);
+    color: var(--text);
     box-sizing: border-box;
   }
 
   .nav-input:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--purple);
   }
 
   .nav-slug-row {
@@ -630,8 +617,8 @@
     padding: 5px 12px;
     border-radius: var(--radius-sm);
     border: none;
-    background: var(--text-primary);
-    color: var(--bg-primary);
+    background: var(--text);
+    color: var(--bg);
     font-size: var(--text-sm);
     font-weight: 500;
     cursor: pointer;
@@ -645,9 +632,9 @@
   .nav-btn-ghost {
     padding: 5px 12px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--border-secondary);
+    border: 1px solid var(--border);
     background: none;
-    color: var(--text-secondary);
+    color: var(--sec);
     font-size: var(--text-sm);
     cursor: pointer;
   }
@@ -667,7 +654,7 @@
   }
 
   .nav-add-menu-btn:hover {
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   /* Right editor */
@@ -686,7 +673,7 @@
   .nav-menu-name-input {
     font-size: var(--text-lg);
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     background: none;
     border: none;
     border-bottom: 1px solid transparent;
@@ -699,14 +686,14 @@
   .nav-menu-name-input:hover,
   .nav-menu-name-input:focus {
     outline: none;
-    border-bottom-color: var(--border-primary);
+    border-bottom-color: var(--border);
   }
 
   .nav-menu-slug-badge {
     font-size: 11px;
     font-family: var(--font-mono);
     color: var(--text-muted);
-    background: var(--bg-secondary);
+    background: var(--raised);
     padding: 2px 7px;
     border-radius: var(--radius-sm);
     flex-shrink: 0;
@@ -738,7 +725,7 @@
     align-items: center;
     gap: var(--space-sm);
     padding: 0 0 6px;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border);
     margin-bottom: var(--space-sm);
   }
 
@@ -777,13 +764,13 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
-    background: var(--bg-primary);
+    background: var(--bg);
     border-radius: var(--radius-md);
     padding: 2px 0;
   }
 
   .nav-item-group:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .nav-item-row {
@@ -834,7 +821,7 @@
 
   .nav-reorder-btn:hover {
     opacity: 1 !important;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .nav-reorder-btn:disabled {
@@ -848,14 +835,14 @@
     border-bottom: 1px solid transparent;
     padding: 4px 0;
     font-size: var(--text-sm);
-    color: var(--text-primary);
+    color: var(--text);
     transition: border-color 0.15s;
     min-width: 0;
   }
 
   .nav-item-input:focus {
     outline: none;
-    border-bottom-color: var(--border-primary);
+    border-bottom-color: var(--border);
   }
 
   .nav-item-label {
@@ -873,7 +860,7 @@
   .nav-item-url {
     flex: 1;
     min-width: 0;
-    color: var(--text-secondary);
+    color: var(--sec);
     font-family: var(--font-mono);
     font-size: 12px;
   }
@@ -900,53 +887,7 @@
 
   .nav-pick-btn:hover {
     opacity: 1 !important;
-    color: var(--text-primary);
-  }
-
-  /* Toggle */
-  .nav-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-
-  .nav-toggle input {
-    display: none;
-  }
-
-  .nav-toggle-track {
-    display: block;
-    width: 28px;
-    height: 16px;
-    border-radius: 8px;
-    background: var(--bg-tertiary, #e2e8f0);
-    position: relative;
-    transition: background 0.15s;
-    flex-shrink: 0;
-  }
-
-  .nav-toggle-track::after {
-    content: '';
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: white;
-    transition: transform 0.15s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
-
-  .nav-toggle input:checked + .nav-toggle-track {
-    background: var(--text-primary);
-  }
-
-  .nav-toggle input:checked + .nav-toggle-track::after {
-    transform: translateX(12px);
+    color: var(--text);
   }
 
   .nav-item-delete {
@@ -993,7 +934,7 @@
   }
 
   .nav-add-child-btn:hover {
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .nav-add-item-btn {
@@ -1002,7 +943,7 @@
     gap: 6px;
     padding: 8px 10px;
     background: none;
-    border: 1px dashed var(--border-primary);
+    border: 1px dashed var(--border);
     border-radius: var(--radius-md);
     color: var(--text-muted);
     font-size: var(--text-sm);
@@ -1013,8 +954,8 @@
   }
 
   .nav-add-item-btn:hover {
-    color: var(--text-secondary);
-    border-color: var(--border-secondary);
+    color: var(--sec);
+    border-color: var(--border);
   }
 
   /* Page picker */
@@ -1030,8 +971,8 @@
   }
 
   .nav-picker {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-primary);
+    background: var(--bg);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     width: 360px;
@@ -1046,13 +987,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border);
   }
 
   .nav-picker-title {
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .nav-picker-close {
@@ -1069,10 +1010,10 @@
   .nav-picker-search {
     padding: 10px 16px;
     border: none;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border);
     background: none;
     font-size: var(--text-sm);
-    color: var(--text-primary);
+    color: var(--text);
     width: 100%;
     box-sizing: border-box;
   }
@@ -1102,12 +1043,12 @@
   }
 
   .nav-picker-item:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .nav-picker-item-title {
     font-size: var(--text-sm);
-    color: var(--text-primary);
+    color: var(--text);
     font-weight: 500;
   }
 
@@ -1134,7 +1075,7 @@
     .nav-sidebar {
       width: 100%;
       border-right: none;
-      border-bottom: 1px solid var(--border-primary);
+      border-bottom: 1px solid var(--border);
       padding-right: 0;
       padding-bottom: var(--space-md);
       margin-right: 0;

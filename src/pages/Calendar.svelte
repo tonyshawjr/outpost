@@ -212,13 +212,13 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: var(--text-secondary);
+    color: var(--sec);
     transition: background 0.1s, color 0.1s;
   }
 
   .cal-nav-btn:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+    background: var(--raised);
+    color: var(--text);
   }
 
   .cal-nav-btn svg {
@@ -231,7 +231,7 @@
     font-weight: 600;
     min-width: 180px;
     text-align: center;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .cal-today-btn {
@@ -241,12 +241,12 @@
     padding: 4px 12px;
     font-size: 12px;
     cursor: pointer;
-    color: var(--text-secondary);
+    color: var(--sec);
     transition: background 0.1s;
   }
 
   .cal-today-btn:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .cal-filter {
@@ -254,8 +254,8 @@
     border: 1px solid var(--border-light, #e2e8f0);
     border-radius: 6px;
     font-size: 13px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--text);
     cursor: pointer;
   }
 
@@ -275,7 +275,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-muted);
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-bottom: 1px solid var(--border-light, #e2e8f0);
   }
 
@@ -284,7 +284,7 @@
     padding: 6px;
     border-right: 1px solid var(--border-light, #e2e8f0);
     border-bottom: 1px solid var(--border-light, #e2e8f0);
-    background: var(--bg-primary);
+    background: var(--bg);
     position: relative;
   }
 
@@ -293,7 +293,7 @@
   }
 
   .cal-cell-empty {
-    background: var(--bg-secondary);
+    background: var(--raised);
     opacity: 0.5;
   }
 
@@ -315,7 +315,7 @@
   .cal-day-num {
     font-size: 12px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--sec);
     display: inline-block;
     margin-bottom: 4px;
   }
@@ -341,7 +341,7 @@
   }
 
   .cal-item-pill:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .cal-pill-dot {
@@ -354,7 +354,7 @@
 
   .cal-pill-text {
     font-size: 11px;
-    color: var(--text-primary);
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

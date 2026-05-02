@@ -49,7 +49,7 @@
 
 <div class="settings-section">
   <h2 class="settings-section-title">Updates</h2>
-  <p class="settings-section-desc">Check for and install Outpost CMS updates.</p>
+  <p class="settings-section-desc">Check for and install Kenii Sites updates.</p>
 
   {#if checking}
     <div class="update-status">
@@ -105,7 +105,7 @@
         </div>
       {:else}
         <div class="update-current">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           <span>You're on the latest version.</span>
         </div>
       {/if}
@@ -159,7 +159,7 @@
 
   .update-checking {
     font-size: 14px;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .update-error {
@@ -168,7 +168,7 @@
   }
 
   .update-card {
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin-bottom: var(--space-md);
@@ -189,7 +189,7 @@
   .update-label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-tertiary);
+    color: var(--dim);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
@@ -197,16 +197,16 @@
   .update-value {
     font-size: 16px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
     font-family: var(--font-mono, monospace);
   }
 
   .update-value.update-new {
-    color: var(--accent);
+    color: var(--purple);
   }
 
   .update-available {
-    border-top: 1px solid var(--border-secondary);
+    border-top: 1px solid var(--border);
     padding-top: var(--space-md);
   }
 
@@ -216,20 +216,20 @@
 
   .update-notes summary {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
   }
 
   .update-notes-body {
     margin-top: var(--space-sm);
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     line-height: 1.6;
     white-space: pre-wrap;
     max-height: 400px;
     overflow-y: auto;
     padding: var(--space-sm);
-    background: var(--bg-tertiary);
+    background: var(--hover);
     border-radius: var(--radius-sm);
   }
 
@@ -241,13 +241,13 @@
 
   .update-link {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     text-decoration: underline;
   }
 
   .update-no-zip {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin: 0;
   }
 
@@ -257,7 +257,7 @@
     gap: var(--space-sm);
     margin-top: var(--space-md);
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .update-current {
@@ -265,7 +265,7 @@
     align-items: center;
     gap: var(--space-sm);
     font-size: 14px;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   .update-recheck {
@@ -275,8 +275,8 @@
   .spinner-sm {
     width: 16px;
     height: 16px;
-    border: 2px solid var(--border-secondary);
-    border-top-color: var(--accent);
+    border: 2px solid var(--border);
+    border-top-color: var(--purple);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }
@@ -287,7 +287,7 @@
 
   .theme-results {
     margin-top: var(--space-xl);
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: var(--space-lg);
   }
@@ -296,7 +296,7 @@
     font-size: 14px;
     font-weight: 600;
     margin: 0 0 var(--space-md);
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .theme-result-item {
@@ -304,7 +304,7 @@
   }
 
   .theme-result-item + .theme-result-item {
-    border-top: 1px solid var(--border-secondary);
+    border-top: 1px solid var(--border);
   }
 
   .theme-result-header {
@@ -320,15 +320,15 @@
   }
 
   .theme-result-badge.installed {
-    color: var(--accent);
+    color: var(--purple);
   }
 
   .theme-result-badge.updated {
-    color: var(--accent);
+    color: var(--purple);
   }
 
   .theme-result-badge.skipped {
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .theme-conflicts {
@@ -349,7 +349,7 @@
 
   .conflict-list li {
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--sec);
     font-family: var(--font-mono, monospace);
     padding: 2px 0;
   }

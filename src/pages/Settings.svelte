@@ -145,7 +145,7 @@
     grid-template-columns: 200px 1fr;
     gap: 0;
     min-height: 400px;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
     padding-top: var(--space-xl);
   }
 
@@ -156,7 +156,7 @@
     position: sticky;
     top: var(--space-xl);
     align-self: start;
-    border-right: 1px solid var(--border-primary);
+    border-right: 1px solid var(--border);
     padding-right: var(--space-lg);
     margin-right: var(--space-xl);
   }
@@ -170,7 +170,7 @@
     border-radius: var(--radius-md);
     font-size: 14px;
     font-weight: 400;
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     text-align: left;
     transition: color 0.1s, background 0.1s;
@@ -178,14 +178,14 @@
   }
 
   .settings-nav-item:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--text);
+    background: var(--raised);
   }
 
   .settings-nav-item.active {
-    color: var(--text-primary);
+    color: var(--text);
     font-weight: 500;
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .settings-content {
@@ -198,16 +198,16 @@
   }
 
   .settings-content :global(.settings-section-title) {
-    font-family: var(--font-serif);
+    font-family: var(--font);
     font-size: 20px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin: 0 0 var(--space-xs);
   }
 
   .settings-content :global(.settings-section-desc) {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 0 0 var(--space-xl);
   }
 
@@ -225,7 +225,7 @@
       padding-right: 0;
       margin-right: 0;
       padding-bottom: var(--space-md);
-      border-bottom: 1px solid var(--border-primary);
+      border-bottom: 1px solid var(--border);
       margin-bottom: 0;
     }
     .settings-nav-item {

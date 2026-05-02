@@ -461,7 +461,7 @@
     padding: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--dim);
     background: none;
     border: none;
     cursor: pointer;
@@ -469,11 +469,11 @@
   }
 
   .tax-filter-btn:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .tax-filter-btn.active {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   /* Create form */
@@ -504,7 +504,7 @@
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.03em;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .tax-type-toggle, .tax-coll-toggle {
@@ -518,7 +518,7 @@
     padding: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--dim);
     background: none;
     border: none;
     cursor: pointer;
@@ -526,8 +526,8 @@
     white-space: nowrap;
   }
 
-  .tax-type-btn:hover, .tax-coll-btn:hover { color: var(--text-primary); }
-  .tax-type-btn.active, .tax-coll-btn.active { color: var(--text-primary); }
+  .tax-type-btn:hover, .tax-coll-btn:hover { color: var(--text); }
+  .tax-type-btn.active, .tax-coll-btn.active { color: var(--text); }
 
   .tax-create-actions {
     display: flex;
@@ -550,8 +550,8 @@
     padding: 0 var(--space-sm) var(--space-sm);
     font-size: 11px;
     font-weight: 500;
-    color: var(--text-tertiary);
-    border-bottom: 1px solid var(--border-secondary);
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
   }
 
   .tax-row {}
@@ -565,7 +565,7 @@
     padding: 10px var(--space-sm);
     background: none;
     border: none;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.1s;
     text-align: left;
@@ -574,7 +574,7 @@
   }
 
   .tax-row-header:hover {
-    background: var(--bg-hover);
+    background: var(--hover);
   }
 
   .tax-col-name {
@@ -588,7 +588,7 @@
     width: 14px;
     height: 14px;
     flex-shrink: 0;
-    color: var(--text-tertiary);
+    color: var(--dim);
     transition: transform 0.15s;
   }
 
@@ -597,22 +597,22 @@
   .tax-name {
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .tax-slug {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-family: var(--font-mono);
   }
 
   .tax-col-collection { font-size: 13px; }
-  .tax-coll-label { color: var(--text-secondary); }
-  .tax-col-type { font-size: 13px; color: var(--text-tertiary); }
+  .tax-coll-label { color: var(--sec); }
+  .tax-col-type { font-size: 13px; color: var(--dim); }
 
   .tax-col-count {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     font-variant-numeric: tabular-nums;
     text-align: right;
   }
@@ -625,14 +625,14 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     opacity: 0;
     cursor: pointer;
     transition: opacity 0.1s;
   }
 
   .tax-row-header:hover .tax-edit-btn { opacity: 1; }
-  .tax-edit-btn:hover { color: var(--accent); }
+  .tax-edit-btn:hover { color: var(--purple); }
 
   .tax-delete-btn {
     display: inline-flex;
@@ -640,7 +640,7 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     opacity: 0;
     cursor: pointer;
     transition: opacity 0.1s;
@@ -672,12 +672,12 @@
     flex: 1;
     height: 30px;
     font-size: 13px;
-    border-color: var(--border-secondary);
+    border-color: var(--border);
   }
 
   .tax-terms-empty {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     padding: var(--space-xs) 0;
   }
 
@@ -692,19 +692,19 @@
 
   .tax-term-name {
     font-size: 14px;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .tax-term-slug {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-family: var(--font-mono);
   }
 
   .tax-term-count {
     margin-left: auto;
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .tax-term-delete {
@@ -715,7 +715,7 @@
     height: 20px;
     background: none;
     border: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     opacity: 0;
     cursor: pointer;
     transition: opacity 0.1s;

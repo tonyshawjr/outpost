@@ -26,20 +26,20 @@
   }
 
   .access-denied-icon {
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: var(--space-lg);
   }
 
   .access-denied-title {
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin-bottom: var(--space-sm);
   }
 
   .access-denied-text {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     max-width: 400px;
     margin-bottom: var(--space-xl);
     line-height: 1.5;

@@ -2,6 +2,8 @@
   import { labels as labelsApi, folders as foldersApi } from '$lib/api.js';
   import { currentFolderId, currentFolderCollectionId, addToast, navigate } from '$lib/stores.js';
   import { slugify } from '$lib/utils.js';
+  import Checkbox from '$components/Checkbox.svelte';
+  import ColorPicker from '$components/ColorPicker.svelte';
 
   let folderId = $derived($currentFolderId);
   let collId = $derived($currentFolderCollectionId);
@@ -192,9 +194,9 @@
                 {/each}
               </select>
             {:else if field.type === 'toggle'}
-              <button class="toggle" class:active={newData[field.name]} onclick={() => newData[field.name] = !newData[field.name]} type="button" aria-label={field.label}></button>
+              <Checkbox bind:checked={newData[field.name]} />
             {:else if field.type === 'color'}
-              <input class="input" type="color" bind:value={newData[field.name]} style="height: 36px; padding: 2px; cursor: pointer;" />
+              <ColorPicker bind:value={newData[field.name]} />
             {:else}
               <input class="input" type="text" bind:value={newData[field.name]} placeholder={field.placeholder || ''} />
             {/if}
@@ -275,7 +277,7 @@
   .tt-form-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin-bottom: var(--space-lg);
   }
 
@@ -287,20 +289,20 @@
     display: block;
     font-size: 13px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin-bottom: 4px;
   }
 
   .tt-hint {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 4px;
   }
 
   /* List */
   .tt-empty {
     font-size: 14px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     padding: var(--space-xl) 0;
   }
 
@@ -311,8 +313,8 @@
     padding: 0 0 var(--space-sm);
     font-size: 11px;
     font-weight: 500;
-    color: var(--text-tertiary);
-    border-bottom: 1px solid var(--border-secondary);
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
   }
 
   .tt-row {
@@ -321,7 +323,7 @@
     gap: var(--space-md);
     align-items: center;
     padding: 8px 0;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .tt-row:hover .tt-row-actions { opacity: 1; }
@@ -340,7 +342,7 @@
   .tt-term-name {
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .tt-row-actions {
@@ -353,7 +355,7 @@
 
   .tt-action {
     font-size: 12px;
-    color: var(--accent);
+    color: var(--purple);
     background: none;
     border: none;
     cursor: pointer;
@@ -366,13 +368,13 @@
 
   .tt-col-slug {
     font-size: 13px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-family: var(--font-mono);
   }
 
   .tt-col-count {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--sec);
     font-variant-numeric: tabular-nums;
     text-align: right;
   }

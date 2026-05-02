@@ -7,6 +7,7 @@
   import EmptyState from '$components/EmptyState.svelte';
   import ContextualTip from '$components/ContextualTip.svelte';
   import { tips } from '$lib/tips.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let loading = $state(true);
   let dragover = $state(false);
@@ -661,7 +662,7 @@
   }
 
   // ── Resizable detail sidebar ──
-  let sidebarWidth = $state(parseInt(localStorage.getItem('outpost_media_sidebar_width')) || 280);
+  let sidebarWidth = $state(parseInt(localStorage.getItem('kenii_media_sidebar_width')) || 280);
   let resizingSidebar = $state(false);
 
   function onSidebarResizeStart(e) {
@@ -677,7 +678,7 @@
 
     function onUp() {
       resizingSidebar = false;
-      localStorage.setItem('outpost_media_sidebar_width', String(sidebarWidth));
+      localStorage.setItem('kenii_media_sidebar_width', String(sidebarWidth));
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     }
@@ -774,14 +775,10 @@
     <!-- Bulk action bar -->
     {#if bulkMode && selectedIds.size > 0}
       <div class="bulk-action-bar">
-        <label class="bulk-checkbox-label">
-          <input
-            type="checkbox"
-            checked={selectedIds.size === items.length && items.length > 0}
-            onchange={() => selectedIds.size === items.length ? deselectAll() : selectAll()}
-          />
+        <div class="bulk-checkbox-label">
+          <Checkbox checked={selectedIds.size === items.length && items.length > 0} onchange={() => selectedIds.size === items.length ? deselectAll() : selectAll()} />
           <span>{selectedIds.size} selected</span>
-        </label>
+        </div>
         <div class="bulk-actions">
           <div class="bulk-move-wrapper">
             <button class="btn btn-secondary btn-sm" onclick={() => showBulkMoveMenu = !showBulkMoveMenu} disabled={bulkMoving}>
@@ -914,13 +911,8 @@
               ondragend={() => dragMediaId = null}
             >
               {#if bulkMode}
-                <div class="bulk-checkbox-overlay">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(item.id)}
-                    onclick={(e) => e.stopPropagation()}
-                    onchange={() => toggleSelect(item)}
-                  />
+                <div class="bulk-checkbox-overlay" onclick={(e) => e.stopPropagation()}>
+                  <Checkbox checked={selectedIds.has(item.id)} onchange={() => toggleSelect(item)} />
                 </div>
               {/if}
               {#if item.mime_type.startsWith('image/')}
@@ -930,7 +922,7 @@
                   loading="lazy"
                 />
               {:else}
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-tertiary); font-size: var(--font-size-xs);">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--dim); font-size: var(--font-size-xs);">
                   {item.mime_type.split('/')[1]?.toUpperCase()}
                 </div>
               {/if}
@@ -1130,7 +1122,7 @@
 {#if fileContextMenu}
   <div class="context-menu" style="left: {fileContextMenu.x}px; top: {fileContextMenu.y}px;">
     {#if fileContextMenu.loading}
-      <div class="context-menu-item" style="color: var(--text-tertiary); cursor: default;">Loading...</div>
+      <div class="context-menu-item" style="color: var(--dim); cursor: default;">Loading...</div>
     {:else}
       {#if fileContextMenu.folderIds.length > 0}
         <div class="context-menu-section-label">In folders:</div>
@@ -1226,7 +1218,7 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-tertiary);
+    color: var(--dim);
     pointer-events: none;
   }
   .media-search-input {
@@ -1236,7 +1228,7 @@
     border-radius: var(--radius-md);
     background: transparent;
     font-size: var(--font-size-sm);
-    color: var(--text-primary);
+    color: var(--text);
     outline: none;
     transition: border-color 0.15s;
   }
@@ -1245,7 +1237,7 @@
     border-color: var(--border-color);
   }
   .media-search-input::placeholder {
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .media-search-clear {
     position: absolute;
@@ -1256,12 +1248,12 @@
     border: none;
     padding: 2px;
     cursor: pointer;
-    color: var(--text-tertiary);
+    color: var(--dim);
     display: flex;
     align-items: center;
   }
   .media-search-clear:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   /* Type chips */
@@ -1276,16 +1268,16 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     border-radius: var(--radius-sm);
     transition: color 0.15s;
   }
   .media-chip:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
   .media-chip.active {
-    color: var(--text-primary);
+    color: var(--text);
     font-weight: 600;
   }
 
@@ -1296,7 +1288,7 @@
     border-radius: var(--radius-md);
     background: transparent;
     font-size: var(--font-size-xs);
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     outline: none;
     transition: border-color 0.15s;
@@ -1311,7 +1303,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     white-space: nowrap;
     margin-left: auto;
   }
@@ -1320,7 +1312,7 @@
   .media-empty-filter {
     text-align: center;
     padding: var(--space-3xl) 0;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .media-empty-filter p {
     font-size: var(--font-size-sm);
@@ -1329,14 +1321,14 @@
   .media-clear-link {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--sec);
     text-decoration: underline;
     cursor: pointer;
     font-size: var(--font-size-sm);
     padding: 0;
   }
   .media-clear-link:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   /* 3-column layout: folder sidebar | grid | detail sidebar */
@@ -1352,7 +1344,7 @@
   .media-sidebar {
     flex-shrink: 0;
     align-self: flex-start;
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
     position: relative;
@@ -1384,7 +1376,7 @@
   }
   .media-sidebar-meta {
     font-size: var(--font-size-xs);
-    color: var(--text-secondary);
+    color: var(--sec);
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
@@ -1399,7 +1391,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-bottom: var(--space-xs);
   }
 
@@ -1432,19 +1424,19 @@
   }
   .focal-label {
     font-size: 10px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .focal-reset {
     background: none;
     border: none;
     font-size: 10px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
     text-decoration: underline;
     padding: 0;
   }
   .focal-reset:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   /* Folder chips in sidebar */
@@ -1458,18 +1450,18 @@
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
-    background: var(--bg-primary);
+    background: var(--bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     font-size: 11px;
-    color: var(--text-secondary);
+    color: var(--sec);
   }
   .folder-chip-remove {
     background: none;
     border: none;
     padding: 0;
     cursor: pointer;
-    color: var(--text-tertiary);
+    color: var(--dim);
     display: flex;
     align-items: center;
     line-height: 1;
@@ -1480,7 +1472,7 @@
   .folder-loading-text,
   .folder-none-text {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .folder-add-wrapper {
     position: relative;
@@ -1490,18 +1482,18 @@
     border: none;
     padding: 0;
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     cursor: pointer;
   }
   .folder-add-link:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
   .folder-add-dropdown {
     position: absolute;
     top: 100%;
     left: 0;
     margin-top: 4px;
-    background: var(--bg-primary);
+    background: var(--bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
@@ -1518,13 +1510,13 @@
     border: none;
     background: none;
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    color: var(--text);
     cursor: pointer;
     text-align: left;
     border-radius: var(--radius-sm);
   }
   .folder-add-option:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   /* Alt text */
@@ -1539,7 +1531,7 @@
     border-radius: var(--radius-md);
     background: transparent;
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    color: var(--text);
     outline: none;
     transition: border-color 0.15s;
   }
@@ -1562,7 +1554,7 @@
     border-radius: var(--radius-md);
     background: transparent;
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    color: var(--text);
     outline: none;
     transition: border-color 0.15s;
     text-align: center;
@@ -1576,17 +1568,17 @@
     border: none;
     padding: 4px;
     cursor: pointer;
-    color: var(--text-tertiary);
+    color: var(--dim);
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     transition: color 0.15s;
   }
   .media-lock-btn:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
   .media-lock-btn.active {
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   /* Crop */
@@ -1600,7 +1592,7 @@
     align-items: center;
     gap: 4px;
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .media-crop-field input {
     flex: 1;
@@ -1610,7 +1602,7 @@
     border-radius: var(--radius-sm);
     background: transparent;
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    color: var(--text);
     outline: none;
     text-align: center;
     transition: border-color 0.15s;
@@ -1628,7 +1620,7 @@
   /* Context menu */
   :global(.context-menu) {
     position: fixed;
-    background: var(--bg-primary);
+    background: var(--bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
@@ -1643,13 +1635,13 @@
     border: none;
     background: none;
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    color: var(--text);
     cursor: pointer;
     text-align: left;
     border-radius: var(--radius-sm);
   }
   :global(.context-menu-item:hover) {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
   :global(.context-menu-item.danger) {
     color: var(--color-danger, #ef4444);
@@ -1659,12 +1651,12 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   :global(.context-menu-badge) {
     padding: 2px 12px;
     font-size: var(--font-size-xs);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
   :global(.context-menu-divider) {
     height: 1px;
@@ -1679,7 +1671,7 @@
     justify-content: space-between;
     padding: 8px 12px;
     margin-bottom: var(--space-md);
-    background: var(--bg-secondary);
+    background: var(--raised);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
     gap: var(--space-md);
@@ -1690,7 +1682,7 @@
     gap: var(--space-xs);
     font-weight: 500;
     cursor: pointer;
-    color: var(--text-primary);
+    color: var(--text);
   }
   .bulk-checkbox-label input[type="checkbox"] {
     margin: 0;
@@ -1703,7 +1695,7 @@
   }
   .bulk-hint {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .bulk-move-wrapper {
     position: relative;
@@ -1713,7 +1705,7 @@
     top: 100%;
     left: 0;
     margin-top: 4px;
-    background: var(--bg-primary);
+    background: var(--bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
@@ -1730,13 +1722,13 @@
     border: none;
     background: none;
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    color: var(--text);
     cursor: pointer;
     text-align: left;
     border-radius: var(--radius-sm);
   }
   .bulk-move-option:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   /* Bulk checkbox overlay on grid items */
@@ -1754,8 +1746,8 @@
   }
 
   :global(.media-item.bulk-selected) {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent);
+    border-color: var(--purple);
+    box-shadow: 0 0 0 2px var(--purple);
   }
 
   /* ── Mobile ── */

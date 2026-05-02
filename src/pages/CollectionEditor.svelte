@@ -8,6 +8,8 @@
   import MediaPicker from '$components/MediaPicker.svelte';
   import RepeaterField from '$components/RepeaterField.svelte';
   import GalleryField from '$components/GalleryField.svelte';
+  import Checkbox from '$components/Checkbox.svelte';
+  import ColorPicker from '$components/ColorPicker.svelte';
 
   let itemId = $derived($currentItemId);
   let collSlug = $derived($currentCollectionSlug);
@@ -469,7 +471,7 @@
           <button class="ed-btn ed-btn-outline" onclick={save} type="button" disabled={saving}>
             {saving ? 'Saving...' : 'Save draft'}
           </button>
-          <span style="font-size: 12px; color: var(--text-tertiary);">Awaiting review</span>
+          <span style="font-size: 12px; color: var(--dim);">Awaiting review</span>
         {:else}
           <button class="ed-btn ed-btn-outline" onclick={save} type="button" disabled={saving}>
             {saving ? 'Saving...' : 'Save draft'}
@@ -633,16 +635,13 @@
                     onupdate={(html) => handleMetaChange(key, html)}
                   />
                 {:else if fieldDef.type === 'toggle'}
-                  <button id="meta-{key}" class="toggle" class:active={metaFields[key] === '1' || metaFields[key] === true} onclick={() => handleMetaChange(key, metaFields[key] === '1' || metaFields[key] === true ? '0' : '1')} type="button" aria-label="Toggle {fieldDef.label || key}"></button>
+                  <Checkbox checked={metaFields[key] === '1' || metaFields[key] === true} onchange={() => handleMetaChange(key, metaFields[key] === '1' || metaFields[key] === true ? '0' : '1')} />
                 {:else if fieldDef.type === 'number'}
                   <input id="meta-{key}" class="ed-meta-input" type="number" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} />
                 {:else if fieldDef.type === 'date'}
                   <input id="meta-{key}" class="ed-meta-input" type="date" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} />
                 {:else if fieldDef.type === 'color'}
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <input id="meta-{key}" type="color" value={metaFields[key] || '#000000'} oninput={(e) => handleMetaChange(key, e.target.value)} style="width: 36px; height: 36px; padding: 0; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer;" />
-                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} style="flex: 1;" />
-                  </div>
+                  <ColorPicker value={metaFields[key] || '#000000'} onchange={(v) => handleMetaChange(key, v)} />
                 {:else if fieldDef.type === 'select'}
                   <select id="meta-{key}" class="ed-meta-input" value={metaFields[key] || ''} onchange={(e) => handleMetaChange(key, e.target.value)}>
                     <option value="">— Select —</option>
@@ -655,7 +654,7 @@
                     {#if metaFields[key]}
                       <img src={metaFields[key]} alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;" />
                     {/if}
-                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} placeholder="/outpost/uploads/..." style="flex: 1;" />
+                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} placeholder="/kenii/uploads/..." style="flex: 1;" />
                     <button class="ed-btn ed-btn-outline" type="button" onclick={() => { mediaPickerKey = key; }} style="white-space: nowrap;">Browse</button>
                   </div>
                   {#if mediaPickerKey === key}
@@ -715,7 +714,7 @@
     min-height: calc(100vh - 52px);
     display: flex;
     flex-direction: column;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     color: #111;
   }
 
@@ -767,7 +766,7 @@
     gap: 4px;
     background: none;
     border: none;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 13px;
     font-weight: 500;
     color: #333;
@@ -790,7 +789,7 @@
 
   /* Buttons */
   .ed-btn {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 13px;
     font-weight: 500;
     padding: 6px 16px;
@@ -856,7 +855,7 @@
   .ed-title {
     display: block;
     width: 100%;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 42px;
     font-weight: 700;
     line-height: 1.15;
@@ -988,7 +987,7 @@
   }
 
   .add-dropdown-label {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 13px;
     font-weight: 600;
     color: #111;
@@ -997,7 +996,7 @@
   :global(.dark) .add-dropdown-label { color: #e5e5e5; }
 
   .add-dropdown-desc {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 12px;
     color: #999;
   }
@@ -1042,7 +1041,7 @@
   :global(.dark) .block-delete-x { background: #222; border-color: #3a3a3a; color: #666; }
 
   .block-delete-yes {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 11px;
     font-weight: 600;
     padding: 4px 10px;
@@ -1118,7 +1117,7 @@
     padding: 0;
     min-height: 1.5em;
     outline: none;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 18px;
     line-height: 1.8;
     color: inherit;
@@ -1147,7 +1146,7 @@
   }
 
   .block-img-input {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 13px;
     padding: 6px 10px;
     border: 1px solid #e8e8e8;
@@ -1162,7 +1161,7 @@
 
   .block-img-replace {
     align-self: flex-start;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 12px;
     color: #999;
     background: none;
@@ -1204,7 +1203,7 @@
   :global(.dark) .block-img-browse { color: #e5e5e5; }
 
   .block-img-url {
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 13px;
     padding: 6px 10px;
     border: 1px solid #e8e8e8;
@@ -1295,7 +1294,7 @@
   .ed-meta-input {
     display: block;
     width: 100%;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     font-size: 14px;
     padding: 8px 12px;
     border: 1px solid #e8e8e8;
@@ -1412,7 +1411,7 @@
     border: 1px solid #e5d5a0;
     background: #fff;
     color: #92400e;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     white-space: nowrap;
   }
   .ed-conflict-btn:hover { background: #fef3c7; }

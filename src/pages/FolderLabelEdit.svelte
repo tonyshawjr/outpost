@@ -2,6 +2,8 @@
   import { labels as labelsApi, folders as foldersApi } from '$lib/api.js';
   import { currentLabelId, currentFolderId, currentFolderCollectionId, addToast, navigate } from '$lib/stores.js';
   import { required, slug as slugRule, validate, hasErrors } from '$lib/validation.js';
+  import Checkbox from '$components/Checkbox.svelte';
+  import ColorPicker from '$components/ColorPicker.svelte';
 
   let labelId = $derived($currentLabelId);
   let folderId = $derived($currentFolderId);
@@ -162,9 +164,9 @@
               {/each}
             </select>
           {:else if field.type === 'toggle'}
-            <button class="toggle" class:active={editData[field.name]} onclick={() => editData[field.name] = !editData[field.name]} type="button" aria-label={field.label}></button>
+            <Checkbox bind:checked={editData[field.name]} />
           {:else if field.type === 'color'}
-            <input class="input" type="color" bind:value={editData[field.name]} style="height: 36px; padding: 2px; cursor: pointer;" />
+            <ColorPicker bind:value={editData[field.name]} />
           {:else if field.type === 'image'}
             <input class="input" type="text" bind:value={editData[field.name]} placeholder={field.placeholder || 'Image URL'} />
           {:else}
@@ -202,13 +204,13 @@
     display: block;
     font-size: 13px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--sec);
     margin-bottom: 4px;
   }
 
   .te-hint {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 4px;
   }
 

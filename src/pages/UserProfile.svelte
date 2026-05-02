@@ -4,6 +4,7 @@
   import { currentProfileUserId, user as currentUserStore, navigate, addToast, canManageUsers } from '$lib/stores.js';
   import { required, email as emailRule, minLength, match, validate, hasErrors } from '$lib/validation.js';
   import QRCode from 'qrcode';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let profileUserId = $derived($currentProfileUserId);
   let currentUser = $derived($currentUserStore);
@@ -504,14 +505,9 @@
           <p class="profile-hint">Leave all unchecked for full access to all collections. Check specific collections to restrict this editor.</p>
           <div class="grants-list">
             {#each allCollections as coll}
-              <label class="grants-item">
-                <input
-                  type="checkbox"
-                  checked={grantedIds.includes(coll.id)}
-                  onchange={() => toggleGrant(coll.id)}
-                />
-                <span>{coll.name}</span>
-              </label>
+              <div class="grants-item">
+                <Checkbox checked={grantedIds.includes(coll.id)} onchange={() => toggleGrant(coll.id)} label={coll.name} />
+              </div>
             {/each}
           </div>
           <button
@@ -532,14 +528,9 @@
           <p class="profile-hint">Leave all unchecked for full access to all media folders. Check specific folders to restrict this editor.</p>
           <div class="grants-list">
             {#each allMediaFolders as folder}
-              <label class="grants-item">
-                <input
-                  type="checkbox"
-                  checked={grantedFolderIds.includes(folder.id)}
-                  onchange={() => toggleFolderGrant(folder.id)}
-                />
-                <span>{folder.name}</span>
-              </label>
+              <div class="grants-item">
+                <Checkbox checked={grantedFolderIds.includes(folder.id)} onchange={() => toggleFolderGrant(folder.id)} label={folder.name} />
+              </div>
             {/each}
           </div>
           <button
@@ -609,10 +600,9 @@
             <div class="twofa-actions" style="margin-top: var(--space-lg);">
               <button class="btn btn-secondary" onclick={copyBackupCodes}>Copy codes</button>
             </div>
-            <label class="twofa-checkbox" style="margin-top: var(--space-md);">
-              <input type="checkbox" bind:checked={twoFaCodesSaved} />
-              <span>I have saved these backup codes</span>
-            </label>
+            <div class="twofa-checkbox" style="margin-top: var(--space-md);">
+              <Checkbox bind:checked={twoFaCodesSaved} label="I have saved these backup codes" />
+            </div>
             <div class="twofa-actions" style="margin-top: var(--space-md);">
               <button class="btn btn-primary" onclick={finishBackupCodes} disabled={!twoFaCodesSaved}>Done</button>
             </div>
@@ -728,8 +718,8 @@
     height: 96px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid var(--bg-card);
-    box-shadow: var(--shadow-md);
+    border: 3px solid transparent;
+    box-shadow: none;
   }
 
   .profile-avatar-fallback {
@@ -742,9 +732,9 @@
     color: white;
     font-size: 36px;
     font-weight: 700;
-    font-family: var(--font-serif);
-    border: 3px solid var(--bg-card);
-    box-shadow: var(--shadow-md);
+    font-family: var(--font);
+    border: 3px solid transparent;
+    box-shadow: none;
   }
 
   .profile-avatar-upload {
@@ -754,24 +744,24 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--purple);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 2px solid var(--bg-card);
+    border: 2px solid transparent;
     transition: background var(--transition-fast);
   }
 
   .profile-avatar-upload:hover {
-    background: var(--accent-hover);
+    background: #6D28D9;
   }
 
   .profile-avatar-remove {
     background: none;
     border: none;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-size: var(--font-size-xs);
     cursor: pointer;
     margin-top: var(--space-sm);
@@ -791,18 +781,19 @@
   }
 
   .profile-section {
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--space-xl);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
   }
 
   .profile-section-title {
-    font-family: var(--font-serif);
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--space-xl);
+    font-family: var(--font);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -.02em;
+    margin-bottom: 24px;
   }
 
   .profile-field {
@@ -815,15 +806,15 @@
 
   .profile-label {
     display: block;
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-xs);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sec);
+    margin-bottom: 0.3em;
   }
 
   .profile-hint {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
     margin-top: 4px;
     display: block;
   }
@@ -840,7 +831,7 @@
     align-items: center;
     gap: 8px;
     font-size: var(--font-size-sm);
-    color: var(--text-primary);
+    color: var(--text);
     cursor: pointer;
   }
 
@@ -860,7 +851,7 @@
     display: flex;
     justify-content: space-between;
     padding: var(--space-sm) 0;
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border);
   }
 
   .profile-meta-row:last-child {
@@ -869,19 +860,19 @@
 
   .profile-meta-label {
     font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   .profile-meta-value {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     font-weight: 500;
   }
 
   /* 2FA styles */
   .twofa-desc {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     line-height: 1.5;
     margin-bottom: var(--space-lg);
   }
@@ -904,7 +895,7 @@
 
   .twofa-qr img {
     border-radius: var(--radius-md);
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
   }
 
   .twofa-secret {
@@ -916,7 +907,7 @@
     display: block;
     font-family: var(--font-mono, monospace);
     font-size: 13px;
-    color: var(--text-primary);
+    color: var(--text);
     background: var(--bg-secondary);
     padding: 8px 12px;
     border-radius: var(--radius-sm);
@@ -960,7 +951,7 @@
     align-items: center;
     gap: var(--space-sm);
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
   }
 
@@ -995,7 +986,7 @@
     border: none;
     padding: 0;
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -1003,7 +994,7 @@
   }
 
   .link-btn-profile:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
 
   .twofa-danger-link:hover {

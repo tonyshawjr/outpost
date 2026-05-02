@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { shield as shieldApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let config = $state({
     enabled: true,
@@ -212,12 +213,7 @@
           <div class="form-group">
             <label class="form-label">Enable Shield</label>
             <div style="display: flex; align-items: center; gap: var(--space-md);">
-              <button
-                class="toggle"
-                class:active={config.enabled}
-                onclick={() => updateConfig('enabled', !config.enabled)}
-                type="button"
-              ></button>
+              <Checkbox checked={config.enabled} onchange={() => updateConfig('enabled', !config.enabled)} />
               <span class="shield-hint">{config.enabled ? 'All protections active' : 'All protections disabled'}</span>
             </div>
           </div>
@@ -230,12 +226,7 @@
 
           <div class="form-group">
             <label class="form-label">Enable Login Lockout</label>
-            <button
-              class="toggle"
-              class:active={config.login_lockout}
-              onclick={() => updateConfig('login_lockout', !config.login_lockout)}
-              type="button"
-            ></button>
+            <Checkbox checked={config.login_lockout} onchange={() => updateConfig('login_lockout', !config.login_lockout)} />
           </div>
 
           {#if config.login_lockout}
@@ -284,12 +275,7 @@
 
           <div class="form-group">
             <label class="form-label">Enable Firewall</label>
-            <button
-              class="toggle"
-              class:active={config.firewall_enabled}
-              onclick={() => updateConfig('firewall_enabled', !config.firewall_enabled)}
-              type="button"
-            ></button>
+            <Checkbox checked={config.firewall_enabled} onchange={() => updateConfig('firewall_enabled', !config.firewall_enabled)} />
           </div>
 
           {#if config.firewall_enabled}
@@ -322,12 +308,7 @@
           <p class="shield-block-desc">Add protective HTTP headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, etc.).</p>
           <div class="form-group">
             <label class="form-label">Enable Security Headers</label>
-            <button
-              class="toggle"
-              class:active={config.security_headers}
-              onclick={() => updateConfig('security_headers', !config.security_headers)}
-              type="button"
-            ></button>
+            <Checkbox checked={config.security_headers} onchange={() => updateConfig('security_headers', !config.security_headers)} />
           </div>
         </div>
 
@@ -337,12 +318,7 @@
           <p class="shield-block-desc">Track changes to core PHP files. Alerts you if files are modified unexpectedly.</p>
           <div class="form-group">
             <label class="form-label">Enable File Monitoring</label>
-            <button
-              class="toggle"
-              class:active={config.file_integrity}
-              onclick={() => updateConfig('file_integrity', !config.file_integrity)}
-              type="button"
-            ></button>
+            <Checkbox checked={config.file_integrity} onchange={() => updateConfig('file_integrity', !config.file_integrity)} />
           </div>
           {#if config.file_integrity}
             <div style="margin-top: var(--space-md);">
@@ -378,12 +354,7 @@
           <p class="shield-block-desc">Log recent requests for security monitoring. Keeps the last 1,000 entries.</p>
           <div class="form-group">
             <label class="form-label">Enable Traffic Logging</label>
-            <button
-              class="toggle"
-              class:active={config.traffic_logging}
-              onclick={() => updateConfig('traffic_logging', !config.traffic_logging)}
-              type="button"
-            ></button>
+            <Checkbox checked={config.traffic_logging} onchange={() => updateConfig('traffic_logging', !config.traffic_logging)} />
           </div>
         </div>
 
@@ -393,12 +364,7 @@
           <p class="shield-block-desc">Receive email alerts for security events (lockouts, blocked attacks, file changes).</p>
           <div class="form-group">
             <label class="form-label">Enable Email Notifications</label>
-            <button
-              class="toggle"
-              class:active={config.email_notifications}
-              onclick={() => updateConfig('email_notifications', !config.email_notifications)}
-              type="button"
-            ></button>
+            <Checkbox checked={config.email_notifications} onchange={() => updateConfig('email_notifications', !config.email_notifications)} />
           </div>
           {#if config.email_notifications}
             <div class="form-group">
@@ -557,7 +523,7 @@
 <style>
   .shield-loading {
     font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   /* Status Banner */
@@ -574,15 +540,15 @@
     border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
   }
   .shield-inactive {
-    background: color-mix(in srgb, var(--text-tertiary) 6%, transparent);
-    border: 1px solid var(--border-primary);
+    background: color-mix(in srgb, var(--dim) 6%, transparent);
+    border: 1px solid var(--border);
   }
   .shield-status-icon {
     flex-shrink: 0;
     color: var(--success);
   }
   .shield-inactive .shield-status-icon {
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
   .shield-status-info {
     display: flex;
@@ -592,18 +558,18 @@
   .shield-status-label {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
   }
   .shield-status-stats {
     font-size: var(--font-size-xs);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
 
   /* Tabs */
   .shield-tabs {
     display: flex;
     gap: 2px;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border);
     margin-bottom: var(--space-xl);
   }
   .shield-tab {
@@ -611,26 +577,26 @@
     background: none;
     border: none;
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     transition: color 0.15s, border-color 0.15s;
   }
   .shield-tab:hover {
-    color: var(--text-primary);
+    color: var(--text);
   }
   .shield-tab.active {
-    color: var(--text-primary);
+    color: var(--text);
     font-weight: 500;
-    border-bottom-color: var(--accent);
+    border-bottom-color: var(--purple);
   }
 
   /* Config Blocks */
   .shield-block {
     margin-top: var(--space-2xl);
     padding-top: var(--space-2xl);
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
   .shield-block:first-child {
     margin-top: 0;
@@ -640,12 +606,12 @@
   .shield-block-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text);
     margin: 0 0 var(--space-xs);
   }
   .shield-block-desc {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     margin: 0 0 var(--space-lg);
   }
 
@@ -658,13 +624,13 @@
 
   .shield-hint {
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    color: var(--dim);
   }
 
   /* Firewall mode toggle */
   .shield-mode-toggle {
     display: inline-flex;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
     margin-bottom: var(--space-xs);
@@ -674,12 +640,12 @@
     background: none;
     border: none;
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--sec);
     cursor: pointer;
     transition: all 0.15s;
   }
   .shield-mode-btn.active {
-    background: var(--accent);
+    background: var(--purple);
     color: white;
   }
 
@@ -693,7 +659,7 @@
     border-radius: var(--radius-sm);
     font-size: var(--font-size-sm);
     background: color-mix(in srgb, var(--warning) 8%, transparent);
-    color: var(--text-primary);
+    color: var(--text);
   }
   .shield-file-result.clean {
     background: color-mix(in srgb, var(--success) 8%, transparent);
@@ -709,7 +675,7 @@
   .shield-save {
     margin-top: var(--space-2xl);
     padding-top: var(--space-lg);
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border);
   }
 
   /* Panel (blocked IPs, log, traffic) */
@@ -718,7 +684,7 @@
   }
   .shield-empty {
     font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
+    color: var(--dim);
     text-align: center;
     padding: var(--space-2xl) 0;
   }
@@ -733,7 +699,7 @@
   /* Table */
   .shield-table-wrap {
     overflow-x: auto;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
   }
   .shield-table {
@@ -747,21 +713,21 @@
     font-size: 0.6875rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
+    color: var(--dim);
     font-weight: 500;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border);
     white-space: nowrap;
   }
   .shield-table td {
     padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--border-primary);
-    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
   }
   .shield-table tbody tr:last-child td {
     border-bottom: none;
   }
   .shield-table tbody tr:hover {
-    background: var(--bg-secondary);
+    background: var(--raised);
   }
 
   .shield-mono {
@@ -786,7 +752,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: var(--font-size-xs);
-    color: var(--text-secondary);
+    color: var(--sec);
   }
   .shield-method {
     font-family: var(--font-mono);
@@ -799,8 +765,8 @@
     font-size: var(--font-size-xs);
     padding: 2px 8px;
     border-radius: var(--radius-sm);
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
+    background: var(--hover);
+    color: var(--sec);
   }
   .shield-tag.auto {
     background: color-mix(in srgb, var(--warning) 15%, transparent);
@@ -826,8 +792,8 @@
     color: var(--warning);
   }
   .threat-medium {
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
+    background: var(--hover);
+    color: var(--sec);
   }
 
   .shield-unblock {
