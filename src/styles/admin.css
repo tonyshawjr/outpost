@@ -5,7 +5,9 @@
  */
 
 /* ── Google Fonts ───────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600;700;800&display=swap');
+/* v6: dropped Fraunces (was Outpost-only). Inter only — Sites-aligned.
+   Serif fallback uses system Georgia where needed. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ── Tokens — Dark Mode (DEFAULT) ───────────────────── */
 :root {
@@ -123,7 +125,10 @@
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: 'Fraunces', Georgia, serif;
+  /* v6: aligned with Sites — Georgia for serif, Inter for everything else.
+     Fraunces removed (was Outpost-only). Page titles now use --font (Inter)
+     not --font-serif; serif accents (stat values, sidebar card titles) use Georgia. */
+  --font-serif: Georgia, 'Times New Roman', serif;
   --font-mono: 'SF Mono', SFMono-Regular, 'Cascadia Code', Consolas, monospace;
 
   --text-muted: var(--text-tertiary);
@@ -1173,7 +1178,7 @@ input[type="color"].input {
   margin-bottom: 0;
 }
 
-/* ── Page Header (Trailhead style) ──────────────────── */
+/* ── Page Header (Sites style — no icon, sans-serif title) ──────── */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -1181,26 +1186,8 @@ input[type="color"].input {
   margin-bottom: var(--space-2xl);
 }
 
-.page-header-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.page-header-icon svg {
-  width: 24px;
-  height: 24px;
-  stroke-width: 1.5;
-}
-
-.page-header-icon.green { background: var(--accent-soft); color: var(--accent); }
-.page-header-icon.clay { background: var(--clay-light); color: var(--clay); }
-.page-header-icon.sage { background: var(--sage-light); color: var(--sage); }
-.page-header-icon.warning { background: var(--warning-soft); color: var(--warning); }
+/* v6: hide page-header icons globally — Sites doesn't use them */
+.page-header-icon { display: none; }
 
 .page-header-content {
   flex: 1;
@@ -1208,17 +1195,18 @@ input[type="color"].input {
 }
 
 .page-title {
-  font-family: var(--font-serif);
-  font-size: var(--font-size-3xl);
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  color: var(--text);
 }
 
 .page-subtitle {
-  font-size: 15px;
-  color: var(--text-tertiary);
-  margin-top: 2px;
+  font-size: 13px;
+  color: var(--dim);
+  margin-top: 4px;
 }
 
 .page-header-actions {

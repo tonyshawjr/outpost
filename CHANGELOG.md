@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.3] — 2026-05-01
+
+Section-by-section visual ports + typography polish.
+
+### Added
+- ~25 admin pages re-skinned faithfully against Sites — CollectionList, CollectionItems, CollectionSchema, CollectionEditor, MediaLibrary, Brand, Forms, FormBuilder, FormSubmissions, Workflows, Backups, Redirects, ReviewTokens, Calendar, Analytics, Globals, Login, Navigation, UserProfile, TemplateReference, AccessDenied, FolderManager / FolderEdit / FolderLabels / FolderLabelEdit, Settings + 9 settings sub-pages.
+- Outpost-only features re-grafted on top of Sites' visuals: Lodge config blocks on CollectionList + CollectionSchema, Members section in Settings, Sync & Deploy block (Outpost-Builder API key) in Advanced settings, channels/members/lodge/releases feature flags, Outpost MCP server label.
+
+### Changed
+- **Page headers no longer use icons.** The 48×48 icon block in every page header is hidden globally via CSS — Sites doesn't use them and they were Outpost-specific clutter.
+- **Page titles use Inter sans-serif, 28px, 700 weight, -.02em tracking** — matching Sites exactly. Was Fraunces serif, 600 weight in v5.
+- **Page subtitles tightened** to 13px (was 15px), color uses `--dim`.
+- **Fraunces font dropped.** `--font-serif` now resolves to Georgia / Times New Roman (Sites convention). Inter is the only Google Font Outpost loads; serif accents (stat values, sidebar card titles) use Georgia. Smaller bundle, faster initial paint, consistent with Sites.
+- Outpost Login page swapped to Outpost logo + branding (was using Kenii logo from the source port).
+
+### Notes
+- SetupWizard intentionally not re-skinned: Sites' version drops Forge analysis. Outpost keeps Forge per the no-feature-removal rule.
+- Forms.svelte / FormBuilder.svelte / FormsList.svelte were already byte-identical to Sites; no port needed.
+
+---
+
 ## [6.0.0-beta.2] — 2026-05-01
 
 Visual identity port + Code Editor scoping fix. The big visible change beta.1 was missing.
