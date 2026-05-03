@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.9] — 2026-05-03
+
+### Fixed
+- **Auto-updater timed out on slow shared hosts.** Default PHP `max_execution_time` of 30s wasn't enough for the full update flow (5MB cURL download + unzip + recursive remove/copy across admin/, docs/, member-pages/, tools/, framework/, components/). Script got killed silently before `json_response` could return — browser saw a dropped connection, spinner hung, user clicked Update again. `handle_updates_apply()` now sets `set_time_limit(300)` (5 minutes), bumps `memory_limit` to 256M, and calls `ignore_user_abort(true)` so it completes even if the user closes the tab.
+
+---
+
 ## [6.0.0-beta.8] — 2026-05-03
 
 ### Fixed

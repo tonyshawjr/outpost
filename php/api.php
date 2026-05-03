@@ -7987,6 +7987,17 @@ function handle_updates_apply(): void {
     // Require super_admin for updates
     outpost_require_cap('settings.*');
 
+    // v6: prevent PHP timeout mid-update on slow shared hosts. Auto-update
+    // does: 5MB cURL download + unzip + rmdir/copy on admin/ + docs/ +
+    // member-pages/ + tools/ + framework/ + components/. Easily 50+ seconds
+    // on Hostinger-class disks. Default max_execution_time of 30s kills the
+    // script before json_response can return — browser sees a dropped
+    // connection, spinner hangs, user clicks Update again, partial state
+    // accumulates. Bumping to 300s (5 min) and ignoring user-abort fixes it.
+    @set_time_limit(300);
+    @ini_set('memory_limit', '256M');
+    ignore_user_abort(true);
+
     $body = get_json_body();
     $downloadUrl = $body['download_url'] ?? '';
 
