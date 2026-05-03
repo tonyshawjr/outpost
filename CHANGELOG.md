@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.7] — 2026-05-03
+
+### Fixed
+- **`data-outpost` markers in collection-item single templates didn't read from the item.** When the router loaded a collection item (e.g. `/blog/test-slug`), it set `$_outpost_current_item`, but `outpost_resolve_field()` only checked the page-level field cache — never the item. Result: a template like `<h1 data-outpost="title">` on `single-post.html` auto-registered a page field instead of reading the post's title. `outpost_resolve_field()` now checks `$_outpost_current_item` first; falls through to the page field store if no match. Makes single-collection-item templates "just work" with `data-outpost="field_name"`.
+
+---
+
 ## [6.0.0-beta.6] — 2026-05-03
 
 Code Editor fully ported from Sites + MCP endpoint URL bug.

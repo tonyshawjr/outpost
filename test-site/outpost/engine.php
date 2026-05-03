@@ -165,7 +165,18 @@ function outpost_preload_fields(int $page_id): void {
 
 // ── Field Resolution ─────────────────────────────────────
 function outpost_resolve_field(string $name, string $type, string $default, string $options = ''): string {
-    global $_outpost_page_id, $_outpost_fields_cache, $_outpost_field_counter;
+    global $_outpost_page_id, $_outpost_fields_cache, $_outpost_field_counter, $_outpost_current_item;
+
+    // v6: when rendering a single-collection-item template (e.g. single-post.html
+    // for /blog/{slug}), prefer the item's own field value over the page-level
+    // field store. Without this, data-outpost="title" on a single template
+    // would auto-register a page field instead of reading the post's title.
+    if ($_outpost_current_item !== null && array_key_exists($name, $_outpost_current_item)) {
+        $value = $_outpost_current_item[$name];
+        if (is_array($value)) $value = (string) ($value['value'] ?? '');
+        $value = (string) $value;
+        if ($value !== '') return $value;
+    }
 
     if ($_outpost_page_id === null) return $default;
 
