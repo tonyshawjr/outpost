@@ -254,6 +254,13 @@ function shield_firewall_check(string $ip, string $path, string $method, array $
     // (they already passed auth; blocking them would lock admins out)
     if (isset($_SESSION['outpost_user_id'])) return;
 
+    // v6: also skip bearer-token authenticated API requests. Without this,
+    // legit API clients (CI/CD, headless frontends, AI tools via REST) get
+    // blocked when their POST bodies contain HTML/JS — e.g. writing a theme
+    // template via code/write that legitimately includes <script src="...">.
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (preg_match('/^Bearer\s+op_[a-f0-9]{40,}$/i', $authHeader)) return;
+
     $requestData = $path;
     if ($method === 'POST' || $method === 'PUT') {
         $body = file_get_contents('php://input');

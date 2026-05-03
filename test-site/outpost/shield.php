@@ -144,7 +144,10 @@ function shield_check_request(): void {
         shield_log_traffic($ip, $path, $method);
     }
 
-    // 4. Security headers
+    // 4. Baseline security headers (always applied, non-toggleable)
+    shield_baseline_headers();
+
+    // 5. Full security headers (toggleable via config)
     if ($config['security_headers']) {
         shield_add_security_headers();
     }
@@ -251,6 +254,13 @@ function shield_firewall_check(string $ip, string $path, string $method, array $
     // (they already passed auth; blocking them would lock admins out)
     if (isset($_SESSION['outpost_user_id'])) return;
 
+    // v6: also skip bearer-token authenticated API requests. Without this,
+    // legit API clients (CI/CD, headless frontends, AI tools via REST) get
+    // blocked when their POST bodies contain HTML/JS — e.g. writing a theme
+    // template via code/write that legitimately includes <script src="...">.
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (preg_match('/^Bearer\s+op_[a-f0-9]{40,}$/i', $authHeader)) return;
+
     $requestData = $path;
     if ($method === 'POST' || $method === 'PUT') {
         $body = file_get_contents('php://input');
@@ -323,7 +333,7 @@ function shield_check_file_integrity(): array {
 
     foreach ($coreFiles as $filePath) {
         $relativePath = str_replace(OUTPOST_DIR, '', $filePath);
-        $currentHash = md5_file($filePath);
+        $currentHash = hash_file('sha256', $filePath);
 
         $stored = OutpostDB::fetchOne(
             "SELECT hash FROM shield_file_hashes WHERE file_path = ?",
@@ -379,6 +389,15 @@ function shield_check_file_integrity(): array {
     ];
 }
 
+// ── Baseline Headers (always applied, non-toggleable) ────
+function shield_baseline_headers(): void {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 // ── Security Headers ─────────────────────────────────────
 function shield_add_security_headers(): void {
     header('X-Content-Type-Options: nosniff');
@@ -386,6 +405,10 @@ function shield_add_security_headers(): void {
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
 }
 
 // ── Traffic Logging ──────────────────────────────────────

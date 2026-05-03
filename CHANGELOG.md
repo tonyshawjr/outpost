@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.8] — 2026-05-03
+
+### Fixed
+- **Shield WAF blocked legitimate bearer-token API requests with HTML payloads.** Logged-in admin sessions bypass the firewall (`isset($_SESSION['outpost_user_id'])`) so the admin UI can save templates that contain `<script>` tags. Bearer-token API requests had no equivalent bypass — so `code/create` / `code/write` calls from CI/CD or headless tools were rejected with "Request blocked by security rules" whenever the file content tripped the XSS / PHP-injection regex (which any real theme template does). Added a parallel bypass: requests with `Authorization: Bearer op_<hex>` skip the WAF the same way session-auth does. The Bearer token is still validated downstream by the API key check.
+
+---
+
 ## [6.0.0-beta.7] — 2026-05-03
 
 ### Fixed
