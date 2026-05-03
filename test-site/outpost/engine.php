@@ -3031,6 +3031,13 @@ function outpost_render_template(string $templateFile, string $themeDir, bool $e
         $bodyAssets[] = '<script src="/outpost/auth-client.js' . $vBust . '"></script>';
     }
 
+    // v6 fix: v2 engine doesn't inject the analytics tracker snippet (v1 did).
+    // Inject it here for v2 paths so pageviews actually log. Skip if a tracker
+    // is already present (e.g. v1 added it, or theme manually included one).
+    if ($useV2 && stripos($html, '/outpost/track.php') === false) {
+        $bodyAssets[] = outpost_get_tracker_snippet();
+    }
+
     // Inject into last </head> and </body> only
     if ($headAssets) {
         $pos = strripos($html, '</head>');
@@ -3046,6 +3053,60 @@ function outpost_render_template(string $templateFile, string $themeDir, bool $e
     }
 
     echo $html;
+}
+
+/**
+ * Returns the analytics tracker JS snippet to inject into public pages.
+ * Used by both template engines (v1 injects via its own render path; v2
+ * gets it via outpost_render_template post-processing).
+ */
+function outpost_get_tracker_snippet(): string {
+    $t = json_encode('/outpost/track.php');
+    return '<script>(function(){' .
+        'var T=' . $t . ';' .
+        'var d={path:location.pathname,ref:document.referrer,w:screen.width};' .
+        'var u=T+"?"+new URLSearchParams(d).toString();' .
+        'fetch(u,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=u;});' .
+        'window.outpost={track:function(n,p){' .
+            'if(!n)return;' .
+            'var q={type:"event",name:n,path:location.pathname};' .
+            'if(p)try{q.props=JSON.stringify(p)}catch(e){}' .
+            'var eu=T+"?"+new URLSearchParams(q).toString();' .
+            'fetch(eu,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=eu;});' .
+        '},' .
+        'trackSearch:function(q,r){' .
+            'if(!q)return;' .
+            'var d={type:"search",query:q,results:r||0};' .
+            'var su=T+"?"+new URLSearchParams(d).toString();' .
+            'fetch(su,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=su;});' .
+        '},' .
+        'trackSearchClick:function(q,p){' .
+            'if(!q||!p)return;' .
+            'var d={type:"search",query:q,results:1,clicked:p};' .
+            'var su=T+"?"+new URLSearchParams(d).toString();' .
+            'fetch(su,{method:"GET",keepalive:true,mode:"no-cors"}).catch(function(){new Image().src=su;});' .
+        '}};' .
+        'document.addEventListener("click",function(e){' .
+            'var a=e.target.closest("a");if(!a)return;var h=a.href||"";' .
+            'if(h&&a.hostname&&a.hostname!==location.hostname){' .
+                'outpost.track("outbound_click",{url:h,text:(a.textContent||"").slice(0,100)})' .
+            '}' .
+            'var ext=(h.split("?")[0].split(".").pop()||"").toLowerCase();' .
+            'if(["pdf","zip","doc","docx","xls","xlsx","csv","mp3","mp4","dmg","exe"].indexOf(ext)!==-1){' .
+                'outpost.track("file_download",{url:h,ext:ext})' .
+            '}' .
+        '});' .
+        'document.addEventListener("submit",function(e){' .
+            'var f=e.target;if(f.tagName==="FORM"){' .
+                'outpost.track("form_submit",{action:f.action||"",id:f.id||"",name:f.getAttribute("name")||""})' .
+            '}' .
+        '});' .
+        '(function(){' .
+            'var sp=new URLSearchParams(location.search);' .
+            'var sq=sp.get("q")||sp.get("search")||sp.get("s");' .
+            'if(sq)outpost.trackSearch(sq)' .
+        '})()' .
+    '})();</script>';
 }
 
 // ── Auto-init ────────────────────────────────────────────

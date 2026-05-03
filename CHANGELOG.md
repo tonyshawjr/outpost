@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.5] — 2026-05-01
+
+Critical analytics fix.
+
+### Fixed
+- **Pageviews stopped logging on v2-engine sites.** The v1 template engine (`template-engine.php`) injected the analytics tracker `<script>` snippet before `</body>`. The v2 engine (`template-engine-v2.php`) didn't. Result: any site rendering with v2 templates (which is the default in v5+ themes) wasn't logging hits to `analytics_hits`. Tony noticed this on a live site after an apparent multi-week dropoff in the chart.
+- Tracker snippet extracted to a shared helper `outpost_get_tracker_snippet()` in `engine.php`. `outpost_render_template()` now injects it before `</body>` for v2 paths (with a guard against double-injection if already present). v1 path unchanged — its render method still injects via the existing class method.
+
+### Note
+After upgrading, give the chart a few hours to start filling in. Existing analytics data from before the fix is intact; no historical reconstruction.
+
+---
+
 ## [6.0.0-beta.4] — 2026-05-01
 
 Full Kenii → Outpost rename. Outpost is the original; Kenii Sites is the fork. There should never have been Kenii references in the Outpost codebase — beta.3 still had them embedded as internal namespacing from the visual port. This release wipes them all.
