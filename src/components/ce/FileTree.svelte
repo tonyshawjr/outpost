@@ -1,4 +1,6 @@
 <script>
+  import { Layout, Blocks, Paintbrush, FileCode, ChevronRight, Plus, RefreshCw, FilePlus, FolderPlus } from 'lucide-svelte';
+
   let {
     tree = [],
     activePath = '',
@@ -10,6 +12,7 @@
     onCreateFolder,
     onRenameItem,
     onDeleteItem,
+    onCreateBlock,
   } = $props();
 
   let expanded    = $state({});
@@ -17,8 +20,20 @@
   let contextMenu = $state(null); // { x, y, node }
   let inlineEdit  = $state(null); // { type, parentPath, node?, value }
   let deleteModal = $state(null); // { node }
+  let newBlockInput = $state(false);
+  let newBlockName  = $state('');
 
-  let inlineInputEl = $state(null);
+  // Section collapse state — persisted in memory, Layout + Blocks open by default
+  let sections = $state({
+    layout: true,
+    blocks: true,
+    styles: false,
+    templates: false,
+    config: true,
+  });
+
+  let inlineInputEl    = $state(null);
+  let newBlockInputEl  = $state(null);
 
   $effect(() => {
     if (inlineEdit && inlineInputEl) {
@@ -26,6 +41,121 @@
       if (inlineEdit.type === 'rename') inlineInputEl.select();
     }
   });
+
+  $effect(() => {
+    if (newBlockInput && newBlockInputEl) {
+      newBlockInputEl.focus();
+    }
+  });
+
+  // ── Categorize files from the tree ────────────────────────────
+  // The tree comes back as: [ { name: 'theme-name', type: 'directory', children: [...] } ]
+  // We need to find the theme root and categorize its contents.
+
+  let themeRoot = $derived.by(() => {
+    // The tree IS the theme root (API returns theme directory contents directly)
+    return { name: 'theme', type: 'directory', children: tree };
+  });
+
+  let themeName = $derived(themeRoot?.name ?? '');
+
+  // Collect all files recursively from a node
+  function collectFiles(node, basePath = '') {
+    const files = [];
+    if (!node?.children) return files;
+    for (const child of node.children) {
+      if (child.type === 'file') {
+        files.push(child);
+      } else if (child.type === 'directory') {
+        files.push(...collectFiles(child, child.path));
+      }
+    }
+    return files;
+  }
+
+  // Find a subdirectory in the theme root
+  function findSubdir(name) {
+    if (!themeRoot?.children) return null;
+    return themeRoot.children.find(n => n.type === 'directory' && n.name === name) || null;
+  }
+
+  // ── Layout files ──────────────────────────────────────────────
+  const LAYOUT_FILES = ['header.html', 'footer.html', 'head.html'];
+
+  let layoutFiles = $derived.by(() => {
+    if (!themeRoot?.children) return [];
+    const files = [];
+
+    // Check root for layout files
+    for (const child of themeRoot.children) {
+      if (child.type === 'file' && LAYOUT_FILES.includes(child.name.toLowerCase())) {
+        files.push(child);
+      }
+    }
+
+    // Check partials/ directory
+    const partials = findSubdir('partials');
+    if (partials?.children) {
+      for (const child of partials.children) {
+        if (child.type === 'file' && LAYOUT_FILES.includes(child.name.toLowerCase())) {
+          files.push(child);
+        }
+      }
+    }
+
+    // Sort by LAYOUT_FILES order
+    return files.sort((a, b) => {
+      const ai = LAYOUT_FILES.indexOf(a.name.toLowerCase());
+      const bi = LAYOUT_FILES.indexOf(b.name.toLowerCase());
+      return ai - bi;
+    });
+  });
+
+  // ── Block folders ─────────────────────────────────────────────
+  let blockFolders = $derived.by(() => {
+    const blocksDir = findSubdir('blocks');
+    if (!blocksDir?.children) return [];
+    return blocksDir.children
+      .filter(n => n.type === 'directory')
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // ── Style files ───────────────────────────────────────────────
+  let styleFiles = $derived.by(() => {
+    if (!themeRoot?.children) return [];
+    const files = [];
+
+    // CSS files in theme root
+    for (const child of themeRoot.children) {
+      if (child.type === 'file' && /\.css$/i.test(child.name)) {
+        files.push(child);
+      }
+    }
+
+    return files.sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // ── Template files ────────────────────────────────────────────
+  let templateFiles = $derived.by(() => {
+    const templatesDir = findSubdir('templates');
+    if (!templatesDir?.children) return [];
+    return templatesDir.children
+      .filter(n => n.type === 'file')
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // ── Config files (root-level JSON, etc.) ─────────────────────
+  let configFiles = $derived.by(() => {
+    if (!themeRoot?.children) return [];
+    return themeRoot.children
+      .filter(n => n.type === 'file' && /\.(json|yml|yaml)$/i.test(n.name))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // ── Section toggle ────────────────────────────────────────────
+  function toggleSection(key) {
+    sections = { ...sections, [key]: !sections[key] };
+  }
 
   function toggleDir(path) {
     expanded = { ...expanded, [path]: !expanded[path] };
@@ -92,6 +222,32 @@
     if (e.key === 'Escape') { e.preventDefault(); cancelInline(); }
   }
 
+  // ── New Block ─────────────────────────────────────────────────
+  function startNewBlock(e) {
+    e?.stopPropagation();
+    newBlockInput = true;
+    newBlockName = '';
+  }
+
+  function cancelNewBlock() {
+    newBlockInput = false;
+    newBlockName = '';
+  }
+
+  async function commitNewBlock() {
+    const name = newBlockName.trim();
+    if (!name) { cancelNewBlock(); return; }
+    if (onCreateBlock) {
+      await onCreateBlock(name);
+    }
+    cancelNewBlock();
+  }
+
+  function handleNewBlockKey(e) {
+    if (e.key === 'Enter')  { e.preventDefault(); commitNewBlock(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancelNewBlock(); }
+  }
+
   function fileIcon(name) {
     const ext = name.split('.').pop().toLowerCase();
     return { php:'P', html:'H', htm:'H', css:'C', js:'J', json:'{}', svg:'S', md:'M', yml:'Y', yaml:'Y', xml:'X', txt:'T' }[ext] || 'F';
@@ -106,28 +262,22 @@
     navigator.clipboard.writeText(node.path).catch(() => {});
     contextMenu = null;
   }
-
-  // Inline input depth level for create ops
-  function inlineDepth(parentPath) {
-    if (!parentPath) return 0;
-    return parentPath.split('/').length;
-  }
 </script>
 
 <svelte:window onclick={closeCtx} />
 
 <div class="ft-root">
   <div class="ft-header">
-    <span class="ft-label">THEME FILES</span>
+    <span class="ft-dev-label">DEVELOPER MODE</span>
     <div class="ft-header-actions">
-      <button class="ft-icon-btn" onclick={() => startCreateFile('', null)} title="New File">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+      <button class="ft-icon-btn" onclick={() => startCreateFile(themeName, null)} title="New File">
+        <FilePlus size={13} />
       </button>
-      <button class="ft-icon-btn" onclick={() => startCreateFolder('', null)} title="New Folder">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+      <button class="ft-icon-btn" onclick={() => startCreateFolder(themeName, null)} title="New Folder">
+        <FolderPlus size={13} />
       </button>
       <button class="ft-icon-btn" onclick={onRefresh} title="Refresh">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        <RefreshCw size={13} />
       </button>
     </div>
   </div>
@@ -135,18 +285,157 @@
   <div class="ft-nav">
     {#if loading}
       <div class="ft-loading"><div class="spinner"></div></div>
-    {:else if tree.length === 0 && !inlineEdit}
+    {:else if tree.length === 0}
       <div class="ft-empty">
         <p>No theme files found.</p>
-        <p style="font-size:11px;margin-top:4px;color:var(--text-light)">Create a <code>themes/</code> directory.</p>
+        <p style="font-size:11px;margin-top:4px;color:var(--dim)">Create a <code>themes/</code> directory.</p>
       </div>
     {:else}
-      {#if inlineEdit && inlineEdit.parentPath === ''}
-        {@render inlineRow(inlineEdit, 0)}
+
+      <!-- ── LAYOUT section ──────────────────────────────────── -->
+      <div class="dev-section">
+        <button class="dev-section-header" onclick={() => toggleSection('layout')}>
+          <ChevronRight size={12} class="dev-chevron {sections.layout ? 'open' : ''}" />
+          <Layout size={13} />
+          <span>Layout</span>
+        </button>
+        {#if sections.layout}
+          <div class="dev-section-body">
+            {#each layoutFiles as file}
+              {@render fileRow(file, 1)}
+            {/each}
+            {#if layoutFiles.length === 0}
+              <div class="ft-section-empty">No layout files</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
+      <!-- ── BLOCKS section ──────────────────────────────────── -->
+      <div class="dev-section">
+        <button class="dev-section-header" onclick={() => toggleSection('blocks')}>
+          <ChevronRight size={12} class="dev-chevron {sections.blocks ? 'open' : ''}" />
+          <Blocks size={13} />
+          <span>Blocks</span>
+        </button>
+        {#if sections.blocks}
+          <div class="dev-section-body">
+            {#each blockFolders as folder}
+              <div>
+                <button
+                  class="ft-row ft-dir"
+                  style="padding-left:24px"
+                  onclick={() => toggleDir(folder.path)}
+                  oncontextmenu={(e) => showCtx(e, folder)}
+                  onmouseenter={() => hoverPath = folder.path}
+                  onmouseleave={() => hoverPath = null}
+                >
+                  <ChevronRight size={10} class="ft-chevron-icon {expanded[folder.path] ? 'open' : ''}" />
+                  <span class="ft-name ft-block-name">{folder.name}/</span>
+                  {#if hoverPath === folder.path}
+                    <span class="ft-actions" onclick={(e) => e.stopPropagation()}>
+                      <span class="ft-act" title="Rename" onclick={(e) => startRename(folder, e)}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </span>
+                      <span class="ft-act ft-act-danger" title="Delete" onclick={(e) => confirmDelete(folder, e)}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                      </span>
+                    </span>
+                  {/if}
+                </button>
+                {#if expanded[folder.path] && folder.children}
+                  {#each folder.children as child}
+                    {#if child.type === 'file'}
+                      {@render fileRow(child, 2)}
+                    {/if}
+                  {/each}
+                {/if}
+              </div>
+            {/each}
+            {#if blockFolders.length === 0}
+              <div class="ft-section-empty">No blocks yet</div>
+            {/if}
+
+            <!-- New Block inline input -->
+            {#if newBlockInput}
+              <div class="ft-inline-row" style="padding-left:24px">
+                <Plus size={12} style="opacity:.5;flex-shrink:0" />
+                <input
+                  class="ft-inline-input"
+                  bind:this={newBlockInputEl}
+                  bind:value={newBlockName}
+                  onkeydown={handleNewBlockKey}
+                  onblur={cancelNewBlock}
+                  placeholder="block-name"
+                />
+              </div>
+            {/if}
+
+            <!-- + New Block button -->
+            <button class="ft-new-block-btn" onclick={startNewBlock}>
+              <Plus size={11} />
+              <span>New Block</span>
+            </button>
+          </div>
+        {/if}
+      </div>
+
+      <!-- ── STYLES section ──────────────────────────────────── -->
+      <div class="dev-section">
+        <button class="dev-section-header" onclick={() => toggleSection('styles')}>
+          <ChevronRight size={12} class="dev-chevron {sections.styles ? 'open' : ''}" />
+          <Paintbrush size={13} />
+          <span>Styles</span>
+        </button>
+        {#if sections.styles}
+          <div class="dev-section-body">
+            {#each styleFiles as file}
+              {@render fileRow(file, 1)}
+            {/each}
+            {#if styleFiles.length === 0}
+              <div class="ft-section-empty">No stylesheets</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
+      <!-- ── TEMPLATES section ───────────────────────────────── -->
+      <div class="dev-section">
+        <button class="dev-section-header" onclick={() => toggleSection('templates')}>
+          <ChevronRight size={12} class="dev-chevron {sections.templates ? 'open' : ''}" />
+          <FileCode size={13} />
+          <span>Templates</span>
+        </button>
+        {#if sections.templates}
+          <div class="dev-section-body">
+            {#each templateFiles as file}
+              {@render fileRow(file, 1)}
+            {/each}
+            {#if templateFiles.length === 0}
+              <div class="ft-section-empty">No templates</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
+      <!-- ── CONFIG section ────────────────────────────────── -->
+      {#if configFiles.length > 0}
+      <div class="dev-section">
+        <button class="dev-section-header" onclick={() => toggleSection('config')}>
+          <ChevronRight size={12} class="dev-chevron {sections.config ? 'open' : ''}" />
+          <FileCode size={13} />
+          <span>Config</span>
+        </button>
+        {#if sections.config}
+          <div class="dev-section-body">
+            {#each configFiles as file}
+              {@render fileRow(file, 1)}
+            {/each}
+          </div>
+        {/if}
+      </div>
       {/if}
-      {#each tree as node}
-        {@render treeNode(node, 0)}
-      {/each}
+
     {/if}
   </div>
 </div>
@@ -181,105 +470,42 @@
   </div>
 {/if}
 
-{#snippet inlineRow(edit, depth)}
-  <div class="ft-inline-row" style="padding-left:{12 + depth * 14}px">
-    {#if edit.type === 'create-folder'}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-    {:else}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    {/if}
-    <input
-      class="ft-inline-input"
-      bind:this={inlineInputEl}
-      bind:value={inlineEdit.value}
-      onkeydown={handleInlineKey}
-      onblur={cancelInline}
-      placeholder={edit.type === 'create-folder' ? 'folder-name' : 'file.html'}
-    />
-  </div>
-{/snippet}
-
-{#snippet treeNode(node, depth)}
-  {#if node.type === 'directory'}
-    <div>
-      <button
-        class="ft-row ft-dir"
-        style="padding-left:{12 + depth * 14}px"
-        onclick={() => toggleDir(node.path)}
-        oncontextmenu={(e) => showCtx(e, node)}
-        onmouseenter={() => hoverPath = node.path}
-        onmouseleave={() => hoverPath = null}
-      >
-        <svg class="ft-chevron" class:open={expanded[node.path]} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        <svg class="ft-folder-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-        <span class="ft-name">{node.name}</span>
-        {#if hoverPath === node.path}
-          <span class="ft-actions" onclick={(e) => e.stopPropagation()}>
-            <span class="ft-act" title="New File" onclick={(e) => startCreateFile(node.path, e)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-            </span>
-            <span class="ft-act" title="New Folder" onclick={(e) => startCreateFolder(node.path, e)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-            </span>
-            <span class="ft-act" title="Rename" onclick={(e) => startRename(node, e)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </span>
-            <span class="ft-act ft-act-danger" title="Delete" onclick={(e) => confirmDelete(node, e)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-            </span>
-          </span>
-        {/if}
-      </button>
-
-      {#if expanded[node.path]}
-        {#if inlineEdit && inlineEdit.parentPath === node.path}
-          {@render inlineRow(inlineEdit, depth + 1)}
-        {/if}
-        {#if node.children}
-          {#each node.children as child}
-            {@render treeNode(child, depth + 1)}
-          {/each}
-        {/if}
-      {/if}
+{#snippet fileRow(node, depth)}
+  {#if inlineEdit?.type === 'rename' && inlineEdit.node?.path === node.path}
+    <div class="ft-inline-row" style="padding-left:{12 + depth * 14 + 14}px">
+      <input
+        class="ft-inline-input"
+        bind:this={inlineInputEl}
+        bind:value={inlineEdit.value}
+        onkeydown={handleInlineKey}
+        onblur={cancelInline}
+        onclick={(e) => e.stopPropagation()}
+      />
     </div>
-
   {:else}
-    {#if inlineEdit?.type === 'rename' && inlineEdit.node?.path === node.path}
-      <div class="ft-inline-row" style="padding-left:{12 + depth * 14 + 14}px">
-        <input
-          class="ft-inline-input"
-          bind:this={inlineInputEl}
-          bind:value={inlineEdit.value}
-          onkeydown={handleInlineKey}
-          onblur={cancelInline}
-          onclick={(e) => e.stopPropagation()}
-        />
-      </div>
-    {:else}
-      <button
-        class="ft-row ft-file"
-        class:active={activePath === node.path}
-        style="padding-left:{12 + depth * 14 + 14}px"
-        onclick={() => onOpenFile(node)}
-        ondblclick={() => { if (onPinFile) onPinFile(node); }}
-        oncontextmenu={(e) => showCtx(e, node)}
-        onmouseenter={() => hoverPath = node.path}
-        onmouseleave={() => hoverPath = null}
-      >
-        <span class={fileBadgeClass(node.name)}>{fileIcon(node.name)}</span>
-        <span class="ft-name">{node.name}</span>
-        {#if hoverPath === node.path}
-          <span class="ft-actions" onclick={(e) => e.stopPropagation()}>
-            <span class="ft-act" title="Rename" onclick={(e) => startRename(node, e)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </span>
-            <span class="ft-act ft-act-danger" title="Delete" onclick={(e) => confirmDelete(node, e)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-            </span>
+    <button
+      class="ft-row ft-file"
+      class:active={activePath === node.path}
+      style="padding-left:{12 + depth * 14 + 14}px"
+      onclick={() => onOpenFile(node)}
+      ondblclick={() => { if (onPinFile) onPinFile(node); }}
+      oncontextmenu={(e) => showCtx(e, node)}
+      onmouseenter={() => hoverPath = node.path}
+      onmouseleave={() => hoverPath = null}
+    >
+      <span class={fileBadgeClass(node.name)}>{fileIcon(node.name)}</span>
+      <span class="ft-name">{node.name}</span>
+      {#if hoverPath === node.path}
+        <span class="ft-actions" onclick={(e) => e.stopPropagation()}>
+          <span class="ft-act" title="Rename" onclick={(e) => startRename(node, e)}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </span>
-        {/if}
-      </button>
-    {/if}
+          <span class="ft-act ft-act-danger" title="Delete" onclick={(e) => confirmDelete(node, e)}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </span>
+        </span>
+      {/if}
+    </button>
   {/if}
 {/snippet}
 
@@ -301,12 +527,12 @@
     flex-shrink: 0;
   }
 
-  .ft-label {
-    font-size: 11px;
-    font-weight: 600;
+  .ft-dev-label {
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--text-light);
+    letter-spacing: .08em;
+    color: var(--purple, #7c3aed);
   }
 
   .ft-header-actions {
@@ -328,7 +554,7 @@
     cursor: pointer;
     transition: background var(--transition-fast), color var(--transition-fast);
   }
-  .ft-icon-btn:hover { background: var(--bg-hover); color: var(--text); }
+  .ft-icon-btn:hover { background: var(--hover); color: var(--text); }
 
   .ft-nav {
     flex: 1;
@@ -350,7 +576,53 @@
     text-align: center;
   }
 
-  /* Tree rows */
+  /* ── Dev Mode Sections ──────────────────────────────── */
+  .dev-section {
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .dev-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    width: 100%;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--dim);
+    cursor: pointer;
+    user-select: none;
+    background: none;
+    border: none;
+    font-family: var(--font);
+    text-align: left;
+    transition: color var(--transition-fast);
+  }
+  .dev-section-header:hover { color: var(--sec); }
+
+  .dev-section-body {
+    padding-bottom: 4px;
+  }
+
+  /* Lucide chevron rotation in section headers */
+  .dev-section-header :global(.dev-chevron) {
+    flex-shrink: 0;
+    transition: transform .15s;
+  }
+  .dev-section-header :global(.dev-chevron.open) {
+    transform: rotate(90deg);
+  }
+
+  .ft-section-empty {
+    padding: 6px 16px 6px 40px;
+    font-size: 11px;
+    color: var(--dim);
+    font-style: italic;
+  }
+
+  /* ── Tree rows ──────────────────────────────────────── */
   .ft-row {
     display: flex;
     align-items: center;
@@ -363,29 +635,32 @@
     color: var(--text);
     cursor: pointer;
     text-align: left;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     white-space: nowrap;
     overflow: hidden;
     transition: background var(--transition-fast);
     position: relative;
   }
-  .ft-row:hover { background: var(--bg-hover); }
+  .ft-row:hover { background: var(--hover); }
   .ft-file.active {
     background: var(--forest-light);
     color: var(--forest);
     font-weight: 500;
   }
 
-  .ft-chevron {
+  /* Chevron icon in block folder rows */
+  .ft-row :global(.ft-chevron-icon) {
     flex-shrink: 0;
     transition: transform .15s;
     opacity: .45;
   }
-  .ft-chevron.open { transform: rotate(90deg); }
+  .ft-row :global(.ft-chevron-icon.open) {
+    transform: rotate(90deg);
+  }
 
-  .ft-folder-icon {
-    flex-shrink: 0;
-    opacity: .5;
+  .ft-block-name {
+    color: var(--text);
+    font-weight: 500;
   }
 
   .ft-name {
@@ -440,8 +715,25 @@
     cursor: pointer;
     transition: background var(--transition-fast), color var(--transition-fast);
   }
-  .ft-act:hover { background: var(--bg-hover); color: var(--text); }
+  .ft-act:hover { background: var(--hover); color: var(--text); }
   .ft-act-danger:hover { color: #ef4444; }
+
+  /* + New Block button */
+  .ft-new-block-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 16px 5px 24px;
+    width: 100%;
+    background: none;
+    border: none;
+    font-size: 11px;
+    font-family: var(--font);
+    color: var(--dim);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+  }
+  .ft-new-block-btn:hover { color: var(--purple, #7c3aed); }
 
   /* Inline input */
   .ft-inline-row {
@@ -458,9 +750,9 @@
     height: 22px;
     padding: 0 6px;
     font-size: 12.5px;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     color: var(--text);
-    background: var(--bg-hover);
+    background: var(--hover);
     border: 1px solid var(--forest);
     border-radius: 4px;
     outline: none;
@@ -471,7 +763,7 @@
     position: fixed;
     z-index: 1000;
     min-width: 160px;
-    background: var(--bg-primary);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: 0 4px 24px rgba(0,0,0,.15);
@@ -486,13 +778,13 @@
     border: none;
     border-radius: 5px;
     font-size: 13px;
-    font-family: var(--font-sans);
+    font-family: var(--font);
     color: var(--text);
     text-align: left;
     cursor: pointer;
     transition: background var(--transition-fast);
   }
-  .ft-ctx-item:hover { background: var(--bg-hover); }
+  .ft-ctx-item:hover { background: var(--hover); }
   .ft-ctx-danger { color: #ef4444; }
 
   .ft-ctx-sep {
@@ -513,7 +805,7 @@
   }
 
   .ft-modal {
-    background: var(--bg-primary);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 24px;
@@ -531,8 +823,8 @@
   .ft-modal-path {
     font-size: 12px;
     font-family: var(--font-mono);
-    color: var(--text-secondary);
-    background: var(--bg-secondary);
+    color: var(--sec);
+    background: var(--raised);
     border-radius: 5px;
     padding: 6px 10px;
     margin: 0 0 12px;

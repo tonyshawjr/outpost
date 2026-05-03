@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.6] — 2026-05-03
+
+Code Editor fully ported from Sites + MCP endpoint URL bug.
+
+### Fixed
+- **Code Editor was reading from `OUTPOST_THEMES_DIR` (parent of all themes)** — beta.5 had this wrong; the FileTree UI ported from Sites expects the API to return a *single* theme's contents, so users saw a flat list of all themes instead of the categorized Layout / Blocks / Styles / Templates / Config sections. `code-editor.php` now scopes to the active theme's directory via a new `code_active_theme_root()` helper. `code/files`, `code/search`, `code/assets`, and `code/reset` all use the active-theme root. Switching active theme reroots the editor automatically.
+- **FileTree.svelte fully replaced** with Sites' 855-line version. Categorizes the active theme's contents into Layout (header/footer/head, plus partials/), Blocks (block folders), Styles (CSS), Templates (HTML page templates), and Config (theme.json, blueprint.json). Each section is collapsible; Layout and Blocks are open by default.
+- **MCP endpoint URL had a double slash** when the admin loaded at `/outpost/` (no `/admin/` segment in pathname). The regex strip didn't trim the trailing slash before appending `/mcp.php`, producing `/outpost//mcp.php`. Fixed by extracting to a `mcpEndpoint = $derived(...)` value with `.replace(/\/+$/, '')` after the `/admin/` strip. All four URL spots in IntegrationsSettings.svelte use the single derived value now.
+
+---
+
 ## [6.0.0-beta.5] — 2026-05-01
 
 Critical analytics fix.

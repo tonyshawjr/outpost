@@ -6,6 +6,13 @@
 
   let { settings = {}, onSettingChange = () => {} } = $props();
 
+  // Build the MCP endpoint URL once, correctly. Strips /admin/* segment if
+  // present, then trims any trailing slash before appending /mcp.php so we
+  // never produce //mcp.php (cosmetic bug noticed in beta.5 and earlier).
+  let mcpEndpoint = $derived(
+    `${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '').replace(/\/+$/, '')}/mcp.php`
+  );
+
   // Ranger AI settings
   let rangerSettings = $state({
     default_provider: '',
@@ -541,9 +548,9 @@
       <div class="form-group">
         <label class="form-label">MCP Endpoint</label>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <input class="input" type="text" readonly value={`${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`} style="font-family: var(--font-mono); font-size: 12px;" />
+          <input class="input" type="text" readonly value={mcpEndpoint} style="font-family: var(--font-mono); font-size: 12px;" />
           <button class="btn btn-secondary" type="button" onclick={() => {
-            navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`);
+            navigator.clipboard.writeText(mcpEndpoint);
             addToast('Endpoint URL copied', 'success');
           }}>Copy</button>
         </div>
@@ -554,7 +561,7 @@
         <pre class="mcp-config-block"><code>{JSON.stringify({
   mcpServers: {
     "outpost-cms": {
-      url: `${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`,
+      url: mcpEndpoint,
       headers: {
         Authorization: "Bearer YOUR_API_KEY"
       }
@@ -565,7 +572,7 @@
           const config = JSON.stringify({
             mcpServers: {
               "outpost-cms": {
-                url: `${window.location.origin}${window.location.pathname.replace(/\/admin\/.*$/, '')}/mcp.php`,
+                url: mcpEndpoint,
                 headers: {
                   Authorization: "Bearer YOUR_API_KEY"
                 }

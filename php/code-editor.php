@@ -1,17 +1,28 @@
 <?php
 /**
- * Outpost CMS — Code Editor (v6: scoped to OUTPOST_THEMES_DIR)
+ * Outpost CMS — Code Editor (v6: scoped to the ACTIVE theme directory)
  *
  * v5 scoped this to OUTPOST_SITE_ROOT (the whole webroot, excluding outpost/).
- * v6 scopes it to OUTPOST_THEMES_DIR so the editor only exposes themes —
- * starter/, forge-playground/, etc. — and never reaches outside the themes
- * directory. The outpost/ engine files are now naturally outside scope.
+ * Beta.5 scoped to OUTPOST_THEMES_DIR (all themes — too broad; UI expects one).
+ * Beta.6 scopes to the active theme dir so the editor reads from a single
+ * theme folder, matching the categorized FileTree UI (Layout / Blocks /
+ * Styles / Templates / Config). Switching active theme reroots the editor.
  */
 
 require_once __DIR__ . '/config.php';
 
 /**
- * Validate that a path is safely inside OUTPOST_THEMES_DIR.
+ * Returns the absolute path of the currently active theme's directory.
+ */
+function code_active_theme_root(): string {
+    if (!function_exists('outpost_get_active_theme')) {
+        require_once __DIR__ . '/blocks.php';
+    }
+    return rtrim(OUTPOST_THEMES_DIR . outpost_get_active_theme(), '/') . '/';
+}
+
+/**
+ * Validate that a path is safely inside the active theme's directory.
  * Returns the resolved real path or exits with 403.
  */
 function code_validate_path(string $relative): string {
@@ -26,21 +37,22 @@ function code_validate_path(string $relative): string {
     // Normalize ./segments to prevent bypass
     $normalized = preg_replace('#(^|/)\./#', '$1', $normalized);
 
-    $full = OUTPOST_THEMES_DIR . $normalized;
+    $themeRoot = code_active_theme_root();
+    $full = $themeRoot . $normalized;
     $real = realpath($full);
-    $realThemesDir = rtrim(realpath(OUTPOST_THEMES_DIR), '/');
+    $realThemeRoot = rtrim(realpath($themeRoot) ?: $themeRoot, '/');
 
     // For write operations the file may not exist yet — validate parent
     if ($real === false) {
         $parent = realpath(dirname($full));
-        if ($parent === false || !str_starts_with($parent, $realThemesDir)) {
-            json_error('Path outside themes directory', 403);
+        if ($parent === false || !str_starts_with($parent, $realThemeRoot)) {
+            json_error('Path outside active theme', 403);
         }
         return $full;
     }
 
-    if (!str_starts_with($real, $realThemesDir)) {
-        json_error('Path outside themes directory', 403);
+    if (!str_starts_with($real, $realThemeRoot)) {
+        json_error('Path outside active theme', 403);
     }
 
     return $real;
@@ -64,18 +76,20 @@ function code_skip_dir(string $name): bool {
 }
 
 /**
- * GET code/files — Recursive file tree inside site root (excludes outpost/)
+ * GET code/files — Recursive file tree of the active theme.
+ * Returns { tree, theme } so the FileTree UI knows which theme it's editing.
  */
 function handle_code_files(): void {
     outpost_require_cap('code.*');
 
-    if (!is_dir(OUTPOST_THEMES_DIR)) {
-        json_response(['tree' => []]);
+    $themeRoot = code_active_theme_root();
+    if (!is_dir($themeRoot)) {
+        json_response(['tree' => [], 'theme' => outpost_get_active_theme()]);
         return;
     }
 
-    $tree = code_build_tree(OUTPOST_THEMES_DIR, '');
-    json_response(['tree' => $tree]);
+    $tree = code_build_tree($themeRoot, '');
+    json_response(['tree' => $tree, 'theme' => outpost_get_active_theme()]);
 }
 
 function code_build_tree(string $base, string $prefix): array {
@@ -302,7 +316,7 @@ function handle_code_search(): void {
     if (!$q || strlen($q) < 2) json_error('Query too short');
 
     $results = [];
-    code_search_dir(OUTPOST_THEMES_DIR, '', $q, $results);
+    code_search_dir(code_active_theme_root(), '', $q, $results);
 
     json_response(['results' => $results, 'query' => $q]);
 }
@@ -467,7 +481,8 @@ function handle_code_reset(): void {
         json_error('Invalid folder name');
     }
 
-    $themeDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/' . $folder;
+    // $folder is supplied by the client; resolve relative to the active theme.
+    $themeDir = rtrim(code_active_theme_root(), '/') . '/' . $folder;
     $snapshotDir = $themeDir . '/.forge-snapshot';
 
     if (!is_dir($themeDir) || !is_dir($snapshotDir)) {
@@ -511,7 +526,7 @@ function handle_code_reset(): void {
 function handle_code_assets(): void {
     outpost_require_cap('code.*');
 
-    $assetsDir = rtrim(OUTPOST_THEMES_DIR, '/') . '/assets';
+    $assetsDir = rtrim(code_active_theme_root(), '/') . '/assets';
     if (!is_dir($assetsDir)) {
         json_response(['files' => []]);
         return;
