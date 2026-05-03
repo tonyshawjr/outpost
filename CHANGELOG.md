@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.10] — 2026-05-03
+
+### Fixed
+- **Router was still reading templates from `OUTPOST_SITE_ROOT` (v5 themeless behavior).** v6 introduced themes-as-folders at `outpost/content/themes/{active}/` and updated the Code Editor + admin to use that location, but `front-router.php` never got the corresponding update — it still served the webroot's loose HTML files. Result: a `single.html` written via Code Editor (which correctly lands in the active theme folder) was never found by the router; collection routes like `/blog/{slug}` 404'd despite the item existing in the database.
+- Router now prefers `OUTPOST_THEMES_DIR/{active}/` if that directory has an `index.html`; falls back to `OUTPOST_SITE_ROOT` for v5-style installs that haven't been migrated. Backwards-compatible with existing themeless deployments.
+
+---
+
 ## [6.0.0-beta.9] — 2026-05-03
 
 ### Fixed

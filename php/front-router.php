@@ -172,8 +172,21 @@ if (preg_match('#^/([a-z0-9_-]+)/feed(?:\.xml)?$#', $path, $feedMatch)) {
     return true;
 }
 
-// Resolve site root (v5: no theme layer — site root is the content source)
+// Resolve theme directory.
+// v5 was themeless — themeDir = site root.
+// v6 uses outpost/content/themes/{active}/ as the active theme dir.
+// For backwards compatibility, prefer the active theme dir if it exists with
+// an index.html; otherwise fall back to site root for v5-style themeless installs.
 $themeDir = OUTPOST_SITE_ROOT;
+if (defined('OUTPOST_THEMES_DIR')) {
+    if (!function_exists('outpost_get_active_theme')) {
+        require_once $outpostDir . '/blocks.php';
+    }
+    $_v6Theme = OUTPOST_THEMES_DIR . outpost_get_active_theme();
+    if (is_dir($_v6Theme) && file_exists($_v6Theme . '/index.html')) {
+        $themeDir = $_v6Theme;
+    }
+}
 
 // ── HTML templates at site root ──────────────────────────
 if (!file_exists($themeDir . 'index.html')) {
