@@ -86,7 +86,7 @@
 
   // Theme settings — homepage
   let headerStyle = $state('landing');
-  let headerText = $state('Discover Your Future at Kenii University');
+  let headerText = $state('');
   let bgImage = $state(true);
   let postFeedStyle = $state('grid');
   let showFeedImages = $state(true);
@@ -113,7 +113,7 @@
       headerStyle = savedBrand.header_style || blueprint.settings?.header_style?.default || 'landing';
       siteBgColor = savedBrand.site_bg_color || '#ffffff';
       headerFooterColor = savedBrand.header_footer_color || '#1a1a2e';
-      headerText = savedBrand.header_text || 'Discover Your Future at Kenii University';
+      headerText = savedBrand.header_text || '';
       bgImage = savedBrand.bg_image ?? true;
       postFeedStyle = savedBrand.post_feed_style || 'grid';
       showFeedImages = savedBrand.show_feed_images ?? true;

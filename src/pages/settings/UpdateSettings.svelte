@@ -49,7 +49,7 @@
 
 <div class="settings-section">
   <h2 class="settings-section-title">Updates</h2>
-  <p class="settings-section-desc">Check for and install Kenii Sites updates.</p>
+  <p class="settings-section-desc">Check for and install Outpost CMS updates.</p>
 
   {#if checking}
     <div class="update-status">

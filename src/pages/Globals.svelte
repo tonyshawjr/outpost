@@ -90,7 +90,7 @@
     </div>
     <div class="page-header-content">
       <h1 class="page-title">Globals</h1>
-      <p class="page-subtitle">Fields shared across all pages via <code class="gl-code">&#123;&#123; @field &#125;&#125;</code></p>
+      <p class="page-subtitle">Fields shared across all pages via <code class="gl-code">data-scope="global"</code></p>
     </div>
     <div class="page-header-actions">
       <button
@@ -119,7 +119,7 @@
   {:else if fields.length === 0}
     <div class="gl-empty">
       <p class="gl-empty-title">No global fields yet</p>
-      <p class="gl-empty-hint">Use <code>&#123;&#123; @field_name &#125;&#125;</code> in your theme templates, then re-activate the theme to scaffold these fields.</p>
+      <p class="gl-empty-hint">Add <code>&lt;span data-outpost="name" data-scope="global"&gt;Default value&lt;/span&gt;</code> to a theme template, then re-activate the theme to scaffold the field.</p>
     </div>
   {:else}
     <div class="gl-fields">

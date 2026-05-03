@@ -662,7 +662,7 @@
   }
 
   // ── Resizable detail sidebar ──
-  let sidebarWidth = $state(parseInt(localStorage.getItem('kenii_media_sidebar_width')) || 280);
+  let sidebarWidth = $state(parseInt(localStorage.getItem('outpost_media_sidebar_width')) || 280);
   let resizingSidebar = $state(false);
 
   function onSidebarResizeStart(e) {
@@ -678,7 +678,7 @@
 
     function onUp() {
       resizingSidebar = false;
-      localStorage.setItem('kenii_media_sidebar_width', String(sidebarWidth));
+      localStorage.setItem('outpost_media_sidebar_width', String(sidebarWidth));
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     }

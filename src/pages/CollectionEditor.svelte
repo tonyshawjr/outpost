@@ -654,7 +654,7 @@
                     {#if metaFields[key]}
                       <img src={metaFields[key]} alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;" />
                     {/if}
-                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} placeholder="/kenii/uploads/..." style="flex: 1;" />
+                    <input class="ed-meta-input" type="text" value={metaFields[key] || ''} oninput={(e) => handleMetaChange(key, e.target.value)} placeholder="/uploads/..." style="flex: 1;" />
                     <button class="ed-btn ed-btn-outline" type="button" onclick={() => { mediaPickerKey = key; }} style="white-space: nowrap;">Browse</button>
                   </div>
                   {#if mediaPickerKey === key}
