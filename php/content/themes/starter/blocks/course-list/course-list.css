@@ -1,67 +1,67 @@
-.kenii-course-list {
-  padding: var(--kenii-space-3xl) var(--kenii-page-padding);
+.outpost-course-list {
+  padding: var(--outpost-space-3xl) var(--outpost-page-padding);
 }
-.kenii-course-list__inner {
+.outpost-course-list__inner {
   max-width: 1000px;
   margin: 0 auto;
 }
-.kenii-course-list__header {
+.outpost-course-list__header {
   text-align: center;
   margin-bottom: 40px;
 }
-.kenii-course-list__title {
+.outpost-course-list__title {
   font-size: 32px;
   font-weight: 800;
-  font-family: var(--kenii-font-heading);
-  color: var(--kenii-black);
+  font-family: var(--outpost-font-heading);
+  color: var(--outpost-black);
   margin: 0 0 12px;
   letter-spacing: -0.01em;
 }
-.kenii-course-list__subtitle {
+.outpost-course-list__subtitle {
   font-size: 18px;
-  color: var(--kenii-gray-500);
+  color: var(--outpost-gray-500);
   margin: 0;
   line-height: 1.5;
 }
-.kenii-course-list__items {
-  border-top: 1px solid var(--kenii-gray-200);
+.outpost-course-list__items {
+  border-top: 1px solid var(--outpost-gray-200);
 }
-.kenii-course-list__row {
+.outpost-course-list__row {
   display: flex;
   align-items: flex-start;
   gap: 20px;
   padding: 20px 16px;
-  border-bottom: 1px solid var(--kenii-gray-200);
+  border-bottom: 1px solid var(--outpost-gray-200);
   transition: background 0.1s;
 }
-.kenii-course-list__row:nth-child(even) {
-  background: var(--kenii-gray-50);
+.outpost-course-list__row:nth-child(even) {
+  background: var(--outpost-gray-50);
 }
-.kenii-course-list__row:hover {
-  background: var(--kenii-gray-100);
+.outpost-course-list__row:hover {
+  background: var(--outpost-gray-100);
 }
-.kenii-course-list__code {
+.outpost-course-list__code {
   flex-shrink: 0;
   width: 100px;
   font-size: 14px;
   font-weight: 700;
-  color: var(--kenii-primary);
+  color: var(--outpost-primary);
   padding-top: 2px;
 }
-.kenii-course-list__details {
+.outpost-course-list__details {
   flex: 1;
   min-width: 0;
 }
-.kenii-course-list__course-title {
+.outpost-course-list__course-title {
   font-size: 16px;
   font-weight: 600;
-  font-family: var(--kenii-font-heading);
-  color: var(--kenii-black);
+  font-family: var(--outpost-font-heading);
+  color: var(--outpost-black);
   margin: 0 0 4px;
 }
-.kenii-course-list__description {
+.outpost-course-list__description {
   font-size: 14px;
-  color: var(--kenii-gray-500);
+  color: var(--outpost-gray-500);
   margin: 0;
   line-height: 1.5;
   display: -webkit-box;
@@ -69,22 +69,22 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.kenii-course-list__credits {
+.outpost-course-list__credits {
   flex-shrink: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--kenii-gray-400);
+  color: var(--outpost-gray-400);
   padding-top: 2px;
   white-space: nowrap;
 }
 @media (max-width: 768px) {
-  .kenii-course-list { padding: 40px 16px; }
-  .kenii-course-list__title { font-size: 24px; }
-  .kenii-course-list__subtitle { font-size: 16px; }
-  .kenii-course-list__row {
+  .outpost-course-list { padding: 40px 16px; }
+  .outpost-course-list__title { font-size: 24px; }
+  .outpost-course-list__subtitle { font-size: 16px; }
+  .outpost-course-list__row {
     flex-direction: column;
     gap: 8px;
   }
-  .kenii-course-list__code { width: auto; }
-  .kenii-course-list__credits { align-self: flex-start; }
+  .outpost-course-list__code { width: auto; }
+  .outpost-course-list__credits { align-self: flex-start; }
 }

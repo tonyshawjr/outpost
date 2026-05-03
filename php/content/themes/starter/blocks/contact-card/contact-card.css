@@ -1,59 +1,59 @@
-.kenii-contact-card {
-  padding: var(--kenii-space-3xl) var(--kenii-page-padding);
+.outpost-contact-card {
+  padding: var(--outpost-space-3xl) var(--outpost-page-padding);
 }
-.kenii-contact-card__inner {
+.outpost-contact-card__inner {
   max-width: 500px;
   margin: 0 auto;
 }
-.kenii-contact-card__card {
-  border: 1px solid var(--kenii-gray-200);
-  border-radius: var(--kenii-radius-lg);
-  padding: var(--kenii-space-xl);
-  background: var(--kenii-white);
+.outpost-contact-card__card {
+  border: 1px solid var(--outpost-gray-200);
+  border-radius: var(--outpost-radius-lg);
+  padding: var(--outpost-space-xl);
+  background: var(--outpost-white);
   text-align: center;
 }
-.kenii-contact-card__photo {
+.outpost-contact-card__photo {
   width: 80px;
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  background: var(--kenii-gray-200);
+  background: var(--outpost-gray-200);
   margin: 0 auto 16px;
   display: block;
 }
-.kenii-contact-card__name {
+.outpost-contact-card__name {
   font-size: 22px;
   font-weight: 700;
-  font-family: var(--kenii-font-heading);
-  color: var(--kenii-black);
+  font-family: var(--outpost-font-heading);
+  color: var(--outpost-black);
   margin: 0 0 4px;
 }
-.kenii-contact-card__title {
+.outpost-contact-card__title {
   font-size: 15px;
-  color: var(--kenii-gray-500);
+  color: var(--outpost-gray-500);
   margin: 0 0 24px;
 }
-.kenii-contact-card__details {
+.outpost-contact-card__details {
   list-style: none;
   padding: 0;
   margin: 0;
   text-align: left;
 }
-.kenii-contact-card__detail {
+.outpost-contact-card__detail {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 0;
-  border-top: 1px solid var(--kenii-gray-100);
+  border-top: 1px solid var(--outpost-gray-100);
   font-size: 15px;
-  color: var(--kenii-gray-700);
+  color: var(--outpost-gray-700);
 }
-.kenii-contact-card__icon {
-  color: var(--kenii-primary);
+.outpost-contact-card__icon {
+  color: var(--outpost-primary);
   flex-shrink: 0;
 }
 @media (max-width: 768px) {
-  .kenii-contact-card { padding: 40px 20px; }
-  .kenii-contact-card__card { padding: var(--kenii-page-padding); }
-  .kenii-contact-card__name { font-size: 20px; }
+  .outpost-contact-card { padding: 40px 20px; }
+  .outpost-contact-card__card { padding: var(--outpost-page-padding); }
+  .outpost-contact-card__name { font-size: 20px; }
 }

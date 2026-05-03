@@ -1,53 +1,53 @@
 :root {
   /* Brand — overridden by Design panel */
-  --kenii-primary: #7C3AED;
-  --kenii-primary-light: #A78BFA;
-  --kenii-primary-dark: #6D28D9;
-  --kenii-secondary: #059669;
-  --kenii-accent: #F472B6;
+  --outpost-primary: #7C3AED;
+  --outpost-primary-light: #A78BFA;
+  --outpost-primary-dark: #6D28D9;
+  --outpost-secondary: #059669;
+  --outpost-accent: #F472B6;
 
   /* Neutrals */
-  --kenii-white: #ffffff;
-  --kenii-black: #111827;
-  --kenii-gray-50: #F9FAFB;
-  --kenii-gray-100: #F3F4F6;
-  --kenii-gray-200: #E5E7EB;
-  --kenii-gray-300: #D1D5DB;
-  --kenii-gray-400: #9CA3AF;
-  --kenii-gray-500: #6B7280;
-  --kenii-gray-600: #4B5563;
-  --kenii-gray-700: #374151;
-  --kenii-gray-800: #1F2937;
-  --kenii-gray-900: #111827;
+  --outpost-white: #ffffff;
+  --outpost-black: #111827;
+  --outpost-gray-50: #F9FAFB;
+  --outpost-gray-100: #F3F4F6;
+  --outpost-gray-200: #E5E7EB;
+  --outpost-gray-300: #D1D5DB;
+  --outpost-gray-400: #9CA3AF;
+  --outpost-gray-500: #6B7280;
+  --outpost-gray-600: #4B5563;
+  --outpost-gray-700: #374151;
+  --outpost-gray-800: #1F2937;
+  --outpost-gray-900: #111827;
 
   /* Layout */
-  --kenii-container-max: 1200px;
-  --kenii-container-narrow: 800px;
-  --kenii-page-padding: 24px;
+  --outpost-container-max: 1200px;
+  --outpost-container-narrow: 800px;
+  --outpost-page-padding: 24px;
 
   /* Spacing */
-  --kenii-space-xs: 4px;
-  --kenii-space-sm: 8px;
-  --kenii-space-md: 16px;
-  --kenii-space-lg: 24px;
-  --kenii-space-xl: 32px;
-  --kenii-space-2xl: 48px;
-  --kenii-space-3xl: 64px;
-  --kenii-space-section: 80px;
+  --outpost-space-xs: 4px;
+  --outpost-space-sm: 8px;
+  --outpost-space-md: 16px;
+  --outpost-space-lg: 24px;
+  --outpost-space-xl: 32px;
+  --outpost-space-2xl: 48px;
+  --outpost-space-3xl: 64px;
+  --outpost-space-section: 80px;
 
   /* Typography */
-  --kenii-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --kenii-font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --kenii-font-mono: 'SF Mono', 'Fira Code', monospace;
+  --outpost-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --outpost-font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --outpost-font-mono: 'SF Mono', 'Fira Code', monospace;
 
   /* Border radius */
-  --kenii-radius: 8px;
-  --kenii-radius-sm: 4px;
-  --kenii-radius-lg: 12px;
-  --kenii-radius-xl: 16px;
+  --outpost-radius: 8px;
+  --outpost-radius-sm: 4px;
+  --outpost-radius-lg: 12px;
+  --outpost-radius-xl: 16px;
 
   /* Shadows */
-  --kenii-shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --kenii-shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-  --kenii-shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+  --outpost-shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --outpost-shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --outpost-shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
 }

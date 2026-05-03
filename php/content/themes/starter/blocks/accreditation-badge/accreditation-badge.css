@@ -1,33 +1,33 @@
-.kenii-accreditation-badge {
-  padding: var(--kenii-space-xl) var(--kenii-page-padding);
-  border-top: 1px solid var(--kenii-gray-200);
+.outpost-accreditation-badge {
+  padding: var(--outpost-space-xl) var(--outpost-page-padding);
+  border-top: 1px solid var(--outpost-gray-200);
 }
-.kenii-accreditation-badge__inner {
+.outpost-accreditation-badge__inner {
   max-width: 700px;
   margin: 0 auto;
   text-align: center;
 }
-.kenii-accreditation-badge__text {
+.outpost-accreditation-badge__text {
   font-size: 14px;
-  color: var(--kenii-gray-400);
+  color: var(--outpost-gray-400);
   line-height: 1.6;
   margin: 0 0 12px;
 }
-.kenii-accreditation-badge__text p {
+.outpost-accreditation-badge__text p {
   margin: 0;
 }
-.kenii-accreditation-badge__link {
+.outpost-accreditation-badge__link {
   font-size: 14px;
-  color: var(--kenii-primary);
+  color: var(--outpost-primary);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.15s;
 }
-.kenii-accreditation-badge__link:hover {
-  color: var(--kenii-primary-dark);
+.outpost-accreditation-badge__link:hover {
+  color: var(--outpost-primary-dark);
   text-decoration: underline;
 }
 @media (max-width: 768px) {
-  .kenii-accreditation-badge { padding: 24px 16px; }
-  .kenii-accreditation-badge__text { font-size: 13px; }
+  .outpost-accreditation-badge { padding: 24px 16px; }
+  .outpost-accreditation-badge__text { font-size: 13px; }
 }

@@ -1,43 +1,43 @@
-.kenii-compass-embed {
-  padding: 72px var(--kenii-page-padding);
+.outpost-compass-embed {
+  padding: 72px var(--outpost-page-padding);
   text-align: center;
-  color: var(--kenii-white);
+  color: var(--outpost-white);
 }
-.kenii-compass-embed__inner {
+.outpost-compass-embed__inner {
   max-width: 960px;
   margin: 0 auto;
 }
-.kenii-compass-embed__title {
+.outpost-compass-embed__title {
   font-size: 36px;
   font-weight: 800;
-  font-family: var(--kenii-font-heading);
+  font-family: var(--outpost-font-heading);
   margin: 0 0 12px;
   letter-spacing: -0.02em;
 }
-.kenii-compass-embed__subtitle {
+.outpost-compass-embed__subtitle {
   font-size: 18px;
   opacity: 0.9;
   margin: 0 0 40px;
   line-height: 1.5;
 }
-.kenii-compass-embed__widget {
+.outpost-compass-embed__widget {
   min-height: 400px;
   background: rgba(255, 255, 255, 0.1);
   border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: var(--kenii-radius-lg);
+  border-radius: var(--outpost-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.kenii-compass-embed__placeholder {
+.outpost-compass-embed__placeholder {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
   font-weight: 500;
 }
 @media (max-width: 768px) {
-  .kenii-compass-embed { padding: 48px 16px; }
-  .kenii-compass-embed__title { font-size: 26px; }
-  .kenii-compass-embed__subtitle { font-size: 16px; }
-  .kenii-compass-embed__widget { min-height: 280px; }
+  .outpost-compass-embed { padding: 48px 16px; }
+  .outpost-compass-embed__title { font-size: 26px; }
+  .outpost-compass-embed__subtitle { font-size: 16px; }
+  .outpost-compass-embed__widget { min-height: 280px; }
 }

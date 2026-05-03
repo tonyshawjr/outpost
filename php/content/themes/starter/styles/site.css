@@ -7,10 +7,10 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Fonts from CSS variables — !important to override Tailwind preflight */
 body {
-  font-family: var(--kenii-font-body) !important;
+  font-family: var(--outpost-font-body) !important;
 }
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--kenii-font-heading) !important;
+  font-family: var(--outpost-font-heading) !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -26,33 +26,33 @@ a:hover { text-decoration: none; }
   text-decoration: none;
   transition: color 0.15s;
 }
-.site-nav a:hover { color: var(--kenii-white); }
+.site-nav a:hover { color: var(--outpost-white); }
 
 /* Footer link styling */
 .site-footer__link {
-  color: var(--kenii-gray-400);
+  color: var(--outpost-gray-400);
 }
 .site-footer__link:hover {
-  color: var(--kenii-white);
+  color: var(--outpost-white);
 }
 
 /* Post template — not covered by blocks */
 .post-content {
-  max-width: var(--kenii-container-narrow);
+  max-width: var(--outpost-container-narrow);
   margin: 0 auto;
-  padding: var(--kenii-space-3xl) var(--kenii-page-padding);
+  padding: var(--outpost-space-3xl) var(--outpost-page-padding);
 }
 .post-title {
   font-size: 36px;
   font-weight: 800;
-  font-family: var(--kenii-font-heading);
+  font-family: var(--outpost-font-heading);
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin-bottom: 16px;
 }
 .post-meta {
   font-size: 14px;
-  color: var(--kenii-gray-500);
+  color: var(--outpost-gray-500);
   display: flex;
   gap: 8px;
   margin-bottom: 32px;
@@ -61,17 +61,17 @@ a:hover { text-decoration: none; }
   font-size: 17px;
   line-height: 1.8;
 }
-.post-body h2 { font-size: 24px; font-weight: 700; font-family: var(--kenii-font-heading); margin: 40px 0 16px; }
-.post-body h3 { font-size: 20px; font-weight: 700; font-family: var(--kenii-font-heading); margin: 32px 0 12px; }
+.post-body h2 { font-size: 24px; font-weight: 700; font-family: var(--outpost-font-heading); margin: 40px 0 16px; }
+.post-body h3 { font-size: 20px; font-weight: 700; font-family: var(--outpost-font-heading); margin: 32px 0 12px; }
 .post-body p { margin-bottom: 20px; }
 .post-body ul, .post-body ol { margin: 0 0 20px 24px; }
 .post-body li { margin-bottom: 8px; }
-.post-body img { border-radius: var(--kenii-radius); margin: 24px 0; }
+.post-body img { border-radius: var(--outpost-radius); margin: 24px 0; }
 .post-body blockquote {
-  border-left: 3px solid var(--kenii-primary);
+  border-left: 3px solid var(--outpost-primary);
   padding: 12px 20px;
   margin: 24px 0;
-  color: var(--kenii-gray-600);
+  color: var(--outpost-gray-600);
   font-style: italic;
 }
 
@@ -80,7 +80,7 @@ a:hover { text-decoration: none; }
   min-height: 100vh;
 }
 .landing-footer {
-  background: var(--kenii-gray-900);
+  background: var(--outpost-gray-900);
   color: rgba(255,255,255,0.4);
   text-align: center;
   padding: 20px;
@@ -97,26 +97,26 @@ a:hover { text-decoration: none; }
 .site-header--logo-right .site-header__actions { order: 2 !important; margin-left: 0 !important; margin-right: 32px !important; }
 
 /* Header style variants */
-.header-style--highlight .kenii-hero {
+.header-style--highlight .outpost-hero {
   padding: 48px 24px !important;
   text-align: left !important;
 }
-.header-style--highlight .kenii-hero > div {
+.header-style--highlight .outpost-hero > div {
   max-width: 600px !important;
   margin: 0 !important;
   text-align: left !important;
 }
-.header-style--highlight .kenii-hero h1 {
+.header-style--highlight .outpost-hero h1 {
   font-size: 2rem !important;
 }
-.header-style--magazine .kenii-hero {
+.header-style--magazine .outpost-hero {
   padding: 32px 24px !important;
   background: transparent !important;
-  color: var(--kenii-black) !important;
+  color: var(--outpost-black) !important;
 }
-.header-style--magazine .kenii-hero a {
-  background: var(--kenii-primary) !important;
-  color: var(--kenii-white) !important;
+.header-style--magazine .outpost-hero a {
+  background: var(--outpost-primary) !important;
+  color: var(--outpost-white) !important;
 }
 
 /* Responsive — hide nav on mobile */

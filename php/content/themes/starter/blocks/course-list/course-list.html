@@ -1,19 +1,19 @@
 <!-- outpost:course-list -->
-<section class="kenii-course-list">
-  <div class="kenii-course-list__inner">
-    <div class="kenii-course-list__header">
-      <h2 class="kenii-course-list__title" data-outpost="list_title">Course Catalog</h2>
-      <p class="kenii-course-list__subtitle" data-outpost="list_subtitle">Browse available courses</p>
+<section class="outpost-course-list">
+  <div class="outpost-course-list__inner">
+    <div class="outpost-course-list__header">
+      <h2 class="outpost-course-list__title" data-outpost="list_title">Course Catalog</h2>
+      <p class="outpost-course-list__subtitle" data-outpost="list_subtitle">Browse available courses</p>
     </div>
-    <div class="kenii-course-list__items">
+    <div class="outpost-course-list__items">
       <outpost-each collection="courses">
-        <div class="kenii-course-list__row">
-          <div class="kenii-course-list__code">{{code}}</div>
-          <div class="kenii-course-list__details">
-            <h3 class="kenii-course-list__course-title">{{title}}</h3>
-            <p class="kenii-course-list__description">{{description}}</p>
+        <div class="outpost-course-list__row">
+          <div class="outpost-course-list__code">{{code}}</div>
+          <div class="outpost-course-list__details">
+            <h3 class="outpost-course-list__course-title">{{title}}</h3>
+            <p class="outpost-course-list__description">{{description}}</p>
           </div>
-          <div class="kenii-course-list__credits">{{credits}} cr.</div>
+          <div class="outpost-course-list__credits">{{credits}} cr.</div>
         </div>
       </outpost-each>
     </div>

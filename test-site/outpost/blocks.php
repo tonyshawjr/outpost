@@ -170,25 +170,3 @@ function outpost_get_block_css(string $slug): string {
     return file_get_contents($file) ?: '';
 }
 
-// ── Backwards-compat aliases (Sites callsites) ───────────
-// Sites code may still call kenii_* names. Aliases preserve compatibility
-// for one major version. Remove in v7.
-
-if (!function_exists('kenii_get_active_theme')) {
-    function kenii_get_active_theme(): string { return outpost_get_active_theme(); }
-}
-if (!function_exists('kenii_get_blocks_dir')) {
-    function kenii_get_blocks_dir(): string { return outpost_get_blocks_dir(); }
-}
-if (!function_exists('kenii_scan_blocks')) {
-    function kenii_scan_blocks(): array { return outpost_scan_blocks(); }
-}
-if (!function_exists('kenii_get_block')) {
-    function kenii_get_block(string $slug): ?array { return outpost_get_block($slug); }
-}
-if (!function_exists('kenii_get_block_html')) {
-    function kenii_get_block_html(string $slug): string { return outpost_get_block_html($slug); }
-}
-if (!function_exists('kenii_get_block_css')) {
-    function kenii_get_block_css(string $slug): string { return outpost_get_block_css($slug); }
-}

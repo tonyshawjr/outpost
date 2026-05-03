@@ -1,22 +1,22 @@
 /* FAQ Accordion — keep only custom marker and details behavior */
-.kenii-faq-accordion__question {
+.outpost-faq-accordion__question {
   list-style: none;
 }
-.kenii-faq-accordion__question::-webkit-details-marker {
+.outpost-faq-accordion__question::-webkit-details-marker {
   display: none;
 }
-.kenii-faq-accordion__question::after {
+.outpost-faq-accordion__question::after {
   content: "";
   display: inline-block;
   width: 10px;
   height: 10px;
-  border-right: 2px solid var(--kenii-gray-500);
-  border-bottom: 2px solid var(--kenii-gray-500);
+  border-right: 2px solid var(--outpost-gray-500);
+  border-bottom: 2px solid var(--outpost-gray-500);
   transform: rotate(45deg);
   transition: transform 0.2s ease;
   flex-shrink: 0;
   margin-left: 16px;
 }
-.kenii-faq-accordion__item[open] > .kenii-faq-accordion__question::after {
+.outpost-faq-accordion__item[open] > .outpost-faq-accordion__question::after {
   transform: rotate(-135deg);
 }

@@ -185,7 +185,7 @@
     setTimeout(() => {
       const iframe = document.querySelector('.preview-iframe');
       if (iframe?.contentDocument) {
-        iframe.contentDocument.querySelectorAll('.kenii-block').forEach(el => {
+        iframe.contentDocument.querySelectorAll('.outpost-block').forEach(el => {
           el.classList.toggle('selected', el.dataset.blockId === selectedBlockId);
         });
       }
@@ -238,8 +238,8 @@
 <style>${css}</style>
 <style>
 body { margin: 0; font-family: 'Inter', sans-serif; }
-.kenii-block { cursor: pointer; transition: outline .15s; }
-.kenii-block:hover { outline: 2px solid rgba(124,58,237,.4); outline-offset: 2px; }
+.outpost-block { cursor: pointer; transition: outline .15s; }
+.outpost-block:hover { outline: 2px solid rgba(124,58,237,.4); outline-offset: 2px; }
 </style>
 </head>
 <body>${html}</body>
@@ -256,9 +256,9 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
       const data = await brandSettingsApi.get();
       const saved = data.saved || {};
       let css = ':root {';
-      if (saved.accent_color) css += `--kenii-primary: ${saved.accent_color};`;
-      if (saved.heading_font) css += `--kenii-font-heading: "${saved.heading_font}", sans-serif;`;
-      if (saved.body_font) css += `--kenii-font-body: "${saved.body_font}", sans-serif;`;
+      if (saved.accent_color) css += `--outpost-primary: ${saved.accent_color};`;
+      if (saved.heading_font) css += `--outpost-font-heading: "${saved.heading_font}", sans-serif;`;
+      if (saved.body_font) css += `--outpost-font-body: "${saved.body_font}", sans-serif;`;
       css += '}';
       brandCss = css;
     } catch {}

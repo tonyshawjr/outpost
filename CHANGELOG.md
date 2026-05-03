@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.4] — 2026-05-01
+
+Full Kenii → Outpost rename. Outpost is the original; Kenii Sites is the fork. There should never have been Kenii references in the Outpost codebase — beta.3 still had them embedded as internal namespacing from the visual port. This release wipes them all.
+
+### Changed
+- **Every `kenii` / `Kenii` reference removed across the entire codebase** — Svelte source, PHP source, the Outpost starter theme's CSS variables and block templates, blueprint.json, all comments. Renamed:
+  - `--kenii-*` CSS variables → `--outpost-*` (in starter theme `variables.css` and all 18 block CSS files)
+  - `.kenii-block` / `.kenii-content-section` / etc. CSS classes → `.outpost-*`
+  - `kenii_*` PHP function names already aliased to `outpost_*` in beta.1 — aliases dropped in this release
+  - `localStorage.getItem('kenii_media_sidebar_width')` → `outpost_media_sidebar_width`
+  - All "Kenii Sites" / "Kenii University" / "Kenii Catalog" text strings → "Outpost"
+  - PageBuilder + Design admin live-preview iframe variable injection updated to set `--outpost-*`
+
+47 files touched. Build clean. PHP linter clean across all 60+ engine files.
+
+### Notes
+- If you have a custom theme that copied the starter and used `--kenii-*` in your own CSS, it will need a one-time find/replace to `--outpost-*`. The starter ships with the new names.
+- This is the cleanup of a paper trail from the visual port. No functional changes — every feature still works.
+
+---
+
 ## [6.0.0-beta.3] — 2026-05-01
 
 Section-by-section visual ports + typography polish.

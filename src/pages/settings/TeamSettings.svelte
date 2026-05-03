@@ -14,7 +14,7 @@
   let formPassword = $state('');
   let formRole = $state('admin');
 
-  const config = window.__KENII_CONFIG__ || {};
+  const config = window.__OUTPOST_CONFIG__ || {};
   const currentUserId = config.user?.id;
   let admin = $derived($isAdmin);
 

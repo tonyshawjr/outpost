@@ -1,54 +1,54 @@
-.kenii-two-column {
-  padding: var(--kenii-space-3xl) var(--kenii-page-padding);
+.outpost-two-column {
+  padding: var(--outpost-space-3xl) var(--outpost-page-padding);
 }
-.kenii-two-column__inner {
+.outpost-two-column__inner {
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--kenii-space-2xl);
+  gap: var(--outpost-space-2xl);
   align-items: center;
 }
-.kenii-two-column[data-layout="text-right"] .kenii-two-column__inner {
+.outpost-two-column[data-layout="text-right"] .outpost-two-column__inner {
   direction: rtl;
 }
-.kenii-two-column[data-layout="text-right"] .kenii-two-column__inner > * {
+.outpost-two-column[data-layout="text-right"] .outpost-two-column__inner > * {
   direction: ltr;
 }
-.kenii-two-column__title {
+.outpost-two-column__title {
   font-size: 30px;
   font-weight: 700;
-  font-family: var(--kenii-font-heading);
+  font-family: var(--outpost-font-heading);
   line-height: 1.2;
   margin: 0 0 20px;
-  color: var(--kenii-black);
+  color: var(--outpost-black);
 }
-.kenii-two-column__body {
+.outpost-two-column__body {
   font-size: 17px;
   line-height: 1.7;
-  color: var(--kenii-gray-600);
+  color: var(--outpost-gray-600);
 }
-.kenii-two-column__body p {
+.outpost-two-column__body p {
   margin: 0 0 16px;
 }
-.kenii-two-column__body p:last-child {
+.outpost-two-column__body p:last-child {
   margin-bottom: 0;
 }
-.kenii-two-column__image {
+.outpost-two-column__image {
   width: 100%;
   height: auto;
-  border-radius: var(--kenii-radius-lg);
+  border-radius: var(--outpost-radius-lg);
   object-fit: cover;
 }
 @media (max-width: 768px) {
-  .kenii-two-column { padding: 40px 20px; }
-  .kenii-two-column__inner {
+  .outpost-two-column { padding: 40px 20px; }
+  .outpost-two-column__inner {
     grid-template-columns: 1fr;
-    gap: var(--kenii-space-xl);
+    gap: var(--outpost-space-xl);
   }
-  .kenii-two-column[data-layout="text-right"] .kenii-two-column__inner {
+  .outpost-two-column[data-layout="text-right"] .outpost-two-column__inner {
     direction: ltr;
   }
-  .kenii-two-column__title { font-size: 24px; }
-  .kenii-two-column__body { font-size: 16px; }
+  .outpost-two-column__title { font-size: 24px; }
+  .outpost-two-column__body { font-size: 16px; }
 }

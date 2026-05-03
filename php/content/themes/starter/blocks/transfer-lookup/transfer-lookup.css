@@ -1,91 +1,91 @@
-.kenii-transfer-lookup {
-  padding: var(--kenii-space-3xl) var(--kenii-page-padding);
+.outpost-transfer-lookup {
+  padding: var(--outpost-space-3xl) var(--outpost-page-padding);
 }
-.kenii-transfer-lookup__inner {
+.outpost-transfer-lookup__inner {
   max-width: 700px;
   margin: 0 auto;
   text-align: center;
 }
-.kenii-transfer-lookup__title {
+.outpost-transfer-lookup__title {
   font-size: 32px;
   font-weight: 800;
-  font-family: var(--kenii-font-heading);
-  color: var(--kenii-black);
+  font-family: var(--outpost-font-heading);
+  color: var(--outpost-black);
   margin: 0 0 12px;
   letter-spacing: -0.01em;
 }
-.kenii-transfer-lookup__subtitle {
+.outpost-transfer-lookup__subtitle {
   font-size: 18px;
-  color: var(--kenii-gray-500);
+  color: var(--outpost-gray-500);
   margin: 0 0 32px;
   line-height: 1.5;
 }
-.kenii-transfer-lookup__search {
+.outpost-transfer-lookup__search {
   display: flex;
   gap: 0;
   margin-bottom: 32px;
 }
-.kenii-transfer-lookup__input {
+.outpost-transfer-lookup__input {
   flex: 1;
   height: 48px;
   padding: 0 16px;
   font-size: 16px;
-  font-family: var(--kenii-font-body);
-  border: 2px solid var(--kenii-gray-200);
+  font-family: var(--outpost-font-body);
+  border: 2px solid var(--outpost-gray-200);
   border-right: none;
-  border-radius: var(--kenii-radius) 0 0 var(--kenii-radius);
+  border-radius: var(--outpost-radius) 0 0 var(--outpost-radius);
   outline: none;
-  color: var(--kenii-black);
-  background: var(--kenii-white);
+  color: var(--outpost-black);
+  background: var(--outpost-white);
   transition: border-color 0.15s;
 }
-.kenii-transfer-lookup__input:focus {
-  border-color: var(--kenii-primary);
+.outpost-transfer-lookup__input:focus {
+  border-color: var(--outpost-primary);
 }
-.kenii-transfer-lookup__button {
+.outpost-transfer-lookup__button {
   height: 48px;
   padding: 0 28px;
   font-size: 15px;
   font-weight: 600;
-  font-family: var(--kenii-font-body);
-  color: var(--kenii-white);
-  background: var(--kenii-primary);
+  font-family: var(--outpost-font-body);
+  color: var(--outpost-white);
+  background: var(--outpost-primary);
   border: none;
-  border-radius: 0 var(--kenii-radius) var(--kenii-radius) 0;
+  border-radius: 0 var(--outpost-radius) var(--outpost-radius) 0;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
 }
-.kenii-transfer-lookup__button:hover {
-  background: var(--kenii-primary-dark);
+.outpost-transfer-lookup__button:hover {
+  background: var(--outpost-primary-dark);
 }
-.kenii-transfer-lookup__results {
+.outpost-transfer-lookup__results {
   min-height: 120px;
-  background: var(--kenii-white);
-  border: 1px solid var(--kenii-gray-200);
-  border-radius: var(--kenii-radius);
+  background: var(--outpost-white);
+  border: 1px solid var(--outpost-gray-200);
+  border-radius: var(--outpost-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--kenii-space-lg);
+  padding: var(--outpost-space-lg);
 }
-.kenii-transfer-lookup__results-placeholder {
+.outpost-transfer-lookup__results-placeholder {
   font-size: 14px;
-  color: var(--kenii-gray-400);
+  color: var(--outpost-gray-400);
   margin: 0;
 }
 @media (max-width: 768px) {
-  .kenii-transfer-lookup { padding: 40px 16px; }
-  .kenii-transfer-lookup__title { font-size: 24px; }
-  .kenii-transfer-lookup__subtitle { font-size: 16px; }
-  .kenii-transfer-lookup__search { flex-direction: column; }
-  .kenii-transfer-lookup__input {
-    border-right: 2px solid var(--kenii-gray-200);
-    border-radius: var(--kenii-radius);
+  .outpost-transfer-lookup { padding: 40px 16px; }
+  .outpost-transfer-lookup__title { font-size: 24px; }
+  .outpost-transfer-lookup__subtitle { font-size: 16px; }
+  .outpost-transfer-lookup__search { flex-direction: column; }
+  .outpost-transfer-lookup__input {
+    border-right: 2px solid var(--outpost-gray-200);
+    border-radius: var(--outpost-radius);
     margin-bottom: 8px;
   }
-  .kenii-transfer-lookup__input:focus {
-    border-color: var(--kenii-primary);
+  .outpost-transfer-lookup__input:focus {
+    border-color: var(--outpost-primary);
   }
-  .kenii-transfer-lookup__button { border-radius: var(--kenii-radius); }
+  .outpost-transfer-lookup__button { border-radius: var(--outpost-radius); }
 }

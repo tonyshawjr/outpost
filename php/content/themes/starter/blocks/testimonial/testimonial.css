@@ -1,4 +1,4 @@
 /* Testimonial — only keep photo placeholder styling */
-.kenii-testimonial__photo[src=""] {
-  background: var(--kenii-gray-200);
+.outpost-testimonial__photo[src=""] {
+  background: var(--outpost-gray-200);
 }

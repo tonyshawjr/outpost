@@ -160,17 +160,17 @@
       const root = doc.documentElement;
 
       // Update CSS variables
-      root.style.setProperty('--kenii-primary', accentColor);
-      root.style.setProperty('--kenii-primary-dark', accentColor);
-      root.style.setProperty('--kenii-header-footer', headerFooterColor);
-      root.style.setProperty('--kenii-bg', siteBgColor);
+      root.style.setProperty('--outpost-primary', accentColor);
+      root.style.setProperty('--outpost-primary-dark', accentColor);
+      root.style.setProperty('--outpost-header-footer', headerFooterColor);
+      root.style.setProperty('--outpost-bg', siteBgColor);
       doc.body.style.backgroundColor = siteBgColor;
 
       // Update fonts
       const headingRule = `"${headingFont}", sans-serif`;
       const bodyRule = `"${bodyFont}", sans-serif`;
-      root.style.setProperty('--kenii-font-heading', headingRule);
-      root.style.setProperty('--kenii-font-body', bodyRule);
+      root.style.setProperty('--outpost-font-heading', headingRule);
+      root.style.setProperty('--outpost-font-body', bodyRule);
 
       // Apply font directly to elements (override Tailwind)
       doc.body.style.fontFamily = bodyRule;
