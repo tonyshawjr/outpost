@@ -64,18 +64,32 @@ if (preg_match('#^/([a-z0-9_-]+)/feed(?:\.xml)?$#', $reqPath_, $feedMatch)) {
     exit;
 }
 
-// v5: site root is the content source — no theme layer
+// Resolve theme directory.
+// v5 was themeless — themeDir = site root.
+// v6 uses outpost/content/themes/{active}/ as the active theme dir.
+// Prefer the active theme dir if it has an index.html; otherwise fall back
+// to site root for v5-style themeless installs.
 $themeDir = OUTPOST_SITE_ROOT;
+if (defined('OUTPOST_THEMES_DIR')) {
+    if (!function_exists('outpost_get_active_theme')) {
+        require_once $outpostDir . '/blocks.php';
+    }
+    $_v6Theme = OUTPOST_THEMES_DIR . outpost_get_active_theme();
+    if (is_dir($_v6Theme) && file_exists($_v6Theme . '/index.html')) {
+        $themeDir = $_v6Theme;
+    }
+}
 
-if (!file_exists($themeDir . 'index.html')) {
+// Normalize: ensure $themeDir does NOT have trailing slash for path concatenation
+$themeDir = rtrim($themeDir, '/');
+
+if (!file_exists($themeDir . '/index.html')) {
     http_response_code(503);
-    echo '<h1>index.html not found at site root</h1>';
-    echo '<p>Expected <code>index.html</code> at <code>' . htmlspecialchars(rtrim($themeDir, '/')) . '</code>.</p>';
+    echo '<h1>index.html not found</h1>';
+    echo '<p>Expected <code>index.html</code> at <code>' . htmlspecialchars($themeDir) . '</code>.</p>';
     echo '<p><a href="/outpost/">Go to admin</a></p>';
     exit;
 }
-// Normalize: ensure $themeDir does NOT have trailing slash for path concatenation
-$themeDir = rtrim($themeDir, '/');
 
 require_once $outpostDir . '/engine.php';
 
@@ -197,11 +211,10 @@ if (!$templateFile) {
                 $_outpost_current_item       = $data;
                 $_outpost_current_collection = $col['slug'];
             }
-            $colTemplate = $themeDir . '/' . $col['slug'] . '.html';
-            if (file_exists($colTemplate)) {
-                $templateFile = $colTemplate;
-            } elseif (file_exists($themeDir . '/post.html')) {
-                $templateFile = $themeDir . '/post.html';
+            // v6 template hierarchy: single-{slug}.html → {slug}.html → single.html → post.html
+            $templateFile = null;
+            foreach (["/single-{$col['slug']}.html", "/{$col['slug']}.html", '/single.html', '/post.html'] as $rel) {
+                if (file_exists($themeDir . $rel)) { $templateFile = $themeDir . $rel; break; }
             }
             break;
         }
@@ -218,11 +231,9 @@ if (!$templateFile) {
         $regexPattern = '#^' . str_replace('\{slug\}', '([^/]+)', preg_quote($pattern, '#')) . '$#';
         if (preg_match($regexPattern, $reqPath, $matches)) {
             $_GET['slug'] = $matches[1];
-            $chanTemplate = $themeDir . '/' . $chan['slug'] . '.html';
-            if (file_exists($chanTemplate)) {
-                $templateFile = $chanTemplate;
-            } elseif (file_exists($themeDir . '/channel.html')) {
-                $templateFile = $themeDir . '/channel.html';
+            // v6 hierarchy + channel.html fallback
+            foreach (["/single-{$chan['slug']}.html", "/{$chan['slug']}.html", '/single.html', '/post.html', '/channel.html'] as $rel) {
+                if (file_exists($themeDir . $rel)) { $templateFile = $themeDir . $rel; break; }
             }
             break;
         }

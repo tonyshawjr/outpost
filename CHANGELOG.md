@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.11] — 2026-05-04
+
+### Fixed
+- **The v6 router fixes from beta.1, beta.5, beta.10 only landed in `front-router.php` (PHP built-in dev server) — not in `index.php` (production Apache/Nginx front controller).** Production routing has been on the v5 logic this whole time. Templates written via Code Editor (which correctly target the active theme folder) were invisible to production routing because production was still reading from `OUTPOST_SITE_ROOT`. Collection routes like `/blog/{slug}` returned 404 even when items were published and the template existed.
+- `test-site/index.php` (the production front controller; packaged into the release zip's root) now matches `front-router.php`:
+  - Resolves themeDir from `OUTPOST_THEMES_DIR/{active}/` if it has an `index.html`, falls back to `OUTPOST_SITE_ROOT` for v5-style installs.
+  - Walks the v6 single-template hierarchy (`single-{type}.html` → `{type}.html` → `single.html` → `post.html`) for both collection and channel routes.
+
+### Note on the diverged-routing-files problem
+Two parallel routers have been drifting since v5: `outpost/front-router.php` (used only by `php -S`) and the webroot `index.php` (used by every real Apache/Nginx install). v6 fixes were applied to the wrong one for several betas. Future routing changes should land in both files atomically until the duplication is consolidated.
+
+---
+
 ## [6.0.0-beta.10] — 2026-05-03
 
 ### Fixed
