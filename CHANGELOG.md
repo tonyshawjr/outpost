@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.12] — 2026-05-04
+
+### Fixed
+- **Code Editor's categorized FileTree was filtering too narrowly.** Several real theme files were showing up as "No files yet" in their sections:
+  - Layout missed everything in `partials/` except `header/footer/head.html` (now: all `.html` files in `partials/`).
+  - Styles missed CSS files inside `assets/css/` (now: any `.css` anywhere in the theme tree).
+  - Templates missed root-level `.html` files like `index.html` and `single.html` (now: any `.html` at theme root that isn't a header/footer/head, plus `templates/*.html`).
+- **Design panel preview was loading `/preview/` and `/preview/sample-post`** which aren't routes — both 404'd. Now resolves real URLs on mount: homepage = `/`, post = first published item in a `posts` / `blog` / `news` collection (from its `url_pattern`). If none exists, the panel shows an error message and falls back to homepage.
+
+---
+
 ## [6.0.0-beta.11] — 2026-05-04
 
 ### Fixed

@@ -80,35 +80,31 @@
   }
 
   // ── Layout files ──────────────────────────────────────────────
-  const LAYOUT_FILES = ['header.html', 'footer.html', 'head.html'];
+  // Anything in partials/ is layout, plus header/footer/head at root.
+  const LAYOUT_ROOT_FILES = ['header.html', 'footer.html', 'head.html'];
 
   let layoutFiles = $derived.by(() => {
     if (!themeRoot?.children) return [];
     const files = [];
 
-    // Check root for layout files
+    // Header/footer/head at theme root
     for (const child of themeRoot.children) {
-      if (child.type === 'file' && LAYOUT_FILES.includes(child.name.toLowerCase())) {
+      if (child.type === 'file' && LAYOUT_ROOT_FILES.includes(child.name.toLowerCase())) {
         files.push(child);
       }
     }
 
-    // Check partials/ directory
+    // Everything inside partials/ (nav, mobile-menu, custom partials, etc.)
     const partials = findSubdir('partials');
     if (partials?.children) {
       for (const child of partials.children) {
-        if (child.type === 'file' && LAYOUT_FILES.includes(child.name.toLowerCase())) {
+        if (child.type === 'file' && /\.html?$/i.test(child.name)) {
           files.push(child);
         }
       }
     }
 
-    // Sort by LAYOUT_FILES order
-    return files.sort((a, b) => {
-      const ai = LAYOUT_FILES.indexOf(a.name.toLowerCase());
-      const bi = LAYOUT_FILES.indexOf(b.name.toLowerCase());
-      return ai - bi;
-    });
+    return files.sort((a, b) => a.name.localeCompare(b.name));
   });
 
   // ── Block folders ─────────────────────────────────────────────
@@ -121,27 +117,47 @@
   });
 
   // ── Style files ───────────────────────────────────────────────
+  // CSS anywhere in the theme — root, styles/, assets/, assets/css/, etc.
   let styleFiles = $derived.by(() => {
     if (!themeRoot?.children) return [];
     const files = [];
+    function collectCss(nodes) {
+      for (const n of nodes) {
+        if (n.type === 'file' && /\.css$/i.test(n.name)) {
+          files.push(n);
+        } else if (n.type === 'directory' && n.children) {
+          collectCss(n.children);
+        }
+      }
+    }
+    collectCss(themeRoot.children);
+    return files.sort((a, b) => a.path.localeCompare(b.path));
+  });
 
-    // CSS files in theme root
+  // ── Template files ────────────────────────────────────────────
+  // .html at theme root that isn't a partial, plus anything in templates/.
+  let templateFiles = $derived.by(() => {
+    if (!themeRoot?.children) return [];
+    const files = [];
+
     for (const child of themeRoot.children) {
-      if (child.type === 'file' && /\.css$/i.test(child.name)) {
+      if (child.type === 'file'
+          && /\.html?$/i.test(child.name)
+          && !LAYOUT_ROOT_FILES.includes(child.name.toLowerCase())) {
         files.push(child);
       }
     }
 
-    return files.sort((a, b) => a.name.localeCompare(b.name));
-  });
-
-  // ── Template files ────────────────────────────────────────────
-  let templateFiles = $derived.by(() => {
     const templatesDir = findSubdir('templates');
-    if (!templatesDir?.children) return [];
-    return templatesDir.children
-      .filter(n => n.type === 'file')
-      .sort((a, b) => a.name.localeCompare(b.name));
+    if (templatesDir?.children) {
+      for (const child of templatesDir.children) {
+        if (child.type === 'file' && /\.html?$/i.test(child.name)) {
+          files.push(child);
+        }
+      }
+    }
+
+    return files.sort((a, b) => a.name.localeCompare(b.name));
   });
 
   // ── Config files (root-level JSON, etc.) ─────────────────────

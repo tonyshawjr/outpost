@@ -1,13 +1,19 @@
 <script>
   import { onMount } from 'svelte';
   import { navigate, addToast } from '$lib/stores.js';
-  import { brandSettings } from '$lib/api.js';
+  import { brandSettings, collections as collectionsApi, items as itemsApi } from '$lib/api.js';
   import Checkbox from '$components/Checkbox.svelte';
   import ColorPicker from '$components/ColorPicker.svelte';
   import { Home, FileText as FileTextIcon, Save, X, Monitor, Smartphone } from 'lucide-svelte';
 
   // Top bar state
   let previewTab = $state('homepage'); // 'homepage' | 'post'
+  // v6: dynamically resolved URLs for the preview iframe.
+  // Homepage = "/", post = first published item in posts/blog/news collection.
+  let homepageUrl = $state('/');
+  let postUrl = $state('/');
+  let postUrlError = $state('');
+  let previewSrc = $derived(previewTab === 'post' ? postUrl : homepageUrl);
   let deviceMode = $state('desktop'); // 'desktop' | 'mobile'
   let deviceAnim = $state('');
   let previewFrame = $state(null);
@@ -127,6 +133,30 @@
     }
     // Wait a tick before enabling auto-save to avoid triggering on initial load
     setTimeout(() => { initialized = true; }, 500);
+
+    // Resolve a real URL for the post preview tab — first published item in
+    // a posts-like collection (posts, blog, news). Falls back to homepage if
+    // none exist, with a label so the user knows why.
+    try {
+      const collsResp = await collectionsApi.list();
+      const colls = collsResp.collections || [];
+      const blogColl = colls.find(c => ['posts','blog','news'].includes(c.slug));
+      if (!blogColl) {
+        postUrlError = 'No posts collection found — create one to preview a post.';
+      } else {
+        const itemsResp = await itemsApi.list(blogColl.slug);
+        const items = (itemsResp.items || []).filter(i => i.status === 'published');
+        if (items.length === 0) {
+          postUrlError = 'No published posts yet — create one to preview a post.';
+        } else {
+          const pattern = blogColl.url_pattern || `/${blogColl.slug}/{slug}`;
+          postUrl = pattern.replace('{slug}', items[0].slug);
+          postUrlError = '';
+        }
+      }
+    } catch (e) {
+      postUrlError = 'Could not load post preview: ' + (e?.message || 'unknown error');
+    }
   });
 
   let initialized = false;
@@ -247,7 +277,7 @@
       <div class="preview-wrapper" class:mobile={deviceMode === 'mobile'}>
         <iframe
           class="preview-iframe"
-          src={previewTab === 'post' ? '/preview/sample-post' : '/preview/'}
+          src={previewSrc}
           title="Site preview"
           bind:this={previewFrame}
           onload={() => setTimeout(updatePreviewLive, 500)}
