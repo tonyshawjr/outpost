@@ -199,7 +199,15 @@ function forge_analyze_load_html(string $html): DOMDocument {
  * }
  */
 function forge_analyze_discover(): array {
-    $siteRoot = defined('OUTPOST_SITE_ROOT') ? OUTPOST_SITE_ROOT : dirname(__DIR__) . '/';
+    // v6: scan the active theme dir; v5 fallback is the site root.
+    if (function_exists('outpost_active_theme_root')) {
+        $siteRoot = outpost_active_theme_root();
+    } else if (defined('OUTPOST_SITE_ROOT')) {
+        require_once __DIR__ . '/engine.php';
+        $siteRoot = function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT;
+    } else {
+        $siteRoot = dirname(__DIR__) . '/';
+    }
     $pattern = rtrim($siteRoot, '/') . '/*.html';
     $matches = glob($pattern);
 
@@ -2375,9 +2383,13 @@ function forge_analyze_site(string $siteRoot): array {
  * @return void  Outputs JSON response
  */
 function handle_forge_analyze(): void {
-    // Always use the configured site root — no user-supplied path override.
+    // Always use the resolved site/theme root — no user-supplied path override.
     // Allowing arbitrary paths would enable reading any directory on the server.
-    $siteRoot = OUTPOST_SITE_ROOT;
+    // v6: scans the active theme dir; falls back to site root for v5 themeless installs.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $siteRoot = outpost_active_theme_root();
 
     try {
         $result = forge_analyze_site($siteRoot);
@@ -2412,7 +2424,11 @@ function handle_forge_analyze_apply(): void {
     $body = get_json_body();
     $doBackup = $body['backup'] ?? true;
 
-    $siteRoot = rtrim(OUTPOST_SITE_ROOT, '/') . '/';
+    // v6: write to the active theme dir; v5 fallback is site root.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $siteRoot = rtrim(outpost_active_theme_root(), '/') . '/';
 
     $result = [
         'backup_path'      => null,

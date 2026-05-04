@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { collections as collectionsApi, settings as settingsApi } from '$lib/api.js';
+  import { collections as collectionsApi, settings as settingsApi, getApiBase, getCsrfToken } from '$lib/api.js';
   import { addToast, navigate } from '$lib/stores.js';
 
   let lodgeCollections = $state([]);
@@ -32,7 +32,7 @@
 
     // Load pending items
     try {
-      const res = await fetch('./api.php?action=lodge/pending', { credentials: 'same-origin' });
+      const res = await fetch(`${getApiBase()}?action=lodge/pending`, { credentials: 'include' });
       const data = await res.json();
       pendingItems = data.items || [];
     } catch (err) {
@@ -53,7 +53,7 @@
 
     // Load theme pages for auth page dropdowns
     try {
-      const res = await fetch('./api.php?action=lodge/theme-pages', { credentials: 'same-origin' });
+      const res = await fetch(`${getApiBase()}?action=lodge/theme-pages`, { credentials: 'include' });
       const data = await res.json();
       sitePages = data.pages || [];
     } catch (e) {}
@@ -82,11 +82,10 @@
   async function approveItem(id) {
     approvingId = id;
     try {
-      const csrf = document.cookie.match(/outpost_csrf=([^;]+)/)?.[1] || '';
-      const res = await fetch('./api.php?action=items/approve', {
+      const res = await fetch(`${getApiBase()}?action=items/approve`, {
         method: 'PUT',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
         body: JSON.stringify({ ids: [id] }),
       });
       const data = await res.json();
@@ -106,11 +105,10 @@
   async function rejectItem(id) {
     rejectingId = id;
     try {
-      const csrf = document.cookie.match(/outpost_csrf=([^;]+)/)?.[1] || '';
-      const res = await fetch('./api.php?action=items/reject', {
+      const res = await fetch(`${getApiBase()}?action=items/reject`, {
         method: 'PUT',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
         body: JSON.stringify({ ids: [id] }),
       });
       const data = await res.json();

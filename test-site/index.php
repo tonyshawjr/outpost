@@ -28,6 +28,61 @@ if (file_exists(OUTPOST_DB_PATH) && file_exists($outpostDir . '/redirects.php'))
     redirects_check($reqPath_);
 }
 
+// Theme asset fallback (v6) — themes that reference assets relatively
+// (e.g. assets/images/foo.svg) resolve against the page URL and miss.
+// Serve those from the active theme dir before delegating to the engine.
+//
+// Only relevant on Apache/Nginx setups that fall through to index.php for
+// missing files. If the asset already exists at the webroot, the webserver
+// serves it directly and this fallback is skipped.
+if ($reqPath_ !== '/' && !str_starts_with($reqPath_, '/outpost/')
+    && defined('OUTPOST_THEMES_DIR')
+    && pathinfo($reqPath_, PATHINFO_EXTENSION) !== ''
+    && pathinfo($reqPath_, PATHINFO_EXTENSION) !== 'php'
+    && !file_exists($_SERVER['DOCUMENT_ROOT'] . $reqPath_)) {
+    require_once $outpostDir . '/blocks.php';
+    $_themeRoot = rtrim(OUTPOST_THEMES_DIR . outpost_get_active_theme(), '/');
+    $tryPaths = [$_themeRoot . $reqPath_];
+    $segments = array_values(array_filter(explode('/', $reqPath_)));
+    for ($i = 1; $i < count($segments); $i++) {
+        $tryPaths[] = $_themeRoot . '/' . implode('/', array_slice($segments, $i));
+    }
+    foreach ($tryPaths as $_assetPath) {
+        if (is_file($_assetPath)) {
+            $ext = strtolower(pathinfo($_assetPath, PATHINFO_EXTENSION));
+            if ($ext === 'php') break;
+            $mime = match ($ext) {
+                'css'  => 'text/css',
+                'js'   => 'application/javascript',
+                'svg'  => 'image/svg+xml',
+                'png'  => 'image/png',
+                'jpg', 'jpeg' => 'image/jpeg',
+                'gif'  => 'image/gif',
+                'webp' => 'image/webp',
+                'avif' => 'image/avif',
+                'woff' => 'font/woff',
+                'woff2' => 'font/woff2',
+                'ttf'  => 'font/ttf',
+                'otf'  => 'font/otf',
+                'eot'  => 'application/vnd.ms-fontobject',
+                'json' => 'application/json',
+                'txt'  => 'text/plain',
+                'html', 'htm' => 'text/html',
+                default => 'application/octet-stream',
+            };
+            header('Content-Type: ' . $mime);
+            if (file_exists($outpostDir . '/boost.php')) {
+                require_once $outpostDir . '/boost.php';
+                if (function_exists('boost_set_static_headers')) {
+                    boost_set_static_headers($_assetPath);
+                }
+            }
+            readfile($_assetPath);
+            exit;
+        }
+    }
+}
+
 // Boost Performance Suite
 if (file_exists($outpostDir . '/boost.php')) {
     require_once $outpostDir . '/boost.php';

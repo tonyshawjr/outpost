@@ -109,6 +109,20 @@ function brand_compute_type_scale(float $ratio): array {
 
 /**
  * GET brand — Returns brand settings + type scale options.
+ *
+ * Response shape (additive — old + new consumers both work):
+ *   {
+ *     // Legacy structured shape (used by Brand.svelte)
+ *     brand:          { colors: {...}, typography: {...}, identity: {...} },
+ *     defaults:       same shape as brand,
+ *     scale_options:  [...],
+ *     computed_scale: { text-xs: ..., text-sm: ..., ... },
+ *
+ *     // v6 blueprint shape (used by Design.svelte + PageBuilder live preview)
+ *     blueprint: <active theme's blueprint.json contents, or {}>,
+ *     saved:     <flat key/value of the saved Design overrides — accent_color,
+ *                 heading_font, nav_layout, header_style, etc.>
+ *   }
  */
 function handle_brand_get(): void {
     outpost_require_cap('settings.*');
@@ -117,12 +131,74 @@ function handle_brand_get(): void {
     $ratio = (float) ($brand['typography']['type_scale'] ?? 1.25);
     $scale = brand_compute_type_scale($ratio);
 
+    // v6 blueprint shape — Design.svelte expects blueprint.brand.*, blueprint.settings.*.
+    // Read from the active theme's blueprint.json if present.
+    $blueprint = [];
+    if (function_exists('outpost_active_theme_root')) {
+        $bpPath = outpost_active_theme_root() . 'blueprint.json';
+    } else {
+        // Fallback (engine.php not loaded yet)
+        $bpPath = OUTPOST_SITE_ROOT . 'blueprint.json';
+        if (defined('OUTPOST_THEMES_DIR') && function_exists('outpost_get_active_theme')) {
+            $themeDir = OUTPOST_THEMES_DIR . outpost_get_active_theme() . '/';
+            if (is_dir($themeDir) && file_exists($themeDir . 'blueprint.json')) {
+                $bpPath = $themeDir . 'blueprint.json';
+            }
+        }
+    }
+    if (file_exists($bpPath)) {
+        $decoded = json_decode(file_get_contents($bpPath), true);
+        if (is_array($decoded)) $blueprint = $decoded;
+    }
+
+    // Saved Design overrides — flat key/value map. Stored alongside brand.json
+    // as content/data/design.json. Falls back to mapping legacy structured
+    // brand fields onto the flat shape so existing installs see their colors.
+    $saved = brand_read_design();
+    if (empty($saved)) {
+        $saved = [
+            'accent_color'  => $brand['colors']['accent']  ?? null,
+            'heading_font'  => $brand['typography']['heading_font'] ?? null,
+            'body_font'     => $brand['typography']['body_font']    ?? null,
+        ];
+        // Strip nulls so consumers can use blueprint defaults
+        $saved = array_filter($saved, fn($v) => $v !== null && $v !== '');
+    }
+
     json_response([
-        'brand'       => $brand,
-        'defaults'    => brand_defaults(),
-        'scale_options' => brand_type_scale_options(),
+        // Legacy keys (do not remove — Brand.svelte depends on them)
+        'brand'          => $brand,
+        'defaults'       => brand_defaults(),
+        'scale_options'  => brand_type_scale_options(),
         'computed_scale' => $scale,
+        // v6 keys
+        'blueprint'      => $blueprint,
+        'saved'          => $saved,
     ]);
+}
+
+/**
+ * Read flat Design overrides (saved by Design.svelte / PageBuilder live preview).
+ */
+function brand_read_design(): array {
+    $path = OUTPOST_DATA_DIR . 'design.json';
+    if (!file_exists($path)) return [];
+    $data = json_decode(file_get_contents($path), true);
+    return is_array($data) ? $data : [];
+}
+
+/**
+ * Save flat Design overrides.
+ */
+function brand_save_design(array $data): void {
+    $path = OUTPOST_DATA_DIR . 'design.json';
+    $dir  = dirname($path);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    @file_put_contents(
+        $path,
+        json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        LOCK_EX
+    );
 }
 
 /**
@@ -135,6 +211,80 @@ function handle_brand_save(): void {
     $input = json_decode(file_get_contents('php://input'), true);
     if (!is_array($input)) {
         json_error('Invalid request body', 400);
+    }
+
+    // v6: detect flat Design payload (accent_color, heading_font, nav_layout, etc.)
+    // vs legacy structured payload ({ colors: {...}, typography: {...}, identity: {...} }).
+    // Flat payloads come from Design.svelte; structured payloads from Brand.svelte.
+    $isFlat = !isset($input['colors']) && !isset($input['typography']) && !isset($input['identity'])
+        && (isset($input['accent_color']) || isset($input['heading_font']) || isset($input['body_font'])
+            || isset($input['nav_layout']) || isset($input['header_style']) || isset($input['site_bg_color']));
+
+    if ($isFlat) {
+        // Sanitize + persist flat Design overrides to design.json.
+        // Allow simple scalar values (string/bool/number) for keys we recognize.
+        $allowedKeys = [
+            'accent_color', 'heading_font', 'body_font',
+            'nav_layout', 'header_style', 'header_text',
+            'site_bg_color', 'header_footer_color',
+            'bg_image', 'post_feed_style', 'show_feed_images',
+            'show_author', 'show_publish_date', 'show_post_meta',
+            'enable_drop_caps', 'show_related',
+        ];
+        $clean = [];
+        foreach ($allowedKeys as $key) {
+            if (!array_key_exists($key, $input)) continue;
+            $val = $input[$key];
+            // Hex colors
+            if (in_array($key, ['accent_color', 'site_bg_color', 'header_footer_color'], true)) {
+                if (is_string($val) && preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/', $val)) {
+                    $clean[$key] = $val;
+                }
+                continue;
+            }
+            // Font names
+            if (in_array($key, ['heading_font', 'body_font'], true)) {
+                if (is_string($val) && preg_match('/^[a-zA-Z0-9 \'\-]+$/', $val)) {
+                    $clean[$key] = $val;
+                }
+                continue;
+            }
+            // Selects (limited charset)
+            if (in_array($key, ['nav_layout', 'header_style', 'post_feed_style'], true)) {
+                if (is_string($val) && preg_match('/^[a-z0-9_-]+$/', $val)) {
+                    $clean[$key] = $val;
+                }
+                continue;
+            }
+            // Booleans
+            if (in_array($key, ['bg_image', 'show_feed_images', 'show_author', 'show_publish_date', 'show_post_meta', 'enable_drop_caps', 'show_related'], true)) {
+                $clean[$key] = (bool) $val;
+                continue;
+            }
+            // Free text (header_text)
+            if ($key === 'header_text') {
+                if (is_string($val)) $clean[$key] = mb_substr($val, 0, 200);
+                continue;
+            }
+        }
+
+        $existing = brand_read_design();
+        $merged = array_replace($existing, $clean);
+        brand_save_design($merged);
+
+        // Clear template cache so new tokens take effect on next render
+        outpost_clear_cache();
+
+        json_response([
+            'saved'     => $merged,
+            'blueprint' => (function() {
+                $bpPath = (function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT) . 'blueprint.json';
+                if (!file_exists($bpPath)) return new \stdClass();
+                $d = json_decode(file_get_contents($bpPath), true);
+                return is_array($d) ? $d : new \stdClass();
+            })(),
+        ]);
+        return;
     }
 
     $defaults = brand_defaults();

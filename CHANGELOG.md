@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.13] — 2026-05-04
+
+Full v6 audit + fix pass after the cascade of "wrong file" bugs in beta.5 → beta.11. Every place v5 themeless assumptions still leaked into production, every API endpoint mismatch the admin Svelte calls, every parallel routing path that drifted — swept and fixed.
+
+### Fixed (HIGH severity — broke real installs)
+- **Theme assets resolved as relative paths now work.** Themes that reference `assets/images/foo.svg` (relative) had broken images on routes like `/blog/test` because the browser resolves relative URLs against the page URL. Both routers (`front-router.php` dev, `test-site/index.php` prod) now serve missing webroot files from the active theme dir, with intelligent fallback that strips leading path segments (`/blog/assets/foo.svg` → `theme/assets/foo.svg`). Correct MIME types per extension. Boost cache headers applied.
+- **Brand endpoint shape mismatch.** `Design.svelte` consumed `{ blueprint, saved }` but the existing `brand` endpoint returned only `{ brand, defaults, scale_options, computed_scale }`. Design panel was effectively read-only. `handle_brand_get()` now returns BOTH shapes (additive — Brand.svelte unchanged). `handle_brand_save()` detects payload shape and routes flat Design payloads to a new `content/data/design.json` store while keeping the structured Brand payload going to `content/data/brand.json`. Saves now invalidate the page cache.
+- **`outpost_scan_site_templates()` only scanned `OUTPOST_SITE_ROOT`.** This was the silent reason fields auto-registered against the wrong directory on v6 sites. Now uses `outpost_active_theme_root()`. Same fix for `outpost_framework_css()`, `outpost_detect_engine_version()`, `theme-manifest` builder.
+- **Forge tooling targeted only the site root.** `forge-analyze.php` discover/analyze/apply, `smart-forge.php` scan/apply/block-settings, and Ranger's forge tool now resolve against the active theme dir first, fall back to site root. Path-traversal validation tightened to allow either root.
+- **`/api.php?action=stats`** — `Sidebar.svelte` and `Dashboard.svelte` called `statsApi.get()` with no matching server route; silent 404 noise on every dashboard load. Added a `'stats'` action alias to the existing `dashboard/stats` handler.
+
+### Fixed (MEDIUM)
+- **Boost page cache wasn't invalidated by `outpost_clear_cache()`.** Content updates and code-editor saves left stale HTML for visitors. `outpost_clear_cache()` now also calls `boost_clear_page_cache()`. All ~15 mutation paths in `api.php` benefit without further changes.
+- **API `lodge/theme-pages`, page-deletion, site-detect, backup zip** all used `OUTPOST_SITE_ROOT` exclusively. Now operate on (or also include) the active theme dir.
+- **`Lodge.svelte`** used relative `./api.php` URLs that were fragile in dev. Switched to `getApiBase()` / `getCsrfToken()` helpers that match the rest of the admin.
+
+### Fixed (LOW)
+- New `outpost_active_theme_root()` helper in `engine.php` — single source of truth for "where do theme files live now"; cached statically; falls back to `OUTPOST_SITE_ROOT` if the active theme dir doesn't have an `index.html` (v5 themeless installs).
+
+### Decisions deferred (not fixed in this beta)
+1. **Dead `blocks.create` endpoint** — admin client method exists, no server handler, "+ New Block" button in FileTree is a silent no-op. Need to either wire it up or remove. Currently ignored.
+2. **Ranger `pcp_validate_path()`** — locked to site root only. Out of scope for the audit pass; needs a security-reviewed v6 update before AI tools can read theme files.
+3. **`content/data/design.json` rendering** — Design saves now persist correctly, but the saved values aren't yet auto-injected into rendered pages as CSS variables. Needs a small `cms_design_vars()` tag function or auto-injection in `outpost_render_template()`.
+4. **Targeted Boost invalidation** — currently any clear wipes the entire page cache. Future work: per-page invalidation.
+
+### Verified clean
+- No `kenii`/`Kenii` references in `cms/src/` or `cms/php/` (excluding build artifacts).
+- `front-router.php` and `test-site/index.php` confirmed in sync on theme dir resolution + template hierarchy + Lodge routing.
+- PageBuilder iframe uses `srcdoc` (inline HTML), not external URLs — works on any theme structure.
+- FileTree filter (beta.12) handles cape-fear's structure correctly (assets/css/, no blocks/, no templates/).
+
+---
+
 ## [6.0.0-beta.12] — 2026-05-04
 
 ### Fixed

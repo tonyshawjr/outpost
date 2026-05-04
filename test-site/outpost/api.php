@@ -378,6 +378,8 @@ match (true) {
 
     // Dashboard
     $action === 'dashboard/stats'    && $method === 'GET' => handle_dashboard_stats(),
+    // Alias — Sidebar.svelte + Dashboard.svelte call stats.get(); same payload.
+    $action === 'stats'              && $method === 'GET' => handle_dashboard_stats(),
     $action === 'dashboard/activity' && $method === 'GET' => handle_dashboard_activity(),
     $action === 'calendar' && $method === 'GET' => handle_calendar(),
 
@@ -1792,13 +1794,18 @@ function handle_page_delete(): void {
 
     $label = $page['title'] ?: $page['path'];
 
-    // Delete template file from site root (with path containment check)
+    // Delete template file (v6 active theme dir, fall back to site root for v5)
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
     $filename = ($page['path'] === '/') ? 'index.html' : ltrim($page['path'], '/') . '.html';
-    $templatePath = OUTPOST_SITE_ROOT . $filename;
-    $siteBase = realpath(OUTPOST_SITE_ROOT);
-    $resolved = realpath($templatePath);
-    if ($siteBase && $resolved && str_starts_with($resolved, $siteBase . '/') && file_exists($resolved)) {
-        unlink($resolved);
+    foreach ([outpost_active_theme_root(), OUTPOST_SITE_ROOT] as $_root) {
+        $templatePath = $_root . $filename;
+        $siteBase = realpath($_root);
+        $resolved = realpath($templatePath);
+        if ($siteBase && $resolved && str_starts_with($resolved, rtrim($siteBase, '/') . '/') && file_exists($resolved)) {
+            unlink($resolved);
+        }
     }
 
     // Delete DB row (fields cascade via FK)
@@ -2894,7 +2901,11 @@ function handle_items_bulk_schedule(): void {
  * Excludes collection templates, partials, and system files.
  */
 function handle_lodge_theme_pages(): void {
-    $siteDir = OUTPOST_SITE_ROOT;
+    // v6: scan the active theme dir; v5 fallback is site root.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $siteDir = outpost_active_theme_root();
 
     if (!is_dir($siteDir)) {
         json_response(['pages' => []]);
@@ -7483,6 +7494,18 @@ function create_backup_zip(string $path): bool {
         }
     }
 
+    // v6: also back up the active theme dir (themes live inside outpost/content/themes/{active}/).
+    // Skipped if the active theme dir doesn't exist (v5 themeless installs).
+    if (defined('OUTPOST_THEMES_DIR')) {
+        if (!function_exists('outpost_get_active_theme')) {
+            require_once __DIR__ . '/blocks.php';
+        }
+        $_themeRoot = rtrim(OUTPOST_THEMES_DIR . outpost_get_active_theme(), '/') . '/';
+        if (is_dir($_themeRoot)) {
+            $addDir($_themeRoot, 'theme/');
+        }
+    }
+
     return $zip->close();
 }
 
@@ -8229,7 +8252,11 @@ function ensure_setup_completed_setting(): void {
 }
 
 function handle_site_detect(): void {
-    $indexPath = OUTPOST_SITE_ROOT . 'index.html';
+    // v6: prefer active theme dir; v5 fallback is site root.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $indexPath = outpost_active_theme_root() . 'index.html';
     $siteName = '';
 
     if (file_exists($indexPath)) {

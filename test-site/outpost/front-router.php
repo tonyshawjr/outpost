@@ -42,6 +42,71 @@ if ($path !== '/' && !$_isSensitiveOutpost && file_exists($docRoot . $path) && i
     }
 }
 
+// ── 1b. Theme asset fallback (v6) ─────────────────────────
+// Themes that ship assets inside the theme dir (e.g. cape-fear) reference
+// them as relative paths in HTML — `assets/images/foo.svg`. The browser
+// resolves this against the page URL, producing requests like
+// /assets/images/foo.svg or /blog/assets/images/foo.svg that don't exist
+// at the webroot. Serve those from the active theme dir if present, then
+// fall back to /outpost/content/themes/{active}/<path> on directory misses.
+if ($path !== '/' && !$_isSensitiveOutpost
+    && !str_starts_with($_pathLower, '/outpost')
+    && !file_exists($docRoot . $path)) {
+    $configFile = $docRoot . '/outpost/config.php';
+    if (file_exists($configFile)) {
+        require_once $configFile;
+        require_once $docRoot . '/outpost/db.php';
+        if (file_exists(OUTPOST_DB_PATH) && defined('OUTPOST_THEMES_DIR')) {
+            require_once $docRoot . '/outpost/blocks.php';
+            $_themeRoot = rtrim(OUTPOST_THEMES_DIR . outpost_get_active_theme(), '/');
+            // Try the literal path first (e.g. /assets/images/foo.svg → theme/assets/images/foo.svg)
+            $tryPaths = [$_themeRoot . $path];
+            // Then try stripping the first path segment (e.g. /blog/assets/foo.svg → /assets/foo.svg)
+            // This catches relative-resolution cases where the page URL is a sub-route.
+            $segments = array_values(array_filter(explode('/', $path)));
+            for ($i = 1; $i < count($segments); $i++) {
+                $tryPaths[] = $_themeRoot . '/' . implode('/', array_slice($segments, $i));
+            }
+            foreach ($tryPaths as $_assetPath) {
+                if (is_file($_assetPath)) {
+                    $ext = strtolower(pathinfo($_assetPath, PATHINFO_EXTENSION));
+                    if ($ext === 'php') break; // never serve PHP from theme as static
+                    // Map extension to content type (best effort)
+                    $mime = match ($ext) {
+                        'css'  => 'text/css',
+                        'js'   => 'application/javascript',
+                        'svg'  => 'image/svg+xml',
+                        'png'  => 'image/png',
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        'gif'  => 'image/gif',
+                        'webp' => 'image/webp',
+                        'avif' => 'image/avif',
+                        'woff' => 'font/woff',
+                        'woff2' => 'font/woff2',
+                        'ttf'  => 'font/ttf',
+                        'otf'  => 'font/otf',
+                        'eot'  => 'application/vnd.ms-fontobject',
+                        'json' => 'application/json',
+                        'txt'  => 'text/plain',
+                        'html', 'htm' => 'text/html',
+                        default => 'application/octet-stream',
+                    };
+                    header('Content-Type: ' . $mime);
+                    $boostFile = $docRoot . '/outpost/boost.php';
+                    if (file_exists($boostFile)) {
+                        require_once $boostFile;
+                        if (function_exists('boost_set_static_headers')) {
+                            boost_set_static_headers($_assetPath);
+                        }
+                    }
+                    readfile($_assetPath);
+                    return true;
+                }
+            }
+        }
+    }
+}
+
 // ── 2. /outpost/ admin paths ──────────────────────────────
 if (str_starts_with($_pathLower, '/outpost') || $_pathLower === '/outpost') {
     // Redirect bare /outpost → /outpost/ so relative asset paths resolve correctly

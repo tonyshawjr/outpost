@@ -23,6 +23,43 @@ $_outpost_edit_mode = false;         // true when admin is viewing frontend (on-
 $_outpost_in_single = false;         // true when inside a {% single %} block (for OPE wrapping)
 $_outpost_image_fields = [];         // collected image fields for JS matching
 
+// ── v6 helper: resolve the active theme directory ──────
+//
+// v5 had no theme layer — templates lived at OUTPOST_SITE_ROOT.
+// v6 ships templates inside outpost/content/themes/{active}/.
+// Code that scans for templates / partials / theme.json should call this
+// helper instead of hardcoding OUTPOST_SITE_ROOT so it Just Works on both.
+//
+// Resolution order:
+//   1. If OUTPOST_THEMES_DIR/{active}/index.html exists → use the theme dir
+//   2. Otherwise fall back to OUTPOST_SITE_ROOT (v5 themeless installs)
+//
+// Returns an absolute path with a trailing slash.
+function outpost_active_theme_root(): string {
+    static $cached = null;
+    if ($cached !== null) return $cached;
+
+    $fallback = rtrim(OUTPOST_SITE_ROOT, '/') . '/';
+
+    if (!defined('OUTPOST_THEMES_DIR')) {
+        return $cached = $fallback;
+    }
+
+    if (!function_exists('outpost_get_active_theme')) {
+        @require_once __DIR__ . '/blocks.php';
+    }
+    if (!function_exists('outpost_get_active_theme')) {
+        return $cached = $fallback;
+    }
+
+    $themeDir = rtrim(OUTPOST_THEMES_DIR . outpost_get_active_theme(), '/') . '/';
+    if (is_dir($themeDir) && file_exists($themeDir . 'index.html')) {
+        return $cached = $themeDir;
+    }
+
+    return $cached = $fallback;
+}
+
 // ── Bootstrap ────────────────────────────────────────────
 function outpost_init(): void {
     global $_outpost_page_id, $_outpost_page_path, $_outpost_cache_active, $_outpost_active_theme;
@@ -60,8 +97,9 @@ function outpost_init(): void {
     if (($fieldCount['c'] ?? 0) == 0) {
         $needsScan = true;
     } else {
-        // Check if any site root template files are newer than the last scan
-        $siteRoot = OUTPOST_SITE_ROOT;
+        // Check if any active-theme template files are newer than the last scan.
+        // v6: prefers the active theme dir; falls back to site root for v5 themeless installs.
+        $siteRoot = outpost_active_theme_root();
         if (is_dir($siteRoot)) {
             $maxMtime = 0;
             $htmlFiles = glob($siteRoot . '*.html') ?: [];
@@ -1263,8 +1301,9 @@ function outpost_cache_output(string $buffer): string {
  * Only returns content if the active theme has "framework": true in theme.json.
  */
 function outpost_framework_css(string $themeSlug): string {
-    // v5: check theme.json at site root for framework opt-in
-    $themeJsonPath = OUTPOST_SITE_ROOT . 'theme.json';
+    // v6: prefer theme.json inside the active theme dir; fall back to site root
+    // for v5 themeless installs.
+    $themeJsonPath = outpost_active_theme_root() . 'theme.json';
     if (!file_exists($themeJsonPath)) return '';
 
     $themeConfig = json_decode(file_get_contents($themeJsonPath), true);
@@ -1713,6 +1752,18 @@ function outpost_clear_cache(?string $page_path = null): void {
                 unlink($file);
             }
         }
+    }
+
+    // Also invalidate the Boost page cache so visitors don't see stale HTML
+    // after content / theme-file edits. Targeted invalidation (single page) is
+    // future work — for now we clear the whole page cache, matching the
+    // behavior of the legacy template cache above.
+    if (!function_exists('boost_clear_page_cache')) {
+        $boostFile = __DIR__ . '/boost.php';
+        if (file_exists($boostFile)) @require_once $boostFile;
+    }
+    if (function_exists('boost_clear_page_cache')) {
+        boost_clear_page_cache();
     }
 }
 
@@ -2530,7 +2581,8 @@ function outpost_scan_site_templates(): void {
     if (!file_exists(OUTPOST_DB_PATH)) return;
     ensure_fields_theme_column();
 
-    $themeDir = OUTPOST_SITE_ROOT;
+    // v6: prefer the active theme dir; fall back to site root for v5 themeless installs.
+    $themeDir = outpost_active_theme_root();
     if (!is_dir($themeDir)) return;
 
     // Gather .html files at site root, skipping the outpost directory
@@ -2980,7 +3032,8 @@ function outpost_is_admin(): bool {
  * Result is cached per theme directory in a static variable.
  */
 function outpost_detect_engine_version(string $themeDir = ''): bool {
-    if ($themeDir === '' && defined('OUTPOST_SITE_ROOT')) $themeDir = OUTPOST_SITE_ROOT;
+    // v6: default to the active theme dir; v5 fallback is site root.
+    if ($themeDir === '') $themeDir = outpost_active_theme_root();
     static $cache = [];
     if (isset($cache[$themeDir])) return $cache[$themeDir];
 

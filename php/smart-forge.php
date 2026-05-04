@@ -2555,14 +2555,37 @@ function handle_forge_scan(): void {
         // Direct HTML input
         $html = $body['html'];
     } elseif (!empty($body['path'])) {
-        // Read from site root file
+        // Read from site root or active theme dir.
+        // v6: paths come from the Code Editor and are relative to the active
+        // theme dir; v5 paths are relative to OUTPOST_SITE_ROOT. Try both
+        // resolutions and accept the one that lands inside an allowed root.
         $path = $body['path'];
-        // Validate path — must be within site root, not inside outpost/
-        $fullPath = OUTPOST_SITE_ROOT . ltrim($path, '/');
-        $realPath = realpath($fullPath);
-        $realSiteRoot = realpath(OUTPOST_SITE_ROOT);
+        if (!function_exists('outpost_active_theme_root')) {
+            require_once __DIR__ . '/engine.php';
+        }
+        $themeRoot = function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT;
 
-        if (!$realPath || !$realSiteRoot || !str_starts_with($realPath, rtrim($realSiteRoot, '/'))) {
+        $candidates = [
+            rtrim($themeRoot, '/') . '/' . ltrim($path, '/'),       // v6 active theme
+            OUTPOST_SITE_ROOT . ltrim($path, '/'),                  // v5 site root
+        ];
+        $realPath = false;
+        $realRoot = false;
+        foreach ($candidates as $cand) {
+            $rp = realpath($cand);
+            if (!$rp) continue;
+            // Must land inside either the theme root or the site root
+            foreach ([$themeRoot, OUTPOST_SITE_ROOT] as $root) {
+                $rr = realpath($root);
+                if ($rr && str_starts_with($rp, rtrim($rr, '/'))) {
+                    $realPath = $rp;
+                    $realRoot = rtrim($rr, '/');
+                    break 2;
+                }
+            }
+        }
+
+        if (!$realPath) {
             json_error('Invalid file path');
         }
         // Block access to outpost engine files
@@ -2602,21 +2625,37 @@ function handle_forge_apply(): void {
     if (!$template) json_error('Template content is required');
     if (!$themePath) json_error('File path is required');
 
-    // Validate path — must be within site root, not inside outpost/
-    $fullPath = OUTPOST_SITE_ROOT . ltrim($themePath, '/');
-    $realSiteRoot = realpath(OUTPOST_SITE_ROOT);
-    // Allow new files — use dirname for validation
-    $dir = dirname($fullPath);
-    if (!is_dir($dir)) {
-        json_error('Directory not found');
+    // v6: paths come from the Code Editor relative to the active theme dir.
+    // v5 paths are relative to OUTPOST_SITE_ROOT. Try the active theme dir
+    // first, then fall back to site root.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
     }
-    $realDir = realpath($dir);
-    if (!$realDir || !str_starts_with($realDir, rtrim($realSiteRoot, '/'))) {
-        json_error('Invalid file path');
+    $themeRoot = function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT;
+    $candidates = [
+        rtrim($themeRoot, '/') . '/' . ltrim($themePath, '/'),
+        OUTPOST_SITE_ROOT . ltrim($themePath, '/'),
+    ];
+    $fullPath = null;
+    foreach ($candidates as $cand) {
+        $dir = dirname($cand);
+        if (!is_dir($dir)) continue;
+        $realDir = realpath($dir);
+        foreach ([$themeRoot, OUTPOST_SITE_ROOT] as $root) {
+            $rr = realpath($root);
+            if ($rr && $realDir && str_starts_with($realDir, rtrim($rr, '/'))) {
+                $fullPath = $cand;
+                break 2;
+            }
+        }
+    }
+    if (!$fullPath) {
+        json_error('Invalid file path or directory not found');
     }
     // Block access to outpost engine files
     $realOutpost = realpath(OUTPOST_DIR);
-    if ($realOutpost && (str_starts_with($realDir, rtrim($realOutpost, '/') . '/') || $realDir === rtrim($realOutpost, '/'))) {
+    $realDir = realpath(dirname($fullPath));
+    if ($realOutpost && $realDir && (str_starts_with($realDir, rtrim($realOutpost, '/') . '/') || $realDir === rtrim($realOutpost, '/'))) {
         json_error('Cannot access outpost engine files');
     }
 
@@ -2799,7 +2838,11 @@ function handle_editor_field_map(): void {
     // Extract data-label attributes from the template HTML for human-readable labels
     $templateLabels = [];
     if ($pagePath) {
-        $siteRoot = OUTPOST_SITE_ROOT;
+        // v6: prefer the active theme dir; v5 fallback is site root.
+        if (!function_exists('outpost_active_theme_root')) {
+            require_once __DIR__ . '/engine.php';
+        }
+        $siteRoot = function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT;
         $templateFile = '';
         if ($pagePath === '/') {
             $templateFile = $siteRoot . 'index.html';
@@ -3025,9 +3068,13 @@ function handle_editor_block_settings_get(): void {
     if (!$page) json_error('Page not found');
     $pagePath = $page['path'];
 
-    // Map page path to template file (site root)
+    // Map page path to template file (v6 active theme; v5 falls back to site root)
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $tmplRoot = function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT;
     $templateFile = ($pagePath === '/') ? 'index.html' : ltrim($pagePath, '/') . '.html';
-    $templateFullPath = OUTPOST_SITE_ROOT . $templateFile;
+    $templateFullPath = $tmplRoot . $templateFile;
 
     $allSettings = [];
     $loopSettings = [];
@@ -3044,7 +3091,7 @@ function handle_editor_block_settings_get(): void {
         // Also parse included partials for settings
         if (preg_match_all('/\{%\s*include\s+[\'"]([^"\']+)[\'"]\s*%\}/', $html, $includes)) {
             foreach ($includes[1] as $partial) {
-                $partialPath = OUTPOST_SITE_ROOT . 'partials/' . $partial . '.html';
+                $partialPath = $tmplRoot . 'partials/' . $partial . '.html';
                 if (file_exists($partialPath)) {
                     $partialHtml = file_get_contents($partialPath);
                     $partialSettings = _parse_template_block_settings($partialHtml);
@@ -3058,7 +3105,7 @@ function handle_editor_block_settings_get(): void {
         // Also check for v2 template includes: <outpost-include partial="...">
         if (preg_match_all('/<\s*include\s+src=[\'"]([^"\']+)[\'"]\s*\/?>/i', $html, $v2includes)) {
             foreach ($v2includes[1] as $partial) {
-                $partialPath = OUTPOST_SITE_ROOT . 'partials/' . $partial;
+                $partialPath = $tmplRoot . 'partials/' . $partial;
                 if (!str_ends_with($partialPath, '.html')) $partialPath .= '.html';
                 if (file_exists($partialPath)) {
                     $partialHtml = file_get_contents($partialPath);
@@ -3359,12 +3406,28 @@ function ranger_tool_forge_scan(array $input): array {
     $path = $input['path'] ?? '';
     if (!$path) return ['error' => 'path is required'];
 
-    // Validate path — must be within site root, not inside outpost/
-    $fullPath = OUTPOST_SITE_ROOT . ltrim($path, '/');
-    $realPath = realpath($fullPath);
-    $realSiteRoot = realpath(OUTPOST_SITE_ROOT);
-
-    if (!$realPath || !$realSiteRoot || !str_starts_with($realPath, rtrim($realSiteRoot, '/'))) {
+    // v6: try the active theme dir first; fall back to site root.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $themeRoot = function_exists('outpost_active_theme_root') ? outpost_active_theme_root() : OUTPOST_SITE_ROOT;
+    $candidates = [
+        rtrim($themeRoot, '/') . '/' . ltrim($path, '/'),
+        OUTPOST_SITE_ROOT . ltrim($path, '/'),
+    ];
+    $realPath = false;
+    foreach ($candidates as $cand) {
+        $rp = realpath($cand);
+        if (!$rp) continue;
+        foreach ([$themeRoot, OUTPOST_SITE_ROOT] as $root) {
+            $rr = realpath($root);
+            if ($rr && str_starts_with($rp, rtrim($rr, '/'))) {
+                $realPath = $rp;
+                break 2;
+            }
+        }
+    }
+    if (!$realPath) {
         return ['error' => 'Invalid file path'];
     }
     $realOutpost = realpath(OUTPOST_DIR);

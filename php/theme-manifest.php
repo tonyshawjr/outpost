@@ -19,7 +19,11 @@ require_once __DIR__ . '/config.php';
  * @return array  The manifest structure
  */
 function outpost_build_site_manifest(): array {
-    $siteRoot = OUTPOST_SITE_ROOT;
+    // v6: prefer the active theme dir; fall back to site root for v5 themeless installs.
+    if (!function_exists('outpost_active_theme_root')) {
+        require_once __DIR__ . '/engine.php';
+    }
+    $siteRoot = outpost_active_theme_root();
     if (!is_dir($siteRoot)) return [];
 
     $manifest = [
