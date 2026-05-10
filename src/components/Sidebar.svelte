@@ -256,6 +256,16 @@
             <FolderOpen size={19} />
             <span>Folders</span>
           </a>
+          <a class="sb-item" class:active={route === 'field-presets'} onclick={() => nav('field-presets')}>
+            <Database size={19} />
+            <span>Field Presets</span>
+          </a>
+        {/if}
+        {#if showAdmin}
+          <a class="sb-item" class:active={route === 'editorial-ai'} onclick={() => nav('editorial-ai')}>
+            <Sparkles size={19} />
+            <span>Editorial AI</span>
+          </a>
         {/if}
         {#if showChannels}
           <a class="sb-item" class:active={route === 'channels' || route === 'channel-builder'} onclick={() => nav('channels')}>

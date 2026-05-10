@@ -42,6 +42,8 @@
   import Brand from '$pages/Brand.svelte';
   import Design from '$pages/Design.svelte';
   import PageBuilder from '$pages/PageBuilder.svelte';
+import FieldPresets from '$pages/FieldPresets.svelte';
+import EditorialAI from '$pages/EditorialAI.svelte';
 
   import Globals from '$pages/Globals.svelte';
   import Navigation from '$pages/Navigation.svelte';
@@ -285,6 +287,14 @@
         {:else if route === 'redirects'}
           {#if hasSettingsAccess}
             <Redirects />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'field-presets'}
+          <FieldPresets />
+        {:else if route === 'editorial-ai'}
+          {#if hasSettingsAccess}
+            <EditorialAI />
           {:else}
             <AccessDenied />
           {/if}

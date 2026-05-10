@@ -1,9 +1,40 @@
 # Outpost v6 — Build Plan
 
 **Status:** Active build
-**Source of vision:** "Outpost v3 Vision" room, The Table, 2026-05-01 (Sites + Claude with Tony directing)
+**Source of vision:** "Outpost v3 Vision" room, The Table, 2026-05-01 → Sanity/Ghost/Webflow research, 2026-05-09
 **Where work lands:** This repo (`tonyshawjr/outpost`). Sites is design source-of-truth; Outpost is the working repo.
-**Authorization:** Tony explicitly authorized "go build" 2026-05-01.
+**Authorization:** Tony explicitly authorized "go build" 2026-05-01. Locked architectural principles 2026-05-09.
+
+---
+
+## The three locked principles (2026-05-09)
+
+These supersede earlier framing where they conflict. Everything else in this doc serves these three.
+
+### 1. End-user first
+Click-to-edit is the **universal entry point** on every rendered page. The marketing line is "click anything to edit it." Where the user lands depends on what they clicked:
+
+- **Click on a page section** → admin's PageBuilder opens to that page, the clicked block expanded.
+- **Click on a post** → admin's focused Ghost-style writer opens, cursor in the right field.
+- **Click on a channel item field** → admin's form editor opens, focused on that field.
+
+Same entry, three surfaces, matched to content shape. No "now click into the admin app" handoff.
+
+### 2. Steal from Sanity, Ghost, Webflow — keep Outpost's architecture
+What we adopt:
+- **Sanity:** schemaless JSON storage (already there), the "Unknown fields found" editor panel, visual editing as a primitive, Portable Text long-term.
+- **Ghost:** distraction-free focused writing surface for posts, large title fields, autosave indicators.
+- **Webflow:** Build mode vs Create mode separation; non-developer clients only see Create mode by default.
+
+What we don't copy:
+- Sanity's headless-only architecture. Outpost stays hybrid (cheap PHP hosting + traditional rendering, with the API exposed for headless when needed).
+- Webflow's lock-in. Themes are HTML you can FTP; data is in your SQLite database.
+
+### 3. AI-centered, not AI-bolted-on
+- **Editorial AI is the wedge.** Outpost is the only CMS where AI is a member of the content team. Scheduled jobs draft posts. Canvas mode is a writing surface with AI assist. Pre-publish review runs voice/SEO/accessibility checks.
+- **MCP gives external AI tools direct content access.** Claude Desktop, Cursor, Claude Code all manage Outpost content via the same protocol.
+- **AI is summoned or scheduled, never ambient.** Cost-control rule. AI runs when explicitly invoked or on a defined cron — not on every save, not every keystroke.
+- **JSON content storage makes AI work easy.** Find-and-replace across content is a JSON traversal, not regex-against-HTML. Required substrate for the AI features above.
 
 ---
 

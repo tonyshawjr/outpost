@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.14] — 2026-05-09
+
+First substantial v6 build pass — Sections 1, 2, 2.5, 3, 4, 5, 6, 7 of the v6 plan land foundations. Single-session aggressive build.
+
+### Added
+- **Reusable field presets (Section 1).** New `field_presets` table + admin page at `/field-presets`. Built-in presets shipped: `image-with-credit`, `seo-meta`, `cta`. Schemas can declare `{ "type": "preset", "preset": "slug" }` and the field list expands at render time. Endpoints: `GET/POST/PUT/DELETE field-presets`, `GET field-presets/get`.
+- **Theme schema.json autoboot (Section 1.3).** A theme can ship `schema.json` declaring its expected collections; admin can bootstrap missing ones in one click. Existing collections are never touched. Endpoints: `GET theme/bootstrap/preview`, `POST theme/bootstrap`.
+- **Schema iteration safety / Unknown fields panel (Section 1.7).** Detect orphan keys present in `collection_items.data` but absent from the collection schema. One-click "promote" (add as text field) or "strip" (remove from every item, snapshotted to revisions for recovery). Endpoints: `GET schema/orphans`, `POST schema/orphans/promote`, `POST schema/orphans/strip`.
+- **Click-to-edit intent resolver (Section 2.5).** New endpoint `GET edit-intent/resolve` accepts data-outpost-* hints and returns the right admin SPA route (page-builder, collection editor, page editor). Existing `on-page-editor.js` overlay continues handling the click chrome; the resolver is the missing routing piece.
+- **Focus query param.** `currentFocusField` and `currentFocusBlockId` stores plumbed through `navigate()` and the `hashchange` listener. SPA routes can now land on a specific block + field name via `#/page-builder/123?block=4&field=headline`.
+- **Portable Text foundations (Section 4).** New `richtext-blocks` field type stores typed JSON blocks (Sanity-compatible Portable Text-lite). Server helpers: `outpost_richtext_blocks_validate()`, `outpost_richtext_blocks_to_html()` (safe-by-default, blocks `javascript:` URLs), `outpost_html_to_richtext_blocks()` (one-way migration). Marks: strong, em, code, link. Email renderer + bidirectional migration tooling deferred per plan.
+- **Editorial AI scheduler (Section 5).** Cron-driven AI content drafting. New `editorial_jobs` + `editorial_runs` tables. Per-job + daily-spend caps (default $5/day). Manual / hourly / daily / weekly cadences. New admin page at `/editorial-ai` with jobs list, run history, budget panel, and Find &amp; Replace tab. Endpoints: `editorial/jobs` CRUD, `editorial/jobs/run`, `editorial/runs`, `editorial/budget`, `editorial/find-and-update`. Soft Ranger dependency — jobs stage placeholder drafts if no AI is wired.
+- **Find-and-update across collection_items.data (Section 5).** JSON-walk replacement with revision snapshots before mutation. Available via `POST editorial/find-and-update` and the Editorial AI admin page.
+- **Release approval gates + diff (Section 6).** State machine: draft → review → approved → published with reject → draft. New columns on releases: `submitted_at`, `submitted_by`, `approved_at`, `approved_by`, `rejected_reason`. Approve/reject limited to admin role. Per-change before/after JSON + changed-keys diff via `GET releases/diff`.
+- **Media usage tracking (Section 7).** Before delete, scan content for references to filename/path. Surfaces hits across `collection_items.data`, `page_blocks.fields`, and `fields.content` with edit routes. New endpoint `GET media/usage`. MediaLibrary delete confirm now warns with up to 5 sample references.
+- **Presence indicators / phase 1 (Section 2).** Heartbeat-polled "X is also editing this" signal. New `presence_sessions` table. Endpoint `POST presence/ping`. No real-time CRDT — phase 2 deferred.
+- **v6 architecture section in `php/docs/llms.txt`.** Single source of truth covering all new endpoints, conventions, and table shapes added in this build.
+
+### Changed
+- **`media/delete` flow** now performs a usage scan before the confirm dialog and warns the operator with sample references. Decision still rests with the user — the warning does not block deletion.
+- **Sidebar (Tools group)** gains `Field Presets` (developer role) and `Editorial AI` (admin role) entries.
+
+### Decisions deferred (per v6 plan)
+- **Cape-fear 8-block library (Section 3).** The plan calls for shipping starter blocks for the cape-fear theme; deferred — the existing `starter` theme already ships 18 blocks for testing the convention. Cape-fear blocks are theme content, not v6 plumbing.
+- **PageBuilder polish (Section 3).** Block icons, collapsed-block summaries, "+" between sections, autosave indicator are deferred — needs design and live testing.
+- **Canvas writing mode (Section 2).** Full-screen distraction-free writing surface with Ranger schema mapping deferred — depends on Ranger schema-mapping primitive that doesn't exist yet.
+- **Routing consolidation (Section 9).** Front-router and webroot index.php were brought back in sync in beta.13. Extracting shared routing into a library is deferred — refactor risk too high without dedicated testing.
+- **Outpost-only pages design pass (Section 10).** ChannelsList, ChannelBuilder, Lodge, Releases — deferred. Each needs a focused testing pass.
+- **Real-time CRDT collaboration (Section 2).** Phase 2 of presence — explicitly out of scope per the plan.
+- **Email renderer + HTML→Portable Text migration tooling (Section 4).** Phase 2 of Portable Text — explicitly multi-quarter.
+
+### Security
+- All new identifier-bearing query parameters validated by allow-list regex (`^[a-zA-Z0-9_-]+$`) before SQL use.
+- Portable Text HTML renderer escapes every text node and attribute; `javascript:` URLs in link marks are rewritten to `#`.
+- `editorial/find-and-update` requires minimum 2-character find string and snapshots prior state to revisions before mutation.
+- `schema/orphans/strip` snapshots prior state to revisions before mutation.
+- `editorial/budget` clamped to [0, $1000/day]; `cost_cap_cents` clamped to [1, 10000] cents per run.
+- Release approve/reject require admin role (role check inside handler, on top of existing capability map).
+
+---
+
 ## [6.0.0-beta.13] — 2026-05-04
 
 Full v6 audit + fix pass after the cascade of "wrong file" bugs in beta.5 → beta.11. Every place v5 themeless assumptions still leaked into production, every API endpoint mismatch the admin Svelte calls, every parallel routing path that drifted — swept and fixed.

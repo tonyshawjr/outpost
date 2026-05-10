@@ -4134,3 +4134,147 @@ Stored as JSON in `settings` table under key `shield_config`:
 - `shield_log` — id, ip, path, method, rule, payload, blocked, created_at
 - `shield_file_hashes` — file_path (PK), hash, checked_at
 - `shield_traffic` — id, ip, path, method, status_code, user_agent, threat, created_at
+
+
+---
+
+## v6 — New endpoints and architecture (added in v6.0.0-beta.14)
+
+The v6 build rolls multiple feature modules onto the existing CMS surface. Architecture remains hybrid (PHP rendering + REST/MCP API). What's new:
+
+### Themes-as-folders + active theme dir
+
+Each theme is a self-contained folder under `content/themes/{slug}/`:
+
+- `theme.json` (or `blueprint.json`) — name, brand, settings, templates
+- `blocks/{slug}/` — block library: `{slug}.html`, optional `block.json`, optional `{slug}.css`
+- `templates/`, `partials/`, `styles/` — theme markup
+- `schema.json` (NEW) — declares the collections this theme expects (autoboot)
+
+Production routing reads from the active theme dir first, with v5 themeless fallback intact.
+
+### Reusable field presets (v6 Section 1)
+
+Define a named field bundle once, drop into any collection schema with
+`{ "type": "preset", "preset": "image-with-credit" }`.
+
+Endpoints:
+- `GET field-presets`
+- `GET field-presets/get?slug=X`
+- `POST field-presets`            — body: `{ slug, name, description, fields[] }`
+- `PUT field-presets&slug=X`
+- `DELETE field-presets&slug=X`
+
+Built-in presets (cannot be deleted): `image-with-credit`, `seo-meta`, `cta`.
+
+### Theme schema.json autoboot (v6 Section 1.3)
+
+If a theme ships `schema.json` at its root, the admin can bootstrap missing collections in one click. Existing collections are never touched.
+
+```
+{
+  "collections": [
+    { "slug": "blog", "name": "Blog", "schema": [...] }
+  ]
+}
+```
+
+Endpoints:
+- `GET theme/bootstrap/preview?theme=X` — preview what would be created
+- `POST theme/bootstrap` — body: `{ theme: "X" }`
+
+### Schema iteration safety / Unknown fields panel (v6 Section 1.7)
+
+When a schema field is renamed or removed, item rows still hold the old key. Detect and resolve.
+
+Endpoints:
+- `GET schema/orphans?collection=X` — returns `{ orphans: { key: { count, sample } } }`
+- `POST schema/orphans/promote` — body: `{ collection, key }` — adds the orphan as a text field
+- `POST schema/orphans/strip` — body: `{ collection, key }` — strips key from every item, snapshots prior state to revisions
+
+### Click-to-edit intent resolver (v6 Section 2.5)
+
+Public site overlay clicks → admin SPA route. Browser sends data-outpost-* hints; resolver returns the right hash route.
+
+Endpoints:
+- `GET edit-intent/resolve?block=X&page=X&field=X&collection=X&item=X&path=X`
+  → `{ route: "#/page-builder/123?block=4&field=headline", kind: "page-builder" }`
+
+### Portable Text foundations (v6 Section 4)
+
+New field type `richtext-blocks` stores a JSON array of typed blocks (Sanity-compatible Portable Text-lite).
+
+Block shapes:
+- `{ type: "block", style: "h2"|"h3"|"normal"|"blockquote", children: [{ type: "span", text, marks?, linkHref? }] }`
+- `{ type: "image", src, alt, caption? }`
+- `{ type: "code", code, language? }`
+- `{ type: "block", style: "normal", listItem: "bullet"|"number", children: [...] }` — list item
+
+Server helpers:
+- `outpost_richtext_blocks_validate($value): bool`
+- `outpost_richtext_blocks_to_html($value): string` — safe-by-default escaping
+- `outpost_html_to_richtext_blocks($html): array` — one-way migration from legacy HTML richtext
+
+Marks supported: `strong`, `em`, `code`, `link` (with `linkHref`). javascript: URLs are blocked.
+
+### Editorial AI scheduler (v6 Section 5)
+
+Cron-driven AI content drafting. Per-job + daily-spend caps. AI is summoned or scheduled — never ambient. If no AI provider is wired, jobs stage placeholder drafts so the schedule shows it's alive.
+
+Tables:
+- `editorial_jobs` — name, cadence (manual/hourly/daily/weekly), collection_slug, prompt, target_status, cost_cap_cents, enabled, last_run_at, next_run_at
+- `editorial_runs` — job_id, started_at, finished_at, status, cost_cents, created_item_id, error, log
+
+Setting: `editorial_daily_cap_cents` (default 500 cents = $5/day). Hitting the cap halts further runs that day.
+
+Endpoints:
+- `GET editorial/jobs`
+- `POST editorial/jobs`            — body: `{ name, collection_slug, prompt, cadence, cost_cap_cents, target_status, enabled }`
+- `PUT editorial/jobs&id=X`
+- `DELETE editorial/jobs&id=X`
+- `POST editorial/jobs/run`        — body: `{ id }` — run now (bypasses enabled check)
+- `GET editorial/runs?job_id=X`
+- `GET editorial/budget`           — daily cap + spent today + remaining
+- `PUT editorial/budget`           — body: `{ daily_cap_cents }`
+- `POST editorial/find-and-update` — body: `{ find, replace, collection? }` — JSON-walk replacement across collection_items.data, snapshotted to revisions
+
+Cron entry point: `editorial_cron_tick()` — call from the existing `?action=cron` endpoint.
+
+### Release approval gates + diff (v6 Section 6)
+
+State machine: `draft → review → approved → published` with `rejected → draft`. Editor submits, admin approves, then publishes via the existing release publish flow. Reject sends back to draft with reason.
+
+Added columns on `releases`: `submitted_at`, `submitted_by`, `approved_at`, `approved_by`, `rejected_reason`.
+
+Endpoints:
+- `POST releases/submit-for-review` — body: `{ id }`
+- `POST releases/approve`            — body: `{ id }` (admin only)
+- `POST releases/reject`             — body: `{ id, reason }` (admin only)
+- `GET releases/diff?id=X`           — per-change before/after JSON + changed-keys array
+
+### Media usage tracking (v6 Section 7)
+
+Before deleting an asset, scan content for references to its filename/path. Surfaces a list of pages, page blocks, and collection items that use this asset, with one-click edit routes.
+
+Endpoint:
+- `GET media/usage?id=X` → `{ count, references: [{ kind, edit_route, ... }] }`
+
+Search scope:
+- collection_items.data (JSON)
+- page_blocks.fields (JSON)
+- fields.content (LIKE)
+
+### Presence indicators / phase 1 (v6 Section 2)
+
+"Tony is also editing this" warning. No real-time CRDT — just heartbeat polling. Pings every 15s; sessions older than 60s drop off.
+
+Endpoint:
+- `POST presence/ping` — body: `{ entity_type: "page" | "collection_item" | "page_block", entity_id }` → `{ others: [{ id, display_name, avatar, last_seen }] }`
+
+Table: `presence_sessions(user_id, entity_type, entity_id, last_seen)`
+
+### Conventions
+
+All new endpoints: same auth + CSRF rules as the rest of the API. JSON bodies for POST/PUT/DELETE. Identifier names validated by allow-list regex (`^[a-zA-Z0-9_-]+$`) before use in queries.
+
+Database migrations: `ensure_*_table()` and `ensure_*_columns()` functions called at API bootstrap. Idempotent — re-running them is safe.

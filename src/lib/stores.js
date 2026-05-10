@@ -53,6 +53,9 @@ export const currentLabelId = writable(initial.params?.labelId ? Number(initial.
 export const currentSettingsSection = writable(initial.params?.section || 'general');
 export const currentFormId = writable(initial.params?.formId ? Number(initial.params.formId) : null);
 export const currentChannelId = writable(initial.params?.channelId ? Number(initial.params.channelId) : null);
+// v6 — click-to-edit intent landing field/block (Section 2.5)
+export const currentFocusField = writable(initial.params?.focus || null);
+export const currentFocusBlockId = writable(initial.params?.block ? Number(initial.params.block) : null);
 
 // Data
 export const pagesList = writable([]);
@@ -147,6 +150,8 @@ export function navigate(route, params = {}) {
   currentSettingsSection.set(params.section ?? 'general');
   currentFormId.set(params.formId ?? null);
   currentChannelId.set(params.channelId ?? null);
+  currentFocusField.set(params.focus ?? null);
+  currentFocusBlockId.set(params.block ? Number(params.block) : null);
   if (typeof window !== 'undefined') {
     window.location.hash = buildHash(route, params);
   }
@@ -171,6 +176,8 @@ if (typeof window !== 'undefined') {
       currentSettingsSection.set(params?.section || 'general');
       currentFormId.set(params?.formId ? Number(params.formId) : null);
       currentChannelId.set(params?.channelId ? Number(params.channelId) : null);
+      currentFocusField.set(params?.focus || null);
+      currentFocusBlockId.set(params?.block ? Number(params.block) : null);
     }
   });
 }

@@ -725,3 +725,75 @@ export const revisions = {
   restore: (entityType, entityId, revisionId) =>
     request('revisions/restore', { method: 'POST', body: { entity_type: entityType, entity_id: entityId, revision_id: revisionId } }),
 };
+
+// v6 — Reusable field presets (Section 1)
+export const fieldPresets = {
+  list: () => request('field-presets'),
+  get: (slug) => request('field-presets/get', { params: { slug } }),
+  create: (data) => request('field-presets', { method: 'POST', body: data }),
+  update: (slug, data) => request('field-presets', { method: 'PUT', params: { slug }, body: data }),
+  delete: (slug) => request('field-presets', { method: 'DELETE', params: { slug } }),
+};
+
+// v6 — Theme bootstrap (Section 1)
+export const themeBootstrap = {
+  preview: (theme) => request('theme/bootstrap/preview', { params: theme ? { theme } : {} }),
+  apply: (theme) => request('theme/bootstrap', { method: 'POST', body: theme ? { theme } : {} }),
+};
+
+// v6 — Schema iteration safety (Section 1)
+export const schemaOrphans = {
+  list: (collection) => request('schema/orphans', { params: { collection } }),
+  promote: (collection, key) =>
+    request('schema/orphans/promote', { method: 'POST', body: { collection, key } }),
+  strip: (collection, key) =>
+    request('schema/orphans/strip', { method: 'POST', body: { collection, key } }),
+};
+
+// v6 — Click-to-edit intent resolution (Section 2.5)
+export const editIntent = {
+  resolve: (hints) => request('edit-intent/resolve', { params: hints }),
+};
+
+// v6 — Editorial AI Scheduler (Section 5)
+export const editorial = {
+  jobsList: () => request('editorial/jobs'),
+  jobCreate: (data) => request('editorial/jobs', { method: 'POST', body: data }),
+  jobUpdate: (id, data) => request('editorial/jobs', { method: 'PUT', params: { id }, body: data }),
+  jobDelete: (id) => request('editorial/jobs', { method: 'DELETE', params: { id } }),
+  jobRunNow: (id) => request('editorial/jobs/run', { method: 'POST', body: { id } }),
+  runsList: (jobId) => request('editorial/runs', { params: jobId ? { job_id: jobId } : {} }),
+  budgetGet: () => request('editorial/budget'),
+  budgetUpdate: (cents) => request('editorial/budget', { method: 'PUT', body: { daily_cap_cents: cents } }),
+  findAndUpdate: (find, replace, collection) =>
+    request('editorial/find-and-update', {
+      method: 'POST',
+      body: collection ? { find, replace, collection } : { find, replace },
+    }),
+};
+
+// v6 — Media usage tracking (Section 7)
+export const mediaUsage = {
+  scan: (id) => request('media/usage', { params: { id } }),
+};
+
+// v6 — Presence (Section 2)
+export const presence = {
+  ping: (entityType, entityId) =>
+    request('presence/ping', {
+      method: 'POST',
+      body: { entity_type: entityType, entity_id: entityId },
+    }),
+};
+
+// v6 — Release approval gates + diff (Section 6)
+export const releaseApprovals = {
+  submitForReview: (id) =>
+    request('releases/submit-for-review', { method: 'POST', body: { id } }),
+  approve: (id) =>
+    request('releases/approve', { method: 'POST', body: { id } }),
+  reject: (id, reason) =>
+    request('releases/reject', { method: 'POST', body: { id, reason } }),
+  diff: (id) =>
+    request('releases/diff', { params: { id } }),
+};

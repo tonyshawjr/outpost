@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { media as mediaApi, mediaFolders as foldersApi } from '$lib/api.js';
+  import { media as mediaApi, mediaFolders as foldersApi, mediaUsage } from '$lib/api.js';
   import { mediaList, addToast, mediaFolderGrants } from '$lib/stores.js';
   import { humanFileSize, formatDate } from '$lib/utils.js';
   import UploadQueue from '../components/UploadQueue.svelte';
@@ -189,7 +189,24 @@
 
   // ── Item actions ──
   async function deleteItem(item) {
-    if (!confirm(`Delete "${item.original_name}"?`)) return;
+    // v6 Section 7: usage tracking — warn if the asset is referenced anywhere
+    let usageMsg = '';
+    try {
+      const usage = await mediaUsage.scan(item.id);
+      if (usage.count > 0) {
+        const sample = usage.references.slice(0, 5).map((r) => {
+          if (r.kind === 'collection_item') return `• ${r.collection_name} → ${r.item_slug}`;
+          if (r.kind === 'page_block') return `• Page ${r.page_path || '#' + r.page_id} (block: ${r.block_slug})`;
+          if (r.kind === 'page_field') return `• Page ${r.page_path || '#' + r.page_id} (${r.field_name})`;
+          return `• ${r.kind}`;
+        }).join('\n');
+        const rest = usage.count > 5 ? `\n…and ${usage.count - 5} more` : '';
+        usageMsg = `\n\nWARNING: this file is used in ${usage.count} place${usage.count === 1 ? '' : 's'}:\n\n${sample}${rest}\n`;
+      }
+    } catch {
+      // If usage check fails, fall through to the basic confirm
+    }
+    if (!confirm(`Delete "${item.original_name}"?${usageMsg}`)) return;
     try {
       await mediaApi.delete(item.id);
       mediaList.update((m) => m.filter((i) => i.id !== item.id));

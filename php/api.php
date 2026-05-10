@@ -33,6 +33,15 @@ require_once __DIR__ . '/forge-analyze.php';
 require_once __DIR__ . '/shield.php';
 require_once __DIR__ . '/redirects.php';
 require_once __DIR__ . '/search.php';
+require_once __DIR__ . '/field-presets.php';
+require_once __DIR__ . '/theme-bootstrap.php';
+require_once __DIR__ . '/schema-orphans.php';
+require_once __DIR__ . '/portable-text.php';
+require_once __DIR__ . '/editorial-jobs.php';
+require_once __DIR__ . '/click-to-edit.php';
+require_once __DIR__ . '/media-usage.php';
+require_once __DIR__ . '/presence.php';
+require_once __DIR__ . '/release-approvals.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -135,7 +144,10 @@ if ($action === 'cron' && in_array($method, ['GET', 'POST'])) {
     ensure_webhooks_tables();
     webhook_process_retries();
     webhook_cleanup_deliveries();
-    json_response(['success' => true]);
+    // v6 — Editorial AI scheduler (Section 5)
+    ensure_editorial_jobs_table();
+    $editorialRuns = function_exists('editorial_cron_tick') ? editorial_cron_tick() : [];
+    json_response(['success' => true, 'editorial_runs' => $editorialRuns]);
     exit;
 }
 
@@ -207,6 +219,10 @@ ensure_editor_sessions_table();
 ensure_shield_tables();
 redirects_ensure_table();
 search_ensure_tables();
+ensure_field_presets_table();
+ensure_editorial_jobs_table();
+ensure_presence_table();
+ensure_release_approvals_columns();
 require_once __DIR__ . '/mailer.php';
 
 // ── Permission pre-flight ────────────────────────────────
@@ -238,6 +254,12 @@ $cap_map = [
     'shield'     => 'settings.*',
     'boost'      => 'settings.*',
     'redirects'  => 'settings.*',
+    // v6 — schema/preset mutations are developer-tier work
+    // ('theme' is already mapped above to settings.*)
+    'field-presets' => 'code.*',
+    'schema'        => 'code.*',
+    // v6 — editorial AI is admin-tier (publishing AI requires settings cap)
+    'editorial'  => 'settings.*',
 ];
 // Workflow transition/history/for-collection endpoints are accessible to any authenticated user
 // (stage-level role enforcement is done inside the handlers)
@@ -640,6 +662,48 @@ match (true) {
     $action === 'redirects' && $method === 'DELETE' && isset($_GET['id']) => handle_redirect_delete(),
     $action === 'redirects/test' && $method === 'POST'                    => handle_redirect_test(),
     $action === 'redirects/import' && $method === 'POST'                  => handle_redirect_import(),
+
+    // v6 — Reusable field presets (Section 1)
+    $action === 'field-presets'                && $method === 'GET'    => handle_field_presets_list(),
+    $action === 'field-presets/get'            && $method === 'GET'    => handle_field_preset_get(),
+    $action === 'field-presets'                && $method === 'POST'   => handle_field_preset_create(),
+    $action === 'field-presets'                && $method === 'PUT'    => handle_field_preset_update(),
+    $action === 'field-presets'                && $method === 'DELETE' => handle_field_preset_delete(),
+
+    // v6 — Theme bootstrap (Section 1: schema.json auto-create on activation)
+    $action === 'theme/bootstrap'              && $method === 'POST'   => handle_theme_bootstrap(),
+    $action === 'theme/bootstrap/preview'      && $method === 'GET'    => handle_theme_bootstrap_preview(),
+
+    // v6 — Schema iteration safety (Section 1: Unknown fields panel)
+    $action === 'schema/orphans'               && $method === 'GET'    => handle_schema_orphans_list(),
+    $action === 'schema/orphans/promote'       && $method === 'POST'   => handle_schema_orphans_promote(),
+    $action === 'schema/orphans/strip'         && $method === 'POST'   => handle_schema_orphans_strip(),
+
+    // v6 — Click-to-edit (Section 2.5)
+    $action === 'edit-intent/resolve'          && $method === 'GET'    => handle_edit_intent_resolve(),
+
+    // v6 — Editorial AI Scheduler (Section 5)
+    $action === 'editorial/jobs'               && $method === 'GET'    => handle_editorial_jobs_list(),
+    $action === 'editorial/jobs'               && $method === 'POST'   => handle_editorial_job_create(),
+    $action === 'editorial/jobs'               && $method === 'PUT' && isset($_GET['id'])    => handle_editorial_job_update(),
+    $action === 'editorial/jobs'               && $method === 'DELETE' && isset($_GET['id']) => handle_editorial_job_delete(),
+    $action === 'editorial/jobs/run'           && $method === 'POST'   => handle_editorial_job_run_now(),
+    $action === 'editorial/runs'               && $method === 'GET'    => handle_editorial_runs_list(),
+    $action === 'editorial/budget'             && $method === 'GET'    => handle_editorial_budget_get(),
+    $action === 'editorial/budget'             && $method === 'PUT'    => handle_editorial_budget_update(),
+    $action === 'editorial/find-and-update'    && $method === 'POST'   => handle_editorial_find_and_update(),
+
+    // v6 — Media usage tracking (Section 7)
+    $action === 'media/usage'                  && $method === 'GET'    => handle_media_usage(),
+
+    // v6 — Presence (Section 2 phase 1)
+    $action === 'presence/ping'                && $method === 'POST'   => handle_presence_ping(),
+
+    // v6 — Release approval gates + diff (Section 6)
+    $action === 'releases/submit-for-review'   && $method === 'POST'   => handle_release_submit_for_review(),
+    $action === 'releases/approve'             && $method === 'POST'   => handle_release_approve(),
+    $action === 'releases/reject'              && $method === 'POST'   => handle_release_reject(),
+    $action === 'releases/diff'                && $method === 'GET'    => handle_release_diff(),
 
     default => json_error('Not found', 404),
 };
