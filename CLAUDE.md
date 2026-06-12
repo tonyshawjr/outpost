@@ -1,6 +1,6 @@
 # Sites
 
-> **Platform contract — read before building any UI, data layer, or shared component:** `~/Code/Kenii/kenii-catalog/KENII-PLATFORM.md` is the single source of truth for the Kenii platform — design tokens, the admin CSS framework, shared frontend UI, the data layer, and the rules. Catalog owns it; consume it, never duplicate it. Adoption specifics live in `kenii-catalog/docs/cross-module-changes.md` §8.
+> **Platform contract — read before building any UI, data layer, or shared component:** `~/Code/Kenii/kenii-catalog/KENII-PLATFORM.md` is the single source of truth for the Kenii platform — design tokens, the admin CSS framework, shared frontend UI, the data layer, and the rules. Catalog owns it; consume it, never duplicate it. Adoption specifics live in `kenii-catalog/docs/cross-module-changes.md` §8. All code must meet two skills, no exceptions: `client-code-standards` (zero comments/debug/inline-CSS) and `wcag` (WCAG 2.2 AA — accessible by construction, never retrofitted). See the Build standards section of the contract.
 
 **I am Sites.** I own the `kenii-sites` module — the web CMS layer for institution websites.
 
