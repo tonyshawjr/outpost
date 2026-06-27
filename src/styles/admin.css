@@ -12,11 +12,12 @@
 /* ── Tokens — Dark Mode (DEFAULT) ───────────────────── */
 :root {
   /* ── Short tokens (Sites style) ─────────────────────── */
-  --bg: #101114;
-  --raised: #181B20;
-  --hover: #1E2128;
-  --border: rgba(255,255,255,.06);
-  --text: #F0F0F2;
+  /* v6 polish: deeper near-black surfaces + crisper borders (Instatic-inspired) */
+  --bg: #0B0C0E;
+  --raised: #141619;
+  --hover: #1B1E24;
+  --border: rgba(255,255,255,.08);
+  --text: #F3F3F5;
   --sec: #9CA3AF;
   --dim: #6B7280;
 
@@ -37,14 +38,14 @@
   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* ── Long tokens (Outpost legacy) ────────────────────── */
-  --bg-primary: #101114;
-  --bg-secondary: #181B20;
-  --bg-tertiary: #1E2128;
-  --bg-hover: #1E2128;
-  --bg-active: #252830;
-  --bg-card: #181B20;
+  --bg-primary: #0B0C0E;
+  --bg-secondary: #141619;
+  --bg-tertiary: #1B1E24;
+  --bg-hover: #1B1E24;
+  --bg-active: #21252C;
+  --bg-card: #141619;
 
-  --text-primary: #F0F0F2;
+  --text-primary: #F3F3F5;
   --text-secondary: #9CA3AF;
   --text-tertiary: #6B7280;
   --text-light: #4B5160;
@@ -82,19 +83,19 @@
   --forest-dark: #6D28D9;
 
   /* Sidebar — always dark, purple accent on active */
-  --sidebar-bg: #101114;
-  --sidebar-bg-hover: #1E2128;
-  --sidebar-bg-active: rgba(124,58,237,.18);
-  --sidebar-text: #F0F0F2;
+  --sidebar-bg: #0B0C0E;
+  --sidebar-bg-hover: #16191E;
+  --sidebar-bg-active: rgba(124,58,237,.16);
+  --sidebar-text: #F3F3F5;
   --sidebar-text-secondary: #9CA3AF;
   --sidebar-text-muted: #6B7280;
-  --sidebar-border: rgba(255,255,255,.04);
-  --sidebar-brand: #F0F0F2;
+  --sidebar-border: rgba(255,255,255,.05);
+  --sidebar-brand: #F3F3F5;
 
-  /* Shadows — deep on dark */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.20);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.30), 0 1px 3px rgba(0, 0, 0, 0.20);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.40), 0 2px 6px rgba(0, 0, 0, 0.20);
+  /* Shadows — soft floating-panel depth (Instatic-inspired) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.30);
 
   /* Spacing */
   --space-xs: 0.25rem;

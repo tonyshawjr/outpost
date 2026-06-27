@@ -375,15 +375,18 @@
 .sb-search{background:none;border:none;color:var(--dim);cursor:pointer;padding:4px;display:flex}.sb-search:hover{color:var(--sec)}
 .sb-nav{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .sb-group{padding:0 12px;margin-bottom:28px}
-.sb-item{display:flex;align-items:center;gap:14px;padding:9px 12px;border-radius:6px;color:var(--sec);font-size:14px;font-weight:500;cursor:pointer;transition:all .12s;text-decoration:none;user-select:none;background:none;border:none;width:100%;text-align:left}
-.sb-item:hover{color:var(--text)}.sb-item.active{color:var(--text);font-weight:600}
+.sb-item{display:flex;align-items:center;gap:14px;padding:9px 12px;border-radius:8px;color:var(--sec);font-size:14px;font-weight:500;cursor:pointer;transition:background .12s,color .12s;text-decoration:none;user-select:none;background:none;border:none;width:100%;text-align:left}
+.sb-item:hover{color:var(--text);background:var(--sidebar-bg-hover)}
+.sb-item.active{color:var(--text);font-weight:600;background:var(--sidebar-bg-active)}
+.sb-item.active svg{color:var(--purple-soft)}
 .sb-item svg{width:19px;height:19px;flex-shrink:0}
 .sb-item .caret{margin-left:auto;opacity:.3;transition:transform .2s;flex-shrink:0;display:flex;align-items:center}
 .sb-item .caret.open{transform:rotate(90deg)}
 .sb-sub{padding-left:48px;overflow:hidden;transition:max-height .25s ease;max-height:0}
 .sb-sub.open{max-height:300px}
-.sb-sub .sb-item{padding:6px 0;font-size:14px;color:var(--dim);border-radius:0}.sb-sub .sb-item:hover{color:var(--sec)}
-.sb-sub .sb-item.active{color:var(--text);font-weight:600}
+.sb-sub .sb-item{padding:6px 0;font-size:14px;color:var(--dim);border-radius:0}.sb-sub .sb-item:hover{color:var(--sec);background:none}
+.sb-sub .sb-item.active{color:var(--text);font-weight:600;background:none}
+.sb-sub .sb-item.active svg{color:inherit}
 .sb-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:0 12px 6px;opacity:.5}
 .sb-foot-wrap{padding:0 12px 4px;display:flex;flex-direction:column;gap:0;position:relative}
 .sb-user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:transparent;border:none;cursor:pointer;transition:all .12s;flex:1;min-width:0;text-align:left}
