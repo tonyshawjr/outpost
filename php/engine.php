@@ -2099,15 +2099,21 @@ function outpost_migrate_v5(): void {
 
     // 3d. Clear theme references in DB
     // Delete themed duplicates first to avoid UNIQUE constraint violations,
-    // then clear theme on remaining rows
+    // then clear theme on remaining rows. A themed row is redundant if another
+    // row for the same key is either already theme='' OR has a lower id — this
+    // also collapses the case of MULTIPLE themed rows (e.g. two themes) for the
+    // same key with no empty counterpart, which would otherwise collide once
+    // every row is flattened to theme=''.
     $db->exec("DELETE FROM fields WHERE theme != '' AND EXISTS (
         SELECT 1 FROM fields f2 WHERE f2.page_id = fields.page_id
-        AND f2.field_name = fields.field_name AND f2.theme = ''
+        AND f2.field_name = fields.field_name AND f2.id != fields.id
+        AND (f2.theme = '' OR f2.id < fields.id)
     )");
     $db->exec("UPDATE fields SET theme = '' WHERE theme != ''");
     $db->exec("DELETE FROM page_field_registry WHERE theme != '' AND EXISTS (
         SELECT 1 FROM page_field_registry p2 WHERE p2.path = page_field_registry.path
-        AND p2.field_name = page_field_registry.field_name AND p2.theme = ''
+        AND p2.field_name = page_field_registry.field_name AND p2.id != page_field_registry.id
+        AND (p2.theme = '' OR p2.id < page_field_registry.id)
     )");
     $db->exec("UPDATE page_field_registry SET theme = '' WHERE theme != ''");
     $db->exec("DELETE FROM settings WHERE key = 'active_theme'");
