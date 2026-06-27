@@ -93,11 +93,10 @@
 </script>
 
 <div class="layers">
-  <div class="head" id="layers-heading">Layers</div>
   <ul
     class="tree"
     role="tree"
-    aria-labelledby="layers-heading"
+    aria-label="Layers"
     bind:this={treeEl}
     onclick={onTreeClick}
     onkeydown={onTreeKeydown}
@@ -140,28 +139,17 @@
 
 <style>
   .layers {
-    width: 280px;
-    flex-shrink: 0;
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    background: var(--raised);
-    border-right: 1px solid var(--border);
     overflow: hidden;
-  }
-
-  .head {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--dim);
-    padding: 16px 16px 10px;
   }
 
   .tree {
     list-style: none;
     margin: 0;
-    padding: 0 8px 16px;
+    padding: 8px 8px 16px;
     overflow-y: auto;
     flex: 1;
   }

@@ -30,6 +30,15 @@ export function createNodeEditor() {
   let redoStack = $state([]);
   let classes = $state({});
 
+  function remapTreeClasses(mapFn) {
+    const nodes = {};
+    for (const id in tree.nodes) {
+      const n = tree.nodes[id];
+      nodes[id] = { ...n, classes: mapFn(n.classes) };
+    }
+    tree = { ...tree, nodes };
+  }
+
   /** Apply a tree-producing mutation, recording history. */
   function commit(producer) {
     const prev = tree;
@@ -61,6 +70,14 @@ export function createNodeEditor() {
     get canRedo() { return redoStack.length > 0; },
     get classes() { return classes; },
     get classNames() { return Object.keys(classes); },
+    get classUsage() {
+      const counts = {};
+      for (const name in classes) counts[name] = 0;
+      for (const id in tree.nodes) {
+        for (const c of tree.nodes[id].classes) counts[c] = (counts[c] || 0) + 1;
+      }
+      return counts;
+    },
     get classesCss() {
       let css = '';
       for (const name in classes) {
@@ -125,6 +142,37 @@ export function createNodeEditor() {
       const node = tree.nodes[nodeId];
       if (!node) return;
       commit((t) => T.setClasses(t, nodeId, node.classes.filter((c) => c !== name)));
+    },
+
+    renameClass(oldName, newName) {
+      newName = (newName || '').trim();
+      if (!classes[oldName] || !CLASS_NAME_RE.test(newName) || classes[newName]) return false;
+      const next = {};
+      for (const name in classes) next[name === oldName ? newName : name] = classes[name];
+      classes = next;
+      remapTreeClasses((list) => {
+        const mapped = list.map((c) => (c === oldName ? newName : c));
+        return mapped.filter((c, i) => mapped.indexOf(c) === i);
+      });
+      dirty = true;
+      return true;
+    },
+    duplicateClass(name) {
+      if (!classes[name]) return null;
+      let copy = `${name}-copy`;
+      let n = 2;
+      while (classes[copy]) copy = `${name}-copy-${n++}`;
+      classes = { ...classes, [copy]: { ...classes[name] } };
+      dirty = true;
+      return copy;
+    },
+    deleteClass(name) {
+      if (!classes[name]) return;
+      const next = { ...classes };
+      delete next[name];
+      classes = next;
+      remapTreeClasses((list) => list.filter((c) => c !== name));
+      dirty = true;
     },
 
     // ── undo / redo ───────────────────────────────────

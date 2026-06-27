@@ -5,6 +5,7 @@
   import { createNodeEditor } from '$lib/node-store.svelte.js';
   import { NODE_TYPES } from '$lib/node-tree.js';
   import LayersPanel from '$components/builder/LayersPanel.svelte';
+  import SelectorsPanel from '$components/builder/SelectorsPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon } from 'lucide-svelte';
@@ -14,6 +15,7 @@
   let pageTitle = $state('Page');
   let loading = $state(true);
   let loadError = $state('');
+  let leftPanel = $state('layers');
 
   let selected = $derived(editor.selectedNode);
   let status = $derived(
@@ -125,7 +127,17 @@
     <div class="message error">{loadError}</div>
   {:else}
     <div class="body">
-      <LayersPanel {editor} />
+      <div class="left-col">
+        <div class="left-tabs" role="tablist" aria-label="Left panel">
+          <button role="tab" aria-selected={leftPanel === 'layers'} class:on={leftPanel === 'layers'} onclick={() => (leftPanel = 'layers')}>Layers</button>
+          <button role="tab" aria-selected={leftPanel === 'selectors'} class:on={leftPanel === 'selectors'} onclick={() => (leftPanel = 'selectors')}>Selectors</button>
+        </div>
+        {#if leftPanel === 'layers'}
+          <LayersPanel {editor} />
+        {:else}
+          <SelectorsPanel {editor} />
+        {/if}
+      </div>
       <NodeCanvas {editor} />
       <aside class="inspector" aria-label="Element settings">
         {#if selected}
@@ -278,6 +290,38 @@
     display: flex;
     min-height: 0;
   }
+
+  .left-col {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--raised);
+    border-right: 1px solid var(--border);
+  }
+
+  .left-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 10px 6px;
+    flex-shrink: 0;
+  }
+  .left-tabs button {
+    flex: 1;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--sec);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  .left-tabs button.on { background: var(--hover); color: var(--text); }
+  .left-tabs button:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
   .inspector {
     width: 280px;
