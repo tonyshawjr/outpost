@@ -42,6 +42,7 @@
   import Brand from '$pages/Brand.svelte';
   import Design from '$pages/Design.svelte';
   import PageBuilder from '$pages/PageBuilder.svelte';
+  import NodeBuilder from '$pages/NodeBuilder.svelte';
 import FieldPresets from '$pages/FieldPresets.svelte';
 import EditorialAI from '$pages/EditorialAI.svelte';
 
@@ -163,7 +164,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'} class:ranger-open={$rangerOpen}>
     <Sidebar />
     <div class="app-main">
-      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor'}>
+      <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'node-builder'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
           {#if hasCodeAccess}
             <Analytics />
@@ -254,6 +255,8 @@ import EditorialAI from '$pages/EditorialAI.svelte';
           {/if}
         {:else if route === 'page-builder'}
           <PageBuilder />
+        {:else if route === 'node-builder'}
+          <NodeBuilder />
         {:else if route === 'backups'}
           {#if hasSettingsAccess}
             <Backups />

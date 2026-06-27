@@ -33,8 +33,7 @@ export function createNodeEditor() {
     let result;
     try {
       result = producer(prev);
-    } catch (e) {
-      console.warn('[node-store] mutation rejected:', e.message);
+    } catch {
       return null;
     }
     const nextTree = result && result.tree ? result.tree : result;

@@ -28,7 +28,7 @@
     Columns3, ChevronRight, Search, Sun, Moon, LogOut, User,
     Layout, Rss, Lock, GitBranch, Workflow, Webhook,
     ArrowLeftRight, ClipboardList, Palette, Users, Shield, Zap,
-    MessageSquare, Database, BarChart3, Clock, Archive, Sparkles
+    MessageSquare, Database, BarChart3, Clock, Archive, Sparkles, Box
   } from 'lucide-svelte';
   import { auth } from '$lib/api.js';
 
@@ -206,6 +206,10 @@
         <a class="sb-item" class:active={route === 'page-builder'} onclick={() => nav('page-builder')}>
           <LayoutGrid size={19} />
           <span>Page Builder</span>
+        </a>
+        <a class="sb-item" class:active={route === 'node-builder'} onclick={() => nav('node-builder')}>
+          <Box size={19} />
+          <span>Visual Builder</span>
         </a>
         {#if hasSettingsAccess}
           <a class="sb-item" class:active={route === 'design'} onclick={() => nav('design')}>
