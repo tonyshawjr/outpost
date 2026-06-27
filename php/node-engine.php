@@ -164,6 +164,46 @@ function outpost_node_validate(array $tree): array {
     return ['root' => $tree['root'], 'nodes' => $nodes];
 }
 
+function outpost_class_name_valid(string $name): bool {
+    return (bool) preg_match('/^[A-Za-z_][A-Za-z0-9_-]*$/', $name);
+}
+
+function outpost_css_property_valid(string $prop): bool {
+    return (bool) preg_match('/^[a-z][a-z-]*$/', $prop);
+}
+
+function outpost_css_value_safe(string $value): string {
+    $value = trim($value);
+    if ($value === '') return '';
+    if (preg_match('/javascript:|expression\s*\(|<\/|[{}<>]|@import/i', $value)) return '';
+    return $value;
+}
+
+function outpost_sanitise_declarations(array $declarations): array {
+    $clean = [];
+    foreach ($declarations as $prop => $value) {
+        if (!is_string($prop) || !outpost_css_property_valid($prop)) continue;
+        if (!is_scalar($value)) continue;
+        $safe = outpost_css_value_safe((string) $value);
+        if ($safe !== '') $clean[$prop] = $safe;
+    }
+    return $clean;
+}
+
+function outpost_classes_to_css(array $classes, string $scope = ''): string {
+    $prefix = $scope !== '' ? rtrim($scope) . ' ' : '';
+    $out = '';
+    foreach ($classes as $name => $declarations) {
+        if (!is_string($name) || !outpost_class_name_valid($name) || !is_array($declarations)) continue;
+        $decls = outpost_sanitise_declarations($declarations);
+        if (!$decls) continue;
+        $body = '';
+        foreach ($decls as $prop => $value) $body .= "{$prop}:{$value};";
+        $out .= "{$prefix}.{$name}{{$body}}\n";
+    }
+    return $out;
+}
+
 /** Render a single attribute string from a class list. */
 function outpost_node_class_attr(array $classes): string {
     if (!$classes) return '';

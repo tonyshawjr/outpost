@@ -15,12 +15,19 @@
     return () => el.removeEventListener('click', onClick);
   });
 
+  $effect(() => {
+    const el = document.createElement('style');
+    el.textContent = editor.classesCss;
+    document.head.appendChild(el);
+    return () => el.remove();
+  });
+
   let root = $derived(editor.tree?.nodes?.[editor.tree.root]);
 </script>
 
 <div class="canvas">
   <div class="frame">
-    <div class="surface" bind:this={surfaceEl}>
+    <div class="surface oc-canvas" bind:this={surfaceEl}>
       {#if root}
         <NodeView node={root} {editor} />
       {/if}

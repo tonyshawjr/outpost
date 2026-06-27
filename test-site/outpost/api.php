@@ -196,6 +196,7 @@ ensure_form_submissions_extra_columns();
 ensure_pages_status_column();
 ensure_revisions_table();
 ensure_node_trees_table();
+ensure_style_classes_table();
 ensure_api_keys_table();
 ensure_webhooks_tables();
 ensure_channels_tables();
@@ -301,6 +302,8 @@ match (true) {
     $action === 'nodes' && $method === 'GET' => handle_nodes_get(),
     $action === 'nodes' && $method === 'PUT' => handle_nodes_save(),
     $action === 'nodes/render' && $method === 'GET' => handle_nodes_render(),
+    $action === 'classes' && $method === 'GET' => handle_classes_get(),
+    $action === 'classes' && $method === 'PUT' => handle_classes_save(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -1766,6 +1769,55 @@ function handle_nodes_render(): void {
     }
 
     json_response(['html' => $html]);
+}
+
+function handle_classes_get(): void {
+    $rows = OutpostDB::fetchAll('SELECT name, declarations FROM style_classes ORDER BY name ASC');
+    $classes = [];
+    foreach ($rows as $r) {
+        $classes[] = [
+            'name' => $r['name'],
+            'declarations' => json_decode($r['declarations'] ?: '{}', true) ?: new \stdClass(),
+        ];
+    }
+    json_response(['classes' => $classes]);
+}
+
+function handle_classes_save(): void {
+    if (!function_exists('outpost_sanitise_declarations')) require_once __DIR__ . '/node-engine.php';
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body) || !isset($body['classes']) || !is_array($body['classes'])) {
+        json_error('classes array required', 400);
+    }
+
+    $clean = [];
+    foreach ($body['classes'] as $i => $c) {
+        $name = $c['name'] ?? '';
+        if (!is_string($name) || !outpost_class_name_valid($name)) {
+            json_error("classes[{$i}].name invalid", 400);
+        }
+        $decls = is_array($c['declarations'] ?? null) ? outpost_sanitise_declarations($c['declarations']) : [];
+        $clean[$name] = $decls;
+    }
+
+    $db = OutpostDB::connect();
+    $db->beginTransaction();
+    try {
+        OutpostDB::query('DELETE FROM style_classes');
+        foreach ($clean as $name => $decls) {
+            OutpostDB::insert('style_classes', [
+                'name' => $name,
+                'declarations' => json_encode((object) $decls, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ]);
+        }
+        $db->commit();
+    } catch (\Throwable $e) {
+        $db->rollBack();
+        json_error('Failed to save classes: ' . $e->getMessage(), 500);
+    }
+
+    json_response(['ok' => true, 'count' => count($clean)]);
 }
 
 // v6: Block library API — backs the PageBuilder block picker
@@ -6178,6 +6230,21 @@ function handle_test_smtp(): void {
 }
 
 // ── Revisions ────────────────────────────────────────────
+
+function ensure_style_classes_table(): void {
+    $exists = OutpostDB::fetchOne("SELECT name FROM sqlite_master WHERE type='table' AND name='style_classes'");
+    if (!$exists) {
+        OutpostDB::connect()->exec("
+            CREATE TABLE IF NOT EXISTS style_classes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                declarations TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            );
+        ");
+    }
+}
 
 function ensure_node_trees_table(): void {
     $exists = OutpostDB::fetchOne("SELECT name FROM sqlite_master WHERE type='table' AND name='node_trees'");

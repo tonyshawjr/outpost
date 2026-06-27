@@ -270,6 +270,14 @@ class OutpostDB {
                 UNIQUE(owner_type, owner_id)
             );
 
+            CREATE TABLE IF NOT EXISTS style_classes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                declarations TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            );
+
             CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme);
             CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status);
             CREATE INDEX IF NOT EXISTS idx_revisions_entity ON revisions(entity_type, entity_id, created_at DESC);

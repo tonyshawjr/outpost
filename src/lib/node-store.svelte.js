@@ -10,7 +10,9 @@
  * patch-based history later if trees ever get large.
  */
 import * as T from './node-tree.js';
-import { nodes as nodesApi } from './api.js';
+import { nodes as nodesApi, styleClasses as styleClassesApi } from './api.js';
+
+const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 
 const HISTORY_LIMIT = 100;
 const snap = (tree) => structuredClone(tree);
@@ -26,6 +28,7 @@ export function createNodeEditor() {
   let conflict = $state(false);
   let undoStack = $state([]);
   let redoStack = $state([]);
+  let classes = $state({});
 
   /** Apply a tree-producing mutation, recording history. */
   function commit(producer) {
@@ -56,6 +59,21 @@ export function createNodeEditor() {
     get conflict() { return conflict; },
     get canUndo() { return undoStack.length > 0; },
     get canRedo() { return redoStack.length > 0; },
+    get classes() { return classes; },
+    get classNames() { return Object.keys(classes); },
+    get classesCss() {
+      let css = '';
+      for (const name in classes) {
+        const decls = classes[name];
+        let body = '';
+        for (const prop in decls) {
+          const v = decls[prop];
+          if (v !== '' && v != null) body += `${prop}:${v};`;
+        }
+        if (body) css += `.oc-canvas .${name}{${body}}\n`;
+      }
+      return css;
+    },
 
     // ── selection ─────────────────────────────────────
     select(id) { selectedId = id && tree.nodes[id] ? id : null; },
@@ -81,6 +99,34 @@ export function createNodeEditor() {
       return newIdv;
     },
 
+    createClass(name) {
+      if (!CLASS_NAME_RE.test(name) || classes[name]) return false;
+      classes = { ...classes, [name]: {} };
+      dirty = true;
+      return true;
+    },
+    setDeclaration(name, prop, value) {
+      if (!classes[name]) return;
+      const decls = { ...classes[name] };
+      if (value === '' || value == null) delete decls[prop];
+      else decls[prop] = value;
+      classes = { ...classes, [name]: decls };
+      dirty = true;
+    },
+    addClassToNode(nodeId, name) {
+      if (!CLASS_NAME_RE.test(name)) return false;
+      if (!classes[name]) classes = { ...classes, [name]: {} };
+      const node = tree.nodes[nodeId];
+      if (!node || node.classes.includes(name)) return false;
+      commit((t) => T.setClasses(t, nodeId, [...node.classes, name]));
+      return true;
+    },
+    removeClassFromNode(nodeId, name) {
+      const node = tree.nodes[nodeId];
+      if (!node) return;
+      commit((t) => T.setClasses(t, nodeId, node.classes.filter((c) => c !== name)));
+    },
+
     // ── undo / redo ───────────────────────────────────
     undo() {
       if (!undoStack.length) return;
@@ -100,9 +146,12 @@ export function createNodeEditor() {
     // ── persistence ───────────────────────────────────
     async load(id, type = 'page') {
       ownerType = type; ownerId = id;
-      const res = await nodesApi.get(id, type);
+      const [res, cr] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get()]);
       tree = T.validate(res.tree);
       version = res.version || 0;
+      const next = {};
+      for (const c of cr.classes || []) next[c.name] = c.declarations || {};
+      classes = next;
       undoStack = []; redoStack = [];
       dirty = false; conflict = false; selectedId = null;
       return tree;
@@ -113,6 +162,7 @@ export function createNodeEditor() {
       try {
         const res = await nodesApi.save(ownerId, ownerType, T.validate(tree), version);
         version = res.version;
+        await styleClassesApi.save(Object.entries(classes).map(([name, declarations]) => ({ name, declarations })));
         dirty = false;
         return res;
       } catch (e) {

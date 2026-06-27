@@ -6,6 +6,7 @@
   import { NODE_TYPES } from '$lib/node-tree.js';
   import LayersPanel from '$components/builder/LayersPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
+  import StylePanel from '$components/builder/StylePanel.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon } from 'lucide-svelte';
 
   const editor = createNodeEditor();
@@ -163,6 +164,8 @@
               <input type="text" value={selected.props.href || ''} oninput={(e) => setProp('href', e)} />
             </label>
           {/if}
+
+          <StylePanel {editor} />
 
           <div class="ins-actions">
             <button class="ghost" onclick={() => editor.duplicate(selected.id)}>

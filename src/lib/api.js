@@ -108,6 +108,11 @@ export const nodes = {
     request('nodes/render', { params: { owner_id: ownerId, owner_type: ownerType } }),
 };
 
+export const styleClasses = {
+  get: () => request('classes'),
+  save: (classes) => request('classes', { method: 'PUT', body: { classes } }),
+};
+
 // Pages
 export const pages = {
   list: (search = '') =>
