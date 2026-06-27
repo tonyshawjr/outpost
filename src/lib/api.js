@@ -98,6 +98,16 @@ export const auth = {
     request('auth/totp/status'),
 };
 
+// v6: Node-tree engine (visual page-builder spine)
+export const nodes = {
+  get: (ownerId, ownerType = 'page') =>
+    request('nodes', { params: { owner_id: ownerId, owner_type: ownerType } }),
+  save: (ownerId, ownerType, tree, version) =>
+    request('nodes', { method: 'PUT', params: { owner_id: ownerId, owner_type: ownerType }, body: { tree, version } }),
+  render: (ownerId, ownerType = 'page') =>
+    request('nodes/render', { params: { owner_id: ownerId, owner_type: ownerType } }),
+};
+
 // Pages
 export const pages = {
   list: (search = '') =>

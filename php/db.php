@@ -256,12 +256,27 @@ class OutpostDB {
                 FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE
             );
 
+            -- v6: Node-tree engine (visual page builder spine).
+            -- One row per owner (page now; component/template later) holding the
+            -- whole node tree as a flat-map JSON document: { root, nodes:{...} }.
+            CREATE TABLE IF NOT EXISTS node_trees (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_type TEXT NOT NULL DEFAULT 'page',
+                owner_id INTEGER NOT NULL,
+                tree TEXT NOT NULL DEFAULT '{}',
+                version INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now')),
+                UNIQUE(owner_type, owner_id)
+            );
+
             CREATE INDEX IF NOT EXISTS idx_fields_page_theme ON fields(page_id, theme);
             CREATE INDEX IF NOT EXISTS idx_collection_items_coll_status ON collection_items(collection_id, status);
             CREATE INDEX IF NOT EXISTS idx_revisions_entity ON revisions(entity_type, entity_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_media_folder_items_folder ON media_folder_items(folder_id);
             CREATE INDEX IF NOT EXISTS idx_media_folder_items_media ON media_folder_items(media_id);
             CREATE INDEX IF NOT EXISTS idx_page_blocks_page_pos ON page_blocks(page_id, position);
+            CREATE INDEX IF NOT EXISTS idx_node_trees_owner ON node_trees(owner_type, owner_id);
         ");
     }
 }

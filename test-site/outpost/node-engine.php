@@ -1,0 +1,219 @@
+<?php
+/**
+ * Outpost — Node-Tree Engine (v6 visual page-builder spine).
+ *
+ * A page's layout is a flat-map node tree:
+ *   { "root": "n_root", "nodes": { "<id>": <node>, ... } }
+ * where each node is:
+ *   { id, type, tag, props:{}, classes:[], styles:{}, children:[<id>,...] }
+ *
+ * This file is the canonical PHP side: the type registry, structural
+ * validation/sanitisation, and a recursive node -> semantic-HTML renderer.
+ * The JS editor store mirrors this shape; the renderer here is the seed of
+ * the eventual publisher (clean HTML out, no builder cruft).
+ */
+
+/** Node type registry: allowed tags (first = default) + whether it nests. */
+function outpost_node_types(): array {
+    return [
+        'container' => [
+            'tags' => ['div', 'section', 'main', 'header', 'footer', 'article', 'aside', 'nav', 'ul', 'ol', 'li', 'figure'],
+            'children' => true,
+            'void' => false,
+        ],
+        'text' => [
+            'tags' => ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'small', 'blockquote', 'label'],
+            'children' => false,
+            'void' => false,
+        ],
+        'image' => [
+            'tags' => ['img'],
+            'children' => false,
+            'void' => true,
+        ],
+        'button' => [
+            'tags' => ['button', 'a'],
+            'children' => false,
+            'void' => false,
+        ],
+        'link' => [
+            'tags' => ['a'],
+            'children' => false,
+            'void' => false,
+        ],
+    ];
+}
+
+/** Generate a node id matching the JS store format (n_ + 10 hex). */
+function outpost_node_id(): string {
+    return 'n_' . bin2hex(random_bytes(5));
+}
+
+/** A fresh empty tree: a single body container as root. */
+function outpost_node_default_tree(): array {
+    $root = outpost_node_id();
+    return [
+        'root' => $root,
+        'nodes' => [
+            $root => [
+                'id' => $root,
+                'type' => 'container',
+                'tag' => 'main',
+                'props' => new \stdClass(),
+                'classes' => [],
+                'styles' => new \stdClass(),
+                'children' => [],
+            ],
+        ],
+    ];
+}
+
+/** Sanitise a class token to a safe CSS class name. */
+function outpost_node_sanitise_class(string $c): string {
+    return preg_replace('/[^A-Za-z0-9_-]/', '', $c);
+}
+
+/** Sanitise a URL prop: allow http(s)/mailto/tel/relative; block scripts. */
+function outpost_node_sanitise_url(string $url): string {
+    $url = trim($url);
+    if ($url === '') return '';
+    if (preg_match('/^\s*javascript:/i', $url)) return '';
+    if (preg_match('/^\s*data:/i', $url)) return '';
+    if (preg_match('/^\s*vbscript:/i', $url)) return '';
+    return $url;
+}
+
+/**
+ * Validate + sanitise a tree. Returns a clean tree (unknown fields dropped,
+ * tags clamped to the type whitelist, dangling child refs removed, cycles
+ * broken). Throws on a structurally unusable tree.
+ */
+function outpost_node_validate(array $tree): array {
+    if (!isset($tree['root']) || !is_string($tree['root'])) {
+        throw new \InvalidArgumentException('tree.root missing');
+    }
+    if (!isset($tree['nodes']) || !is_array($tree['nodes'])) {
+        throw new \InvalidArgumentException('tree.nodes missing');
+    }
+    $types = outpost_node_types();
+    $clean = [];
+
+    foreach ($tree['nodes'] as $id => $node) {
+        if (!is_string($id) || !is_array($node)) continue;
+        $type = $node['type'] ?? '';
+        if (!isset($types[$type])) continue;
+
+        // Tag must be in the type's whitelist, else fall back to the default.
+        $allowedTags = $types[$type]['tags'];
+        $tag = $node['tag'] ?? '';
+        if (!in_array($tag, $allowedTags, true)) $tag = $allowedTags[0];
+
+        // Classes -> sanitised, de-duped, non-empty.
+        $classes = [];
+        foreach ((array) ($node['classes'] ?? []) as $c) {
+            if (!is_string($c)) continue;
+            $c = outpost_node_sanitise_class($c);
+            if ($c !== '' && !in_array($c, $classes, true)) $classes[] = $c;
+        }
+
+        $clean[$id] = [
+            'id' => $id,
+            'type' => $type,
+            'tag' => $tag,
+            'props' => is_array($node['props'] ?? null) ? $node['props'] : [],
+            'classes' => $classes,
+            'styles' => is_array($node['styles'] ?? null) ? $node['styles'] : [],
+            'children' => $types[$type]['children'] && is_array($node['children'] ?? null)
+                ? array_values(array_filter($node['children'], 'is_string'))
+                : [],
+        ];
+    }
+
+    if (!isset($clean[$tree['root']])) {
+        throw new \InvalidArgumentException('tree.root not found in nodes');
+    }
+
+    // Drop child refs that point at missing nodes.
+    foreach ($clean as $id => &$node) {
+        $node['children'] = array_values(array_filter(
+            $node['children'],
+            fn($cid) => isset($clean[$cid])
+        ));
+    }
+    unset($node);
+
+    // Break cycles + drop orphans by walking from root once (each node visited
+    // at most once; a child already seen is removed from the parent).
+    $seen = [];
+    $walk = function (string $id) use (&$walk, &$clean, &$seen) {
+        if (isset($seen[$id])) return false; // already attached elsewhere -> cycle/dup
+        $seen[$id] = true;
+        $kept = [];
+        foreach ($clean[$id]['children'] as $cid) {
+            if (isset($clean[$cid]) && $walk($cid)) $kept[] = $cid;
+        }
+        $clean[$id]['children'] = $kept;
+        return true;
+    };
+    $walk($tree['root']);
+
+    // Keep only reachable nodes.
+    $nodes = [];
+    foreach ($seen as $id => $_) $nodes[$id] = $clean[$id];
+
+    return ['root' => $tree['root'], 'nodes' => $nodes];
+}
+
+/** Render a single attribute string from a class list. */
+function outpost_node_class_attr(array $classes): string {
+    if (!$classes) return '';
+    return ' class="' . htmlspecialchars(implode(' ', $classes), ENT_QUOTES) . '"';
+}
+
+/**
+ * Render a validated tree to semantic HTML. Pass the tree and optionally a
+ * starting node id (defaults to root). Pure string output, every value escaped.
+ */
+function outpost_render_node_tree(array $tree, ?string $startId = null): string {
+    $tree = outpost_node_validate($tree);
+    $start = $startId ?? $tree['root'];
+    if (!isset($tree['nodes'][$start])) return '';
+    return outpost_render_node($tree, $start);
+}
+
+function outpost_render_node(array $tree, string $id): string {
+    $node = $tree['nodes'][$id];
+    $types = outpost_node_types();
+    $tag = $node['tag'];
+    $cls = outpost_node_class_attr($node['classes']);
+    $props = (array) $node['props'];
+
+    switch ($node['type']) {
+        case 'image':
+            $src = htmlspecialchars(outpost_node_sanitise_url((string) ($props['src'] ?? '')), ENT_QUOTES);
+            $alt = htmlspecialchars((string) ($props['alt'] ?? ''), ENT_QUOTES);
+            return "<img{$cls} src=\"{$src}\" alt=\"{$alt}\">";
+
+        case 'text':
+            $text = htmlspecialchars((string) ($props['text'] ?? ''), ENT_QUOTES);
+            return "<{$tag}{$cls}>{$text}</{$tag}>";
+
+        case 'link':
+        case 'button':
+            $text = htmlspecialchars((string) ($props['text'] ?? ''), ENT_QUOTES);
+            $href = outpost_node_sanitise_url((string) ($props['href'] ?? ''));
+            if ($tag === 'a') {
+                $h = htmlspecialchars($href !== '' ? $href : '#', ENT_QUOTES);
+                return "<a{$cls} href=\"{$h}\">{$text}</a>";
+            }
+            return "<button{$cls} type=\"button\">{$text}</button>";
+
+        case 'container':
+        default:
+            $inner = '';
+            foreach ($node['children'] as $cid) {
+                $inner .= outpost_render_node($tree, $cid);
+            }
+            return "<{$tag}{$cls}>{$inner}</{$tag}>";
+    }
+}

@@ -195,6 +195,7 @@ ensure_forms_builder_table();
 ensure_form_submissions_extra_columns();
 ensure_pages_status_column();
 ensure_revisions_table();
+ensure_node_trees_table();
 ensure_api_keys_table();
 ensure_webhooks_tables();
 ensure_channels_tables();
@@ -295,6 +296,11 @@ match (true) {
     // v6: Block library (active theme)
     $action === 'blocks' && $method === 'GET' => handle_blocks_list(),
     $action === 'blocks/get' && $method === 'GET' => handle_blocks_get(),
+
+    // v6: Node-tree engine (visual page-builder spine)
+    $action === 'nodes' && $method === 'GET' => handle_nodes_get(),
+    $action === 'nodes' && $method === 'PUT' => handle_nodes_save(),
+    $action === 'nodes/render' && $method === 'GET' => handle_nodes_render(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -1651,6 +1657,115 @@ function handle_page_blocks_save(): void {
     OutpostDB::update('pages', ['updated_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
 
     json_response(['ok' => true, 'count' => count($body['blocks'])]);
+}
+
+// v6: Node-tree engine API — backs the visual page-builder spine
+function nodes_owner_args(): array {
+    $type = $_GET['owner_type'] ?? 'page';
+    if (!in_array($type, ['page', 'component', 'template'], true)) {
+        json_error('Invalid owner_type', 400);
+    }
+    $ownerId = (int) ($_GET['owner_id'] ?? $_GET['id'] ?? 0);
+    if (!$ownerId) json_error('owner_id required', 400);
+    return [$type, $ownerId];
+}
+
+function handle_nodes_get(): void {
+    if (!function_exists('outpost_node_default_tree')) require_once __DIR__ . '/node-engine.php';
+    [$type, $ownerId] = nodes_owner_args();
+
+    $row = OutpostDB::fetchOne(
+        'SELECT tree, version, updated_at FROM node_trees WHERE owner_type = ? AND owner_id = ?',
+        [$type, $ownerId]
+    );
+
+    if (!$row) {
+        // No tree yet — hand back a fresh default so the editor has a root.
+        json_response([
+            'owner_type' => $type,
+            'owner_id'   => $ownerId,
+            'tree'       => outpost_node_default_tree(),
+            'version'    => 0,
+            'exists'     => false,
+        ]);
+    }
+
+    json_response([
+        'owner_type' => $type,
+        'owner_id'   => $ownerId,
+        'tree'       => json_decode($row['tree'] ?: '{}', true) ?: outpost_node_default_tree(),
+        'version'    => (int) $row['version'],
+        'updated_at' => $row['updated_at'],
+        'exists'     => true,
+    ]);
+}
+
+function handle_nodes_save(): void {
+    if (!function_exists('outpost_node_validate')) require_once __DIR__ . '/node-engine.php';
+    [$type, $ownerId] = nodes_owner_args();
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body) || !isset($body['tree']) || !is_array($body['tree'])) {
+        json_error('tree object required', 400);
+    }
+
+    try {
+        $clean = outpost_node_validate($body['tree']);
+    } catch (\Throwable $e) {
+        json_error('Invalid tree: ' . $e->getMessage(), 400);
+    }
+
+    $existing = OutpostDB::fetchOne(
+        'SELECT version FROM node_trees WHERE owner_type = ? AND owner_id = ?',
+        [$type, $ownerId]
+    );
+
+    // Optimistic lock: if the client sent a version and it no longer matches,
+    // someone else saved in between — reject rather than clobber.
+    if ($existing && isset($body['version']) && (int) $body['version'] !== (int) $existing['version']) {
+        json_error('Tree was modified by another session', 409);
+    }
+
+    $treeJson = json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $now = date('Y-m-d H:i:s');
+
+    if ($existing) {
+        $newVersion = (int) $existing['version'] + 1;
+        OutpostDB::update('node_trees',
+            ['tree' => $treeJson, 'version' => $newVersion, 'updated_at' => $now],
+            'owner_type = ? AND owner_id = ?', [$type, $ownerId]
+        );
+    } else {
+        $newVersion = 1;
+        OutpostDB::insert('node_trees', [
+            'owner_type' => $type,
+            'owner_id'   => $ownerId,
+            'tree'       => $treeJson,
+            'version'    => $newVersion,
+        ]);
+    }
+
+    json_response(['ok' => true, 'version' => $newVersion, 'nodes' => count($clean['nodes'])]);
+}
+
+function handle_nodes_render(): void {
+    if (!function_exists('outpost_render_node_tree')) require_once __DIR__ . '/node-engine.php';
+    [$type, $ownerId] = nodes_owner_args();
+
+    $row = OutpostDB::fetchOne(
+        'SELECT tree FROM node_trees WHERE owner_type = ? AND owner_id = ?',
+        [$type, $ownerId]
+    );
+    $tree = $row ? (json_decode($row['tree'] ?: '{}', true) ?: outpost_node_default_tree())
+                 : outpost_node_default_tree();
+
+    try {
+        $html = outpost_render_node_tree($tree);
+    } catch (\Throwable $e) {
+        json_error('Render failed: ' . $e->getMessage(), 400);
+    }
+
+    json_response(['html' => $html]);
 }
 
 // v6: Block library API — backs the PageBuilder block picker
@@ -6063,6 +6178,25 @@ function handle_test_smtp(): void {
 }
 
 // ── Revisions ────────────────────────────────────────────
+
+function ensure_node_trees_table(): void {
+    $exists = OutpostDB::fetchOne("SELECT name FROM sqlite_master WHERE type='table' AND name='node_trees'");
+    if (!$exists) {
+        OutpostDB::connect()->exec("
+            CREATE TABLE IF NOT EXISTS node_trees (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_type TEXT NOT NULL DEFAULT 'page',
+                owner_id INTEGER NOT NULL,
+                tree TEXT NOT NULL DEFAULT '{}',
+                version INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now')),
+                UNIQUE(owner_type, owner_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_node_trees_owner ON node_trees(owner_type, owner_id);
+        ");
+    }
+}
 
 function ensure_revisions_table(): void {
     $exists = OutpostDB::fetchOne("SELECT name FROM sqlite_master WHERE type='table' AND name='revisions'");
