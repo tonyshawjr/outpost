@@ -307,6 +307,8 @@ match (true) {
     $action === 'classes' && $method === 'PUT' => handle_classes_save(),
     $action === 'components' && $method === 'GET' => handle_components_get(),
     $action === 'components' && $method === 'PUT' => handle_components_save(),
+    $action === 'design-tokens' && $method === 'GET' => handle_design_tokens_get(),
+    $action === 'design-tokens' && $method === 'PUT' => handle_design_tokens_save(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -1821,6 +1823,47 @@ function handle_classes_save(): void {
     }
 
     json_response(['ok' => true, 'count' => count($clean)]);
+}
+
+function handle_design_tokens_get(): void {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'builder_design_tokens'");
+    $tokens = $row ? (json_decode($row['value'] ?: 'null', true)) : null;
+    json_response(['tokens' => $tokens]);
+}
+
+function handle_design_tokens_save(): void {
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body) || !isset($body['tokens']) || !is_array($body['tokens'])) {
+        json_error('tokens object required', 400);
+    }
+
+    $tokens = $body['tokens'];
+    $colors = [];
+    foreach ($tokens['colors'] ?? [] as $c) {
+        $name = $c['name'] ?? '';
+        if (!is_string($name) || !preg_match('/^[a-z][a-z0-9-]*$/', $name)) continue;
+        $value = $c['value'] ?? '';
+        if (!is_string($value) || !preg_match('/^#?[0-9a-fA-F]{3,8}$/', $value)) continue;
+        $colors[] = ['name' => $name, 'value' => $value, 'utilities' => !empty($c['utilities'])];
+    }
+    $numOpts = function ($src, array $keys): array {
+        $out = [];
+        foreach ($keys as $k) {
+            if (isset($src[$k]) && is_numeric($src[$k])) $out[$k] = $src[$k] + 0;
+        }
+        return $out;
+    };
+    $clean = [
+        'colors' => $colors,
+        'type' => $numOpts($tokens['type'] ?? [], ['baseMin', 'baseMax', 'ratio', 'minVw', 'maxVw']),
+        'spacing' => $numOpts($tokens['spacing'] ?? [], ['baseMin', 'baseMax', 'ratio', 'minVw', 'maxVw']),
+    ];
+
+    OutpostDB::query(
+        'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+        ['builder_design_tokens', json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]
+    );
+    json_response(['ok' => true]);
 }
 
 function handle_components_get(): void {

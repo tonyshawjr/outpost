@@ -6,6 +6,7 @@
   import { NODE_TYPES } from '$lib/node-tree.js';
   import LayersPanel from '$components/builder/LayersPanel.svelte';
   import SelectorsPanel from '$components/builder/SelectorsPanel.svelte';
+  import TokensPanel from '$components/builder/TokensPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft } from 'lucide-svelte';
@@ -150,11 +151,14 @@
         <div class="left-tabs" role="tablist" aria-label="Left panel">
           <button role="tab" aria-selected={leftPanel === 'layers'} class:on={leftPanel === 'layers'} onclick={() => (leftPanel = 'layers')}>Layers</button>
           <button role="tab" aria-selected={leftPanel === 'selectors'} class:on={leftPanel === 'selectors'} onclick={() => (leftPanel = 'selectors')}>Selectors</button>
+          <button role="tab" aria-selected={leftPanel === 'tokens'} class:on={leftPanel === 'tokens'} onclick={() => (leftPanel = 'tokens')}>Tokens</button>
         </div>
         {#if leftPanel === 'layers'}
           <LayersPanel {editor} />
-        {:else}
+        {:else if leftPanel === 'selectors'}
           <SelectorsPanel {editor} />
+        {:else}
+          <TokensPanel {editor} />
         {/if}
       </div>
       <NodeCanvas {editor} />

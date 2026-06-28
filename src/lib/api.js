@@ -118,6 +118,11 @@ export const nodeComponents = {
   save: (components) => request('components', { method: 'PUT', body: { components } }),
 };
 
+export const designTokens = {
+  get: () => request('design-tokens'),
+  save: (tokens) => request('design-tokens', { method: 'PUT', body: { tokens } }),
+};
+
 // Pages
 export const pages = {
   list: (search = '') =>

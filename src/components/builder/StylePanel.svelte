@@ -5,7 +5,10 @@
 
   let node = $derived(editor.selectedNode);
   let override = $state(null);
-  let newClass = $state('');
+  let query = $state('');
+  let open = $state(false);
+  let highlight = $state(0);
+  let comboEl = $state(null);
 
   let activeClass = $derived.by(() => {
     const list = node ? node.classes : [];
@@ -16,19 +19,50 @@
   let decls = $derived(activeClass ? (editor.classes[activeClass] || {}) : {});
   let display = $derived(decls.display || '');
 
+  let suggestions = $derived.by(() => {
+    const q = query.trim().toLowerCase();
+    const onNode = new Set(node ? node.classes : []);
+    const usage = editor.classUsage;
+    const matches = editor.classNames
+      .filter((name) => !onNode.has(name) && (!q || name.toLowerCase().includes(q)))
+      .sort((a, b) => (usage[b] || 0) - (usage[a] || 0) || a.localeCompare(b))
+      .map((name) => ({ name, count: usage[name] || 0, exists: true }));
+    const exact = query.trim();
+    const canCreate = exact && !editor.classNames.includes(exact) && !onNode.has(exact);
+    return canCreate ? [...matches, { name: exact, exists: false }] : matches;
+  });
+
   function val(prop) { return decls[prop] || ''; }
   function set(prop, e) { editor.setDeclaration(activeClass, prop, e.target.value); }
 
-  function addClass() {
-    const name = newClass.trim();
-    if (!name) return;
-    if (editor.addClassToNode(node.id, name)) override = name;
-    newClass = '';
+  function choose(item) {
+    if (!item) return;
+    if (editor.addClassToNode(node.id, item.name)) override = item.name;
+    query = '';
+    open = false;
+    highlight = 0;
   }
 
-  function onAddKey(e) {
-    if (e.key === 'Enter') { e.preventDefault(); addClass(); }
+  function onComboKey(e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); open = true; highlight = Math.min(highlight + 1, suggestions.length - 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); highlight = Math.max(highlight - 1, 0); }
+    else if (e.key === 'Enter') { e.preventDefault(); choose(suggestions[highlight]); }
+    else if (e.key === 'Escape') { open = false; }
   }
+
+  $effect(() => {
+    query;
+    highlight = 0;
+  });
+
+  $effect(() => {
+    if (!open) return;
+    function onDoc(e) {
+      if (comboEl && !comboEl.contains(e.target)) open = false;
+    }
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  });
 </script>
 
 {#if node}
@@ -48,15 +82,43 @@
       </div>
     {/if}
 
-    <div class="add-row">
+    <div class="combo" bind:this={comboEl}>
       <input
         type="text"
-        placeholder="Add or create class"
-        bind:value={newClass}
-        onkeydown={onAddKey}
-        aria-label="Add or create class"
+        role="combobox"
+        placeholder="Search or create class"
+        bind:value={query}
+        onfocus={() => (open = true)}
+        oninput={() => (open = true)}
+        onkeydown={onComboKey}
+        aria-expanded={open}
+        aria-controls="class-listbox"
+        aria-autocomplete="list"
+        aria-label="Search or create class"
       />
-      <button class="add-btn" onclick={addClass} disabled={!newClass.trim()}>Add</button>
+      {#if open && suggestions.length}
+        <ul class="menu" id="class-listbox" role="listbox">
+          {#each suggestions as item, i (item.name + (item.exists ? '' : '-new'))}
+            <li role="none">
+              <button
+                role="option"
+                aria-selected={i === highlight}
+                class="opt"
+                class:hl={i === highlight}
+                onmousemove={() => (highlight = i)}
+                onclick={() => choose(item)}
+              >
+                {#if item.exists}
+                  <span class="opt-name">.{item.name}</span>
+                  <span class="opt-meta">{item.count === 0 ? 'Unused' : `${item.count}×`}</span>
+                {:else}
+                  <span class="opt-name">Create <strong>.{item.name}</strong></span>
+                {/if}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
     </div>
 
     {#if activeClass}
@@ -166,11 +228,10 @@
   .chip-x:hover { color: var(--red); }
   .chip-x:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
 
-  .add-row { display: flex; gap: 6px; }
+  .combo { position: relative; }
 
-  .add-row input {
-    flex: 1;
-    min-width: 0;
+  .combo > input {
+    width: 100%;
     padding: 8px 10px;
     border: 1px solid transparent;
     border-radius: 7px;
@@ -178,22 +239,51 @@
     color: var(--text);
     font-size: 13px;
   }
-  .add-row input:hover { border-color: var(--border); }
-  .add-row input:focus-visible { outline: none; border-color: var(--purple); }
+  .combo > input:hover { border-color: var(--border); }
+  .combo > input:focus-visible { outline: none; border-color: var(--purple); }
 
-  .add-btn {
-    padding: 8px 12px;
+  .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 9px;
     border: none;
-    border-radius: 7px;
-    background: var(--hover);
-    color: var(--text);
+    border-radius: 6px;
+    background: none;
+    color: var(--sec);
     font-size: 13px;
-    font-weight: 500;
+    text-align: left;
     cursor: pointer;
   }
-  .add-btn:hover:not(:disabled) { background: var(--bg-active); }
-  .add-btn:disabled { opacity: 0.4; cursor: default; }
-  .add-btn:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
+  .opt.hl { background: var(--hover); color: var(--text); }
+
+  .opt-name {
+    flex: 1;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .opt-name strong { color: var(--purple-soft); font-weight: 600; }
+  .opt-meta { font-size: 11px; color: var(--dim); flex-shrink: 0; }
 
   .editing {
     font-size: 12px;

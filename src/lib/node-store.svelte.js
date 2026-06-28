@@ -1,5 +1,6 @@
 import * as T from './node-tree.js';
-import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi } from './api.js';
+import * as TOK from './builder-tokens.js';
+import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi } from './api.js';
 
 const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 const HISTORY_LIMIT = 100;
@@ -25,6 +26,7 @@ export function createNodeEditor() {
   let undoStack = $state([]);
   let redoStack = $state([]);
   let classes = $state({});
+  let tokens = $state(TOK.defaultTokens());
 
   function getTree() {
     return editingComponentId && comps[editingComponentId] ? comps[editingComponentId].tree : pageTree;
@@ -104,8 +106,10 @@ export function createNodeEditor() {
       for (const cid in comps) tally(comps[cid].tree);
       return counts;
     },
+    get tokens() { return tokens; },
+    get tokenVars() { return TOK.tokenVarNames(tokens); },
     get classesCss() {
-      let css = '';
+      let css = TOK.tokensToCss(tokens);
       for (const name in classes) {
         const decls = classes[name];
         let body = '';
@@ -174,6 +178,29 @@ export function createNodeEditor() {
       name = (name || '').trim();
       if (!name) return;
       comps = { ...comps, [id]: { ...comps[id], name } };
+      dirty = true;
+    },
+
+    addColorToken(name, value) {
+      name = (name || '').trim();
+      if (!TOK.colorNameValid(name) || (tokens.colors || []).some((c) => c.name === name)) return false;
+      tokens = { ...tokens, colors: [...(tokens.colors || []), { name, value: value || '#888888', utilities: true }] };
+      dirty = true;
+      return true;
+    },
+    updateColorToken(name, patch) {
+      tokens = { ...tokens, colors: (tokens.colors || []).map((c) => (c.name === name ? { ...c, ...patch } : c)) };
+      dirty = true;
+    },
+    removeColorToken(name) {
+      tokens = { ...tokens, colors: (tokens.colors || []).filter((c) => c.name !== name) };
+      dirty = true;
+    },
+    setScaleOption(scale, key, value) {
+      if (scale !== 'type' && scale !== 'spacing') return;
+      const num = Number(value);
+      if (!Number.isFinite(num)) return;
+      tokens = { ...tokens, [scale]: { ...tokens[scale], [key]: num } };
       dirty = true;
     },
 
@@ -253,7 +280,7 @@ export function createNodeEditor() {
 
     async load(id, type = 'page') {
       ownerType = type; ownerId = id;
-      const [res, cr, comp] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get()]);
+      const [res, cr, comp, tk] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get(), tokensApi.get()]);
       pageTree = T.validate(res.tree);
       version = res.version || 0;
       const nextClasses = {};
@@ -264,6 +291,7 @@ export function createNodeEditor() {
         try { nextComps[c.id] = { id: c.id, name: c.name, tree: T.validate(c.tree) }; } catch { void 0; }
       }
       comps = nextComps;
+      tokens = tk.tokens && tk.tokens.colors ? { ...TOK.defaultTokens(), ...tk.tokens } : TOK.defaultTokens();
       editingComponentId = null;
       resetHistory();
       dirty = false; conflict = false; selectedId = null;
@@ -277,6 +305,7 @@ export function createNodeEditor() {
         version = res.version;
         await styleClassesApi.save(Object.entries(classes).map(([name, declarations]) => ({ name, declarations })));
         await componentsApi.save(Object.values(comps).map((c) => ({ id: c.id, name: c.name, tree: c.tree })));
+        await tokensApi.save(tokens);
         dirty = false;
         return res;
       } catch (e) {
