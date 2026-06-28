@@ -8,7 +8,7 @@
   import SelectorsPanel from '$components/builder/SelectorsPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon } from 'lucide-svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -76,9 +76,17 @@
     editor.insert(type, insertTarget);
   }
 
+  let isComponentRef = $derived(selected?.type === 'component-ref');
+
   function setText(e) { editor.updateProps(selected.id, { text: e.target.value }); }
   function setProp(key, e) { editor.updateProps(selected.id, { [key]: e.target.value }); }
   function setTag(e) { editor.setTag(selected.id, e.target.value); }
+
+  function componentize() {
+    const raw = prompt('Component name', selected.type === 'container' ? 'Section' : 'Component');
+    if (raw === null) return;
+    editor.componentize(selected.id, raw.trim() || 'Component');
+  }
 
   async function save() {
     if (!editor.dirty || editor.saving) return;
@@ -121,6 +129,17 @@
     </div>
   </header>
 
+  {#if editor.editingComponentId}
+    <div class="cmp-banner" role="status">
+      <Component size={15} aria-hidden="true" />
+      <span>Editing component <strong>{editor.editingComponentName}</strong> — changes apply to every instance.</span>
+      <button class="cmp-done" onclick={() => editor.exitComponent()}>
+        <ArrowLeft size={14} aria-hidden="true" />
+        <span>Done</span>
+      </button>
+    </div>
+  {/if}
+
   {#if loading}
     <div class="message">Loading…</div>
   {:else if loadError}
@@ -140,7 +159,27 @@
       </div>
       <NodeCanvas {editor} />
       <aside class="inspector" aria-label="Element settings">
-        {#if selected}
+        {#if selected && isComponentRef}
+          <div class="ins-head">Component</div>
+          <div class="cmp-name">{editor.componentName(selected.props.componentId) || 'Component'}</div>
+          <p class="ins-hint">This is an instance. Edit the component to change every instance at once.</p>
+          <div class="ins-actions">
+            <button class="ghost" onclick={() => editor.enterComponent(selected.props.componentId)}>
+              <Pencil size={14} aria-hidden="true" />
+              <span>Edit component</span>
+            </button>
+            <button class="ghost" onclick={() => editor.duplicate(selected.id)}>
+              <Copy size={14} aria-hidden="true" />
+              <span>Duplicate</span>
+            </button>
+          </div>
+          <div class="ins-actions">
+            <button class="ghost danger" onclick={() => editor.remove(selected.id)} disabled={selected.id === editor.tree.root}>
+              <Trash2 size={14} aria-hidden="true" />
+              <span>Delete instance</span>
+            </button>
+          </div>
+        {:else if selected}
           <div class="ins-head">{selected.type}</div>
 
           <label class="field">
@@ -178,6 +217,15 @@
           {/if}
 
           <StylePanel {editor} />
+
+          {#if selected.id !== editor.tree.root}
+            <div class="ins-actions">
+              <button class="ghost" onclick={componentize}>
+                <Component size={14} aria-hidden="true" />
+                <span>Componentize</span>
+              </button>
+            </div>
+          {/if}
 
           <div class="ins-actions">
             <button class="ghost" onclick={() => editor.duplicate(selected.id)}>
@@ -284,6 +332,49 @@
   .save:hover:not(:disabled) { background: var(--accent-hover); }
   .save:disabled { opacity: 0.4; cursor: default; }
   .save:focus-visible { outline: 2px solid var(--purple-soft); outline-offset: 2px; }
+
+  .cmp-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    background: var(--purple-bg);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .cmp-banner strong { font-weight: 600; }
+  .cmp-banner :global(svg) { color: var(--purple-soft); flex-shrink: 0; }
+  .cmp-done {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 7px;
+    background: var(--purple);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .cmp-done:focus-visible { outline: 2px solid var(--purple-soft); outline-offset: 2px; }
+
+  .cmp-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .ins-hint {
+    font-size: 12px;
+    color: var(--dim);
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
 
   .body {
     flex: 1;

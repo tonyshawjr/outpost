@@ -16,6 +16,7 @@ export const NODE_TYPES = {
   image:     { tags: ['img'], children: false, void: true },
   button:    { tags: ['button', 'a'], children: false, void: false },
   link:      { tags: ['a'], children: false, void: false },
+  'component-ref': { tags: ['div'], children: false, void: false },
 };
 
 /** Default props per type, used when creating a node. */
@@ -25,6 +26,7 @@ const DEFAULT_PROPS = {
   image: { src: '', alt: '' },
   button: { text: 'Button', href: '' },
   link: { text: 'Link', href: '#' },
+  'component-ref': { componentId: '' },
 };
 
 const HEX = '0123456789abcdef';
@@ -82,7 +84,7 @@ export function isAncestor(tree, maybeAncestor, id) {
   return false;
 }
 
-const clone = (tree) => structuredClone(tree);
+const clone = (tree) => JSON.parse(JSON.stringify(tree));
 
 /**
  * Insert a freshly-built node of `type` under `parentId` at `index`
@@ -179,7 +181,7 @@ export function duplicateNode(tree, id) {
 
   const cloneSubtree = (srcId) => {
     const src = next.nodes[srcId];
-    const copy = { ...structuredClone(src), id: newId(), children: [] };
+    const copy = { ...JSON.parse(JSON.stringify(src)), id: newId(), children: [] };
     next.nodes[copy.id] = copy;
     for (const cid of src.children || []) copy.children.push(cloneSubtree(cid));
     return copy.id;
@@ -190,6 +192,18 @@ export function duplicateNode(tree, id) {
   const idx = p.children.indexOf(id);
   p.children.splice(idx + 1, 0, newRootId);
   return { tree: next, id: newRootId };
+}
+
+export function extractSubtree(tree, id) {
+  const nodes = {};
+  const walk = (nid) => {
+    const n = tree.nodes[nid];
+    if (!n) return;
+    nodes[nid] = JSON.parse(JSON.stringify(n));
+    for (const c of n.children || []) walk(c);
+  };
+  walk(id);
+  return { root: id, nodes };
 }
 
 /**

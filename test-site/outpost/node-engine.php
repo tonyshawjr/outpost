@@ -41,6 +41,11 @@ function outpost_node_types(): array {
             'children' => false,
             'void' => false,
         ],
+        'component-ref' => [
+            'tags' => ['div'],
+            'children' => false,
+            'void' => false,
+        ],
     ];
 }
 
@@ -214,21 +219,31 @@ function outpost_node_class_attr(array $classes): string {
  * Render a validated tree to semantic HTML. Pass the tree and optionally a
  * starting node id (defaults to root). Pure string output, every value escaped.
  */
-function outpost_render_node_tree(array $tree, ?string $startId = null): string {
+function outpost_render_node_tree(array $tree, ?string $startId = null, array $components = []): string {
     $tree = outpost_node_validate($tree);
     $start = $startId ?? $tree['root'];
     if (!isset($tree['nodes'][$start])) return '';
-    return outpost_render_node($tree, $start);
+    return outpost_render_node($tree, $start, $components, []);
 }
 
-function outpost_render_node(array $tree, string $id): string {
+function outpost_render_node(array $tree, string $id, array $components, array $stack): string {
     $node = $tree['nodes'][$id];
-    $types = outpost_node_types();
     $tag = $node['tag'];
     $cls = outpost_node_class_attr($node['classes']);
     $props = (array) $node['props'];
 
     switch ($node['type']) {
+        case 'component-ref':
+            $cid = (string) ($props['componentId'] ?? '');
+            if ($cid === '' || in_array($cid, $stack, true) || !isset($components[$cid]['tree'])) {
+                return "<div{$cls}></div>";
+            }
+            $ctree = outpost_node_validate($components[$cid]['tree']);
+            $inner = isset($ctree['nodes'][$ctree['root']])
+                ? outpost_render_node($ctree, $ctree['root'], $components, array_merge($stack, [$cid]))
+                : '';
+            return "<div{$cls}>{$inner}</div>";
+
         case 'image':
             $src = htmlspecialchars(outpost_node_sanitise_url((string) ($props['src'] ?? '')), ENT_QUOTES);
             $alt = htmlspecialchars((string) ($props['alt'] ?? ''), ENT_QUOTES);
@@ -251,8 +266,8 @@ function outpost_render_node(array $tree, string $id): string {
         case 'container':
         default:
             $inner = '';
-            foreach ($node['children'] as $cid) {
-                $inner .= outpost_render_node($tree, $cid);
+            foreach ($node['children'] as $cid2) {
+                $inner .= outpost_render_node($tree, $cid2, $components, $stack);
             }
             return "<{$tag}{$cls}>{$inner}</{$tag}>";
     }

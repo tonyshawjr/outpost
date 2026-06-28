@@ -7,6 +7,11 @@
   let collapsed = $state(new Set());
   let treeEl = $state(null);
 
+  function groupFor(row) {
+    if (row.type === 'component-ref') return 'component';
+    return tagGroup(row.tag);
+  }
+
   function tagGroup(tag) {
     if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) return 'heading';
     if (['p', 'span', 'strong', 'em', 'small', 'blockquote', 'label'].includes(tag)) return 'text';
@@ -24,7 +29,7 @@
       const n = tree.nodes[id];
       if (!n) return;
       const kids = n.children || [];
-      out.push({ id, depth, type: n.type, tag: n.tag, classes: n.classes, hasChildren: kids.length > 0 });
+      out.push({ id, depth, type: n.type, tag: n.tag, classes: n.classes, hasChildren: kids.length > 0, compId: n.props?.componentId });
       if (kids.length && !collapsed.has(id)) for (const c of kids) walk(c, depth + 1);
     };
     walk(tree.root, 0);
@@ -88,6 +93,7 @@
     if (row.type === 'image') return 'Image';
     if (row.type === 'button') return 'Button';
     if (row.type === 'link') return 'Link';
+    if (row.type === 'component-ref') return editor.componentName(row.compId) || 'Component';
     return 'Container';
   }
 </script>
@@ -126,7 +132,7 @@
               </span>
             {/if}
           </span>
-          <span class="badge" data-group={tagGroup(row.tag)}>{row.tag}</span>
+          <span class="badge" data-group={groupFor(row)}>{row.type === 'component-ref' ? 'cmp' : row.tag}</span>
           <span class="type">{label(row)}</span>
           {#if row.classes.length}
             <span class="classes">.{row.classes.join(' .')}</span>
@@ -218,6 +224,7 @@
   .badge[data-group='interactive'] { background: var(--amber); color: #1a1a1a; }
   .badge[data-group='list'] { background: #2dd4bf; color: #1a1a1a; }
   .badge[data-group='generic'] { background: var(--dim); }
+  .badge[data-group='component'] { background: var(--purple); }
 
   .type {
     flex-shrink: 0;

@@ -113,6 +113,11 @@ export const styleClasses = {
   save: (classes) => request('classes', { method: 'PUT', body: { classes } }),
 };
 
+export const nodeComponents = {
+  get: () => request('components'),
+  save: (components) => request('components', { method: 'PUT', body: { components } }),
+};
+
 // Pages
 export const pages = {
   list: (search = '') =>

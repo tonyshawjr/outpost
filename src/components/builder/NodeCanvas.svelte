@@ -29,7 +29,7 @@
   <div class="frame">
     <div class="surface oc-canvas" bind:this={surfaceEl}>
       {#if root}
-        <NodeView node={root} {editor} />
+        <NodeView node={root} tree={editor.tree} {editor} />
       {/if}
     </div>
   </div>
@@ -69,6 +69,14 @@
   .surface :global([data-node-id][data-selected]) {
     outline: 2px solid var(--purple);
     outline-offset: 1px;
+  }
+
+  .surface :global([data-component-ref]) {
+    outline: 1px dashed var(--purple-soft);
+    outline-offset: 1px;
+  }
+  .surface :global([data-component-ref][data-selected]) {
+    outline: 2px solid var(--purple);
   }
 
   .surface :global(img) {

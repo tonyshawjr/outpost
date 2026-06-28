@@ -197,6 +197,7 @@ ensure_pages_status_column();
 ensure_revisions_table();
 ensure_node_trees_table();
 ensure_style_classes_table();
+ensure_components_table();
 ensure_api_keys_table();
 ensure_webhooks_tables();
 ensure_channels_tables();
@@ -304,6 +305,8 @@ match (true) {
     $action === 'nodes/render' && $method === 'GET' => handle_nodes_render(),
     $action === 'classes' && $method === 'GET' => handle_classes_get(),
     $action === 'classes' && $method === 'PUT' => handle_classes_save(),
+    $action === 'components' && $method === 'GET' => handle_components_get(),
+    $action === 'components' && $method === 'PUT' => handle_components_save(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -1815,6 +1818,63 @@ function handle_classes_save(): void {
     } catch (\Throwable $e) {
         $db->rollBack();
         json_error('Failed to save classes: ' . $e->getMessage(), 500);
+    }
+
+    json_response(['ok' => true, 'count' => count($clean)]);
+}
+
+function handle_components_get(): void {
+    $rows = OutpostDB::fetchAll('SELECT id, name, tree FROM components ORDER BY name ASC');
+    $components = [];
+    foreach ($rows as $r) {
+        $components[] = [
+            'id' => $r['id'],
+            'name' => $r['name'],
+            'tree' => json_decode($r['tree'] ?: '{}', true) ?: new \stdClass(),
+        ];
+    }
+    json_response(['components' => $components]);
+}
+
+function handle_components_save(): void {
+    if (!function_exists('outpost_node_validate')) require_once __DIR__ . '/node-engine.php';
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($body) || !isset($body['components']) || !is_array($body['components'])) {
+        json_error('components array required', 400);
+    }
+
+    $clean = [];
+    foreach ($body['components'] as $i => $c) {
+        $id = $c['id'] ?? '';
+        if (!is_string($id) || !preg_match('/^c_[a-f0-9]+$/', $id)) {
+            json_error("components[{$i}].id invalid", 400);
+        }
+        $name = is_string($c['name'] ?? null) ? trim($c['name']) : 'Component';
+        if ($name === '') $name = 'Component';
+        try {
+            $tree = outpost_node_validate(is_array($c['tree'] ?? null) ? $c['tree'] : []);
+        } catch (\Throwable $e) {
+            json_error("components[{$i}].tree invalid: " . $e->getMessage(), 400);
+        }
+        $clean[$id] = ['name' => $name, 'tree' => $tree];
+    }
+
+    $db = OutpostDB::connect();
+    $db->beginTransaction();
+    try {
+        OutpostDB::query('DELETE FROM components');
+        foreach ($clean as $id => $c) {
+            OutpostDB::insert('components', [
+                'id' => $id,
+                'name' => $c['name'],
+                'tree' => json_encode($c['tree'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ]);
+        }
+        $db->commit();
+    } catch (\Throwable $e) {
+        $db->rollBack();
+        json_error('Failed to save components: ' . $e->getMessage(), 500);
     }
 
     json_response(['ok' => true, 'count' => count($clean)]);
@@ -6239,6 +6299,21 @@ function ensure_style_classes_table(): void {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 declarations TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            );
+        ");
+    }
+}
+
+function ensure_components_table(): void {
+    $exists = OutpostDB::fetchOne("SELECT name FROM sqlite_master WHERE type='table' AND name='components'");
+    if (!$exists) {
+        OutpostDB::connect()->exec("
+            CREATE TABLE IF NOT EXISTS components (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL DEFAULT 'Component',
+                tree TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT DEFAULT (datetime('now')),
                 updated_at TEXT DEFAULT (datetime('now'))
             );
