@@ -288,6 +288,7 @@ match (true) {
     $action === 'pages' && $method === 'GET' && !isset($_GET['id']) => handle_pages_list(),
     $action === 'pages' && $method === 'POST' => handle_page_create(),
     $action === 'pages/import' && $method === 'POST' => handle_page_import(),
+    $action === 'pages/import-site' && $method === 'POST' => handle_site_import(),
     $action === 'pages' && $method === 'GET' && isset($_GET['id']) => handle_page_get(),
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
     $action === 'pages' && $method === 'DELETE' && isset($_GET['id']) => handle_page_delete(),
@@ -2110,6 +2111,140 @@ function handle_page_import(): void {
         'ok' => true,
         'page' => ['id' => $id, 'path' => $path, 'title' => $title],
         'fields' => $fieldCount,
+    ]);
+}
+
+function outpost_import_safe_extensions(): array {
+    return [
+        'html', 'htm', 'css', 'js', 'mjs', 'json', 'txt', 'md', 'svg', 'xml', 'webmanifest',
+        'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'ico', 'bmp',
+        'woff', 'woff2', 'ttf', 'otf', 'eot',
+        'mp4', 'webm', 'ogg', 'mp3', 'wav', 'map',
+    ];
+}
+
+function handle_site_import(): void {
+    outpost_require_cap('settings.*');
+    if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+
+    if (empty($_FILES['file']) || !is_uploaded_file($_FILES['file']['tmp_name'] ?? '')) {
+        json_error('No zip file uploaded', 400);
+    }
+    if (($_FILES['file']['size'] ?? 0) > 80 * 1048576) {
+        json_error('Zip too large (max 80 MB)', 413);
+    }
+
+    $zip = new \ZipArchive();
+    if ($zip->open($_FILES['file']['tmp_name']) !== true) {
+        json_error('Could not read the zip file', 400);
+    }
+    if ($zip->numFiles > 5000) {
+        $zip->close();
+        json_error('Too many files in zip (max 5000)', 413);
+    }
+
+    $names = [];
+    $totalUncompressed = 0;
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $stat = $zip->statIndex($i);
+        if (!$stat) continue;
+        $names[] = $stat['name'];
+        $totalUncompressed += (int) $stat['size'];
+    }
+    if ($totalUncompressed > 400 * 1048576) {
+        $zip->close();
+        json_error('Uncompressed contents too large (max 400 MB)', 413);
+    }
+
+    $firstSegments = [];
+    foreach ($names as $n) {
+        $n = str_replace('\\', '/', $n);
+        if ($n === '' || str_ends_with($n, '/')) continue;
+        $firstSegments[explode('/', ltrim($n, '/'))[0]] = true;
+    }
+    $stripPrefix = (count($firstSegments) === 1) ? array_key_first($firstSegments) . '/' : '';
+
+    $renderRoot = rtrim(outpost_active_render_root(), '/');
+    $allowed = outpost_import_safe_extensions();
+    $written = [];
+    $pageFiles = [];
+    $skipped = [];
+
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $entry = str_replace('\\', '/', $zip->getNameIndex($i));
+        if ($entry === '' || str_ends_with($entry, '/')) continue;
+
+        $rel = ltrim($entry, '/');
+        if ($stripPrefix !== '' && str_starts_with($rel, $stripPrefix)) {
+            $rel = substr($rel, strlen($stripPrefix));
+        }
+        if ($rel === '') continue;
+
+        $parts = explode('/', $rel);
+        if (in_array('..', $parts, true) || str_contains($rel, "\0")) {
+            $skipped[] = $entry . ' (unsafe path)';
+            continue;
+        }
+        foreach ($parts as $seg) {
+            if ($seg === '' || $seg[0] === '.') { $rel = ''; break; }
+        }
+        if ($rel === '') { $skipped[] = $entry . ' (hidden/dotfile)'; continue; }
+
+        $ext = strtolower(pathinfo($rel, PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowed, true)) {
+            $skipped[] = $entry . ' (blocked .' . $ext . ')';
+            continue;
+        }
+
+        $content = $zip->getFromIndex($i);
+        if ($content === false) { $skipped[] = $entry . ' (read error)'; continue; }
+
+        if ($ext === 'html' || $ext === 'htm') {
+            $content = outpost_strip_php_tags($content);
+        }
+
+        $target = $renderRoot . '/' . $rel;
+        $dir = dirname($target);
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        if (file_put_contents($target, $content) === false) {
+            $skipped[] = $entry . ' (write failed)';
+            continue;
+        }
+        $written[] = $rel;
+
+        if (($ext === 'html' || $ext === 'htm') && !str_contains($rel, '/')) {
+            $pageFiles[] = $rel;
+        }
+    }
+    $zip->close();
+
+    $now = date('Y-m-d H:i:s');
+    $pagesCreated = [];
+    foreach ($pageFiles as $file) {
+        $base = preg_replace('/\.html?$/i', '', $file);
+        $path = ($base === 'index') ? '/' : '/' . $base;
+        $title = ucwords(str_replace(['-', '_'], ' ', $base === 'index' ? 'Home' : $base));
+        $existing = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
+        if ($existing) {
+            OutpostDB::update('pages', ['updated_at' => $now], 'id = ?', [$existing['id']]);
+        } else {
+            OutpostDB::insert('pages', [
+                'path' => $path, 'title' => $title,
+                'status' => 'draft', 'visibility' => 'public', 'updated_at' => $now,
+            ]);
+        }
+        $pagesCreated[] = $path;
+    }
+
+    if (function_exists('outpost_scan_site_templates')) {
+        try { outpost_scan_site_templates(); } catch (\Throwable $e) {}
+    }
+
+    json_response([
+        'ok' => true,
+        'filesWritten' => count($written),
+        'pages' => $pagesCreated,
+        'skipped' => $skipped,
     ]);
 }
 
