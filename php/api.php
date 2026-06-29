@@ -1691,13 +1691,37 @@ function handle_nodes_get(): void {
     );
 
     if (!$row) {
-        // No tree yet — hand back a fresh default so the editor has a root.
+        // No saved tree yet. For a page that has a template file on disk, parse
+        // its HTML into a node tree on the fly so every page opens in the
+        // builder with its real content — not an empty canvas.
+        $tree = null;
+        $fromTemplate = false;
+        if ($type === 'page') {
+            if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+            $page = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [$ownerId]);
+            if ($page) {
+                $base = ($page['path'] === '/') ? 'index' : trim($page['path'], '/');
+                $file = rtrim(outpost_active_render_root(), '/') . '/' . $base . '.html';
+                if ($base !== '' && !str_contains($base, '/') && file_exists($file)) {
+                    $html = file_get_contents($file);
+                    if ($html !== false && trim($html) !== '') {
+                        try {
+                            $tree = outpost_html_to_node_tree($html);
+                            $fromTemplate = true;
+                        } catch (\Throwable $e) {
+                            $tree = null;
+                        }
+                    }
+                }
+            }
+        }
         json_response([
-            'owner_type' => $type,
-            'owner_id'   => $ownerId,
-            'tree'       => outpost_node_default_tree(),
-            'version'    => 0,
-            'exists'     => false,
+            'owner_type'   => $type,
+            'owner_id'     => $ownerId,
+            'tree'         => $tree ?: outpost_node_default_tree(),
+            'version'      => 0,
+            'exists'       => false,
+            'fromTemplate' => $fromTemplate,
         ]);
     }
 
