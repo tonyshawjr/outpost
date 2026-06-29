@@ -1,12 +1,8 @@
 <?php
 
-function builder_ai_system_prompt(array $context): string {
-    $contextJson = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-    return <<<PROMPT
-You are the in-app build agent for Outpost, a visual page builder. The user describes what they want and you build it directly on their page by calling the apply_ops tool. You are editing a live canvas — every operation you emit is applied instantly and is undoable by the user.
-
-# The page model
+function outpost_builder_conventions(): string {
+    return <<<GUIDE
+# Outpost page model
 A page is a tree of nodes. Each node has: id, type, tag, props, classes, children.
 
 Node types and their allowed tags:
@@ -19,13 +15,13 @@ Node types and their allowed tags:
 Only container nodes can hold children. Put text inside containers as separate text nodes; never nest text in text.
 
 # Styling
-Style with CSS classes, not inline styles. Define a class once with define_class, then attach it to nodes. Reuse existing classes when they fit. Available classes and design tokens are listed in the context below — prefer tokens (CSS variables) for colors and spacing so the page stays on-brand.
+Style with CSS classes, not inline styles. Define a class once with define_class, then attach it to nodes. Reuse existing classes when they fit. Prefer design tokens (CSS variables) for colors and spacing so the page stays on-brand.
 
 # Dynamic content (islands)
-A node can be bound to a dynamic field so its content is editable as managed content and rendered server-side. Bind a field with bind_field when the user wants editable or data-driven content (e.g. a hero headline, a price, a description). Give the field a short snake_case name.
+A node can be bound to a dynamic field so its content is editable as managed content and rendered server-side. Bind a field with bind_field when the content should be editable or data-driven (e.g. a hero headline, a price, a description). Give the field a short snake_case name. This is the "static page with dynamic holes" model — the page bakes to static HTML except the bound fields.
 
-# The apply_ops tool
-Call apply_ops with an "ops" array. Operations run in order. Supported operations:
+# Operations (the apply_ops / apply_page_ops vocabulary)
+Operations run in order. Supported operations:
 - {"op":"insert_tree","parent":<id|"root"|"selected">,"index":<int?>,"node":<spec>} — insert a subtree. A spec is {"type","tag"?,"text"?,"src"?,"alt"?,"href"?,"classes"?:[...],"field"?,"ref"?,"children"?:[spec...]}. Use "ref" to name a created node and reference it later in the same batch (as a parent or target). This is the main tool for building.
 - {"op":"update","id":<id|ref>,"text"?,"href"?,"src"?,"alt"?,"tag"?} — change a node's content or tag.
 - {"op":"set_classes","id":<id|ref>,"classes":[...]} — replace a node's class list.
@@ -36,17 +32,129 @@ Call apply_ops with an "ops" array. Operations run in order. Supported operation
 - {"op":"bind_field","id":<id|ref>,"field":"hero_title","fieldType":"text"} — make a node a dynamic island.
 
 # Rules
-- Reference existing nodes by their real id (from the context). Reference nodes you create in the same batch by "ref".
+- Reference existing nodes by their real id (from the page context). Reference nodes you create in the same batch by "ref".
 - Class names must be valid CSS identifiers (letters, numbers, hyphens, underscores).
 - Build complete, semantic, accessible markup: real headings in order, alt text on images, descriptive link text.
-- Batch a coherent change into a single apply_ops call when you can. After building, reply with one short sentence describing what you did — do not list every node.
-- If a request is ambiguous, make a sensible choice and build it; the user can refine.
+- Batch a coherent change into a single operation list when you can.
+- If a request is ambiguous, make a sensible choice and build it; it can be refined afterward.
+GUIDE;
+}
+
+function builder_ai_system_prompt(array $context): string {
+    $contextJson = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $conventions = outpost_builder_conventions();
+
+    return <<<PROMPT
+You are the in-app build agent for Outpost, a visual page builder. The user describes what they want and you build it directly on their page by calling the apply_ops tool. You are editing a live canvas — every operation you emit is applied instantly and is undoable by the user.
+
+$conventions
+
+After building, reply with one short sentence describing what you did — do not list every node.
 
 # Current page
 This JSON describes the page you are editing right now (node ids, classes, and tokens). Use it to target existing nodes and reuse classes:
 
 $contextJson
 PROMPT;
+}
+
+function outpost_builder_fetch_models(string $provider, string $apiKey): array {
+    $out = [];
+    if ($provider === 'claude') {
+        $ch = curl_init('https://api.anthropic.com/v1/models?limit=100');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['x-api-key: ' . $apiKey, 'anthropic-version: 2023-06-01'],
+            CURLOPT_TIMEOUT => 8,
+        ]);
+        $body = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code === 200 && $body) {
+            foreach (json_decode($body, true)['data'] ?? [] as $m) {
+                if (!empty($m['id'])) $out[] = ['id' => $m['id'], 'created' => $m['created_at'] ?? ''];
+            }
+        }
+    } elseif ($provider === 'openai') {
+        $ch = curl_init('https://api.openai.com/v1/models');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $apiKey],
+            CURLOPT_TIMEOUT => 8,
+        ]);
+        $body = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code === 200 && $body) {
+            foreach (json_decode($body, true)['data'] ?? [] as $m) {
+                if (!empty($m['id'])) $out[] = ['id' => $m['id'], 'created' => (string)($m['created'] ?? '')];
+            }
+        }
+    } elseif ($provider === 'gemini') {
+        $ch = curl_init('https://generativelanguage.googleapis.com/v1beta/models?key=' . urlencode($apiKey));
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8]);
+        $body = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code === 200 && $body) {
+            foreach (json_decode($body, true)['models'] ?? [] as $m) {
+                $id = str_replace('models/', '', $m['name'] ?? '');
+                if ($id) $out[] = ['id' => $id, 'created' => ''];
+            }
+        }
+    }
+    return $out;
+}
+
+function outpost_builder_available_models(string $provider, string $apiKey): array {
+    $cacheKey = "builder_model_cache_$provider";
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = ?", [$cacheKey]);
+    if ($row) {
+        $cached = json_decode($row['value'] ?? '', true);
+        if (is_array($cached) && (int)($cached['fetched_at'] ?? 0) > time() - 86400 && !empty($cached['models'])) {
+            return $cached['models'];
+        }
+    }
+    $models = outpost_builder_fetch_models($provider, $apiKey);
+    if (!empty($models)) {
+        OutpostDB::query('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [$cacheKey, json_encode(['fetched_at' => time(), 'models' => $models])]);
+    }
+    return $models;
+}
+
+function outpost_builder_resolve_model(string $provider, string $apiKey, string $hint): string {
+    $hint = strtolower(trim($hint));
+    $tier = match (true) {
+        str_contains($hint, 'opus') => 'opus',
+        str_contains($hint, 'haiku') => 'haiku',
+        str_contains($hint, 'sonnet') => 'sonnet',
+        default => '',
+    };
+
+    $models = outpost_builder_available_models($provider, $apiKey);
+
+    foreach ($models as $m) {
+        if (strtolower($m['id']) === $hint) return $m['id'];
+    }
+
+    if ($tier !== '' && !empty($models)) {
+        $matches = array_values(array_filter($models, fn ($m) => str_contains(strtolower($m['id']), $tier)));
+        if (!empty($matches)) {
+            usort($matches, function ($a, $b) {
+                $c = strcmp((string)$b['created'], (string)$a['created']);
+                return $c !== 0 ? $c : strcmp($b['id'], $a['id']);
+            });
+            return $matches[0]['id'];
+        }
+    }
+
+    if ($hint !== '' && $tier === '') return $hint;
+
+    return match ($provider) {
+        'openai' => 'gpt-4o',
+        'gemini' => 'gemini-2.0-flash',
+        default => 'claude-sonnet-4-5-20250929',
+    };
 }
 
 function builder_ai_tools(): array {
@@ -110,7 +218,7 @@ function handle_builder_ai_chat(): void {
     $provider = $requestedProvider ?: ($defaultProvider['value'] ?? 'claude');
 
     $modelRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = ?", ["ranger_model_$provider"]);
-    $model = $requestedModel ?: ($modelRow['value'] ?? '');
+    $modelHint = $requestedModel ?: ($modelRow['value'] ?? '');
 
     $apiKeyRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = ?", ["ranger_api_key_$provider"]);
     if (!$apiKeyRow || empty($apiKeyRow['value'])) {
@@ -128,6 +236,8 @@ function handle_builder_ai_chat(): void {
         ranger_sse_send(['type' => 'done']);
         return;
     }
+
+    $model = outpost_builder_resolve_model($provider, $apiKey, $modelHint);
 
     $systemPrompt = builder_ai_system_prompt($context);
     $tools = builder_ai_tools();
