@@ -7,6 +7,7 @@
   import LayersPanel from '$components/builder/LayersPanel.svelte';
   import SelectorsPanel from '$components/builder/SelectorsPanel.svelte';
   import TokensPanel from '$components/builder/TokensPanel.svelte';
+  import ContentPanel from '$components/builder/ContentPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
   import ContextMenu from '$components/builder/ContextMenu.svelte';
@@ -18,6 +19,7 @@
   let loading = $state(true);
   let loadError = $state('');
   let leftPanel = $state('layers');
+  let editMode = $state('design');
 
   let selected = $derived(editor.selectedNode);
   let status = $derived(
@@ -136,16 +138,24 @@
   <header class="toolbar">
     <div class="left">
       <h1 class="title">{pageTitle}</h1>
+      <div class="mode" role="group" aria-label="Edit mode">
+        <button class:on={editMode === 'design'} aria-pressed={editMode === 'design'} onclick={() => (editMode = 'design')}>Design</button>
+        <button class:on={editMode === 'content'} aria-pressed={editMode === 'content'} onclick={() => (editMode = 'content')}>Content</button>
+      </div>
     </div>
 
-    <div class="center" role="group" aria-label="Add element">
-      {#each adders as a (a.type)}
-        <button class="add" onclick={() => add(a.type)} title="Add {a.label}">
-          <a.icon size={15} aria-hidden="true" />
-          <span>{a.label}</span>
-        </button>
-      {/each}
-    </div>
+    {#if editMode === 'design'}
+      <div class="center" role="group" aria-label="Add element">
+        {#each adders as a (a.type)}
+          <button class="add" onclick={() => add(a.type)} title="Add {a.label}">
+            <a.icon size={15} aria-hidden="true" />
+            <span>{a.label}</span>
+          </button>
+        {/each}
+      </div>
+    {:else}
+      <div class="center content-hint">Content mode — editing text &amp; media only</div>
+    {/if}
 
     <div class="right">
       <button class="icon" onclick={() => editor.undo()} disabled={!editor.canUndo} aria-label="Undo" title="Undo (⌘Z)">
@@ -180,20 +190,25 @@
   {:else}
     <div class="body">
       <div class="left-col">
-        <div class="left-tabs" role="tablist" aria-label="Left panel">
-          <button role="tab" aria-selected={leftPanel === 'layers'} class:on={leftPanel === 'layers'} onclick={() => (leftPanel = 'layers')}>Layers</button>
-          <button role="tab" aria-selected={leftPanel === 'selectors'} class:on={leftPanel === 'selectors'} onclick={() => (leftPanel = 'selectors')}>Selectors</button>
-          <button role="tab" aria-selected={leftPanel === 'tokens'} class:on={leftPanel === 'tokens'} onclick={() => (leftPanel = 'tokens')}>Tokens</button>
-        </div>
-        {#if leftPanel === 'layers'}
-          <LayersPanel {editor} oncontext={openContext} />
-        {:else if leftPanel === 'selectors'}
-          <SelectorsPanel {editor} />
+        {#if editMode === 'content'}
+          <div class="left-single">Content</div>
+          <ContentPanel {editor} />
         {:else}
-          <TokensPanel {editor} />
+          <div class="left-tabs" role="tablist" aria-label="Left panel">
+            <button role="tab" aria-selected={leftPanel === 'layers'} class:on={leftPanel === 'layers'} onclick={() => (leftPanel = 'layers')}>Layers</button>
+            <button role="tab" aria-selected={leftPanel === 'selectors'} class:on={leftPanel === 'selectors'} onclick={() => (leftPanel = 'selectors')}>Selectors</button>
+            <button role="tab" aria-selected={leftPanel === 'tokens'} class:on={leftPanel === 'tokens'} onclick={() => (leftPanel = 'tokens')}>Tokens</button>
+          </div>
+          {#if leftPanel === 'layers'}
+            <LayersPanel {editor} oncontext={openContext} />
+          {:else if leftPanel === 'selectors'}
+            <SelectorsPanel {editor} />
+          {:else}
+            <TokensPanel {editor} />
+          {/if}
         {/if}
       </div>
-      <NodeCanvas {editor} oncontext={openContext} />
+      <NodeCanvas {editor} oncontext={editMode === 'design' ? openContext : undefined} />
       <aside class="inspector" aria-label="Element settings">
         {#if selected && isComponentRef}
           <div class="ins-head">Component</div>
@@ -216,16 +231,18 @@
             </button>
           </div>
         {:else if selected}
-          <div class="ins-head">{selected.type}</div>
+          <div class="ins-head">{editMode === 'content' ? 'Content' : selected.type}</div>
 
-          <label class="field">
-            <span>Tag</span>
-            <select value={selected.tag} onchange={setTag}>
-              {#each NODE_TYPES[selected.type].tags as t (t)}
-                <option value={t}>{t}</option>
-              {/each}
-            </select>
-          </label>
+          {#if editMode === 'design'}
+            <label class="field">
+              <span>Tag</span>
+              <select value={selected.tag} onchange={setTag}>
+                {#each NODE_TYPES[selected.type].tags as t (t)}
+                  <option value={t}>{t}</option>
+                {/each}
+              </select>
+            </label>
+          {/if}
 
           {#if selected.type === 'text'}
             <label class="field">
@@ -252,33 +269,35 @@
             </label>
           {/if}
 
-          <StylePanel {editor} />
+          {#if editMode === 'design'}
+            <StylePanel {editor} />
 
-          {#if selected.id !== editor.tree.root}
+            {#if selected.id !== editor.tree.root}
+              <div class="ins-actions">
+                <button class="ghost" onclick={componentize}>
+                  <Component size={14} aria-hidden="true" />
+                  <span>Componentize</span>
+                </button>
+              </div>
+            {/if}
+
             <div class="ins-actions">
-              <button class="ghost" onclick={componentize}>
-                <Component size={14} aria-hidden="true" />
-                <span>Componentize</span>
+              <button class="ghost" onclick={() => editor.duplicate(selected.id)}>
+                <Copy size={14} aria-hidden="true" />
+                <span>Duplicate</span>
+              </button>
+              <button
+                class="ghost danger"
+                onclick={() => editor.remove(selected.id)}
+                disabled={selected.id === editor.tree.root}
+              >
+                <Trash2 size={14} aria-hidden="true" />
+                <span>Delete</span>
               </button>
             </div>
           {/if}
-
-          <div class="ins-actions">
-            <button class="ghost" onclick={() => editor.duplicate(selected.id)}>
-              <Copy size={14} aria-hidden="true" />
-              <span>Duplicate</span>
-            </button>
-            <button
-              class="ghost danger"
-              onclick={() => editor.remove(selected.id)}
-              disabled={selected.id === editor.tree.root}
-            >
-              <Trash2 size={14} aria-hidden="true" />
-              <span>Delete</span>
-            </button>
-          </div>
         {:else}
-          <p class="ins-empty">Select an element on the canvas or in the layers panel to edit it.</p>
+          <p class="ins-empty">{editMode === 'content' ? 'Select content on the canvas or in the list to edit it.' : 'Select an element on the canvas or in the layers panel to edit it.'}</p>
         {/if}
       </aside>
     </div>
@@ -307,7 +326,33 @@
     flex-shrink: 0;
   }
 
-  .left { flex: 1; min-width: 0; }
+  .left { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; }
+
+  .mode { display: inline-flex; gap: 2px; background: var(--hover); border-radius: 8px; padding: 2px; flex-shrink: 0; }
+  .mode button {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--sec);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mode button.on { background: var(--raised); color: var(--text); }
+  .mode button:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
+
+  .content-hint { font-size: 12px; color: var(--dim); }
+
+  .left-single {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    padding: 14px 14px 4px;
+    flex-shrink: 0;
+  }
   .right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
   .center { display: flex; gap: 4px; }
 

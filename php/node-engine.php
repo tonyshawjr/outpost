@@ -265,6 +265,18 @@ function outpost_html_to_node_tree(string $html): array {
             if ($cid) $nodes[$rootId]['children'][] = $cid;
         }
     }
+
+    // Avoid a redundant wrapper: if the HTML has a single root container, use it
+    // as the tree root instead of nesting it inside the synthetic <main>.
+    $topChildren = $nodes[$rootId]['children'];
+    if (count($topChildren) === 1) {
+        $onlyId = $topChildren[0];
+        if (($nodes[$onlyId]['type'] ?? '') === 'container') {
+            unset($nodes[$rootId]);
+            return outpost_node_validate(['root' => $onlyId, 'nodes' => $nodes]);
+        }
+    }
+
     return outpost_node_validate(['root' => $rootId, 'nodes' => $nodes]);
 }
 
@@ -388,10 +400,19 @@ function outpost_render_node(array $tree, string $id, array $components, array $
     }
 }
 
-function outpost_public_class_css(): string {
+function outpost_tree_class_names(array $tree): array {
+    $used = [];
+    foreach (($tree['nodes'] ?? []) as $node) {
+        foreach (($node['classes'] ?? []) as $c) $used[$c] = true;
+    }
+    return $used;
+}
+
+function outpost_public_class_css(?array $only = null): string {
     $rows = OutpostDB::fetchAll('SELECT name, declarations FROM style_classes ORDER BY name ASC');
     $css = '';
     foreach ($rows as $r) {
+        if ($only !== null && !isset($only[$r['name']])) continue;
         if (!outpost_class_name_valid($r['name'])) continue;
         $decls = json_decode($r['declarations'] ?: '{}', true) ?: [];
         $body = '';
@@ -453,7 +474,7 @@ function outpost_bake_node_page(int $pageId): bool {
         ? '<link rel="stylesheet" href="/' . $base . '.css">' . "\n" : '';
     $jsLink = file_exists($renderRoot . '/' . $base . '.js')
         ? '<script src="/' . $base . '.js" defer></script>' . "\n" : '';
-    $classCss = outpost_public_class_css();
+    $classCss = outpost_public_class_css(outpost_tree_class_names($tree));
     $titleEsc = htmlspecialchars($page['title'] ?: 'Page', ENT_QUOTES);
 
     $doc = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"

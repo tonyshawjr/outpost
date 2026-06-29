@@ -81,6 +81,8 @@
   .surface {
     min-height: 420px;
     color: #111;
+    transform: translateZ(0);
+    overflow: clip;
   }
 
   .surface :global([data-node-id]) {
