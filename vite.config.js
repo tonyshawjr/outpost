@@ -51,6 +51,10 @@ export default defineConfig({
       '/outpost/media.php': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      '/outpost/mcp.php': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }
