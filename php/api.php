@@ -2507,21 +2507,24 @@ function handle_page_delete(): void {
     if (!function_exists('outpost_active_theme_root')) {
         require_once __DIR__ . '/engine.php';
     }
-    $filename = ($page['path'] === '/') ? 'index.html' : ltrim($page['path'], '/') . '.html';
+    $base = ($page['path'] === '/') ? 'index' : ltrim($page['path'], '/');
     foreach ([outpost_active_theme_root(), OUTPOST_SITE_ROOT] as $_root) {
-        $templatePath = $_root . $filename;
         $siteBase = realpath($_root);
-        $resolved = realpath($templatePath);
-        if ($siteBase && $resolved && str_starts_with($resolved, rtrim($siteBase, '/') . '/') && file_exists($resolved)) {
-            unlink($resolved);
+        if (!$siteBase) continue;
+        foreach (['.html', '.css', '.js'] as $_ext) {
+            $candidate = $_root . $base . $_ext;
+            $resolved = realpath($candidate);
+            if ($resolved && str_starts_with($resolved, rtrim($siteBase, '/') . '/') && is_file($resolved)) {
+                unlink($resolved);
+            }
         }
     }
 
     // Delete DB row (fields cascade via FK)
-    OutpostDB::exec('DELETE FROM pages WHERE id = ?', [$id]);
+    OutpostDB::query('DELETE FROM pages WHERE id = ?', [$id]);
 
     // Clean up field registry
-    OutpostDB::exec('DELETE FROM page_field_registry WHERE path = ?', [$page['path']]);
+    OutpostDB::query('DELETE FROM page_field_registry WHERE path = ?', [$page['path']]);
 
     outpost_clear_cache();
     log_activity('content', '"' . $label . '" deleted');
