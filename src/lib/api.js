@@ -131,8 +131,8 @@ export const pages = {
     request('pages', { params: { id } }),
   create: (title, path = '') =>
     request('pages', { method: 'POST', body: { title, path } }),
-  importHtml: (title, slug, html, overwrite = false) =>
-    request('pages/import', { method: 'POST', body: { title, slug, html, overwrite } }),
+  importHtml: (title, slug, html, css = '', js = '', overwrite = false) =>
+    request('pages/import', { method: 'POST', body: { title, slug, html, css, js, overwrite } }),
   update: (id, data) =>
     request('pages', { method: 'PUT', params: { id }, body: data }),
   delete: (id) =>

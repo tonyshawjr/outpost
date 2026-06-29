@@ -2033,6 +2033,76 @@ function handle_page_get(): void {
     json_response(['page' => $page]);
 }
 
+function outpost_parse_css_declarations(string $body): array {
+    $out = [];
+    foreach (explode(';', $body) as $decl) {
+        $decl = trim($decl);
+        if ($decl === '' || strpos($decl, ':') === false) continue;
+        [$prop, $val] = explode(':', $decl, 2);
+        $prop = strtolower(trim($prop));
+        $val = trim($val);
+        if ($prop === '' || $val === '' || !preg_match('/^[a-z-]+$/', $prop)) continue;
+        if (preg_match('/[{}<>]|javascript:|expression\s*\(|@import/i', $val)) continue;
+        $out[$prop] = $val;
+    }
+    return $out;
+}
+
+function outpost_parse_css_classes(string $css): array {
+    $css = preg_replace('#/\*.*?\*/#s', '', $css);
+    $classes = [];
+    $len = strlen($css);
+    $i = 0;
+    while ($i < $len) {
+        $brace = strpos($css, '{', $i);
+        if ($brace === false) break;
+        $prelude = trim(substr($css, $i, $brace - $i));
+        $depth = 1;
+        $j = $brace + 1;
+        while ($j < $len && $depth > 0) {
+            if ($css[$j] === '{') $depth++;
+            elseif ($css[$j] === '}') $depth--;
+            $j++;
+        }
+        $body = substr($css, $brace + 1, $j - 1 - ($brace + 1));
+        $i = $j;
+        if ($prelude === '' || $prelude[0] === '@') continue;
+        foreach (explode(',', $prelude) as $sel) {
+            $sel = trim($sel);
+            if (preg_match('/^\.([A-Za-z_][A-Za-z0-9_-]*)$/', $sel, $m)) {
+                $decls = outpost_parse_css_declarations($body);
+                if ($decls) $classes[$m[1]] = array_merge($classes[$m[1]] ?? [], $decls);
+            }
+        }
+    }
+    return $classes;
+}
+
+function outpost_upsert_style_classes(array $classes): int {
+    if (!$classes) return 0;
+    if (function_exists('ensure_style_classes_table')) ensure_style_classes_table();
+    $now = date('Y-m-d H:i:s');
+    $n = 0;
+    foreach ($classes as $name => $decls) {
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_-]*$/', $name) || !is_array($decls) || !$decls) continue;
+        $existing = OutpostDB::fetchOne('SELECT id, declarations FROM style_classes WHERE name = ?', [$name]);
+        if ($existing) {
+            $old = json_decode($existing['declarations'] ?: '{}', true) ?: [];
+            $merged = array_merge($old, $decls);
+            OutpostDB::update('style_classes',
+                ['declarations' => json_encode((object) $merged, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'updated_at' => $now],
+                'id = ?', [$existing['id']]);
+        } else {
+            OutpostDB::insert('style_classes', [
+                'name' => $name,
+                'declarations' => json_encode((object) $decls, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ]);
+        }
+        $n++;
+    }
+    return $n;
+}
+
 function outpost_strip_php_tags(string $html): string {
     $html = preg_replace('/<\?php\b.*?\?>/is', '', $html);
     $html = preg_replace('/<\?=.*?\?>/is', '', $html);
@@ -2063,11 +2133,19 @@ function handle_page_import(): void {
         $path = '/' . $slug;
     }
 
+    $css = (string) ($data['css'] ?? '');
+    $js = (string) ($data['js'] ?? '');
+    if (strlen($css) > 2 * 1048576 || strlen($js) > 2 * 1048576) {
+        json_error('CSS or JS too large (max 2 MB each)', 413);
+    }
+
     $html = outpost_strip_php_tags($html);
 
     if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
     $renderRoot = rtrim(outpost_active_render_root(), '/');
     $target = $renderRoot . '/' . $filename;
+
+    $assetBase = ($slug === 'index' || $slug === 'home') ? 'index' : $slug;
 
     $overwrite = !empty($data['overwrite']);
     if ($filename === 'index.html' && $overwrite && empty($data['confirm_homepage'])) {
@@ -2077,8 +2155,43 @@ function handle_page_import(): void {
         json_error("A page already exists at {$path}. Choose a different slug or enable overwrite.", 409);
     }
 
+    $cssWritten = false;
+    $jsWritten = false;
+    if (trim($css) !== '') {
+        if (file_put_contents($renderRoot . '/' . $assetBase . '.css', $css) !== false) {
+            $cssWritten = true;
+            $linkTag = '<link rel="stylesheet" href="/' . $assetBase . '.css">';
+            if (!str_contains($html, $assetBase . '.css')) {
+                if (stripos($html, '</head>') !== false) {
+                    $html = preg_replace('#</head>#i', '  ' . $linkTag . "\n</head>", $html, 1);
+                } else {
+                    $html = $linkTag . "\n" . $html;
+                }
+            }
+        }
+    }
+    if (trim($js) !== '') {
+        $js = outpost_strip_php_tags($js);
+        if (file_put_contents($renderRoot . '/' . $assetBase . '.js', $js) !== false) {
+            $jsWritten = true;
+            $scriptTag = '<script src="/' . $assetBase . '.js" defer></script>';
+            if (!str_contains($html, $assetBase . '.js')) {
+                if (stripos($html, '</body>') !== false) {
+                    $html = preg_replace('#</body>#i', '  ' . $scriptTag . "\n</body>", $html, 1);
+                } else {
+                    $html = $html . "\n" . $scriptTag;
+                }
+            }
+        }
+    }
+
     if (file_put_contents($target, $html) === false) {
         json_error('Could not write the page file. Check site-root permissions.', 500);
+    }
+
+    $classCount = 0;
+    if (trim($css) !== '') {
+        $classCount = outpost_upsert_style_classes(outpost_parse_css_classes($css));
     }
 
     $existing = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
@@ -2111,6 +2224,9 @@ function handle_page_import(): void {
         'ok' => true,
         'page' => ['id' => $id, 'path' => $path, 'title' => $title],
         'fields' => $fieldCount,
+        'classes' => $classCount,
+        'cssWritten' => $cssWritten,
+        'jsWritten' => $jsWritten,
     ]);
 }
 
@@ -2236,6 +2352,15 @@ function handle_site_import(): void {
         $pagesCreated[] = $path;
     }
 
+    $classCount = 0;
+    foreach ($written as $rel) {
+        if (strtolower(pathinfo($rel, PATHINFO_EXTENSION)) !== 'css') continue;
+        $cssText = @file_get_contents($renderRoot . '/' . $rel);
+        if ($cssText !== false) {
+            $classCount += outpost_upsert_style_classes(outpost_parse_css_classes($cssText));
+        }
+    }
+
     if (function_exists('outpost_scan_site_templates')) {
         try { outpost_scan_site_templates(); } catch (\Throwable $e) {}
     }
@@ -2244,6 +2369,7 @@ function handle_site_import(): void {
         'ok' => true,
         'filesWritten' => count($written),
         'pages' => $pagesCreated,
+        'classes' => $classCount,
         'skipped' => $skipped,
     ]);
 }
