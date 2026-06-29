@@ -34,6 +34,16 @@ function outpost_get_blocks_dir(): string {
     return OUTPOST_THEMES_DIR . outpost_get_active_theme() . '/blocks/';
 }
 
+function outpost_active_render_root(): string {
+    if (defined('OUTPOST_THEMES_DIR')) {
+        $themeDir = OUTPOST_THEMES_DIR . outpost_get_active_theme();
+        if (is_dir($themeDir) && file_exists($themeDir . '/index.html')) {
+            return rtrim($themeDir, '/') . '/';
+        }
+    }
+    return rtrim(OUTPOST_SITE_ROOT, '/') . '/';
+}
+
 /**
  * Scans the blocks directory and returns an array of block definitions.
  * Each subfolder is treated as a block. Folders without an HTML file are skipped.

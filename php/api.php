@@ -2047,6 +2047,7 @@ function handle_page_import(): void {
 
     $html = (string) ($data['html'] ?? '');
     if (trim($html) === '') json_error('HTML required', 400);
+    if (strlen($html) > 2 * 1048576) json_error('HTML too large (max 2 MB)', 413);
 
     $rawSlug = trim($data['slug'] ?? '');
     if ($rawSlug === '') $rawSlug = outpost_slugify($title);
@@ -2063,10 +2064,14 @@ function handle_page_import(): void {
 
     $html = outpost_strip_php_tags($html);
 
-    $siteRoot = rtrim(OUTPOST_SITE_ROOT, '/');
-    $target = $siteRoot . '/' . $filename;
+    if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+    $renderRoot = rtrim(outpost_active_render_root(), '/');
+    $target = $renderRoot . '/' . $filename;
 
     $overwrite = !empty($data['overwrite']);
+    if ($filename === 'index.html' && $overwrite && empty($data['confirm_homepage'])) {
+        json_error('Refusing to overwrite the homepage without confirm_homepage.', 409);
+    }
     if (file_exists($target) && !$overwrite) {
         json_error("A page already exists at {$path}. Choose a different slug or enable overwrite.", 409);
     }
@@ -2109,6 +2114,7 @@ function handle_page_import(): void {
 }
 
 function handle_page_create(): void {
+    outpost_require_cap('content.*');
     $data = get_json_body();
     $title = trim($data['title'] ?? '');
     if ($title === '') json_error('Title required', 400);
