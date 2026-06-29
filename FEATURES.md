@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Page Settings Tab — Visual Builder (v6.0.0-beta.18)
+
+- **Page mode** — A third builder mode (Design / Content / Page). The Page tab configures the page you're editing without leaving the builder.
+- **Route** — See and rename the page's URL path. Renaming moves the published `.html`/`.css`/`.js` files, updates the page + field registry, and clears caches (`POST pages/rename`). The homepage route is fixed; collisions are rejected.
+- **General + SEO** — Title, status (published/draft), visibility (public / members / paid), meta title, meta description — reusing the existing `pages.update` endpoint.
+- **Design tokens** — The token palette (colors + type/spacing scales) surfaced in the settings tab too, so route + tokens + page config live in one place.
+- **Secure** — Rename requires auth + CSRF + `content.*` capability + an unlocked page; the slug is sanitized to `[a-z0-9-]` and the file rename is realpath-confined to the render root.
+- **Deferred:** OG/social image (lives in the SEO/fields system; needs head-emission wiring) — flagged for a focused follow-up.
+
 ## Raw CSS Editor + Nesting — Visual Builder (v6.0.0-beta.17)
 
 - **Raw CSS box per class** — A Visual / CSS toggle in the style panel. The CSS view shows the selected class's real CSS, editable as plain CSS with nesting (`&:hover`, `& .child`) and at-rules (`@media`, `@container`). Covers everything the field widgets can't (gradients, glows/`filter`, grid backgrounds, pseudo-states, breakpoints).

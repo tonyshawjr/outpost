@@ -22,6 +22,19 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.18">6.0.0-beta.18 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Page settings tab</strong> &mdash; A third builder mode (Design / Content / Page) for configuring the page you're editing: its route (URL path), title, status, visibility (public/members/paid), SEO meta title and description, and the design-token palette &mdash; all in one place.</li>
+      <li><strong>Route rename</strong> &mdash; Changing a page's URL path renames the published files on disk, updates the page and field registry, and clears caches. The homepage route is fixed and duplicate routes are rejected.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Route rename is auth + CSRF + rate-limited, requires the content capability and an unlocked page, sanitizes the new slug, and confines the file rename to the render root &mdash; no path traversal.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.17">6.0.0-beta.17 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
     <h3>Added</h3>
     <ul>

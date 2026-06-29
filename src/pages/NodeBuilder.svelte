@@ -12,11 +12,13 @@
   import StylePanel from '$components/builder/StylePanel.svelte';
   import ContextMenu from '$components/builder/ContextMenu.svelte';
   import AiPanel from '$components/builder/AiPanel.svelte';
+  import PageSettingsPanel from '$components/builder/PageSettingsPanel.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
   let pageTitle = $state('Page');
+  let pageData = $state(null);
   let loading = $state(true);
   let loadError = $state('');
   let leftPanel = $state('layers');
@@ -50,17 +52,16 @@
         const res = await pagesApi.list();
         const list = res.pages || res.items || (Array.isArray(res) ? res : []);
         id = list[0]?.id;
-        pageTitle = list[0]?.title || 'Page';
-      } else {
-        try {
-          const res = await pagesApi.get(id);
-          pageTitle = res.page?.title || res.title || 'Page';
-        } catch { pageTitle = 'Page'; }
       }
       if (!id) {
         loadError = 'No page found to edit.';
         return;
       }
+      try {
+        const res = await pagesApi.get(id);
+        pageData = res.page || res;
+        pageTitle = pageData?.title || 'Page';
+      } catch { pageTitle = 'Page'; }
       await editor.load(id);
     } catch (e) {
       loadError = e.message || 'Failed to load page.';
@@ -68,6 +69,11 @@
       loading = false;
     }
   });
+
+  function onPageUpdated(next) {
+    pageData = next;
+    pageTitle = next.title || pageTitle;
+  }
 
   $effect(() => {
     const onKey = (e) => {
@@ -143,6 +149,7 @@
       <div class="mode" role="group" aria-label="Edit mode">
         <button class:on={editMode === 'design'} aria-pressed={editMode === 'design'} onclick={() => (editMode = 'design')}>Design</button>
         <button class:on={editMode === 'content'} aria-pressed={editMode === 'content'} onclick={() => (editMode = 'content')}>Content</button>
+        <button class:on={editMode === 'page'} aria-pressed={editMode === 'page'} onclick={() => (editMode = 'page')}>Page</button>
       </div>
     </div>
 
@@ -155,8 +162,10 @@
           </button>
         {/each}
       </div>
-    {:else}
+    {:else if editMode === 'content'}
       <div class="center content-hint">Content mode — editing text &amp; media only</div>
+    {:else}
+      <div class="center content-hint">Page settings</div>
     {/if}
 
     <div class="right">
@@ -195,6 +204,8 @@
     <div class="message">Loading…</div>
   {:else if loadError}
     <div class="message error">{loadError}</div>
+  {:else if editMode === 'page'}
+    <PageSettingsPanel {editor} page={pageData} onupdated={onPageUpdated} />
   {:else}
     <div class="body">
       <div class="left-col">

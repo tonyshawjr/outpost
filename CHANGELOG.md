@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.18] — 2026-06-29
+
+A Page settings tab in the visual builder — route, SEO, visibility, and design tokens in one place.
+
+### Added
+- **Page settings tab.** A third builder mode (Design / Content / **Page**) showing the page's route (URL path), title, status, visibility (public/members/paid), SEO meta title + description, and the design-token palette — all for the page you're editing, without leaving the builder.
+- **Route rename.** New `POST pages/rename` endpoint changes a page's URL path: it renames the published `.html`/`.css`/`.js` files on disk, updates the page row and field registry, and clears caches. Slug-sanitized, collision-checked (409), and homepage/globals protected.
+
+### Changed
+- `pages.rename(id, path)` added to the API client.
+
+### Security
+- `pages/rename` is auth + CSRF + rate-limited and requires the `content.*` capability and an unlocked page. The new slug is sanitized to `[a-z0-9-]` and the file rename is realpath-confined to the render root (same proven pattern as page delete) — no path traversal.
+
+---
+
 ## [6.0.0-beta.17] — 2026-06-29
 
 Style any class with real CSS — a raw, nested CSS editor in the visual builder, two-way synced with the field controls.

@@ -292,6 +292,7 @@ match (true) {
     $action === 'pages/import-site' && $method === 'POST' => handle_site_import(),
     $action === 'pages' && $method === 'GET' && isset($_GET['id']) => handle_page_get(),
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
+    $action === 'pages/rename' && $method === 'POST' && isset($_GET['id']) => handle_page_rename(),
     $action === 'pages' && $method === 'DELETE' && isset($_GET['id']) => handle_page_delete(),
 
     // v6: Page blocks (Sites-style page builder)
@@ -2570,6 +2571,53 @@ function handle_page_update(): void {
     }
 
     json_response(['success' => true, 'updated_at' => $newTimestamp]);
+}
+
+function handle_page_rename(): void {
+    outpost_require_cap('content.*');
+    $id = (int) $_GET['id'];
+    $data = get_json_body();
+
+    require_page_unlocked($id);
+
+    $page = OutpostDB::fetchOne('SELECT * FROM pages WHERE id = ?', [$id]);
+    if (!$page) json_error('Page not found', 404);
+    if ($page['path'] === '/') json_error('The homepage route cannot be changed');
+    if ($page['path'] === '__global__') json_error('Cannot rename globals');
+
+    $slug = strtolower(ltrim(trim((string) ($data['path'] ?? '')), '/'));
+    $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
+    $slug = trim(preg_replace('/-+/', '-', $slug), '-');
+    if ($slug === '' || $slug === 'index') json_error('Enter a valid route slug', 400);
+
+    $newPath = '/' . $slug;
+    if ($newPath === $page['path']) {
+        json_response(['success' => true, 'path' => $newPath]);
+    }
+
+    $clash = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ? AND id != ?', [$newPath, $id]);
+    if ($clash) json_error('That route is already in use', 409);
+
+    if (!function_exists('outpost_active_theme_root')) require_once __DIR__ . '/engine.php';
+    $oldBase = ltrim($page['path'], '/');
+    foreach ([outpost_active_theme_root(), OUTPOST_SITE_ROOT] as $_root) {
+        $siteBase = realpath($_root);
+        if (!$siteBase) continue;
+        foreach (['.html', '.css', '.js'] as $_ext) {
+            $resolved = realpath($_root . $oldBase . $_ext);
+            if ($resolved && str_starts_with($resolved, rtrim($siteBase, '/') . '/') && is_file($resolved)) {
+                @rename($resolved, $_root . $slug . $_ext);
+            }
+        }
+    }
+
+    OutpostDB::update('pages', ['path' => $newPath, 'updated_at' => date('Y-m-d H:i:s')], 'id = ?', [$id]);
+    OutpostDB::query('UPDATE page_field_registry SET path = ? WHERE path = ?', [$newPath, $page['path']]);
+    outpost_clear_cache();
+    log_activity('content', 'Route changed from ' . $page['path'] . ' to ' . $newPath);
+    dispatch_webhook('page.updated', ['id' => $id, 'title' => $page['title'] ?? '', 'path' => $newPath]);
+
+    json_response(['success' => true, 'path' => $newPath]);
 }
 
 function handle_page_delete(): void {

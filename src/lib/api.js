@@ -135,6 +135,8 @@ export const pages = {
     request('pages/import', { method: 'POST', body: { title, slug, html, css, js, overwrite } }),
   update: (id, data) =>
     request('pages', { method: 'PUT', params: { id }, body: data }),
+  rename: (id, path) =>
+    request('pages/rename', { method: 'POST', params: { id }, body: { path } }),
   delete: (id) =>
     request('pages', { method: 'DELETE', params: { id } }),
 };
