@@ -9,6 +9,7 @@
   import TokensPanel from '$components/builder/TokensPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
+  import ContextMenu from '$components/builder/ContextMenu.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft } from 'lucide-svelte';
 
   const editor = createNodeEditor();
@@ -89,6 +90,32 @@
     editor.componentize(selected.id, raw.trim() || 'Component');
   }
 
+  let ctx = $state(null);
+
+  function openContext(nodeId, x, y) {
+    ctx = { nodeId, x, y };
+  }
+
+  function bem(id) {
+    const raw = prompt('Block name (BEM) — generates .block and .block__element classes for the whole subtree', 'block');
+    if (raw === null) return;
+    editor.applyBem(id, raw.trim() || 'block');
+  }
+
+  let ctxItems = $derived.by(() => {
+    if (!ctx) return [];
+    const id = ctx.nodeId;
+    const node = editor.tree.nodes[id];
+    const isRoot = id === editor.tree.root;
+    return [
+      { label: 'Create BEM classes…', action: () => bem(id) },
+      { label: 'Componentize', action: () => { editor.select(id); componentize(); }, disabled: isRoot || node?.type === 'component-ref' },
+      { divider: true },
+      { label: 'Duplicate', action: () => editor.duplicate(id), disabled: isRoot },
+      { label: 'Delete', action: () => editor.remove(id), danger: true, disabled: isRoot },
+    ];
+  });
+
   async function save() {
     if (!editor.dirty || editor.saving) return;
     try {
@@ -154,14 +181,14 @@
           <button role="tab" aria-selected={leftPanel === 'tokens'} class:on={leftPanel === 'tokens'} onclick={() => (leftPanel = 'tokens')}>Tokens</button>
         </div>
         {#if leftPanel === 'layers'}
-          <LayersPanel {editor} />
+          <LayersPanel {editor} oncontext={openContext} />
         {:else if leftPanel === 'selectors'}
           <SelectorsPanel {editor} />
         {:else}
           <TokensPanel {editor} />
         {/if}
       </div>
-      <NodeCanvas {editor} />
+      <NodeCanvas {editor} oncontext={openContext} />
       <aside class="inspector" aria-label="Element settings">
         {#if selected && isComponentRef}
           <div class="ins-head">Component</div>
@@ -250,6 +277,10 @@
         {/if}
       </aside>
     </div>
+  {/if}
+
+  {#if ctx}
+    <ContextMenu x={ctx.x} y={ctx.y} items={ctxItems} onclose={() => (ctx = null)} />
   {/if}
 </div>
 

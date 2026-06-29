@@ -1,7 +1,7 @@
 <script>
   import NodeView from './NodeView.svelte';
 
-  let { editor } = $props();
+  let { editor, oncontext } = $props();
   let surfaceEl = $state(null);
 
   $effect(() => {
@@ -11,8 +11,20 @@
       const target = e.target.closest('[data-node-id]');
       editor.select(target ? target.getAttribute('data-node-id') : null);
     };
+    const onCtx = (e) => {
+      const target = e.target.closest('[data-node-id]');
+      if (!target) return;
+      e.preventDefault();
+      const id = target.getAttribute('data-node-id');
+      editor.select(id);
+      oncontext?.(id, e.clientX, e.clientY);
+    };
     el.addEventListener('click', onClick);
-    return () => el.removeEventListener('click', onClick);
+    el.addEventListener('contextmenu', onCtx);
+    return () => {
+      el.removeEventListener('click', onClick);
+      el.removeEventListener('contextmenu', onCtx);
+    };
   });
 
   $effect(() => {

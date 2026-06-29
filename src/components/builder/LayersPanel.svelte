@@ -2,7 +2,7 @@
   import { parentOf } from '$lib/node-tree.js';
   import { ChevronRight } from 'lucide-svelte';
 
-  let { editor } = $props();
+  let { editor, oncontext } = $props();
 
   let collapsed = $state(new Set());
   let treeEl = $state(null);
@@ -60,6 +60,15 @@
     if (row) editor.select(row.getAttribute('data-layer-id'));
   }
 
+  function onTreeContext(e) {
+    const row = e.target.closest('[data-layer-id]');
+    if (!row) return;
+    e.preventDefault();
+    const id = row.getAttribute('data-layer-id');
+    editor.select(id);
+    oncontext?.(id, e.clientX, e.clientY);
+  }
+
   function onTreeKeydown(e) {
     const list = rows;
     const idx = list.findIndex((r) => r.id === editor.selectedId);
@@ -105,6 +114,7 @@
     aria-label="Layers"
     bind:this={treeEl}
     onclick={onTreeClick}
+    oncontextmenu={onTreeContext}
     onkeydown={onTreeKeydown}
   >
     {#each rows as row (row.id)}

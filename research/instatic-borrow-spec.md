@@ -198,6 +198,20 @@ Each phase ships something usable. Don't build the whole thing before shipping.
 
 ---
 
+## 7.5 Convergence: templating engine vs. node-tree builder (STRATEGIC — decide before v1 ship)
+
+Outpost now has **two authoring modes** and they must converge, not compete:
+- **Template pages** — hand-coded theme `.html` with `data-outpost` fields. "Deploys like WordPress." Devs write markup, editors fill fields.
+- **Visual pages** — node-tree built in the Visual Builder. "Edits like Webflow." No hand-written theme.
+
+**Recommendation (Tony + Claude, 2026-06-29):** NOT a separate plugin/blank-theme silo (that splits globals, nav, SEO, deploy). Instead **per-page authoring mode inside the existing theme system**:
+- A page is either a Template page (coded) or a Visual page (node tree) — a flag on the page.
+- A Visual page **renders its node tree into the active theme's layout** (the theme still owns head/header/footer/partials/global CSS via the templating engine). The builder only produces the page body, dropped into the theme's content slot (like an `<outpost-outlet>`).
+- Result: one site, one theme, one deploy, shared globals/nav/SEO. The builder is just "design this page visually" vs "this page uses a coded template."
+- The "blank/minimal theme" is a good **default** for visual-first users, not a separate system.
+
+Front-router change required at integration time: page → if it has a node tree, render the tree (via the node-engine renderer) into the theme layout; else render the `data-outpost` template as today. Tony's instinct that the builder might "become a plugin" is directionally right about *packaging/optionality*, wrong if it means a parallel site. Park until after the builder feature-set is complete (post #9), but design the page model now so a page can carry either representation.
+
 ## 8. Open questions (answer when ready, not blocking)
 
 1. **MCP-first or visuals-first?** (§5 sequencing nuance.) Changes whether Phase 6's MCP half jumps ahead of Phase 2.

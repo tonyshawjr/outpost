@@ -3,6 +3,16 @@ import * as TOK from './builder-tokens.js';
 import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi } from './api.js';
 
 const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+function bemElementName(node) {
+  if (node.type === 'text') return /^h[1-6]$/.test(node.tag) ? 'title' : 'text';
+  if (node.type === 'image') return 'image';
+  if (node.type === 'button') return 'button';
+  if (node.type === 'link') return 'link';
+  return 'group';
+}
+
+const addUniq = (list, name) => (list.includes(name) ? list : [...list, name]);
 const HISTORY_LIMIT = 100;
 const snap = (tree) => JSON.parse(JSON.stringify(tree));
 
@@ -144,6 +154,45 @@ export function createNodeEditor() {
       return newIdv;
     },
 
+    applyBem(nodeId, block) {
+      block = (block || '').trim();
+      if (!CLASS_NAME_RE.test(block)) return false;
+      const t = getTree();
+      if (!t.nodes[nodeId]) return false;
+      pushHistory(t);
+
+      const order = [];
+      const walk = (id) => { order.push(id); for (const c of t.nodes[id].children || []) walk(c); };
+      walk(nodeId);
+
+      const nextClasses = { ...classes };
+      const ensure = (name) => { if (!nextClasses[name]) nextClasses[name] = {}; };
+      const nodes = { ...t.nodes };
+      const assigned = new Set();
+
+      ensure(block);
+      nodes[nodeId] = { ...nodes[nodeId], classes: addUniq(nodes[nodeId].classes, block) };
+      assigned.add(block);
+
+      for (const id of order) {
+        if (id === nodeId) continue;
+        const n = t.nodes[id];
+        if (n.type === 'component-ref') continue;
+        const base = `${block}__${bemElementName(n)}`;
+        let name = base;
+        let i = 2;
+        while (assigned.has(name)) name = `${base}-${i++}`;
+        assigned.add(name);
+        ensure(name);
+        nodes[id] = { ...n, classes: addUniq(n.classes, name) };
+      }
+
+      classes = nextClasses;
+      setTree({ ...t, nodes });
+      selectedId = nodeId;
+      dirty = true;
+      return true;
+    },
     componentize(nodeId, name) {
       const t = getTree();
       if (nodeId === t.root) return null;
