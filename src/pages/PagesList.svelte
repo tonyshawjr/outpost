@@ -7,7 +7,6 @@
   let loading = $state(true);
   let pages = $state([]);
   let search = $state('');
-  let creating = $state(false);
 
   const HIDDEN = new Set(['__global__', '/sync-api']);
 
@@ -37,19 +36,8 @@
     navigate('node-builder', { pageId: page.id });
   }
 
-  async function createPage() {
-    const title = (prompt('Page title') || '').trim();
-    if (!title) return;
-    creating = true;
-    try {
-      const res = await pagesApi.create(title);
-      addToast('Page created', 'success');
-      open(res.page);
-    } catch (e) {
-      addToast(e.message || 'Could not create page', 'error');
-    } finally {
-      creating = false;
-    }
+  function createPage() {
+    navigate('page-new');
   }
 </script>
 
@@ -61,7 +49,7 @@
       <p class="page-subtitle">Standalone pages, built in the visual editor.</p>
     </div>
     <div class="page-header-actions">
-      <button class="btn btn-primary" onclick={createPage} disabled={creating}>
+      <button class="btn btn-primary" onclick={createPage}>
         <Plus size={16} aria-hidden="true" />
         <span>New page</span>
       </button>

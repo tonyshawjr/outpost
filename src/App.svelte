@@ -44,6 +44,7 @@
   import PageBuilder from '$pages/PageBuilder.svelte';
   import NodeBuilder from '$pages/NodeBuilder.svelte';
   import PagesList from '$pages/PagesList.svelte';
+  import CreatePage from '$pages/CreatePage.svelte';
 import FieldPresets from '$pages/FieldPresets.svelte';
 import EditorialAI from '$pages/EditorialAI.svelte';
 
@@ -258,6 +259,8 @@ import EditorialAI from '$pages/EditorialAI.svelte';
           <PageBuilder />
         {:else if route === 'pages'}
           <PagesList />
+        {:else if route === 'page-new'}
+          <CreatePage />
         {:else if route === 'node-builder'}
           <NodeBuilder />
         {:else if route === 'backups'}
