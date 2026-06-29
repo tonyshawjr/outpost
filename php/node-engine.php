@@ -169,6 +169,93 @@ function outpost_node_validate(array $tree): array {
     return ['root' => $tree['root'], 'nodes' => $nodes];
 }
 
+function outpost_html_map_tag(string $tag): array {
+    static $containers = ['div', 'section', 'main', 'header', 'footer', 'article', 'aside', 'nav', 'ul', 'ol', 'li', 'figure'];
+    static $texts = ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'small', 'blockquote', 'label'];
+    if (in_array($tag, $containers, true)) return ['container', $tag];
+    if (in_array($tag, $texts, true)) return ['text', $tag];
+    if ($tag === 'img') return ['image', 'img'];
+    if ($tag === 'a') return ['link', 'a'];
+    if ($tag === 'button') return ['button', 'button'];
+    return [null, null];
+}
+
+function outpost_dom_to_node(\DOMNode $el, array &$nodes): ?string {
+    if ($el->nodeType !== XML_ELEMENT_NODE) return null;
+    $tag = strtolower($el->nodeName);
+    if (in_array($tag, ['script', 'style', 'link', 'meta', 'head', 'title', 'br', 'hr'], true)) return null;
+
+    [$type, $nodeTag] = outpost_html_map_tag($tag);
+    if ($type === null) { $type = 'container'; $nodeTag = 'div'; }
+
+    $classes = [];
+    if ($el instanceof \DOMElement && $el->hasAttribute('class')) {
+        foreach (preg_split('/\s+/', trim($el->getAttribute('class'))) as $c) {
+            $c = preg_replace('/[^A-Za-z0-9_-]/', '', $c);
+            if ($c !== '' && !in_array($c, $classes, true)) $classes[] = $c;
+        }
+    }
+
+    $props = [];
+    $children = [];
+    if ($type === 'text') {
+        $props['text'] = trim($el->textContent);
+    } elseif ($type === 'image') {
+        $props['src'] = $el instanceof \DOMElement ? $el->getAttribute('src') : '';
+        $props['alt'] = $el instanceof \DOMElement ? $el->getAttribute('alt') : '';
+    } elseif ($type === 'link' || $type === 'button') {
+        $props['text'] = trim($el->textContent);
+        if ($el instanceof \DOMElement && $el->hasAttribute('href')) $props['href'] = $el->getAttribute('href');
+    } else {
+        foreach ($el->childNodes as $child) {
+            $cid = outpost_dom_to_node($child, $nodes);
+            if ($cid) $children[] = $cid;
+        }
+    }
+
+    $id = outpost_node_id();
+    $nodes[$id] = [
+        'id' => $id,
+        'type' => $type,
+        'tag' => $nodeTag,
+        'props' => $props ?: new \stdClass(),
+        'classes' => $classes,
+        'styles' => new \stdClass(),
+        'children' => $children,
+    ];
+    return $id;
+}
+
+function outpost_html_to_node_tree(string $html): array {
+    $html = trim($html);
+    if ($html === '') return outpost_node_default_tree();
+
+    $prev = libxml_use_internal_errors(true);
+    $doc = new \DOMDocument();
+    $doc->loadHTML(
+        '<?xml encoding="utf-8"?><div id="__oc_root">' . $html . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+
+    $rootEl = $doc->getElementById('__oc_root');
+    $rootId = outpost_node_id();
+    $nodes = [
+        $rootId => [
+            'id' => $rootId, 'type' => 'container', 'tag' => 'main',
+            'props' => new \stdClass(), 'classes' => [], 'styles' => new \stdClass(), 'children' => [],
+        ],
+    ];
+    if ($rootEl) {
+        foreach ($rootEl->childNodes as $child) {
+            $cid = outpost_dom_to_node($child, $nodes);
+            if ($cid) $nodes[$rootId]['children'][] = $cid;
+        }
+    }
+    return outpost_node_validate(['root' => $rootId, 'nodes' => $nodes]);
+}
+
 function outpost_class_name_valid(string $name): bool {
     return (bool) preg_match('/^[A-Za-z_][A-Za-z0-9_-]*$/', $name);
 }

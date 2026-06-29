@@ -2103,6 +2103,32 @@ function outpost_upsert_style_classes(array $classes): int {
     return $n;
 }
 
+function outpost_save_page_node_tree(int $pageId, string $html): bool {
+    if (!function_exists('outpost_html_to_node_tree')) require_once __DIR__ . '/node-engine.php';
+    if (function_exists('ensure_node_trees_table')) ensure_node_trees_table();
+    try {
+        $tree = outpost_html_to_node_tree($html);
+    } catch (\Throwable $e) {
+        return false;
+    }
+    $treeJson = json_encode($tree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $existing = OutpostDB::fetchOne(
+        'SELECT id, version FROM node_trees WHERE owner_type = ? AND owner_id = ?',
+        ['page', $pageId]
+    );
+    if ($existing) {
+        OutpostDB::update('node_trees',
+            ['tree' => $treeJson, 'version' => (int) $existing['version'] + 1, 'updated_at' => date('Y-m-d H:i:s')],
+            'owner_type = ? AND owner_id = ?', ['page', $pageId]
+        );
+    } else {
+        OutpostDB::insert('node_trees', [
+            'owner_type' => 'page', 'owner_id' => $pageId, 'tree' => $treeJson, 'version' => 1,
+        ]);
+    }
+    return true;
+}
+
 function outpost_strip_php_tags(string $html): string {
     $html = preg_replace('/<\?php\b.*?\?>/is', '', $html);
     $html = preg_replace('/<\?=.*?\?>/is', '', $html);
@@ -2209,6 +2235,8 @@ function handle_page_import(): void {
         ]);
         $id = (int) OutpostDB::connect()->lastInsertId();
     }
+
+    outpost_save_page_node_tree($id, $html);
 
     $fieldCount = 0;
     if (function_exists('outpost_scan_site_templates')) {
@@ -2343,12 +2371,16 @@ function handle_site_import(): void {
         $existing = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
         if ($existing) {
             OutpostDB::update('pages', ['updated_at' => $now], 'id = ?', [$existing['id']]);
+            $pid = (int) $existing['id'];
         } else {
             OutpostDB::insert('pages', [
                 'path' => $path, 'title' => $title,
                 'status' => 'draft', 'visibility' => 'public', 'updated_at' => $now,
             ]);
+            $pid = (int) OutpostDB::connect()->lastInsertId();
         }
+        $pageHtml = @file_get_contents($renderRoot . '/' . $file);
+        if ($pageHtml !== false) outpost_save_page_node_tree($pid, $pageHtml);
         $pagesCreated[] = $path;
     }
 
