@@ -126,9 +126,11 @@ export const designTokens = {
 // Pages
 export const pages = {
   list: (search = '') =>
-    request('pages', { params: search ? { search } : {} }),
+    request('pages', { params: search ? { search } : { all: '1' } }),
   get: (id) =>
     request('pages', { params: { id } }),
+  create: (title, path = '') =>
+    request('pages', { method: 'POST', body: { title, path } }),
   update: (id, data) =>
     request('pages', { method: 'PUT', params: { id }, body: data }),
   delete: (id) =>

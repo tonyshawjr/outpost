@@ -286,6 +286,7 @@ match (true) {
 
     // Pages
     $action === 'pages' && $method === 'GET' && !isset($_GET['id']) => handle_pages_list(),
+    $action === 'pages' && $method === 'POST' => handle_page_create(),
     $action === 'pages' && $method === 'GET' && isset($_GET['id']) => handle_page_get(),
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
     $action === 'pages' && $method === 'DELETE' && isset($_GET['id']) => handle_page_delete(),
@@ -2028,6 +2029,36 @@ function handle_page_get(): void {
     $page['fields'] = $fields;
     $page['active_theme'] = $activeTheme;
     json_response(['page' => $page]);
+}
+
+function handle_page_create(): void {
+    $data = get_json_body();
+    $title = trim($data['title'] ?? '');
+    if ($title === '') json_error('Title required', 400);
+
+    $rawPath = trim($data['path'] ?? '');
+    if ($rawPath === '') {
+        $rawPath = '/' . outpost_slugify($title);
+    }
+    $path = '/' . trim(preg_replace('#[^a-z0-9/_-]+#', '-', strtolower($rawPath)), '/');
+    if ($path === '/' ) {
+        json_error('That path is reserved. Choose a different slug.', 400);
+    }
+
+    $exists = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
+    if ($exists) json_error('A page with that path already exists', 409);
+
+    $now = date('Y-m-d H:i:s');
+    OutpostDB::insert('pages', [
+        'path' => $path,
+        'title' => $title,
+        'status' => 'draft',
+        'visibility' => 'public',
+        'updated_at' => $now,
+    ]);
+    $id = (int) OutpostDB::connect()->lastInsertId();
+
+    json_response(['ok' => true, 'page' => ['id' => $id, 'path' => $path, 'title' => $title, 'status' => 'draft']]);
 }
 
 function handle_page_update(): void {

@@ -47,6 +47,11 @@
         const list = res.pages || res.items || (Array.isArray(res) ? res : []);
         id = list[0]?.id;
         pageTitle = list[0]?.title || 'Page';
+      } else {
+        try {
+          const res = await pagesApi.get(id);
+          pageTitle = res.page?.title || res.title || 'Page';
+        } catch { pageTitle = 'Page'; }
       }
       if (!id) {
         loadError = 'No page found to edit.';

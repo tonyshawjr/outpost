@@ -163,12 +163,10 @@
 
     <!-- ====== CONTENT: pages, posts, media ====== -->
     <div class="sb-group">
-      {#if pagesColl && featureEnabled('collections')}
-        <a class="sb-item" class:active={route === 'pages' || (route === 'collection-items' && activeCollSlug === 'pages')} onclick={() => nav('pages')}>
-          <FileText size={19} />
-          <span>Pages</span>
-        </a>
-      {/if}
+      <a class="sb-item" class:active={route === 'pages' || route === 'node-builder'} onclick={() => nav('pages')}>
+        <FileText size={19} />
+        <span>Pages</span>
+      </a>
       {#if postsColl && featureEnabled('collections')}
         <a class="sb-item sb-toggle" onclick={togglePosts}>
           <PenSquare size={19} />
