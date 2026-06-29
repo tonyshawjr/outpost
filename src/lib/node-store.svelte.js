@@ -3,6 +3,44 @@ import * as TOK from './builder-tokens.js';
 import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi } from './api.js';
 
 const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+const STYLE_VALUE_RE = /[{}<>;]/g;
+const RESERVED_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+const AI_MAX_NODES = 2000;
+const AI_MAX_DEPTH = 32;
+
+function sanitizeClassName(name) {
+  const c = String(name || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (RESERVED_KEYS.has(c)) return '';
+  return CLASS_NAME_RE.test(c) ? c : '';
+}
+
+function sanitizeClassList(list) {
+  const seen = new Set();
+  return (Array.isArray(list) ? list : [])
+    .map(sanitizeClassName)
+    .filter((c) => c && !seen.has(c) && seen.add(c));
+}
+
+function cleanDeclarations(decls) {
+  const out = {};
+  if (!decls || typeof decls !== 'object') return out;
+  for (const prop in decls) {
+    const p = String(prop).toLowerCase().replace(/[^a-z-]/g, '');
+    const raw = decls[prop];
+    if (!p || raw == null) continue;
+    const val = String(raw).replace(STYLE_VALUE_RE, '').trim().slice(0, 400);
+    if (val) out[p] = val;
+  }
+  return out;
+}
+
+function aiNodeProps(spec) {
+  const p = {};
+  for (const key of ['text', 'src', 'alt', 'href', 'field', 'fieldType', 'fieldScope']) {
+    if (spec[key] != null) p[key] = String(spec[key]);
+  }
+  return p;
+}
 
 function bemElementName(node) {
   if (node.type === 'text') return /^h[1-6]$/.test(node.tag) ? 'title' : 'text';
@@ -154,6 +192,158 @@ export function createNodeEditor() {
       const newIdv = commit((t) => T.duplicateNode(t, id));
       if (newIdv) selectedId = newIdv;
       return newIdv;
+    },
+
+    applyAiOps(ops) {
+      const summary = { inserted: 0, updated: 0, removed: 0, moved: 0, classes: 0, fields: 0, errors: [] };
+      if (!Array.isArray(ops) || ops.length === 0) {
+        summary.errors.push('No operations provided');
+        return summary;
+      }
+
+      const original = getTree();
+      let tree = snap(original);
+      let nextClasses = { ...classes };
+      const refMap = Object.create(null);
+      let lastCreated = null;
+      let builtCount = 0;
+
+      const resolveId = (ref) => {
+        if (typeof ref !== 'string' || ref === '') return null;
+        if (ref === 'root') return tree.root;
+        if (ref === 'selected') return selectedId && Object.hasOwn(tree.nodes, selectedId) ? selectedId : null;
+        if (Object.hasOwn(refMap, ref) && Object.hasOwn(tree.nodes, refMap[ref])) return refMap[ref];
+        return Object.hasOwn(tree.nodes, ref) ? ref : null;
+      };
+
+      const buildSpec = (spec, depth = 0) => {
+        if (!spec || typeof spec !== 'object') throw new Error('invalid node spec');
+        if (depth > AI_MAX_DEPTH) throw new Error('node spec too deeply nested');
+        if (++builtCount > AI_MAX_NODES) throw new Error('node spec too large');
+        const type = T.NODE_TYPES[spec.type] ? spec.type : 'container';
+        const node = T.makeNode(type, {
+          tag: spec.tag,
+          classes: sanitizeClassList(spec.classes),
+          props: aiNodeProps(spec),
+        });
+        if (typeof spec.ref === 'string' && spec.ref !== '' && !RESERVED_KEYS.has(spec.ref)) refMap[spec.ref] = node.id;
+        const childIds = [];
+        if (T.NODE_TYPES[type].children && Array.isArray(spec.children)) {
+          for (const child of spec.children) childIds.push(buildSpec(child, depth + 1));
+        }
+        node.children = childIds;
+        tree.nodes[node.id] = node;
+        for (const c of node.classes) if (!nextClasses[c]) nextClasses[c] = {};
+        summary.inserted++;
+        return node.id;
+      };
+
+      for (const op of ops) {
+        const kind = op && (op.op || op.action);
+        try {
+          if (kind === 'insert_tree' || kind === 'insert') {
+            const parentId = resolveId(op.parent ?? op.parentId ?? 'root') || tree.root;
+            const parent = tree.nodes[parentId];
+            if (!parent || !T.NODE_TYPES[parent.type].children) {
+              summary.errors.push('insert: invalid parent'); continue;
+            }
+            const rootId = buildSpec(op.node || op);
+            const max = parent.children.length;
+            const at = Number.isInteger(op.index) ? Math.max(0, Math.min(op.index, max)) : max;
+            parent.children.splice(at, 0, rootId);
+            lastCreated = rootId;
+          } else if (kind === 'update') {
+            const id = resolveId(op.id);
+            if (!id) { summary.errors.push('update: unknown node'); continue; }
+            const n = tree.nodes[id];
+            if (op.tag && T.NODE_TYPES[n.type].tags.includes(op.tag)) n.tag = op.tag;
+            n.props = { ...n.props, ...(op.props && typeof op.props === 'object' ? op.props : aiNodeProps(op)) };
+            summary.updated++;
+          } else if (kind === 'set_classes') {
+            const id = resolveId(op.id);
+            if (!id) { summary.errors.push('set_classes: unknown node'); continue; }
+            const list = sanitizeClassList(op.classes);
+            tree.nodes[id].classes = list;
+            for (const c of list) if (!nextClasses[c]) nextClasses[c] = {};
+            summary.updated++;
+          } else if (kind === 'add_class') {
+            const id = resolveId(op.id);
+            const name = sanitizeClassName(op.class || op.name);
+            if (!id || !name) { summary.errors.push('add_class: invalid'); continue; }
+            if (!tree.nodes[id].classes.includes(name)) tree.nodes[id].classes.push(name);
+            if (!nextClasses[name]) nextClasses[name] = {};
+            summary.updated++;
+          } else if (kind === 'remove_class') {
+            const id = resolveId(op.id);
+            const name = sanitizeClassName(op.class || op.name);
+            if (!id || !name) continue;
+            tree.nodes[id].classes = tree.nodes[id].classes.filter((c) => c !== name);
+            summary.updated++;
+          } else if (kind === 'move') {
+            const id = resolveId(op.id);
+            const parentId = resolveId(op.parent ?? op.parentId);
+            if (!id || !parentId || id === tree.root) { summary.errors.push('move: invalid'); continue; }
+            if (T.isAncestor(tree, id, parentId)) { summary.errors.push('move: would create cycle'); continue; }
+            const np = tree.nodes[parentId];
+            if (!T.NODE_TYPES[np.type].children) { summary.errors.push('move: parent cannot hold children'); continue; }
+            const oldParent = T.parentOf(tree, id);
+            if (oldParent) tree.nodes[oldParent].children = tree.nodes[oldParent].children.filter((c) => c !== id);
+            const max = np.children.length;
+            const at = Number.isInteger(op.index) ? Math.max(0, Math.min(op.index, max)) : max;
+            np.children.splice(at, 0, id);
+            summary.moved++;
+          } else if (kind === 'duplicate') {
+            const id = resolveId(op.id);
+            if (!id || id === tree.root) { summary.errors.push('duplicate: invalid'); continue; }
+            const r = T.duplicateNode(tree, id);
+            tree = r.tree;
+            if (typeof op.ref === 'string' && op.ref !== '' && !RESERVED_KEYS.has(op.ref)) refMap[op.ref] = r.id;
+            lastCreated = r.id;
+            summary.inserted++;
+          } else if (kind === 'remove' || kind === 'delete') {
+            const id = resolveId(op.id);
+            if (!id || id === tree.root) { summary.errors.push('remove: invalid'); continue; }
+            tree = T.deleteNode(tree, id);
+            if (selectedId === id) selectedId = null;
+            summary.removed++;
+          } else if (kind === 'define_class') {
+            const name = sanitizeClassName(op.name);
+            if (!name) { summary.errors.push('define_class: invalid name'); continue; }
+            nextClasses[name] = { ...(nextClasses[name] || {}), ...cleanDeclarations(op.declarations) };
+            summary.classes++;
+          } else if (kind === 'bind_field') {
+            const id = resolveId(op.id);
+            if (!id) { summary.errors.push('bind_field: unknown node'); continue; }
+            const patch = { field: String(op.field || '') };
+            if (op.fieldType != null) patch.fieldType = String(op.fieldType);
+            if (op.fieldScope != null) patch.fieldScope = String(op.fieldScope);
+            tree.nodes[id].props = { ...tree.nodes[id].props, ...patch };
+            summary.fields++;
+          } else if (kind === 'select') {
+            const id = resolveId(op.id);
+            if (id) lastCreated = id;
+          } else {
+            summary.errors.push(`Unknown operation: ${kind}`);
+          }
+        } catch (e) {
+          summary.errors.push(`${kind}: ${e.message}`);
+        }
+      }
+
+      let clean;
+      try {
+        clean = T.validate(tree);
+      } catch (e) {
+        summary.errors.push(`Validation failed: ${e.message}`);
+        return summary;
+      }
+
+      pushHistory(original);
+      setTree(clean);
+      classes = nextClasses;
+      dirty = true;
+      if (lastCreated && clean.nodes[lastCreated]) selectedId = lastCreated;
+      return summary;
     },
 
     applyBem(nodeId, block) {

@@ -11,7 +11,8 @@
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
   import ContextMenu from '$components/builder/ContextMenu.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft } from 'lucide-svelte';
+  import AiPanel from '$components/builder/AiPanel.svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -20,6 +21,7 @@
   let loadError = $state('');
   let leftPanel = $state('layers');
   let editMode = $state('design');
+  let aiOpen = $state(false);
 
   let selected = $derived(editor.selectedNode);
   let status = $derived(
@@ -158,6 +160,12 @@
     {/if}
 
     <div class="right">
+      {#if editMode === 'design'}
+        <button class="ai-toggle" class:on={aiOpen} aria-pressed={aiOpen} onclick={() => (aiOpen = !aiOpen)} title="Build with AI">
+          <Sparkles size={15} aria-hidden="true" />
+          <span>AI</span>
+        </button>
+      {/if}
       <button class="icon" onclick={() => editor.undo()} disabled={!editor.canUndo} aria-label="Undo" title="Undo (⌘Z)">
         <Undo2 size={17} aria-hidden="true" />
       </button>
@@ -300,6 +308,9 @@
           <p class="ins-empty">{editMode === 'content' ? 'Select content on the canvas or in the list to edit it.' : 'Select an element on the canvas or in the layers panel to edit it.'}</p>
         {/if}
       </aside>
+      {#if aiOpen && editMode === 'design'}
+        <AiPanel {editor} onclose={() => (aiOpen = false)} />
+      {/if}
     </div>
   {/if}
 
@@ -417,6 +428,24 @@
   .save:hover:not(:disabled) { background: var(--accent-hover); }
   .save:disabled { opacity: 0.4; cursor: default; }
   .save:focus-visible { outline: 2px solid var(--purple-soft); outline-offset: 2px; }
+
+  .ai-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--sec);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ai-toggle:hover { background: var(--hover); color: var(--text); }
+  .ai-toggle.on { background: var(--purple-bg, var(--hover)); color: var(--purple-soft, var(--purple)); border-color: transparent; }
+  .ai-toggle :global(svg) { color: var(--purple-soft, var(--purple)); }
+  .ai-toggle:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
   .cmp-banner {
     display: flex;

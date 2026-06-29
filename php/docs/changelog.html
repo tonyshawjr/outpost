@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.15">6.0.0-beta.15 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>AI build sidebar (visual builder)</strong> &mdash; A "Build with AI" panel in the node builder. Describe a section or change in plain language and the agent builds it on the live canvas: inserts semantic markup, defines and applies CSS classes, rewrites content, and binds dynamic-island fields. Every AI turn is a single undo step (&#8984;Z) and nothing persists until you Save. Streams over <code>POST builder/ai</code> using your existing provider key (Claude/OpenAI/Gemini) from Settings &rarr; Integrations.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Endpoint runs behind session auth, CSRF, rate limiting, and the <code>content.*</code> capability. The provider key is decrypted server-side and never returned to the browser. Request body is size-capped, AI-supplied CSS declarations are stripped of breakout characters, and node specs are depth/size-bounded and re-validated before they touch the page tree.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="5.1.1">5.1.1 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-04-01</span></h2>
     <h3>Added</h3>
     <ul>

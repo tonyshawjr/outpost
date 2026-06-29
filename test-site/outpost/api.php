@@ -25,6 +25,7 @@ require_once __DIR__ . '/channels.php';
 require_once __DIR__ . '/customizer.php';
 require_once __DIR__ . '/brand.php';
 require_once __DIR__ . '/ranger.php';
+require_once __DIR__ . '/builder-ai.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
@@ -663,6 +664,9 @@ match (true) {
     $action === 'shield/config'       && $method === 'GET'    => handle_shield_config_get(),
     $action === 'shield/config'       && $method === 'PUT'    => handle_shield_config_update(),
     $action === 'shield/login-attempts' && $method === 'GET'  => handle_shield_login_attempts(),
+
+    // Visual builder AI agent (live canvas)
+    $action === 'builder/ai' && $method === 'POST' => handle_builder_ai_chat(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),

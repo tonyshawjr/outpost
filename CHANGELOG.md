@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.15] — 2026-06-29
+
+AI build sidebar for the visual builder — describe a section or change in plain language and watch it appear on the live canvas.
+
+### Added
+- **AI build sidebar (visual builder).** A "Build with AI" panel in the node builder (design mode). Describe what you want and the agent edits the live canvas: inserts semantic subtrees, defines and applies CSS classes, rewrites content, and binds dynamic-island fields. Every AI turn is a single undo step (⌘Z), and nothing persists until you Save. New endpoint `POST builder/ai` streams the build over SSE. Reuses your existing provider key from Settings → Integrations (Claude/OpenAI/Gemini) — no separate setup.
+- **`applyAiOps()` batch operation interpreter (node store).** Applies a validated operation list (`insert_tree`, `update`, `set_classes`, `add_class`/`remove_class`, `move`, `duplicate`, `remove`, `define_class`, `bind_field`) against the in-memory tree in one undoable commit, with ref-resolution for nested subtrees, class/CSS-value sanitization, prototype-pollution guards, and depth/size caps.
+
+### Security
+- `builder/ai` runs behind session auth, CSRF, rate limiting, and the `content.*` capability. The provider API key is decrypted server-side and never returned to the client. Request body capped; AI-supplied CSS declarations are stripped of `{ } < > ;` to prevent stylesheet breakout; node specs are depth- and count-bounded and re-validated before they touch the tree.
+
+---
+
 ## [6.0.0-beta.14] — 2026-05-09
 
 First substantial v6 build pass — Sections 1, 2, 2.5, 3, 4, 5, 6, 7 of the v6 plan land foundations. Single-session aggressive build.

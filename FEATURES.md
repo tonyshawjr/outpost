@@ -4,6 +4,18 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## AI Build Sidebar — Visual Builder (v6.0.0-beta.15)
+
+- **Describe-and-build** — A "Build with AI" panel in the node builder (design mode). Describe a section, layout, or change in plain language; the agent builds it directly on the live canvas.
+- **Live, undoable edits** — The agent drives the same editor store as manual editing. Each AI turn is a single ⌘Z undo step and nothing persists until Save. Watch the page build as the response streams.
+- **Full builder vocabulary** — Inserts semantic subtrees (`insert_tree`), rewrites content (`update`), creates/applies CSS classes (`define_class`, `set_classes`, `add_class`), restructures (`move`, `duplicate`, `remove`), and binds dynamic-island fields (`bind_field`).
+- **Brand-aware context** — Each turn sends the agent a compact snapshot of the current page tree, the existing class registry, and design tokens, so it reuses your classes and prefers your tokens.
+- **BYO key, reused** — Streams over `POST builder/ai` (SSE) using your existing provider key (Claude/OpenAI/Gemini) from Settings → Integrations. No separate configuration; same key powers Ranger and the builder.
+- **Secure by construction** — Session auth + CSRF + rate limit + `content.*` capability. Provider key decrypted server-side and never sent to the browser. AI-supplied CSS is sanitized against stylesheet breakout; node specs are depth/size-bounded and re-validated before mutating the tree.
+- **Accessible UI** — Chat transcript as an `aria-live` log, labeled input, visible focus states, keyboard send (⌘/Enter), and accessible controls throughout.
+
+---
+
 ## MCP Server — AI Content Management (v5.1.1)
 
 - **MCP endpoint** — `mcp.php` speaks JSON-RPC 2.0 over Streamable HTTP transport. Single file, zero dependencies, pure PHP.
