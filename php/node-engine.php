@@ -198,6 +198,18 @@ function outpost_dom_to_node(\DOMNode $el, array &$nodes): ?string {
 
     $props = [];
     $children = [];
+    if ($el instanceof \DOMElement && $el->hasAttribute('data-outpost')) {
+        $fieldName = preg_replace('/[^A-Za-z0-9_]/', '', $el->getAttribute('data-outpost'));
+        if ($fieldName !== '') {
+            $props['field'] = $fieldName;
+            if ($el->hasAttribute('data-type')) {
+                $props['fieldType'] = preg_replace('/[^a-z]/', '', strtolower($el->getAttribute('data-type')));
+            }
+            if ($el->getAttribute('data-scope') === 'global') {
+                $props['fieldScope'] = 'global';
+            }
+        }
+    }
     if ($type === 'text') {
         $props['text'] = trim($el->textContent);
     } elseif ($type === 'image') {
@@ -313,11 +325,27 @@ function outpost_render_node_tree(array $tree, ?string $startId = null, array $c
     return outpost_render_node($tree, $start, $components, []);
 }
 
+function outpost_node_field_attr(array $props): string {
+    if (empty($props['field'])) return '';
+    $name = preg_replace('/[^A-Za-z0-9_]/', '', (string) $props['field']);
+    if ($name === '') return '';
+    $attr = ' data-outpost="' . htmlspecialchars($name, ENT_QUOTES) . '"';
+    if (!empty($props['fieldType'])) {
+        $t = preg_replace('/[^a-z]/', '', strtolower((string) $props['fieldType']));
+        if ($t !== '') $attr .= ' data-type="' . $t . '"';
+    }
+    if (($props['fieldScope'] ?? '') === 'global') {
+        $attr .= ' data-scope="global"';
+    }
+    return $attr;
+}
+
 function outpost_render_node(array $tree, string $id, array $components, array $stack): string {
     $node = $tree['nodes'][$id];
     $tag = $node['tag'];
     $cls = outpost_node_class_attr($node['classes']);
     $props = (array) $node['props'];
+    $fld = outpost_node_field_attr($props);
 
     switch ($node['type']) {
         case 'component-ref':
@@ -334,11 +362,11 @@ function outpost_render_node(array $tree, string $id, array $components, array $
         case 'image':
             $src = htmlspecialchars(outpost_node_sanitise_url((string) ($props['src'] ?? '')), ENT_QUOTES);
             $alt = htmlspecialchars((string) ($props['alt'] ?? ''), ENT_QUOTES);
-            return "<img{$cls} src=\"{$src}\" alt=\"{$alt}\">";
+            return "<img{$cls}{$fld} src=\"{$src}\" alt=\"{$alt}\">";
 
         case 'text':
             $text = htmlspecialchars((string) ($props['text'] ?? ''), ENT_QUOTES);
-            return "<{$tag}{$cls}>{$text}</{$tag}>";
+            return "<{$tag}{$cls}{$fld}>{$text}</{$tag}>";
 
         case 'link':
         case 'button':
@@ -346,9 +374,9 @@ function outpost_render_node(array $tree, string $id, array $components, array $
             $href = outpost_node_sanitise_url((string) ($props['href'] ?? ''));
             if ($tag === 'a') {
                 $h = htmlspecialchars($href !== '' ? $href : '#', ENT_QUOTES);
-                return "<a{$cls} href=\"{$h}\">{$text}</a>";
+                return "<a{$cls}{$fld} href=\"{$h}\">{$text}</a>";
             }
-            return "<button{$cls} type=\"button\">{$text}</button>";
+            return "<button{$cls}{$fld} type=\"button\">{$text}</button>";
 
         case 'container':
         default:
@@ -356,6 +384,72 @@ function outpost_render_node(array $tree, string $id, array $components, array $
             foreach ($node['children'] as $cid2) {
                 $inner .= outpost_render_node($tree, $cid2, $components, $stack);
             }
-            return "<{$tag}{$cls}>{$inner}</{$tag}>";
+            return "<{$tag}{$cls}{$fld}>{$inner}</{$tag}>";
     }
+}
+
+function outpost_public_class_css(): string {
+    $rows = OutpostDB::fetchAll('SELECT name, declarations FROM style_classes ORDER BY name ASC');
+    $css = '';
+    foreach ($rows as $r) {
+        if (!outpost_class_name_valid($r['name'])) continue;
+        $decls = json_decode($r['declarations'] ?: '{}', true) ?: [];
+        $body = '';
+        foreach ($decls as $prop => $value) {
+            if (!is_string($prop) || !outpost_css_property_valid($prop) || !is_scalar($value)) continue;
+            $safe = outpost_css_value_safe((string) $value);
+            if ($safe !== '') $body .= "{$prop}:{$safe};";
+        }
+        if ($body !== '') $css .= ".{$r['name']}{{$body}}\n";
+    }
+    return $css;
+}
+
+function outpost_bake_node_page(int $pageId): bool {
+    $page = OutpostDB::fetchOne('SELECT path, title FROM pages WHERE id = ?', [$pageId]);
+    if (!$page) return false;
+
+    $row = OutpostDB::fetchOne(
+        "SELECT tree FROM node_trees WHERE owner_type = 'page' AND owner_id = ?",
+        [$pageId]
+    );
+    if (!$row) return false;
+    $tree = json_decode($row['tree'] ?: '{}', true);
+    if (!is_array($tree) || empty($tree['root'])) return false;
+
+    $components = [];
+    foreach (OutpostDB::fetchAll('SELECT id, tree FROM components') as $c) {
+        $components[$c['id']] = ['tree' => json_decode($c['tree'] ?: '{}', true)];
+    }
+
+    try {
+        $body = outpost_render_node_tree($tree, null, $components);
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+    $renderRoot = rtrim(outpost_active_render_root(), '/');
+
+    $base = ($page['path'] === '/') ? 'index' : trim($page['path'], '/');
+    if ($base === '' || str_contains($base, '/')) return false;
+
+    $cssLink = file_exists($renderRoot . '/' . $base . '.css')
+        ? '<link rel="stylesheet" href="/' . $base . '.css">' . "\n" : '';
+    $jsLink = file_exists($renderRoot . '/' . $base . '.js')
+        ? '<script src="/' . $base . '.js" defer></script>' . "\n" : '';
+    $classCss = outpost_public_class_css();
+    $titleEsc = htmlspecialchars($page['title'] ?: 'Page', ENT_QUOTES);
+
+    $doc = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+        . "<meta charset=\"utf-8\">\n"
+        . "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+        . "<title>{$titleEsc}</title>\n"
+        . "<outpost-seo></outpost-seo>\n"
+        . $cssLink
+        . "<style>\n{$classCss}</style>\n"
+        . "</head>\n<body>\n{$body}\n{$jsLink}</body>\n</html>\n";
+
+    $filename = ($page['path'] === '/') ? 'index.html' : $base . '.html';
+    return file_put_contents($renderRoot . '/' . $filename, $doc) !== false;
 }

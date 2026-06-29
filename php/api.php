@@ -1756,7 +1756,22 @@ function handle_nodes_save(): void {
         ]);
     }
 
-    json_response(['ok' => true, 'version' => $newVersion, 'nodes' => count($clean['nodes'])]);
+    $baked = false;
+    if ($type === 'page') {
+        if (!function_exists('outpost_bake_node_page')) require_once __DIR__ . '/node-engine.php';
+        if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+        $pg = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [(int) $ownerId]);
+        $path = $pg['path'] ?? '';
+        $base = ($path === '/') ? 'index' : trim($path, '/');
+        $templateFile = rtrim(outpost_active_render_root(), '/') . '/' . $base . '.html';
+        $treeExisted = (bool) $existing;
+        if ($base !== '' && !str_contains($base, '/') && ($treeExisted || !file_exists($templateFile))) {
+            $baked = outpost_bake_node_page((int) $ownerId);
+            if ($pg && function_exists('outpost_clear_cache')) outpost_clear_cache($path);
+        }
+    }
+
+    json_response(['ok' => true, 'version' => $newVersion, 'nodes' => count($clean['nodes']), 'baked' => $baked]);
 }
 
 function handle_nodes_render(): void {
