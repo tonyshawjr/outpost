@@ -34,6 +34,15 @@
     return () => el.remove();
   });
 
+  $effect(() => {
+    const css = editor.templateCss;
+    if (!css || !css.trim()) return;
+    const el = document.createElement('style');
+    el.textContent = `@scope (.oc-canvas) {\n${css}\n}`;
+    document.head.appendChild(el);
+    return () => el.remove();
+  });
+
   let root = $derived(editor.tree?.nodes?.[editor.tree.root]);
 </script>
 

@@ -434,7 +434,22 @@ function outpost_bake_node_page(int $pageId): bool {
     $base = ($page['path'] === '/') ? 'index' : trim($page['path'], '/');
     if ($base === '' || str_contains($base, '/')) return false;
 
-    $cssLink = file_exists($renderRoot . '/' . $base . '.css')
+    $filename = ($page['path'] === '/') ? 'index.html' : $base . '.html';
+    $existingFile = $renderRoot . '/' . $filename;
+
+    $preservedLinks = '';
+    if (file_exists($existingFile)) {
+        $existingHtml = @file_get_contents($existingFile);
+        if ($existingHtml !== false) {
+            $sheets = outpost_page_stylesheets($existingHtml);
+            foreach ($sheets['links'] as $tag) $preservedLinks .= $tag . "\n";
+            if (preg_match_all('#<link\b[^>]*rel=["\']?(?:preconnect|preload)["\']?[^>]*>#i', $existingHtml, $pm)) {
+                foreach ($pm[0] as $tag) $preservedLinks .= $tag . "\n";
+            }
+        }
+    }
+
+    $pageCssLink = (file_exists($renderRoot . '/' . $base . '.css') && !str_contains($preservedLinks, $base . '.css'))
         ? '<link rel="stylesheet" href="/' . $base . '.css">' . "\n" : '';
     $jsLink = file_exists($renderRoot . '/' . $base . '.js')
         ? '<script src="/' . $base . '.js" defer></script>' . "\n" : '';
@@ -446,10 +461,51 @@ function outpost_bake_node_page(int $pageId): bool {
         . "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
         . "<title>{$titleEsc}</title>\n"
         . "<outpost-seo></outpost-seo>\n"
-        . $cssLink
+        . $preservedLinks
+        . $pageCssLink
         . "<style>\n{$classCss}</style>\n"
         . "</head>\n<body>\n{$body}\n{$jsLink}</body>\n</html>\n";
 
-    $filename = ($page['path'] === '/') ? 'index.html' : $base . '.html';
-    return file_put_contents($renderRoot . '/' . $filename, $doc) !== false;
+    return file_put_contents($existingFile, $doc) !== false;
+}
+
+function outpost_resolve_local_css(string $href): ?string {
+    if ($href === '' || preg_match('#^[a-z]+:#i', $href)) return null;
+    $path = parse_url($href, PHP_URL_PATH);
+    if (!is_string($path) || $path === '' || str_contains($path, '..') || str_contains($path, "\0")) return null;
+
+    if (str_starts_with($path, '/outpost/')) {
+        $candidate = rtrim(OUTPOST_DIR, '/') . substr($path, strlen('/outpost'));
+    } else {
+        if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+        $candidate = rtrim(outpost_active_render_root(), '/') . '/' . ltrim($path, '/');
+    }
+    $real = realpath($candidate);
+    if (!$real || !is_file($real) || strtolower(pathinfo($real, PATHINFO_EXTENSION)) !== 'css') return null;
+
+    $bases = [realpath(rtrim(OUTPOST_DIR, '/'))];
+    if (function_exists('outpost_active_render_root')) $bases[] = realpath(rtrim(outpost_active_render_root(), '/'));
+    foreach ($bases as $base) {
+        if ($base && str_starts_with($real, rtrim($base, '/') . '/')) return $real;
+    }
+    return null;
+}
+
+function outpost_page_stylesheets(string $html): array {
+    $links = [];
+    $css = '';
+    if (preg_match_all('/<link\b[^>]*>/i', $html, $m)) {
+        foreach ($m[0] as $tag) {
+            if (!preg_match('/rel=["\']?stylesheet["\']?/i', $tag)) continue;
+            $links[] = $tag;
+            if (preg_match('/href=["\']([^"\']+)["\']/i', $tag, $h)) {
+                $file = outpost_resolve_local_css($h[1]);
+                if ($file) {
+                    $content = @file_get_contents($file);
+                    if ($content !== false) $css .= "\n" . $content;
+                }
+            }
+        }
+    }
+    return ['css' => $css, 'links' => $links];
 }

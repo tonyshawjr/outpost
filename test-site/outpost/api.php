@@ -1696,6 +1696,7 @@ function handle_nodes_get(): void {
         // builder with its real content — not an empty canvas.
         $tree = null;
         $fromTemplate = false;
+        $templateCss = '';
         if ($type === 'page') {
             if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
             $page = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [$ownerId]);
@@ -1711,6 +1712,11 @@ function handle_nodes_get(): void {
                         } catch (\Throwable $e) {
                             $tree = null;
                         }
+                        $sheets = outpost_page_stylesheets($html);
+                        $templateCss = $sheets['css'];
+                        if (trim($templateCss) !== '') {
+                            outpost_upsert_style_classes(outpost_parse_css_classes($templateCss));
+                        }
                     }
                 }
             }
@@ -1722,6 +1728,7 @@ function handle_nodes_get(): void {
             'version'      => 0,
             'exists'       => false,
             'fromTemplate' => $fromTemplate,
+            'templateCss'  => $templateCss,
         ]);
     }
 
@@ -1789,7 +1796,8 @@ function handle_nodes_save(): void {
         $base = ($path === '/') ? 'index' : trim($path, '/');
         $templateFile = rtrim(outpost_active_render_root(), '/') . '/' . $base . '.html';
         $treeExisted = (bool) $existing;
-        if ($base !== '' && !str_contains($base, '/') && ($treeExisted || !file_exists($templateFile))) {
+        $hasContent = count($clean['nodes']) > 1;
+        if ($base !== '' && !str_contains($base, '/') && ($treeExisted || !file_exists($templateFile) || $hasContent)) {
             $baked = outpost_bake_node_page((int) $ownerId);
             if ($pg && function_exists('outpost_clear_cache')) outpost_clear_cache($path);
         }

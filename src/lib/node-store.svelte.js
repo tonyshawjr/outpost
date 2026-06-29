@@ -37,6 +37,7 @@ export function createNodeEditor() {
   let redoStack = $state([]);
   let classes = $state({});
   let tokens = $state(TOK.defaultTokens());
+  let templateCss = $state('');
 
   function getTree() {
     return editingComponentId && comps[editingComponentId] ? comps[editingComponentId].tree : pageTree;
@@ -118,6 +119,7 @@ export function createNodeEditor() {
     },
     get tokens() { return tokens; },
     get tokenVars() { return TOK.tokenVarNames(tokens); },
+    get templateCss() { return templateCss; },
     get classesCss() {
       let css = TOK.tokensToCss(tokens);
       for (const name in classes) {
@@ -332,6 +334,7 @@ export function createNodeEditor() {
       const [res, cr, comp, tk] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get(), tokensApi.get()]);
       pageTree = T.validate(res.tree);
       version = res.version || 0;
+      templateCss = res.templateCss || '';
       const nextClasses = {};
       for (const c of cr.classes || []) nextClasses[c.name] = c.declarations || {};
       classes = nextClasses;
