@@ -1,58 +1,76 @@
 <script>
-  import NodeView from './NodeView.svelte';
+  import { mount, unmount } from 'svelte';
+  import CanvasContent from './CanvasContent.svelte';
 
   let { editor, oncontext } = $props();
-  let surfaceEl = $state(null);
+  let iframeEl = $state(null);
+  let styleEl = $state(null);
+
+  const BASE_CSS = `
+    html, body { margin: 0; padding: 0; }
+    body { background: #ffffff; color: #111; }
+    .oc-canvas { min-height: 100vh; }
+    img { max-width: 100%; }
+    [data-node-id] { cursor: pointer; }
+    [data-node-id][data-selected] { outline: 2px solid #7C3AED; outline-offset: 1px; }
+    [data-component-ref] { outline: 1px dashed #A78BFA; outline-offset: 1px; }
+    [data-component-ref][data-selected] { outline: 2px solid #7C3AED; }
+  `;
 
   $effect(() => {
-    const el = surfaceEl;
-    if (!el) return;
+    const iframe = iframeEl;
+    if (!iframe) return;
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div class="oc-canvas"></div></body></html>');
+    doc.close();
+
+    const baseStyle = doc.createElement('style');
+    baseStyle.textContent = BASE_CSS;
+    doc.head.appendChild(baseStyle);
+
+    const dynStyle = doc.createElement('style');
+    doc.head.appendChild(dynStyle);
+    styleEl = dynStyle;
+
+    const surface = doc.querySelector('.oc-canvas');
+    const app = mount(CanvasContent, { target: surface, props: { editor } });
+
     const onClick = (e) => {
-      const target = e.target.closest('[data-node-id]');
-      editor.select(target ? target.getAttribute('data-node-id') : null);
+      const t = e.target.closest('[data-node-id]');
+      editor.select(t ? t.getAttribute('data-node-id') : null);
     };
     const onCtx = (e) => {
-      const target = e.target.closest('[data-node-id]');
-      if (!target) return;
+      const t = e.target.closest('[data-node-id]');
+      if (!t) return;
       e.preventDefault();
-      const id = target.getAttribute('data-node-id');
+      const id = t.getAttribute('data-node-id');
       editor.select(id);
-      oncontext?.(id, e.clientX, e.clientY);
+      const rect = iframe.getBoundingClientRect();
+      oncontext?.(id, rect.left + e.clientX, rect.top + e.clientY);
     };
-    el.addEventListener('click', onClick);
-    el.addEventListener('contextmenu', onCtx);
+    doc.addEventListener('click', onClick);
+    doc.addEventListener('contextmenu', onCtx);
+
     return () => {
-      el.removeEventListener('click', onClick);
-      el.removeEventListener('contextmenu', onCtx);
+      try { unmount(app); } catch { void 0; }
+      doc.removeEventListener('click', onClick);
+      doc.removeEventListener('contextmenu', onCtx);
+      styleEl = null;
     };
   });
 
   $effect(() => {
-    const el = document.createElement('style');
-    el.textContent = editor.classesCss;
-    document.head.appendChild(el);
-    return () => el.remove();
+    const css = (editor.templateCss || '') + '\n' + editor.classesCss;
+    if (styleEl) styleEl.textContent = css;
   });
-
-  $effect(() => {
-    const css = editor.templateCss;
-    if (!css || !css.trim()) return;
-    const el = document.createElement('style');
-    el.textContent = `@scope (.oc-canvas) {\n${css}\n}`;
-    document.head.appendChild(el);
-    return () => el.remove();
-  });
-
-  let root = $derived(editor.tree?.nodes?.[editor.tree.root]);
 </script>
 
 <div class="canvas">
   <div class="frame">
-    <div class="surface oc-canvas" bind:this={surfaceEl}>
-      {#if root}
-        <NodeView node={root} tree={editor.tree} {editor} />
-      {/if}
-    </div>
+    <iframe bind:this={iframeEl} title="Page canvas"></iframe>
   </div>
 </div>
 
@@ -60,17 +78,14 @@
   .canvas {
     flex: 1;
     min-width: 0;
-    overflow: auto;
     display: flex;
-    justify-content: center;
-    padding: 32px;
+    padding: 24px;
     background: var(--bg);
   }
 
   .frame {
-    width: 100%;
-    max-width: 1100px;
-    align-self: flex-start;
+    flex: 1;
+    min-width: 0;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: #ffffff;
@@ -78,31 +93,10 @@
     overflow: hidden;
   }
 
-  .surface {
-    min-height: 420px;
-    color: #111;
-    transform: translateZ(0);
-    overflow: clip;
-  }
-
-  .surface :global([data-node-id]) {
-    cursor: pointer;
-  }
-
-  .surface :global([data-node-id][data-selected]) {
-    outline: 2px solid var(--purple);
-    outline-offset: 1px;
-  }
-
-  .surface :global([data-component-ref]) {
-    outline: 1px dashed var(--purple-soft);
-    outline-offset: 1px;
-  }
-  .surface :global([data-component-ref][data-selected]) {
-    outline: 2px solid var(--purple);
-  }
-
-  .surface :global(img) {
-    max-width: 100%;
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
   }
 </style>
