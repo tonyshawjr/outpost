@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.17] — 2026-06-29
+
+Style any class with real CSS — a raw, nested CSS editor in the visual builder, two-way synced with the field controls.
+
+### Added
+- **Raw CSS editor per class (Etch-style).** The style panel now has a Visual / CSS toggle. The CSS view shows the selected class's actual CSS — editable as plain CSS, including nesting (`&:hover`, `& .child`) and at-rules (`@media`, `@container`). This unlocks everything the field controls can't express (gradients, `filter`/glows, `background-size` grids, pseudo-states, breakpoints).
+- **Two-way sync.** The raw CSS box and the field widgets edit the same source of truth: change a field → the CSS updates; edit the CSS → the fields reflect it. Nesting and at-rules are preserved through field edits.
+- **Expanded style controls.** Added Position (position, inset, z-index), Effects (opacity, filter, transform, transition, blend), background image/size/position/repeat, min/max sizing, line-height, letter-spacing, text-transform, overflow, and flex/grid wrap.
+- **Nested class model.** CSS classes can now be a nested declaration object (still JSON). `src/lib/css-nest.js` parses/serializes/emits it on the client; `outpost_sanitise_class_decls` / `outpost_emit_rule` mirror it server-side so the live canvas, the published static bake, the in-app save, and the MCP all emit identical nested CSS. AI agents (sidebar + MCP `define_class`) can author nested CSS too.
+
+### Security
+- Nested selector/at-rule keys are validated server-side (`outpost_css_nested_key_valid`) and re-checked at emit time; values stay scheme/character filtered. A malicious key or value cannot break out of the class's rule scope or inject new rules / `@import` / `</style>` into the published CSS.
+
+---
+
 ## [6.0.0-beta.16] — 2026-06-29
 
 Builder MCP — Claude Code (and any MCP client) can now build pages from the terminal through the same engine as the in-app AI sidebar.

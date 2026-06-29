@@ -1274,7 +1274,7 @@ function mcp_builder_save_classes(array $classes): void {
     $now = date('Y-m-d H:i:s');
     foreach ($classes as $name => $decls) {
         if (!is_string($name) || !outpost_class_name_valid($name)) continue;
-        $json = json_encode(outpost_sanitise_declarations(is_array($decls) ? $decls : []), JSON_UNESCAPED_SLASHES);
+        $json = json_encode(outpost_sanitise_class_decls(is_array($decls) ? $decls : []), JSON_UNESCAPED_SLASHES);
         OutpostDB::query(
             'INSERT INTO style_classes (name, declarations, created_at, updated_at) VALUES (?, ?, ?, ?)
              ON CONFLICT(name) DO UPDATE SET declarations = excluded.declarations, updated_at = excluded.updated_at',

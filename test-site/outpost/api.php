@@ -1856,7 +1856,7 @@ function handle_classes_save(): void {
         if (!is_string($name) || !outpost_class_name_valid($name)) {
             json_error("classes[{$i}].name invalid", 400);
         }
-        $decls = is_array($c['declarations'] ?? null) ? outpost_sanitise_declarations($c['declarations']) : [];
+        $decls = is_array($c['declarations'] ?? null) ? outpost_sanitise_class_decls($c['declarations']) : [];
         $clean[$name] = $decls;
     }
 

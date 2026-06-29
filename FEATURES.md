@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Raw CSS Editor + Nesting — Visual Builder (v6.0.0-beta.17)
+
+- **Raw CSS box per class** — A Visual / CSS toggle in the style panel. The CSS view shows the selected class's real CSS, editable as plain CSS with nesting (`&:hover`, `& .child`) and at-rules (`@media`, `@container`). Covers everything the field widgets can't (gradients, glows/`filter`, grid backgrounds, pseudo-states, breakpoints).
+- **Two-way sync** — The CSS box and the field controls edit one source of truth. Edit a field → CSS updates; edit the CSS → fields reflect it; nesting survives field edits. (Verified live in-browser.)
+- **Expanded controls** — Position/inset/z-index, opacity, filter, transform, transition, blend mode, background image/size/position/repeat, min/max sizing, line-height, letter-spacing, text-transform, overflow, flex/grid wrap.
+- **Nested class model, one contract** — Classes store a nested declaration object (JSON). `src/lib/css-nest.js` (client) and `outpost_sanitise_class_decls` / `outpost_emit_rule` (PHP) emit identical nested CSS to the live canvas, the published static bake, and via the MCP — so the visual builder, the AI sidebar, and Claude Code all produce the same CSS.
+- **Secure** — Server-side validation of nested selector/at-rule keys (`outpost_css_nested_key_valid`) with emit-time re-checks; a malicious key/value can't escape the class scope or inject `@import`/`</style>` into the published CSS.
+
 ## Builder MCP — Terminal & Headless Page Building (v6.0.0-beta.16)
 
 - **Same engine from the terminal** — The MCP server gains builder tools so Claude Code (or any MCP client) reads and edits the visual builder's node tree headlessly: `get_page_tree`, `apply_page_ops`, `get_styles`, `get_design_tokens`.

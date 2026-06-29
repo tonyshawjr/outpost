@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.17">6.0.0-beta.17 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Raw CSS editor + nesting</strong> &mdash; The visual builder's style panel gains a Visual / CSS toggle. The CSS view shows the selected class's real CSS, editable as plain CSS including nesting (<code>&amp;:hover</code>, <code>&amp; .child</code>) and at-rules (<code>@media</code>). It's two-way synced with the field controls &mdash; edit a field and the CSS updates, edit the CSS and the fields reflect it. Plus expanded controls (position, opacity, filter, transform, background image/size, and more). The nested CSS emits identically to the live canvas, the published static page, and through the MCP.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Nested selector and at-rule keys are validated server-side and re-checked at emit time; a malicious key or value cannot break out of the class's rule scope or inject new rules, <code>@import</code>, or <code>&lt;/style&gt;</code> into the published CSS.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.16">6.0.0-beta.16 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
     <h3>Added</h3>
     <ul>

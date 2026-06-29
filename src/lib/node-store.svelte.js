@@ -1,5 +1,6 @@
 import * as T from './node-tree.js';
 import * as TOK from './builder-tokens.js';
+import { emitClassCss, serializeCssBody, parseCssBody } from './css-nest.js';
 import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi } from './api.js';
 
 const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
@@ -160,16 +161,20 @@ export function createNodeEditor() {
     get templateCss() { return templateCss; },
     get classesCss() {
       let css = TOK.tokensToCss(tokens);
-      for (const name in classes) {
-        const decls = classes[name];
-        let body = '';
-        for (const prop in decls) {
-          const v = decls[prop];
-          if (v !== '' && v != null) body += `${prop}:${v};`;
-        }
-        if (body) css += `.oc-canvas .${name}{${body}}\n`;
-      }
+      for (const name in classes) css += emitClassCss('.oc-canvas ', name, classes[name]);
       return css;
+    },
+
+    classCssText(name) {
+      return classes[name] ? serializeCssBody(classes[name]) : '';
+    },
+    setClassCss(name, text) {
+      if (!classes[name]) return false;
+      let parsed;
+      try { parsed = parseCssBody(text); } catch { return false; }
+      classes = { ...classes, [name]: parsed };
+      dirty = true;
+      return true;
     },
 
     select(id) { selectedId = id && getTree().nodes[id] ? id : null; },

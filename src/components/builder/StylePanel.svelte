@@ -9,6 +9,9 @@
   let open = $state(false);
   let highlight = $state(0);
   let comboEl = $state(null);
+  let view = $state('visual');
+  let cssText = $state('');
+  let cssFocused = $state(false);
 
   let activeClass = $derived.by(() => {
     const list = node ? node.classes : [];
@@ -18,6 +21,7 @@
 
   let decls = $derived(activeClass ? (editor.classes[activeClass] || {}) : {});
   let display = $derived(decls.display || '');
+  let position = $derived(decls.position || '');
 
   let suggestions = $derived.by(() => {
     const q = query.trim().toLowerCase();
@@ -32,8 +36,19 @@
     return canCreate ? [...matches, { name: exact, exists: false }] : matches;
   });
 
+  $effect(() => {
+    const name = activeClass;
+    const serialized = name ? editor.classCssText(name) : '';
+    if (!cssFocused) cssText = serialized;
+  });
+
   function val(prop) { return decls[prop] || ''; }
   function set(prop, e) { editor.setDeclaration(activeClass, prop, e.target.value); }
+
+  function onCssInput(e) {
+    cssText = e.target.value;
+    editor.setClassCss(activeClass, cssText);
+  }
 
   function choose(item) {
     if (!item) return;
@@ -122,54 +137,109 @@
     </div>
 
     {#if activeClass}
-      <div class="editing">Editing <span>.{activeClass}</span></div>
+      <div class="editing-row">
+        <span class="editing">Editing <span class="ec">.{activeClass}</span></span>
+        <div class="vtabs" role="tablist" aria-label="Style editor view">
+          <button role="tab" aria-selected={view === 'visual'} class:on={view === 'visual'} onclick={() => (view = 'visual')}>Visual</button>
+          <button role="tab" aria-selected={view === 'css'} class:on={view === 'css'} onclick={() => (view = 'css')}>CSS</button>
+        </div>
+      </div>
 
-      {#snippet text(label, prop)}
-        <label class="f">
-          <span>{label}</span>
-          <input type="text" value={val(prop)} oninput={(e) => set(prop, e)} />
-        </label>
-      {/snippet}
+      {#if view === 'css'}
+        <label class="css-label" for="css-box">CSS for .{activeClass}</label>
+        <textarea
+          id="css-box"
+          class="css-box"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          value={cssText}
+          oninput={onCssInput}
+          onfocus={() => (cssFocused = true)}
+          onblur={() => (cssFocused = false)}
+          rows="14"
+          placeholder={"color: var(--primary);\n\n&:hover {\n  opacity: 0.8;\n}"}
+        ></textarea>
+        <p class="css-hint">Plain CSS — nesting (<code>&amp;:hover</code>, <code>&amp; .child</code>) and <code>@media</code> supported. Edits sync with the fields.</p>
+      {:else}
+        {#snippet text(label, prop, placeholder = '')}
+          <label class="f">
+            <span>{label}</span>
+            <input type="text" value={val(prop)} oninput={(e) => set(prop, e)} placeholder={placeholder} />
+          </label>
+        {/snippet}
 
-      {#snippet choose(label, prop, options)}
-        <label class="f">
-          <span>{label}</span>
-          <select value={val(prop)} onchange={(e) => set(prop, e)}>
-            <option value="">—</option>
-            {#each options as o (o)}<option value={o}>{o}</option>{/each}
-          </select>
-        </label>
-      {/snippet}
+        {#snippet pick(label, prop, options)}
+          <label class="f">
+            <span>{label}</span>
+            <select value={val(prop)} onchange={(e) => set(prop, e)}>
+              <option value="">—</option>
+              {#each options as o (o)}<option value={o}>{o}</option>{/each}
+            </select>
+          </label>
+        {/snippet}
 
-      <div class="sec-head">Layout</div>
-      {@render choose('Display', 'display', ['block', 'flex', 'grid', 'inline-block', 'inline', 'none'])}
-      {#if display === 'flex' || display === 'grid'}
-        {@render choose('Direction', 'flex-direction', ['row', 'column'])}
-        {@render text('Gap', 'gap')}
-        {@render choose('Align items', 'align-items', ['stretch', 'flex-start', 'center', 'flex-end', 'baseline'])}
-        {@render choose('Justify', 'justify-content', ['flex-start', 'center', 'flex-end', 'space-between', 'space-around'])}
+        <div class="sec-head">Layout</div>
+        {@render pick('Display', 'display', ['block', 'flex', 'grid', 'inline-block', 'inline', 'none'])}
+        {#if display === 'flex' || display === 'grid'}
+          {@render pick('Direction', 'flex-direction', ['row', 'column', 'row-reverse', 'column-reverse'])}
+          {@render pick('Wrap', 'flex-wrap', ['nowrap', 'wrap', 'wrap-reverse'])}
+          {@render text('Gap', 'gap')}
+          {@render pick('Align items', 'align-items', ['stretch', 'flex-start', 'center', 'flex-end', 'baseline'])}
+          {@render pick('Justify', 'justify-content', ['flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly'])}
+        {/if}
+        {@render pick('Overflow', 'overflow', ['visible', 'hidden', 'auto', 'scroll', 'clip'])}
+
+        <div class="sec-head">Position</div>
+        {@render pick('Position', 'position', ['static', 'relative', 'absolute', 'fixed', 'sticky'])}
+        {#if position && position !== 'static'}
+          {@render text('Top', 'top')}
+          {@render text('Right', 'right')}
+          {@render text('Bottom', 'bottom')}
+          {@render text('Left', 'left')}
+          {@render text('Z-index', 'z-index')}
+        {/if}
+
+        <div class="sec-head">Spacing</div>
+        {@render text('Padding', 'padding')}
+        {@render text('Margin', 'margin')}
+
+        <div class="sec-head">Size</div>
+        {@render text('Width', 'width')}
+        {@render text('Height', 'height')}
+        {@render text('Min W', 'min-width')}
+        {@render text('Max W', 'max-width')}
+        {@render text('Min H', 'min-height')}
+        {@render text('Max H', 'max-height')}
+
+        <div class="sec-head">Typography</div>
+        {@render text('Color', 'color')}
+        {@render text('Font size', 'font-size')}
+        {@render pick('Weight', 'font-weight', ['300', '400', '500', '600', '700', '800', '900'])}
+        {@render text('Line height', 'line-height')}
+        {@render text('Letter sp.', 'letter-spacing')}
+        {@render pick('Align', 'text-align', ['left', 'center', 'right', 'justify'])}
+        {@render pick('Transform', 'text-transform', ['none', 'uppercase', 'lowercase', 'capitalize'])}
+
+        <div class="sec-head">Background</div>
+        {@render text('Color', 'background-color')}
+        {@render text('Image', 'background-image', 'linear-gradient(…) / url(…)')}
+        {@render text('Size', 'background-size')}
+        {@render text('Position', 'background-position')}
+        {@render pick('Repeat', 'background-repeat', ['no-repeat', 'repeat', 'repeat-x', 'repeat-y'])}
+
+        <div class="sec-head">Border</div>
+        {@render text('Border', 'border')}
+        {@render text('Radius', 'border-radius')}
+        {@render text('Shadow', 'box-shadow')}
+
+        <div class="sec-head">Effects</div>
+        {@render text('Opacity', 'opacity')}
+        {@render text('Filter', 'filter', 'blur(80px)')}
+        {@render text('Transform', 'transform', 'scale(1.02)')}
+        {@render text('Transition', 'transition')}
+        {@render pick('Blend', 'mix-blend-mode', ['normal', 'multiply', 'screen', 'overlay', 'difference', 'lighten', 'darken'])}
       {/if}
-
-      <div class="sec-head">Spacing</div>
-      {@render text('Padding', 'padding')}
-      {@render text('Margin', 'margin')}
-
-      <div class="sec-head">Size</div>
-      {@render text('Width', 'width')}
-      {@render text('Height', 'height')}
-
-      <div class="sec-head">Typography</div>
-      {@render text('Text color', 'color')}
-      {@render text('Font size', 'font-size')}
-      {@render choose('Weight', 'font-weight', ['400', '500', '600', '700', '800'])}
-      {@render choose('Align', 'text-align', ['left', 'center', 'right', 'justify'])}
-
-      <div class="sec-head">Background</div>
-      {@render text('Background', 'background-color')}
-
-      <div class="sec-head">Border</div>
-      {@render text('Radius', 'border-radius')}
-      {@render text('Border', 'border')}
     {:else}
       <p class="hint">Add a class to start styling this element. Styles you set on a class apply everywhere that class is used.</p>
     {/if}
@@ -285,14 +355,77 @@
   .opt-name strong { color: var(--purple-soft); font-weight: 600; }
   .opt-meta { font-size: 11px; color: var(--dim); flex-shrink: 0; }
 
+  .editing-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 14px 0 8px;
+  }
   .editing {
     font-size: 12px;
     color: var(--dim);
-    margin: 14px 0 2px;
   }
-  .editing span {
+  .editing .ec {
     color: var(--purple-soft);
     font-family: var(--font-mono, ui-monospace, monospace);
+  }
+
+  .vtabs {
+    display: inline-flex;
+    gap: 2px;
+    background: var(--hover);
+    border-radius: 7px;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .vtabs button {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--sec);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .vtabs button.on { background: var(--raised); color: var(--text); }
+  .vtabs button:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
+
+  .css-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+  .css-box {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 12.5px;
+    line-height: 1.55;
+    resize: vertical;
+    tab-size: 2;
+  }
+  .css-box:focus-visible { outline: none; border-color: var(--purple); }
+  .css-hint {
+    font-size: 11px;
+    color: var(--dim);
+    line-height: 1.5;
+    margin: 8px 0 0;
+  }
+  .css-hint code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    background: var(--hover);
+    padding: 1px 4px;
+    border-radius: 4px;
   }
 
   .f {

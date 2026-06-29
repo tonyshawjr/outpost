@@ -83,7 +83,7 @@ Operations run in order. Supported operations:
 - {"op":"add_class","id":<id|ref>,"class":"name"} / {"op":"remove_class","id":<id|ref>,"class":"name"}
 - {"op":"move","id":<id|ref>,"parent":<id|ref>,"index":<int?>}
 - {"op":"duplicate","id":<id|ref>} / {"op":"remove","id":<id|ref>}
-- {"op":"define_class","name":"hero","declarations":{"padding":"var(--space-l)","background":"var(--surface)"}} — create or update a CSS class. Property names are kebab-case CSS properties; values are plain CSS (no semicolons, no braces).
+- {"op":"define_class","name":"hero","declarations":{"padding":"var(--space-l)","background":"var(--surface)"}} — create or update a CSS class. Property names are kebab-case CSS properties; values are plain CSS (no semicolons, no braces). Declarations may nest: a key starting with "&" is a nested selector and a key like "@media (max-width: 600px)" is an at-rule, each mapping to its own declaration object — e.g. {"opacity":"1","&:hover":{"opacity":"0.8"},"@media (max-width: 600px)":{"padding":"1rem"}}.
 - {"op":"bind_field","id":<id|ref>,"field":"hero_title","fieldType":"text"} — make a node a dynamic island.
 
 # Rules
@@ -515,7 +515,7 @@ function outpost_apply_node_ops(array $tree, array $ops, array &$classes, array 
             } elseif ($kind === 'define_class') {
                 $name = outpost_node_sanitise_class((string) ($op['name'] ?? ''));
                 if ($name === '' || !outpost_class_name_valid($name)) { $summary['errors'][] = 'define_class: invalid name'; continue; }
-                $decls = (isset($op['declarations']) && is_array($op['declarations'])) ? outpost_sanitise_declarations($op['declarations']) : [];
+                $decls = (isset($op['declarations']) && is_array($op['declarations'])) ? outpost_sanitise_class_decls($op['declarations']) : [];
                 $classes[$name] = array_merge($classes[$name] ?? [], $decls);
                 $summary['classes']++;
             } elseif ($kind === 'bind_field') {
@@ -678,16 +678,88 @@ function outpost_sanitise_declarations(array $declarations): array {
     return $clean;
 }
 
+/** A nested-rule key is a valid &-selector or a safe @media/@container/@supports at-rule. */
+function outpost_css_nested_key_valid(string $key): bool {
+    if ($key === '' || strlen($key) > 200) return false;
+    if (str_starts_with($key, '@')) {
+        return (bool) preg_match('/^@(media|container|supports)\b[^{}<>;]*$/i', $key);
+    }
+    if (preg_match('/[{}<;@]/', $key)) return false;
+    if (!preg_match('/^[A-Za-z0-9 &.:>+~\[\]="\'(),_-]+$/', $key)) return false;
+    $inQuote = '';
+    $paren = 0;
+    $bracket = 0;
+    for ($i = 0, $len = strlen($key); $i < $len; $i++) {
+        $ch = $key[$i];
+        if ($inQuote !== '') {
+            if ($ch === $inQuote) $inQuote = '';
+            continue;
+        }
+        switch ($ch) {
+            case '"':
+            case "'": $inQuote = $ch; break;
+            case '(': $paren++; break;
+            case ')': if (--$paren < 0) return false; break;
+            case '[': $bracket++; break;
+            case ']': if (--$bracket < 0) return false; break;
+            case ',': if ($paren === 0 && $bracket === 0) return false; break;
+        }
+    }
+    return $inQuote === '' && $paren === 0 && $bracket === 0;
+}
+
+/**
+ * Recursively sanitise a class declaration map that may contain nested rules:
+ * scalar values keyed by CSS property, or nested objects keyed by an &-selector
+ * or @media/@container/@supports at-rule. Mirrors the JS css-nest model.
+ */
+function outpost_sanitise_class_decls(array $decls, int $depth = 0): array {
+    if ($depth > 20) return [];
+    $clean = [];
+    foreach ($decls as $key => $value) {
+        if (!is_string($key)) continue;
+        if (is_array($value)) {
+            if (!outpost_css_nested_key_valid($key)) continue;
+            $sub = outpost_sanitise_class_decls($value, $depth + 1);
+            if ($sub) $clean[$key] = $sub;
+        } elseif (is_scalar($value)) {
+            if (!outpost_css_property_valid($key)) continue;
+            $safe = outpost_css_value_safe((string) $value);
+            if ($safe !== '') $clean[$key] = $safe;
+        }
+    }
+    return $clean;
+}
+
+/** Emit a CSS rule (with nesting expanded) for a selector and a decl map. */
+function outpost_emit_rule(string $selector, array $decls, int $depth = 0): string {
+    if ($depth > 20) return '';
+    $body = '';
+    foreach ($decls as $key => $value) {
+        if (!is_string($value) || !outpost_css_property_valid($key)) continue;
+        $safe = outpost_css_value_safe($value);
+        if ($safe !== '') $body .= "{$key}:{$safe};";
+    }
+    $out = $body !== '' ? "{$selector}{{$body}}\n" : '';
+    foreach ($decls as $key => $value) {
+        if (!is_array($value) || !outpost_css_nested_key_valid($key)) continue;
+        if (str_starts_with($key, '@')) {
+            $inner = outpost_emit_rule($selector, $value, $depth + 1);
+            if ($inner !== '') $out .= "{$key}{{$inner}}\n";
+        } else {
+            $child = str_contains($key, '&') ? str_replace('&', $selector, $key) : "{$selector} {$key}";
+            $out .= outpost_emit_rule($child, $value, $depth + 1);
+        }
+    }
+    return $out;
+}
+
 function outpost_classes_to_css(array $classes, string $scope = ''): string {
     $prefix = $scope !== '' ? rtrim($scope) . ' ' : '';
     $out = '';
     foreach ($classes as $name => $declarations) {
         if (!is_string($name) || !outpost_class_name_valid($name) || !is_array($declarations)) continue;
-        $decls = outpost_sanitise_declarations($declarations);
-        if (!$decls) continue;
-        $body = '';
-        foreach ($decls as $prop => $value) $body .= "{$prop}:{$value};";
-        $out .= "{$prefix}.{$name}{{$body}}\n";
+        $out .= outpost_emit_rule($prefix . '.' . $name, $declarations);
     }
     return $out;
 }
@@ -787,13 +859,8 @@ function outpost_public_class_css(?array $only = null): string {
         if ($only !== null && !isset($only[$r['name']])) continue;
         if (!outpost_class_name_valid($r['name'])) continue;
         $decls = json_decode($r['declarations'] ?: '{}', true) ?: [];
-        $body = '';
-        foreach ($decls as $prop => $value) {
-            if (!is_string($prop) || !outpost_css_property_valid($prop) || !is_scalar($value)) continue;
-            $safe = outpost_css_value_safe((string) $value);
-            if ($safe !== '') $body .= "{$prop}:{$safe};";
-        }
-        if ($body !== '') $css .= ".{$r['name']}{{$body}}\n";
+        if (!is_array($decls)) continue;
+        $css .= outpost_emit_rule('.' . $r['name'], $decls);
     }
     return $css;
 }
