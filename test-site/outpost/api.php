@@ -287,6 +287,7 @@ match (true) {
     // Pages
     $action === 'pages' && $method === 'GET' && !isset($_GET['id']) => handle_pages_list(),
     $action === 'pages' && $method === 'POST' => handle_page_create(),
+    $action === 'pages/import' && $method === 'POST' => handle_page_import(),
     $action === 'pages' && $method === 'GET' && isset($_GET['id']) => handle_page_get(),
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
     $action === 'pages' && $method === 'DELETE' && isset($_GET['id']) => handle_page_delete(),
@@ -2029,6 +2030,82 @@ function handle_page_get(): void {
     $page['fields'] = $fields;
     $page['active_theme'] = $activeTheme;
     json_response(['page' => $page]);
+}
+
+function outpost_strip_php_tags(string $html): string {
+    $html = preg_replace('/<\?php\b.*?\?>/is', '', $html);
+    $html = preg_replace('/<\?=.*?\?>/is', '', $html);
+    return str_replace(['<?php', '<?=', '<?', '?>'], '', $html);
+}
+
+function handle_page_import(): void {
+    outpost_require_cap('settings.*');
+
+    $data = get_json_body();
+    $title = trim($data['title'] ?? '');
+    if ($title === '') json_error('Title required', 400);
+
+    $html = (string) ($data['html'] ?? '');
+    if (trim($html) === '') json_error('HTML required', 400);
+
+    $rawSlug = trim($data['slug'] ?? '');
+    if ($rawSlug === '') $rawSlug = outpost_slugify($title);
+    $slug = trim(preg_replace('#[^a-z0-9-]+#', '-', strtolower($rawSlug)), '-');
+    if ($slug === '') json_error('Invalid slug', 400);
+
+    if ($slug === 'index' || $slug === 'home') {
+        $filename = 'index.html';
+        $path = '/';
+    } else {
+        $filename = $slug . '.html';
+        $path = '/' . $slug;
+    }
+
+    $html = outpost_strip_php_tags($html);
+
+    $siteRoot = rtrim(OUTPOST_SITE_ROOT, '/');
+    $target = $siteRoot . '/' . $filename;
+
+    $overwrite = !empty($data['overwrite']);
+    if (file_exists($target) && !$overwrite) {
+        json_error("A page already exists at {$path}. Choose a different slug or enable overwrite.", 409);
+    }
+
+    if (file_put_contents($target, $html) === false) {
+        json_error('Could not write the page file. Check site-root permissions.', 500);
+    }
+
+    $existing = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
+    $now = date('Y-m-d H:i:s');
+    if ($existing) {
+        OutpostDB::update('pages', ['title' => $title, 'updated_at' => $now], 'id = ?', [$existing['id']]);
+        $id = (int) $existing['id'];
+    } else {
+        OutpostDB::insert('pages', [
+            'path' => $path,
+            'title' => $title,
+            'status' => 'draft',
+            'visibility' => 'public',
+            'updated_at' => $now,
+        ]);
+        $id = (int) OutpostDB::connect()->lastInsertId();
+    }
+
+    $fieldCount = 0;
+    if (function_exists('outpost_scan_site_templates')) {
+        try {
+            outpost_scan_site_templates();
+            $row = OutpostDB::fetchOne('SELECT COUNT(*) as c FROM fields WHERE page_id = ?', [$id]);
+            $fieldCount = (int) ($row['c'] ?? 0);
+        } catch (\Throwable $e) {
+        }
+    }
+
+    json_response([
+        'ok' => true,
+        'page' => ['id' => $id, 'path' => $path, 'title' => $title],
+        'fields' => $fieldCount,
+    ]);
 }
 
 function handle_page_create(): void {

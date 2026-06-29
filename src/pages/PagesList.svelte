@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { pages as pagesApi } from '$lib/api.js';
   import { navigate, currentPageId, addToast } from '$lib/stores.js';
-  import { FileText, Plus, Lock, Search } from 'lucide-svelte';
+  import { FileText, Plus, Lock, Search, FileCode } from 'lucide-svelte';
 
   let loading = $state(true);
   let pages = $state([]);
@@ -49,6 +49,10 @@
       <p class="page-subtitle">Standalone pages, built in the visual editor.</p>
     </div>
     <div class="page-header-actions">
+      <button class="btn btn-secondary" onclick={() => navigate('page-import')}>
+        <FileCode size={16} aria-hidden="true" />
+        <span>Import HTML</span>
+      </button>
       <button class="btn btn-primary" onclick={createPage}>
         <Plus size={16} aria-hidden="true" />
         <span>New page</span>
