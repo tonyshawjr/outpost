@@ -1,46 +1,7 @@
 <?php
 
-function outpost_builder_conventions(): string {
-    return <<<GUIDE
-# Outpost page model
-A page is a tree of nodes. Each node has: id, type, tag, props, classes, children.
-
-Node types and their allowed tags:
-- container — div, section, main, header, footer, article, aside, nav, ul, ol, li, figure (holds children)
-- text — p, span, h1, h2, h3, h4, h5, h6, strong, em, small, blockquote, label (props.text holds the text; no children)
-- image — img (props.src, props.alt; no children)
-- button — button, a (props.text, props.href; no children)
-- link — a (props.text, props.href; no children)
-
-Only container nodes can hold children. Put text inside containers as separate text nodes; never nest text in text.
-
-# Styling
-Style with CSS classes, not inline styles. Define a class once with define_class, then attach it to nodes. Reuse existing classes when they fit. Prefer design tokens (CSS variables) for colors and spacing so the page stays on-brand.
-
-# Dynamic content (islands)
-A node can be bound to a dynamic field so its content is editable as managed content and rendered server-side. Bind a field with bind_field when the content should be editable or data-driven (e.g. a hero headline, a price, a description). Give the field a short snake_case name. This is the "static page with dynamic holes" model — the page bakes to static HTML except the bound fields.
-
-# Operations (the apply_ops / apply_page_ops vocabulary)
-Operations run in order. Supported operations:
-- {"op":"insert_tree","parent":<id|"root"|"selected">,"index":<int?>,"node":<spec>} — insert a subtree. A spec is {"type","tag"?,"text"?,"src"?,"alt"?,"href"?,"classes"?:[...],"field"?,"ref"?,"children"?:[spec...]}. Use "ref" to name a created node and reference it later in the same batch (as a parent or target). This is the main tool for building.
-- {"op":"update","id":<id|ref>,"text"?,"href"?,"src"?,"alt"?,"tag"?} — change a node's content or tag.
-- {"op":"set_classes","id":<id|ref>,"classes":[...]} — replace a node's class list.
-- {"op":"add_class","id":<id|ref>,"class":"name"} / {"op":"remove_class","id":<id|ref>,"class":"name"}
-- {"op":"move","id":<id|ref>,"parent":<id|ref>,"index":<int?>}
-- {"op":"duplicate","id":<id|ref>} / {"op":"remove","id":<id|ref>}
-- {"op":"define_class","name":"hero","declarations":{"padding":"var(--space-l)","background":"var(--surface)"}} — create or update a CSS class. Property names are kebab-case CSS properties; values are plain CSS (no semicolons, no braces).
-- {"op":"bind_field","id":<id|ref>,"field":"hero_title","fieldType":"text"} — make a node a dynamic island.
-
-# Rules
-- Reference existing nodes by their real id (from the page context). Reference nodes you create in the same batch by "ref".
-- Class names must be valid CSS identifiers (letters, numbers, hyphens, underscores).
-- Build complete, semantic, accessible markup: real headings in order, alt text on images, descriptive link text.
-- Batch a coherent change into a single operation list when you can.
-- If a request is ambiguous, make a sensible choice and build it; it can be refined afterward.
-GUIDE;
-}
-
 function builder_ai_system_prompt(array $context): string {
+    if (!function_exists('outpost_builder_conventions')) require_once __DIR__ . '/node-engine.php';
     $contextJson = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $conventions = outpost_builder_conventions();
 

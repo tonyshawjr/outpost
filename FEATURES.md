@@ -4,6 +4,19 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Builder MCP — Terminal & Headless Page Building (v6.0.0-beta.16)
+
+- **Same engine from the terminal** — The MCP server gains builder tools so Claude Code (or any MCP client) reads and edits the visual builder's node tree headlessly: `get_page_tree`, `apply_page_ops`, `get_styles`, `get_design_tokens`.
+- **One operation vocabulary** — `apply_page_ops` takes the identical op set as the in-app sidebar (`insert_tree`, `update`, `set_classes`, `add_class`/`remove_class`, `move`, `duplicate`, `remove`, `define_class`, `bind_field`). A PHP interpreter (`outpost_apply_node_ops`) mirrors the JS store's `applyAiOps` op-for-op.
+- **One shared rulebook** — The `outpost://builder/guide` MCP resource serves the same `outpost_builder_conventions()` the in-app system prompt uses. The terminal agent reads the same source of truth that teaches how to build.
+- **Same persistence + bake** — Shared `outpost_load_node_tree()` / `outpost_save_node_tree()` mean terminal and panel hit the same `node_trees` table, the same validation, and the same static-HTML bake (class CSS inlined, dynamic islands emitted). Edits made from the terminal appear in the in-app builder and vice versa.
+- **BYO connection** — Connect with the MCP endpoint URL + an API key from Settings → Integrations (same as the existing content tools).
+- **Secure** — Admin-only, rate-limited, parameterized queries, path-traversal-guarded file writes, CSS/HTML sanitized on apply/save/bake, op interpreter depth/size/cycle-bounded.
+
+## AI Model Tier Resolution (v6.0.0-beta.16)
+
+- **Pick a tier, not a version** — The builder AI treats the configured model as a tier (Sonnet/Opus/Haiku) and resolves the newest matching model the key actually has, queried live from the provider's models endpoint and cached 24h. "Sonnet" stays current automatically; retired dated IDs no longer break the panel.
+
 ## AI Build Sidebar — Visual Builder (v6.0.0-beta.15)
 
 - **Describe-and-build** — A "Build with AI" panel in the node builder (design mode). Describe a section, layout, or change in plain language; the agent builds it directly on the live canvas.

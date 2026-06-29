@@ -49,6 +49,52 @@ function outpost_node_types(): array {
     ];
 }
 
+/**
+ * The shared builder rulebook: node schema, styling, dynamic islands, and the
+ * apply_ops operation vocabulary. Single source of truth served to BOTH the
+ * in-app AI sidebar (system prompt) and the builder MCP (resource + tool docs)
+ * so the terminal and the panel build by the same rules.
+ */
+function outpost_builder_conventions(): string {
+    return <<<GUIDE
+# Outpost page model
+A page is a tree of nodes. Each node has: id, type, tag, props, classes, children.
+
+Node types and their allowed tags:
+- container — div, section, main, header, footer, article, aside, nav, ul, ol, li, figure (holds children)
+- text — p, span, h1, h2, h3, h4, h5, h6, strong, em, small, blockquote, label (props.text holds the text; no children)
+- image — img (props.src, props.alt; no children)
+- button — button, a (props.text, props.href; no children)
+- link — a (props.text, props.href; no children)
+
+Only container nodes can hold children. Put text inside containers as separate text nodes; never nest text in text.
+
+# Styling
+Style with CSS classes, not inline styles. Define a class once with define_class, then attach it to nodes. Reuse existing classes when they fit. Prefer design tokens (CSS variables) for colors and spacing so the page stays on-brand.
+
+# Dynamic content (islands)
+A node can be bound to a dynamic field so its content is editable as managed content and rendered server-side. Bind a field with bind_field when the content should be editable or data-driven (e.g. a hero headline, a price, a description). Give the field a short snake_case name. This is the "static page with dynamic holes" model — the page bakes to static HTML except the bound fields.
+
+# Operations (the apply_ops / apply_page_ops vocabulary)
+Operations run in order. Supported operations:
+- {"op":"insert_tree","parent":<id|"root"|"selected">,"index":<int?>,"node":<spec>} — insert a subtree. A spec is {"type","tag"?,"text"?,"src"?,"alt"?,"href"?,"classes"?:[...],"field"?,"ref"?,"children"?:[spec...]}. Use "ref" to name a created node and reference it later in the same batch (as a parent or target). This is the main tool for building.
+- {"op":"update","id":<id|ref>,"text"?,"href"?,"src"?,"alt"?,"tag"?} — change a node's content or tag.
+- {"op":"set_classes","id":<id|ref>,"classes":[...]} — replace a node's class list.
+- {"op":"add_class","id":<id|ref>,"class":"name"} / {"op":"remove_class","id":<id|ref>,"class":"name"}
+- {"op":"move","id":<id|ref>,"parent":<id|ref>,"index":<int?>}
+- {"op":"duplicate","id":<id|ref>} / {"op":"remove","id":<id|ref>}
+- {"op":"define_class","name":"hero","declarations":{"padding":"var(--space-l)","background":"var(--surface)"}} — create or update a CSS class. Property names are kebab-case CSS properties; values are plain CSS (no semicolons, no braces).
+- {"op":"bind_field","id":<id|ref>,"field":"hero_title","fieldType":"text"} — make a node a dynamic island.
+
+# Rules
+- Reference existing nodes by their real id (from the page context). Reference nodes you create in the same batch by "ref".
+- Class names must be valid CSS identifiers (letters, numbers, hyphens, underscores).
+- Build complete, semantic, accessible markup: real headings in order, alt text on images, descriptive link text.
+- Batch a coherent change into a single operation list when you can.
+- If a request is ambiguous, make a sensible choice and build it; it can be refined afterward.
+GUIDE;
+}
+
 /** Generate a node id matching the JS store format (n_ + 10 hex). */
 function outpost_node_id(): string {
     return 'n_' . bin2hex(random_bytes(5));
@@ -167,6 +213,332 @@ function outpost_node_validate(array $tree): array {
     foreach ($seen as $id => $_) $nodes[$id] = $clean[$id];
 
     return ['root' => $tree['root'], 'nodes' => $nodes];
+}
+
+/**
+ * Load a node tree for an owner (page/component/template). Returns the saved
+ * tree + version, or — for a page with a template file but no saved tree yet —
+ * the template parsed into a tree, so every page is editable. Shared by the
+ * in-app builder API and the builder MCP so both read the identical tree.
+ */
+function outpost_load_node_tree(string $type, int $ownerId): array {
+    $row = OutpostDB::fetchOne(
+        'SELECT tree, version FROM node_trees WHERE owner_type = ? AND owner_id = ?',
+        [$type, $ownerId]
+    );
+    if ($row) {
+        $tree = json_decode($row['tree'] ?: '{}', true);
+        if (!is_array($tree) || !isset($tree['root'])) $tree = outpost_node_default_tree();
+        return ['tree' => $tree, 'version' => (int) $row['version'], 'exists' => true, 'fromTemplate' => false];
+    }
+
+    $tree = null;
+    $fromTemplate = false;
+    if ($type === 'page') {
+        if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+        $page = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [$ownerId]);
+        if ($page) {
+            $base = ($page['path'] === '/') ? 'index' : trim($page['path'], '/');
+            $file = rtrim(outpost_active_render_root(), '/') . '/' . $base . '.html';
+            if ($base !== '' && !str_contains($base, '/') && file_exists($file)) {
+                $html = file_get_contents($file);
+                if ($html !== false && trim($html) !== '') {
+                    try {
+                        $tree = outpost_html_to_node_tree($html);
+                        $fromTemplate = true;
+                    } catch (\Throwable) {
+                        $tree = null;
+                    }
+                }
+            }
+        }
+    }
+    return ['tree' => $tree ?: outpost_node_default_tree(), 'version' => 0, 'exists' => false, 'fromTemplate' => $fromTemplate];
+}
+
+/**
+ * Persist a validated node tree for an owner with optimistic locking, then bake
+ * the page to static HTML. Shared by the in-app builder API and the MCP so both
+ * write and bake identically. Returns ['conflict','version','baked'].
+ */
+function outpost_save_node_tree(string $type, int $ownerId, array $cleanTree, ?int $expectVersion = null): array {
+    $existing = OutpostDB::fetchOne(
+        'SELECT version FROM node_trees WHERE owner_type = ? AND owner_id = ?',
+        [$type, $ownerId]
+    );
+    if ($existing && $expectVersion !== null && $expectVersion !== (int) $existing['version']) {
+        return ['conflict' => true, 'version' => (int) $existing['version'], 'baked' => false];
+    }
+
+    $treeJson = json_encode($cleanTree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $now = date('Y-m-d H:i:s');
+
+    if ($existing) {
+        $newVersion = (int) $existing['version'] + 1;
+        OutpostDB::update('node_trees',
+            ['tree' => $treeJson, 'version' => $newVersion, 'updated_at' => $now],
+            'owner_type = ? AND owner_id = ?', [$type, $ownerId]
+        );
+    } else {
+        $newVersion = 1;
+        OutpostDB::insert('node_trees', [
+            'owner_type' => $type,
+            'owner_id'   => $ownerId,
+            'tree'       => $treeJson,
+            'version'    => $newVersion,
+        ]);
+    }
+
+    $baked = false;
+    if ($type === 'page') {
+        if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+        $pg = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [$ownerId]);
+        $path = $pg['path'] ?? '';
+        $base = ($path === '/') ? 'index' : trim($path, '/');
+        $templateFile = rtrim(outpost_active_render_root(), '/') . '/' . $base . '.html';
+        $treeExisted = (bool) $existing;
+        $hasContent = count($cleanTree['nodes']) > 1;
+        if ($base !== '' && !str_contains($base, '/') && ($treeExisted || !file_exists($templateFile) || $hasContent)) {
+            $baked = outpost_bake_node_page($ownerId);
+            if ($pg && function_exists('outpost_clear_cache')) outpost_clear_cache($path);
+        }
+    }
+    return ['conflict' => false, 'version' => $newVersion, 'baked' => $baked];
+}
+
+function outpost_node_parent_of(array $tree, string $id): ?string {
+    foreach ($tree['nodes'] as $nid => $node) {
+        if (in_array($id, (array) ($node['children'] ?? []), true)) return $nid;
+    }
+    return null;
+}
+
+function outpost_node_is_ancestor(array $tree, string $maybeAncestor, string $id): bool {
+    $cur = $id;
+    $guard = 0;
+    while ($cur !== null && $guard++ < 1000) {
+        if ($cur === $maybeAncestor) return true;
+        $cur = outpost_node_parent_of($tree, $cur);
+    }
+    return false;
+}
+
+function outpost_node_delete(array $tree, string $id): array {
+    if ($id === $tree['root']) return $tree;
+    $parent = outpost_node_parent_of($tree, $id);
+    if ($parent !== null) {
+        $tree['nodes'][$parent]['children'] = array_values(array_filter(
+            $tree['nodes'][$parent]['children'],
+            fn($c) => $c !== $id
+        ));
+    }
+    $stack = [$id];
+    while ($stack) {
+        $nid = array_pop($stack);
+        if (!isset($tree['nodes'][$nid])) continue;
+        foreach ((array) ($tree['nodes'][$nid]['children'] ?? []) as $c) $stack[] = $c;
+        unset($tree['nodes'][$nid]);
+    }
+    return $tree;
+}
+
+function outpost_node_duplicate(array $tree, string $id): array {
+    $parent = outpost_node_parent_of($tree, $id);
+    if ($parent === null) return ['tree' => $tree, 'id' => null];
+
+    $cloneSubtree = function (string $srcId) use (&$cloneSubtree, &$tree): string {
+        $src = $tree['nodes'][$srcId];
+        $copy = $src;
+        $copy['id'] = outpost_node_id();
+        $copy['children'] = [];
+        foreach ((array) ($src['children'] ?? []) as $cid) {
+            $copy['children'][] = $cloneSubtree($cid);
+        }
+        $tree['nodes'][$copy['id']] = $copy;
+        return $copy['id'];
+    };
+
+    $newId = $cloneSubtree($id);
+    $children = $tree['nodes'][$parent]['children'];
+    $idx = array_search($id, $children, true);
+    array_splice($children, $idx === false ? count($children) : $idx + 1, 0, [$newId]);
+    $tree['nodes'][$parent]['children'] = $children;
+    return ['tree' => $tree, 'id' => $newId];
+}
+
+function outpost_node_ai_props(array $spec): array {
+    $p = [];
+    foreach (['text', 'alt', 'fieldType', 'fieldScope'] as $k) {
+        if (isset($spec[$k]) && is_scalar($spec[$k])) $p[$k] = (string) $spec[$k];
+    }
+    foreach (['href', 'src'] as $k) {
+        if (isset($spec[$k]) && is_scalar($spec[$k])) $p[$k] = outpost_node_sanitise_url((string) $spec[$k]);
+    }
+    if (isset($spec['field']) && is_scalar($spec['field'])) {
+        $f = preg_replace('/[^A-Za-z0-9_]/', '', (string) $spec['field']);
+        if ($f !== '') $p['field'] = $f;
+    }
+    return $p;
+}
+
+function outpost_node_ai_classes(mixed $list): array {
+    $out = [];
+    foreach ((array) $list as $c) {
+        if (!is_string($c)) continue;
+        $c = outpost_node_sanitise_class($c);
+        if ($c !== '' && outpost_class_name_valid($c) && !in_array($c, $out, true)) $out[] = $c;
+    }
+    return $out;
+}
+
+/**
+ * Apply a batch of build operations (the shared apply_ops vocabulary) to a tree.
+ * The PHP twin of the JS store's applyAiOps — same op set, same guards — so the
+ * builder MCP and the in-app sidebar drive identical edits. Mutates $classes
+ * (name => declarations) for define_class and returns the validated tree.
+ */
+function outpost_apply_node_ops(array $tree, array $ops, array &$classes, array &$summary): array {
+    $types = outpost_node_types();
+    $refMap = [];
+    $builtCount = 0;
+    $maxDepth = 32;
+    $maxNodes = 2000;
+
+    $resolve = function ($ref) use (&$tree, &$refMap): ?string {
+        if (!is_string($ref) || $ref === '') return null;
+        if ($ref === 'root') return $tree['root'];
+        if (isset($refMap[$ref]) && isset($tree['nodes'][$refMap[$ref]])) return $refMap[$ref];
+        return isset($tree['nodes'][$ref]) ? $ref : null;
+    };
+
+    $build = function (array $spec, int $depth) use (&$build, &$tree, &$refMap, &$classes, &$builtCount, &$summary, $types, $maxDepth, $maxNodes): string {
+        if ($depth > $maxDepth) throw new \RuntimeException('node spec too deeply nested');
+        if (++$builtCount > $maxNodes) throw new \RuntimeException('node spec too large');
+        $type = (isset($spec['type']) && isset($types[$spec['type']])) ? $spec['type'] : 'container';
+        $tags = $types[$type]['tags'];
+        $tag = (isset($spec['tag']) && in_array($spec['tag'], $tags, true)) ? $spec['tag'] : $tags[0];
+        $id = outpost_node_id();
+        $node = [
+            'id' => $id,
+            'type' => $type,
+            'tag' => $tag,
+            'props' => outpost_node_ai_props($spec),
+            'classes' => outpost_node_ai_classes($spec['classes'] ?? []),
+            'styles' => [],
+            'children' => [],
+        ];
+        if (isset($spec['ref']) && is_string($spec['ref']) && $spec['ref'] !== '') $refMap[$spec['ref']] = $id;
+        if ($types[$type]['children'] && isset($spec['children']) && is_array($spec['children'])) {
+            foreach ($spec['children'] as $child) {
+                if (is_array($child)) $node['children'][] = $build($child, $depth + 1);
+            }
+        }
+        foreach ($node['classes'] as $c) if (!isset($classes[$c])) $classes[$c] = [];
+        $tree['nodes'][$id] = $node;
+        $summary['inserted']++;
+        return $id;
+    };
+
+    foreach ($ops as $op) {
+        if (!is_array($op)) continue;
+        $kind = $op['op'] ?? $op['action'] ?? '';
+        try {
+            if ($kind === 'insert_tree' || $kind === 'insert') {
+                $parentId = $resolve($op['parent'] ?? $op['parentId'] ?? 'root') ?? $tree['root'];
+                $parent = $tree['nodes'][$parentId] ?? null;
+                if (!$parent || !$types[$parent['type']]['children']) { $summary['errors'][] = 'insert: invalid parent'; continue; }
+                $spec = isset($op['node']) && is_array($op['node']) ? $op['node'] : $op;
+                $rootId = $build($spec, 0);
+                $children = $tree['nodes'][$parentId]['children'];
+                $max = count($children);
+                $at = (isset($op['index']) && is_int($op['index'])) ? max(0, min($op['index'], $max)) : $max;
+                array_splice($children, $at, 0, [$rootId]);
+                $tree['nodes'][$parentId]['children'] = $children;
+            } elseif ($kind === 'update') {
+                $id = $resolve($op['id'] ?? null);
+                if (!$id) { $summary['errors'][] = 'update: unknown node'; continue; }
+                if (isset($op['tag']) && in_array($op['tag'], $types[$tree['nodes'][$id]['type']]['tags'], true)) {
+                    $tree['nodes'][$id]['tag'] = $op['tag'];
+                }
+                $patch = (isset($op['props']) && is_array($op['props'])) ? outpost_node_ai_props($op['props']) : outpost_node_ai_props($op);
+                $tree['nodes'][$id]['props'] = array_merge((array) $tree['nodes'][$id]['props'], $patch);
+                $summary['updated']++;
+            } elseif ($kind === 'set_classes') {
+                $id = $resolve($op['id'] ?? null);
+                if (!$id) { $summary['errors'][] = 'set_classes: unknown node'; continue; }
+                $list = outpost_node_ai_classes($op['classes'] ?? []);
+                $tree['nodes'][$id]['classes'] = $list;
+                foreach ($list as $c) if (!isset($classes[$c])) $classes[$c] = [];
+                $summary['updated']++;
+            } elseif ($kind === 'add_class') {
+                $id = $resolve($op['id'] ?? null);
+                $name = outpost_node_sanitise_class((string) ($op['class'] ?? $op['name'] ?? ''));
+                if (!$id || $name === '' || !outpost_class_name_valid($name)) { $summary['errors'][] = 'add_class: invalid'; continue; }
+                if (!in_array($name, $tree['nodes'][$id]['classes'], true)) $tree['nodes'][$id]['classes'][] = $name;
+                if (!isset($classes[$name])) $classes[$name] = [];
+                $summary['updated']++;
+            } elseif ($kind === 'remove_class') {
+                $id = $resolve($op['id'] ?? null);
+                $name = outpost_node_sanitise_class((string) ($op['class'] ?? $op['name'] ?? ''));
+                if (!$id || $name === '') continue;
+                $tree['nodes'][$id]['classes'] = array_values(array_filter($tree['nodes'][$id]['classes'], fn($c) => $c !== $name));
+                $summary['updated']++;
+            } elseif ($kind === 'move') {
+                $id = $resolve($op['id'] ?? null);
+                $parentId = $resolve($op['parent'] ?? $op['parentId'] ?? null);
+                if (!$id || !$parentId || $id === $tree['root']) { $summary['errors'][] = 'move: invalid'; continue; }
+                if (outpost_node_is_ancestor($tree, $id, $parentId)) { $summary['errors'][] = 'move: would create cycle'; continue; }
+                if (!$types[$tree['nodes'][$parentId]['type']]['children']) { $summary['errors'][] = 'move: parent cannot hold children'; continue; }
+                $old = outpost_node_parent_of($tree, $id);
+                if ($old !== null) {
+                    $tree['nodes'][$old]['children'] = array_values(array_filter($tree['nodes'][$old]['children'], fn($c) => $c !== $id));
+                }
+                $children = $tree['nodes'][$parentId]['children'];
+                $max = count($children);
+                $at = (isset($op['index']) && is_int($op['index'])) ? max(0, min($op['index'], $max)) : $max;
+                array_splice($children, $at, 0, [$id]);
+                $tree['nodes'][$parentId]['children'] = $children;
+                $summary['moved']++;
+            } elseif ($kind === 'duplicate') {
+                $id = $resolve($op['id'] ?? null);
+                if (!$id || $id === $tree['root']) { $summary['errors'][] = 'duplicate: invalid'; continue; }
+                if (count($tree['nodes']) >= $maxNodes) { $summary['errors'][] = 'duplicate: node limit reached'; continue; }
+                $r = outpost_node_duplicate($tree, $id);
+                $tree = $r['tree'];
+                if ($r['id'] && isset($op['ref']) && is_string($op['ref'])) $refMap[$op['ref']] = $r['id'];
+                $summary['inserted']++;
+            } elseif ($kind === 'remove' || $kind === 'delete') {
+                $id = $resolve($op['id'] ?? null);
+                if (!$id || $id === $tree['root']) { $summary['errors'][] = 'remove: invalid'; continue; }
+                $tree = outpost_node_delete($tree, $id);
+                $summary['removed']++;
+            } elseif ($kind === 'define_class') {
+                $name = outpost_node_sanitise_class((string) ($op['name'] ?? ''));
+                if ($name === '' || !outpost_class_name_valid($name)) { $summary['errors'][] = 'define_class: invalid name'; continue; }
+                $decls = (isset($op['declarations']) && is_array($op['declarations'])) ? outpost_sanitise_declarations($op['declarations']) : [];
+                $classes[$name] = array_merge($classes[$name] ?? [], $decls);
+                $summary['classes']++;
+            } elseif ($kind === 'bind_field') {
+                $id = $resolve($op['id'] ?? null);
+                if (!$id) { $summary['errors'][] = 'bind_field: unknown node'; continue; }
+                $props = (array) $tree['nodes'][$id]['props'];
+                $field = preg_replace('/[^A-Za-z0-9_]/', '', (string) ($op['field'] ?? ''));
+                $props['field'] = $field;
+                if (isset($op['fieldType']) && is_scalar($op['fieldType'])) $props['fieldType'] = (string) $op['fieldType'];
+                if (isset($op['fieldScope']) && is_scalar($op['fieldScope'])) $props['fieldScope'] = (string) $op['fieldScope'];
+                $tree['nodes'][$id]['props'] = $props;
+                $summary['fields']++;
+            } elseif ($kind === 'select') {
+                continue;
+            } else {
+                $summary['errors'][] = "unknown operation: $kind";
+            }
+        } catch (\Throwable $e) {
+            $summary['errors'][] = "$kind: " . $e->getMessage();
+        }
+    }
+
+    return outpost_node_validate($tree);
 }
 
 function outpost_html_map_tag(string $tag): array {

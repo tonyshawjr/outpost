@@ -22,6 +22,22 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.16">6.0.0-beta.16 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Builder MCP</strong> &mdash; The MCP server gains <code>get_page_tree</code>, <code>apply_page_ops</code>, <code>get_styles</code>, and <code>get_design_tokens</code>, so Claude Code (or any MCP client) builds and edits pages from the terminal through the same node-tree engine as the in-app AI sidebar &mdash; same operation vocabulary, same validation, same save-and-bake to static HTML. The <code>outpost://builder/guide</code> resource serves the shared rulebook both front doors use.</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>AI model resolves by tier</strong> &mdash; The builder AI treats the configured model as a tier (Sonnet/Opus/Haiku) and resolves the newest matching model your key actually has, queried live and cached 24h. Selecting "Sonnet" stays current automatically instead of breaking on a retired pinned version.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li><code>apply_page_ops</code> is an authenticated, admin-only, rate-limited write. Parameterized queries throughout; page file writes are path-traversal-guarded; CSS and HTML are sanitized on apply, save, and bake; the operation interpreter is depth/size/cycle-bounded with a per-call op cap.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.15">6.0.0-beta.15 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
     <h3>Added</h3>
     <ul>

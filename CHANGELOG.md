@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.16] — 2026-06-29
+
+Builder MCP — Claude Code (and any MCP client) can now build pages from the terminal through the same engine as the in-app AI sidebar.
+
+### Added
+- **Builder MCP tools.** The MCP server (`mcp.php`) gains `get_page_tree`, `apply_page_ops`, `get_styles`, and `get_design_tokens`. An external agent reads a page's node tree and CSS registry, applies the shared operation vocabulary (`insert_tree`, `update`, `set_classes`, `add_class`/`remove_class`, `move`, `duplicate`, `remove`, `define_class`, `bind_field`), and the page saves and bakes to static HTML — identical behavior to the in-app builder.
+- **`outpost://builder/guide` MCP resource.** Serves the single shared rulebook (`outpost_builder_conventions()`) — node model, styling, dynamic islands, and the operation spec — the same source the in-app sidebar's system prompt uses. One source of truth for both front doors.
+- **PHP op-interpreter twin.** `outpost_apply_node_ops()` in `node-engine.php` mirrors the JS store's `applyAiOps`: same op set, ref-resolution for nested subtrees, depth/size caps, and final tree validation. Shared `outpost_load_node_tree()` / `outpost_save_node_tree()` so terminal and in-app hit the same `node_trees` table, validation, and bake.
+
+### Fixed
+- **AI model resolves by tier, not a pinned ID.** The builder AI treats the configured model as a tier hint (Sonnet/Opus/Haiku) and resolves it to the newest matching model the key actually has, queried live from the provider's models endpoint and cached 24h. Selecting "Sonnet" just uses the current Sonnet — pinned dated IDs no longer go stale and break.
+
+### Security
+- `apply_page_ops` is an authenticated, admin-only, rate-limited MCP write. Parameterized queries throughout; page file writes are path-traversal-guarded; CSS declarations sanitized on apply, save, and bake; rendered output escaped and URLs scheme-filtered; op interpreter depth/size/cycle-bounded with a 500-op-per-call cap.
+
+---
+
 ## [6.0.0-beta.15] — 2026-06-29
 
 AI build sidebar for the visual builder — describe a section or change in plain language and watch it appear on the live canvas.

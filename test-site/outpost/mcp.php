@@ -23,6 +23,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/sanitizer.php';
 require_once __DIR__ . '/roles.php';
 require_once __DIR__ . '/blocks.php';
+require_once __DIR__ . '/node-engine.php';
 
 // ── Constants ────────────────────────────────────────────
 define('MCP_PROTOCOL_VERSION', '2025-03-26');
@@ -251,7 +252,7 @@ if ($method === 'initialize') {
             'name' => MCP_SERVER_NAME,
             'version' => OUTPOST_VERSION,
         ],
-        'instructions' => 'Outpost CMS MCP server. Use tools to manage content (collections, items, pages, globals, media). Use resources to read the site schema and structure. All write operations create revision snapshots automatically.',
+        'instructions' => 'Outpost CMS MCP server. Use tools to manage content (collections, items, pages, globals, media) and to build pages visually. To build or edit a page layout: read the outpost://builder/guide resource for the node model and operation vocabulary, call get_page_tree to read the page, then apply_page_ops to make changes — the same engine the in-app AI builder uses, so edits save and bake to static HTML. Content write operations (items, pages, globals) create revision snapshots automatically; page-builder edits use version-based optimistic locking — pass expect_version from get_page_tree to avoid clobbering concurrent changes.',
     ]);
 }
 
@@ -309,6 +310,10 @@ function handle_mcp_tools_call(mixed $id, array $params): never {
         'compose_page'     => 'mcp_tool_compose_page',
         'add_block_to_page' => 'mcp_tool_add_block_to_page',
         'set_block_field'  => 'mcp_tool_set_block_field',
+        'get_page_tree'    => 'mcp_tool_get_page_tree',
+        'apply_page_ops'   => 'mcp_tool_apply_page_ops',
+        'get_styles'       => 'mcp_tool_get_styles',
+        'get_design_tokens' => 'mcp_tool_get_design_tokens',
     ];
 
     if (!isset($tools[$toolName])) {
@@ -316,7 +321,7 @@ function handle_mcp_tools_call(mixed $id, array $params): never {
     }
 
     // Rate-limit mutation tools (create, update, delete)
-    $mutationTools = ['create_item', 'update_item', 'delete_item', 'update_page_fields', 'update_globals', 'compose_page', 'add_block_to_page', 'set_block_field'];
+    $mutationTools = ['create_item', 'update_item', 'delete_item', 'update_page_fields', 'update_globals', 'compose_page', 'add_block_to_page', 'set_block_field', 'apply_page_ops'];
     if (in_array($toolName, $mutationTools, true)) {
         OutpostAuth::checkApiRateLimit();
     }
@@ -335,6 +340,41 @@ function handle_mcp_tools_call(mixed $id, array $params): never {
 // ── Tool Definitions ─────────────────────────────────────
 function mcp_get_tool_definitions(): array {
     return [
+        [
+            'name' => 'get_page_tree',
+            'description' => 'Read a page\'s visual-builder node tree plus its CSS class registry. Returns the same tree the in-app builder edits. Read the outpost://builder/guide resource first to learn the node model and the apply_page_ops operation vocabulary.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'page_id' => ['type' => 'integer', 'description' => 'Page id (from list_pages).'],
+                    'path' => ['type' => 'string', 'description' => 'Page path, e.g. "/about" (alternative to page_id).'],
+                ],
+            ],
+        ],
+        [
+            'name' => 'apply_page_ops',
+            'description' => 'Edit a page by applying a batch of build operations to its node tree (insert_tree, update, set_classes, add_class, remove_class, move, duplicate, remove, define_class, bind_field), then save and bake the page to static HTML. Same engine and rules as the in-app AI builder. See the outpost://builder/guide resource for the full operation spec. Returns a summary and the new version.',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => [
+                    'page_id' => ['type' => 'integer', 'description' => 'Page id.'],
+                    'path' => ['type' => 'string', 'description' => 'Page path (alternative to page_id).'],
+                    'ops' => ['type' => 'array', 'description' => 'Ordered list of operation objects; each has an "op" field. See outpost://builder/guide.', 'items' => ['type' => 'object']],
+                    'expect_version' => ['type' => 'integer', 'description' => 'Optional: the version from get_page_tree, to detect concurrent edits.'],
+                ],
+                'required' => ['ops'],
+            ],
+        ],
+        [
+            'name' => 'get_styles',
+            'description' => 'Read the site CSS class registry (class name -> declarations) used by the visual builder, so you can reuse existing classes instead of duplicating them.',
+            'inputSchema' => ['type' => 'object', 'properties' => new \stdClass()],
+        ],
+        [
+            'name' => 'get_design_tokens',
+            'description' => 'Read the builder design tokens (colors and spacing/type scales) exposed as CSS variables. Prefer these in class declarations to stay on-brand.',
+            'inputSchema' => ['type' => 'object', 'properties' => new \stdClass()],
+        ],
         [
             'name' => 'list_collections',
             'description' => 'List all content collections with their schemas, field definitions, and item counts.',
@@ -1203,6 +1243,113 @@ function mcp_tool_get_schema(mixed $id, array $args): never {
     ]);
 }
 
+// ── Builder tools (visual page-builder node tree) ────────
+
+function mcp_builder_resolve_page_id(array $args): ?int {
+    if (isset($args['page_id']) && (int) $args['page_id'] > 0) {
+        $row = OutpostDB::fetchOne('SELECT id FROM pages WHERE id = ?', [(int) $args['page_id']]);
+        return $row ? (int) $row['id'] : null;
+    }
+    if (isset($args['path']) && is_string($args['path']) && $args['path'] !== '') {
+        $path = $args['path'];
+        $candidates = [$path, $path[0] === '/' ? ltrim($path, '/') : '/' . $path];
+        foreach ($candidates as $p) {
+            $row = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$p]);
+            if ($row) return (int) $row['id'];
+        }
+    }
+    return null;
+}
+
+function mcp_builder_load_classes(): array {
+    $out = [];
+    foreach (OutpostDB::fetchAll('SELECT name, declarations FROM style_classes') as $row) {
+        $decls = json_decode($row['declarations'] ?: '{}', true);
+        $out[$row['name']] = is_array($decls) ? $decls : [];
+    }
+    return $out;
+}
+
+function mcp_builder_save_classes(array $classes): void {
+    $now = date('Y-m-d H:i:s');
+    foreach ($classes as $name => $decls) {
+        if (!is_string($name) || !outpost_class_name_valid($name)) continue;
+        $json = json_encode(outpost_sanitise_declarations(is_array($decls) ? $decls : []), JSON_UNESCAPED_SLASHES);
+        OutpostDB::query(
+            'INSERT INTO style_classes (name, declarations, created_at, updated_at) VALUES (?, ?, ?, ?)
+             ON CONFLICT(name) DO UPDATE SET declarations = excluded.declarations, updated_at = excluded.updated_at',
+            [$name, $json, $now, $now]
+        );
+    }
+}
+
+function mcp_tool_get_page_tree(mixed $id, array $args): never {
+    $pageId = mcp_builder_resolve_page_id($args);
+    if (!$pageId) mcp_tool_result($id, 'Error: page not found. Pass page_id or path (see list_pages).', true);
+    $page = OutpostDB::fetchOne('SELECT path, title FROM pages WHERE id = ?', [$pageId]);
+    $loaded = outpost_load_node_tree('page', $pageId);
+    mcp_tool_result($id, [
+        'page_id' => $pageId,
+        'path' => $page['path'] ?? '',
+        'title' => $page['title'] ?? '',
+        'version' => $loaded['version'],
+        'exists' => $loaded['exists'],
+        'fromTemplate' => $loaded['fromTemplate'],
+        'tree' => $loaded['tree'],
+        'classes' => mcp_builder_load_classes(),
+    ]);
+}
+
+function mcp_tool_apply_page_ops(mixed $id, array $args): never {
+    $pageId = mcp_builder_resolve_page_id($args);
+    if (!$pageId) mcp_tool_result($id, 'Error: page not found. Pass page_id or path (see list_pages).', true);
+    $ops = $args['ops'] ?? null;
+    if (!is_array($ops) || $ops === []) mcp_tool_result($id, 'Error: ops (a non-empty array of operations) is required.', true);
+    if (count($ops) > 500) mcp_tool_result($id, 'Error: too many operations in one call (max 500).', true);
+
+    $loaded = outpost_load_node_tree('page', $pageId);
+    $classes = mcp_builder_load_classes();
+    $before = $classes;
+    $summary = ['inserted' => 0, 'updated' => 0, 'removed' => 0, 'moved' => 0, 'classes' => 0, 'fields' => 0, 'errors' => []];
+
+    try {
+        $newTree = outpost_apply_node_ops($loaded['tree'], $ops, $classes, $summary);
+    } catch (\Throwable $e) {
+        mcp_tool_result($id, 'Error applying operations: ' . $e->getMessage(), true);
+    }
+
+    $changed = [];
+    foreach ($classes as $name => $decls) {
+        if (!array_key_exists($name, $before) || $before[$name] !== $decls) $changed[$name] = $decls;
+    }
+    mcp_builder_save_classes($changed);
+
+    $expect = isset($args['expect_version']) ? (int) $args['expect_version'] : ($loaded['exists'] ? $loaded['version'] : null);
+    $saved = outpost_save_node_tree('page', $pageId, $newTree, $expect);
+    if (!empty($saved['conflict'])) {
+        mcp_tool_result($id, 'Error: the page was modified by another session (now version ' . $saved['version'] . '). Re-read with get_page_tree and retry.', true);
+    }
+
+    mcp_tool_result($id, [
+        'ok' => true,
+        'page_id' => $pageId,
+        'version' => $saved['version'],
+        'baked' => $saved['baked'],
+        'summary' => $summary,
+        'node_count' => count($newTree['nodes']),
+    ]);
+}
+
+function mcp_tool_get_styles(mixed $id, array $args): never {
+    mcp_tool_result($id, ['classes' => mcp_builder_load_classes()]);
+}
+
+function mcp_tool_get_design_tokens(mixed $id, array $args): never {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'builder_design_tokens'");
+    $tokens = $row ? json_decode($row['value'] ?: 'null', true) : null;
+    mcp_tool_result($id, ['tokens' => $tokens]);
+}
+
 // ═══════════════════════════════════════════════════════════
 // RESOURCES
 // ═══════════════════════════════════════════════════════════
@@ -1227,6 +1374,12 @@ function handle_mcp_resources_list(mixed $id): never {
                 'name' => 'Global Fields',
                 'description' => 'All global site settings and field values',
                 'mimeType' => 'application/json',
+            ],
+            [
+                'uri' => 'outpost://builder/guide',
+                'name' => 'Builder Guide',
+                'description' => 'How to build pages in Outpost: the node-tree model, styling, dynamic islands, and the apply_page_ops operation vocabulary. Read this before using get_page_tree / apply_page_ops.',
+                'mimeType' => 'text/markdown',
             ],
         ],
     ]);
@@ -1255,11 +1408,23 @@ function handle_mcp_resources_read(mixed $id, array $params): never {
         mcp_resource_pages($id, $uri);
     } elseif ($uri === 'outpost://globals') {
         mcp_resource_globals($id, $uri);
+    } elseif ($uri === 'outpost://builder/guide') {
+        mcp_resource_builder_guide($id, $uri);
     } elseif (preg_match('#^outpost://collections/([a-z0-9-]+)$#', $uri, $m)) {
         mcp_resource_collection($id, $uri, $m[1]);
     } else {
         mcp_error($id, MCP_ERR_PARAMS, "Unknown resource URI: {$uri}");
     }
+}
+
+function mcp_resource_builder_guide(mixed $id, string $uri): never {
+    mcp_response($id, [
+        'contents' => [[
+            'uri' => $uri,
+            'mimeType' => 'text/markdown',
+            'text' => outpost_builder_conventions(),
+        ]],
+    ]);
 }
 
 function mcp_resource_schema(mixed $id, string $uri): never {
