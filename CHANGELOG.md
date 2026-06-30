@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.21] — 2026-06-30
+
+The multi-screen view is now a true Figma-style canvas.
+
+### Changed
+- **All-screens canvas.** The three breakpoints now render as **full-height pages** side by side on an infinite canvas: zoom (⌘/Ctrl-scroll, − / + / Fit buttons), pan (scroll or drag), and square edges with a dotted grid. No per-frame scrolling — you see the whole page at each width and move around like Figma.
+- `CanvasFrame` measures and renders at the page's full content height (via ResizeObserver) when used in the multi-screen view.
+
+---
+
 ## [6.0.0-beta.20] — 2026-06-30
 
 Multi-breakpoint canvas — preview the page at device widths, or all three at once.

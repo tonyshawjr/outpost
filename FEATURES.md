@@ -4,12 +4,12 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
-## Multi-Breakpoint Canvas — Visual Builder (v6.0.0-beta.20)
+## Multi-Breakpoint Canvas — Visual Builder (v6.0.0-beta.20–21)
 
 - **Device modes** — a device bar above the canvas: Desktop (fluid), Tablet (820px), Mobile (390px) for focused responsive editing.
-- **All-screens view** — Desktop / Tablet / Mobile rendered side by side and scaled (Figma-style), each showing the real responsive layout live (media queries + custom-media breakpoints apply per width).
-- **Zoom into one** — click a frame's label in All-screens to jump into that single device.
-- **Reusable frame** — `CanvasFrame.svelte` extracts the iframe canvas so any number of frames render the same node tree + global CSS simultaneously, all selection-bridged to the editor.
+- **All-screens canvas (Figma-style)** — Desktop / Tablet / Mobile rendered side by side as **full-height pages** on an infinite canvas: zoom (⌘/Ctrl-scroll, − / + / Fit), pan (scroll or drag), square edges, dotted grid. Each frame shows the real responsive layout live (media queries + custom-media breakpoints apply per width). No per-frame scrolling.
+- **Zoom into one** — click a frame's label to jump into that single device.
+- **Reusable frame** — `CanvasFrame.svelte` extracts the iframe canvas (with full-height measurement) so any number of frames render the same node tree + global CSS simultaneously, all selection-bridged to the editor.
 
 ## Style Manager — Global Styles (v6.0.0-beta.19)
 

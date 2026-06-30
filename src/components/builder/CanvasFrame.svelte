@@ -2,7 +2,7 @@
   import { mount, unmount } from 'svelte';
   import CanvasContent from './CanvasContent.svelte';
 
-  let { editor, oncontext } = $props();
+  let { editor, oncontext, fitHeight = false } = $props();
   let iframeEl = $state(null);
   let styleEl = $state(null);
 
@@ -54,8 +54,21 @@
     doc.addEventListener('click', onClick);
     if (oncontext) doc.addEventListener('contextmenu', onCtx);
 
+    let ro = null;
+    if (fitHeight) {
+      const fit = () => {
+        const h = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight);
+        if (h) iframe.style.height = h + 'px';
+      };
+      ro = new ResizeObserver(fit);
+      ro.observe(doc.documentElement);
+      ro.observe(doc.body);
+      fit();
+    }
+
     return () => {
       try { unmount(app); } catch { void 0; }
+      if (ro) ro.disconnect();
       doc.removeEventListener('click', onClick);
       doc.removeEventListener('contextmenu', onCtx);
       styleEl = null;
