@@ -289,8 +289,13 @@ function cms_focal(string $name): void {
     echo '50% 50%';
 }
 
+function outpost_safe_url(string $url): string {
+    $probe = preg_replace('/[\s\x00-\x1f]+/', '', $url);
+    return preg_match('/^(javascript|data|vbscript)\s*:/i', $probe) ? '' : $url;
+}
+
 function cms_link(string $name, string $default = ''): void {
-    echo htmlspecialchars(outpost_resolve_field($name, 'link', $default), ENT_QUOTES, 'UTF-8');
+    echo htmlspecialchars(outpost_safe_url(outpost_resolve_field($name, 'link', $default)), ENT_QUOTES, 'UTF-8');
 }
 
 function cms_select(string $name, string $default = '', array $options = []): void {
