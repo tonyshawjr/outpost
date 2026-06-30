@@ -90,7 +90,7 @@
 
   <div class="sm-body">
     {#if tab === 'selectors'}
-      <aside class="sidebar" aria-label="Selectors">
+      <aside class="sm-sidebar" aria-label="Selectors">
         <div class="search">
           <Search size={14} aria-hidden="true" />
           <input type="text" placeholder="Search classes" bind:value={search} aria-label="Search classes" />
@@ -119,7 +119,7 @@
       </section>
 
     {:else if tab === 'variables'}
-      <aside class="sidebar" aria-label="Variable collections">
+      <aside class="sm-sidebar" aria-label="Variable collections">
         <div class="sb-head">Collections</div>
         <ul class="list">
           {#each editor.varCollections as c (c.id)}
@@ -151,7 +151,7 @@
       </section>
 
     {:else if tab === 'stylesheets'}
-      <aside class="sidebar" aria-label="Stylesheets">
+      <aside class="sm-sidebar" aria-label="Stylesheets">
         <div class="sb-head">Stylesheets</div>
         <ul class="list">
           {#each editor.stylesheets as s (s.id)}
@@ -257,7 +257,7 @@
 
   .sm-body { flex: 1; min-height: 0; display: flex; }
 
-  .sidebar {
+  .sm-sidebar {
     width: 280px;
     flex-shrink: 0;
     border-right: 1px solid var(--border);
