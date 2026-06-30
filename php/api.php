@@ -314,6 +314,8 @@ match (true) {
     $action === 'components' && $method === 'PUT' => handle_components_save(),
     $action === 'design-tokens' && $method === 'GET' => handle_design_tokens_get(),
     $action === 'design-tokens' && $method === 'PUT' => handle_design_tokens_save(),
+    $action === 'style-manager' && $method === 'GET' => handle_style_manager_get(),
+    $action === 'style-manager' && $method === 'PUT' => handle_style_manager_save(),
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
@@ -1919,6 +1921,55 @@ function handle_design_tokens_save(): void {
         ['builder_design_tokens', json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]
     );
     json_response(['ok' => true]);
+}
+
+function handle_style_manager_get(): void {
+    $get = function ($key) {
+        $r = OutpostDB::fetchOne('SELECT value FROM settings WHERE key = ?', [$key]);
+        return $r['value'] ?? '';
+    };
+    json_response([
+        'collections' => json_decode($get('builder_variable_collections') ?: '[]', true) ?: [],
+        'stylesheets' => json_decode($get('builder_stylesheets') ?: '[]', true) ?: [],
+        'custom_media' => $get('builder_custom_media'),
+    ]);
+}
+
+function handle_style_manager_save(): void {
+    outpost_require_cap('content.*');
+    if (!function_exists('outpost_sanitise_raw_css')) require_once __DIR__ . '/node-engine.php';
+    $body = get_json_body();
+
+    $cleanList = function ($list): array {
+        $out = [];
+        if (!is_array($list)) return $out;
+        foreach (array_slice($list, 0, 50) as $item) {
+            if (!is_array($item)) continue;
+            $name = is_string($item['name'] ?? null) ? mb_substr(trim($item['name']), 0, 80) : '';
+            if ($name === '') $name = 'Untitled';
+            $id = is_string($item['id'] ?? null) ? preg_replace('/[^A-Za-z0-9_-]/', '', $item['id']) : '';
+            if ($id === '') $id = 'c_' . bin2hex(random_bytes(4));
+            $css = outpost_sanitise_raw_css(is_string($item['css'] ?? null) ? $item['css'] : '');
+            $out[] = ['id' => $id, 'name' => $name, 'css' => $css];
+        }
+        return $out;
+    };
+
+    $collections = $cleanList($body['collections'] ?? []);
+    $stylesheets = $cleanList($body['stylesheets'] ?? []);
+    $customMedia = is_string($body['custom_media'] ?? null)
+        ? outpost_sanitise_raw_css(mb_substr($body['custom_media'], 0, 20000))
+        : '';
+
+    $put = function ($key, $value) {
+        OutpostDB::query('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [$key, $value]);
+    };
+    $put('builder_variable_collections', json_encode($collections, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $put('builder_stylesheets', json_encode($stylesheets, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $put('builder_custom_media', $customMedia);
+
+    outpost_clear_cache();
+    json_response(['ok' => true, 'collections' => $collections, 'stylesheets' => $stylesheets, 'custom_media' => $customMedia]);
 }
 
 function handle_components_get(): void {
@@ -4469,6 +4520,7 @@ function handle_settings_update(): void {
     $blockedKeys = [
         'sync_api_key', 'cron_key', 'shield_config',
         'feature_flags', 'jwt_secret', 'ranger_key', 'totp_signing_key',
+        'builder_variable_collections', 'builder_stylesheets', 'builder_custom_media',
     ];
 
     // Keys whose values should be encrypted at rest

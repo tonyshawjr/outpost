@@ -63,7 +63,7 @@
   });
 
   $effect(() => {
-    const css = (editor.templateCss || '') + '\n' + editor.classesCss;
+    const css = editor.allStyleCss;
     if (styleEl) styleEl.textContent = css;
   });
 </script>

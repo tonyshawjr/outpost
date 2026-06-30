@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.19">6.0.0-beta.19 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-30</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Style Manager</strong> &mdash; A full-screen global styles area in the builder (toolbar &rarr; Styles) with four tabs: <strong>Variables</strong> (global <code>:root</code> CSS variables in named collections), <strong>Stylesheets</strong> (multiple global sheets), <strong>Custom Media</strong> (define <code>@custom-media --md (min-width: 768px)</code> once and use <code>@media (--md)</code> anywhere &mdash; expanded to real media queries on the canvas and in published pages), and <strong>Selectors</strong> (searchable list of every class with a CSS editor and rename). Global variables and stylesheets are baked into every page.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Raw global CSS is sanitized server-side before storage and bake &mdash; <code>&lt;</code> is stripped so <code>&lt;/style&gt;</code>/<code>&lt;script&gt;</code> can't form, along with <code>@import</code>, <code>@charset</code>, <code>expression(</code>, and <code>javascript:</code>; custom-media conditions are charset-validated and brace-free; saving requires the content capability.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.18">6.0.0-beta.18 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-29</span></h2>
     <h3>Added</h3>
     <ul>

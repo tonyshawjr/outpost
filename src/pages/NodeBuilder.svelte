@@ -13,7 +13,8 @@
   import ContextMenu from '$components/builder/ContextMenu.svelte';
   import AiPanel from '$components/builder/AiPanel.svelte';
   import PageSettingsPanel from '$components/builder/PageSettingsPanel.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles } from 'lucide-svelte';
+  import StyleManager from '$components/builder/StyleManager.svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -24,6 +25,7 @@
   let leftPanel = $state('layers');
   let editMode = $state('design');
   let aiOpen = $state(false);
+  let styleManagerOpen = $state(false);
 
   let selected = $derived(editor.selectedNode);
   let status = $derived(
@@ -169,6 +171,10 @@
     {/if}
 
     <div class="right">
+      <button class="ai-toggle" onclick={() => (styleManagerOpen = true)} title="Style Manager">
+        <Palette size={15} aria-hidden="true" />
+        <span>Styles</span>
+      </button>
       {#if editMode === 'design'}
         <button class="ai-toggle" class:on={aiOpen} aria-pressed={aiOpen} onclick={() => (aiOpen = !aiOpen)} title="Build with AI">
           <Sparkles size={15} aria-hidden="true" />
@@ -328,6 +334,10 @@
   {#if ctx}
     <ContextMenu x={ctx.x} y={ctx.y} items={ctxItems} onclose={() => (ctx = null)} />
   {/if}
+
+  {#if styleManagerOpen}
+    <StyleManager {editor} onclose={() => (styleManagerOpen = false)} />
+  {/if}
 </div>
 
 <style>
@@ -336,6 +346,7 @@
     flex-direction: column;
     height: 100%;
     min-height: 0;
+    position: relative;
   }
 
   .toolbar {

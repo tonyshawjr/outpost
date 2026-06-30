@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.19] — 2026-06-30
+
+A global Style Manager — variables, stylesheets, custom media, and a selector browser, applied to the canvas and every published page.
+
+### Added
+- **Style Manager.** A full-screen styles area in the builder (toolbar → Styles) with four tabs:
+  - **Variables** — author global `:root` CSS variables as raw CSS, organized into named collections (Add collection). Applies to the canvas and every baked page.
+  - **Stylesheets** — multiple named global stylesheets of raw CSS.
+  - **Custom Media** — define `@custom-media --md (min-width: 768px);` breakpoints once, then use `@media (--md)` anywhere; they're expanded to real media queries on the canvas and in the published output.
+  - **Selectors** — searchable list of every class; click one to edit its CSS in a code editor, with rename.
+- **Custom-media expansion** — `outpost_expand_custom_media()` (PHP) and `expandCustomMedia()` (JS) rewrite `@media (--name)` references using the defined breakpoints, in lockstep for canvas and bake.
+- New `style-manager` GET/PUT endpoint and `styleManager` API client; the bake now injects global variables + stylesheets (custom-media expanded) into the page `<style>`.
+
+### Security
+- Raw global CSS is sanitized server-side (`outpost_sanitise_raw_css`) before it's stored or baked: strips `<` (so `</style>`/`<script>` can't form), `@import`, `@charset`, `expression(`, and `javascript:`/`vbscript:`, length-capped. Custom-media conditions are charset-validated and brace-free; the save endpoint requires the `content.*` capability.
+
+---
+
 ## [6.0.0-beta.18] — 2026-06-29
 
 A Page settings tab in the visual builder — route, SEO, visibility, and design tokens in one place.

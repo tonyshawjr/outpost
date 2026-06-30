@@ -4,6 +4,17 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Style Manager — Global Styles (v6.0.0-beta.19)
+
+- **Full-screen Style Manager** (builder toolbar → Styles) with four tabs: Variables, Stylesheets, Custom Media, Selectors.
+- **Variables** — global `:root` CSS variables authored as raw CSS, in named collections (Add collection). Brand colors, fonts, spacing, radii — applied to the canvas and every published page.
+- **Stylesheets** — multiple named global stylesheets of raw CSS, site-wide.
+- **Custom Media** — `@custom-media --md (min-width: 768px);` definitions; reference them as `@media (--md)` anywhere and they expand to real media queries on the canvas and in the bake (browsers don't support `@custom-media` natively, so Outpost expands it).
+- **Selectors** — searchable list of every class; click to edit its CSS in a code editor, with rename.
+- **One contract** — `src/lib/css-nest.js` (parse/expand/sanitize) and `php/node-engine.php` (`outpost_sanitise_raw_css`, `outpost_custom_media_map`, `outpost_expand_custom_media`, `outpost_global_style_css`) mirror each other, so the live canvas and the published static pages emit identical global CSS.
+- **Secure** — raw CSS sanitized server-side before storage/bake (strips `<` so `</style>`/`<script>` can't form, plus `@import`/`@charset`/`expression(`/`javascript:`); custom-media conditions charset-validated and brace-free; save requires `content.*`.
+- Verified live in-browser: variables reach the canvas; `@media (--md)` expands correctly (single parens).
+
 ## Page Settings Tab — Visual Builder (v6.0.0-beta.18)
 
 - **Page mode** — A third builder mode (Design / Content / Page). The Page tab configures the page you're editing without leaving the builder.

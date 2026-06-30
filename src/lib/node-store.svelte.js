@@ -1,7 +1,7 @@
 import * as T from './node-tree.js';
 import * as TOK from './builder-tokens.js';
-import { emitClassCss, serializeCssBody, parseCssBody } from './css-nest.js';
-import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi } from './api.js';
+import { emitClassCss, serializeCssBody, parseCssBody, sanitizeRawCss, parseCustomMedia, expandCustomMedia } from './css-nest.js';
+import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi, styleManager as styleManagerApi } from './api.js';
 
 const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 const STYLE_VALUE_RE = /[{}<>;]/g;
@@ -77,6 +77,10 @@ export function createNodeEditor() {
   let classes = $state({});
   let tokens = $state(TOK.defaultTokens());
   let templateCss = $state('');
+  let varCollections = $state([]);
+  let stylesheets = $state([]);
+  let customMedia = $state('');
+  let savingStyles = $state(false);
 
   function getTree() {
     return editingComponentId && comps[editingComponentId] ? comps[editingComponentId].tree : pageTree;
@@ -163,6 +167,64 @@ export function createNodeEditor() {
       let css = TOK.tokensToCss(tokens);
       for (const name in classes) css += emitClassCss('.oc-canvas ', name, classes[name]);
       return css;
+    },
+
+    get varCollections() { return varCollections; },
+    get stylesheets() { return stylesheets; },
+    get customMedia() { return customMedia; },
+    get savingStyles() { return savingStyles; },
+    get allStyleCss() {
+      const vars = varCollections.map((c) => sanitizeRawCss(c.css || '')).join('\n');
+      const sheets = stylesheets.map((s) => sanitizeRawCss(s.css || '')).join('\n');
+      let css = TOK.tokensToCss(tokens);
+      for (const name in classes) css += emitClassCss('.oc-canvas ', name, classes[name]);
+      const raw = (templateCss || '') + '\n' + vars + '\n' + sheets + '\n' + css;
+      return expandCustomMedia(raw, parseCustomMedia(customMedia));
+    },
+
+    addCollection(name) {
+      const id = 'sc_' + T.newId().slice(2);
+      varCollections = [...varCollections, { id, name: (name || 'Collection').trim() || 'Collection', css: ':root {\n  \n}' }];
+      dirty = true;
+      return id;
+    },
+    updateCollection(id, patch) {
+      varCollections = varCollections.map((c) => (c.id === id ? { ...c, ...patch } : c));
+      dirty = true;
+    },
+    removeCollection(id) {
+      varCollections = varCollections.filter((c) => c.id !== id);
+      dirty = true;
+    },
+    addStylesheet(name) {
+      const id = 'ss_' + T.newId().slice(2);
+      stylesheets = [...stylesheets, { id, name: (name || 'Stylesheet').trim() || 'Stylesheet', css: '' }];
+      dirty = true;
+      return id;
+    },
+    updateStylesheet(id, patch) {
+      stylesheets = stylesheets.map((s) => (s.id === id ? { ...s, ...patch } : s));
+      dirty = true;
+    },
+    removeStylesheet(id) {
+      stylesheets = stylesheets.filter((s) => s.id !== id);
+      dirty = true;
+    },
+    setCustomMedia(text) {
+      customMedia = String(text || '');
+      dirty = true;
+    },
+    async saveStyles() {
+      savingStyles = true;
+      try {
+        await styleClassesApi.save(Object.entries(classes).map(([name, declarations]) => ({ name, declarations })));
+        const res = await styleManagerApi.save({ collections: varCollections, stylesheets, custom_media: customMedia });
+        if (Array.isArray(res.collections)) varCollections = res.collections;
+        if (Array.isArray(res.stylesheets)) stylesheets = res.stylesheets;
+        return res;
+      } finally {
+        savingStyles = false;
+      }
     },
 
     classCssText(name) {
@@ -526,7 +588,7 @@ export function createNodeEditor() {
 
     async load(id, type = 'page') {
       ownerType = type; ownerId = id;
-      const [res, cr, comp, tk] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get(), tokensApi.get()]);
+      const [res, cr, comp, tk, sm] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get(), tokensApi.get(), styleManagerApi.get().catch(() => ({}))]);
       pageTree = T.validate(res.tree);
       version = res.version || 0;
       templateCss = res.templateCss || '';
@@ -539,6 +601,9 @@ export function createNodeEditor() {
       }
       comps = nextComps;
       tokens = tk.tokens && tk.tokens.colors ? { ...TOK.defaultTokens(), ...tk.tokens } : TOK.defaultTokens();
+      varCollections = Array.isArray(sm.collections) ? sm.collections : [];
+      stylesheets = Array.isArray(sm.stylesheets) ? sm.stylesheets : [];
+      customMedia = typeof sm.custom_media === 'string' ? sm.custom_media : '';
       editingComponentId = null;
       resetHistory();
       dirty = false; conflict = false; selectedId = null;
@@ -553,6 +618,7 @@ export function createNodeEditor() {
         await styleClassesApi.save(Object.entries(classes).map(([name, declarations]) => ({ name, declarations })));
         await componentsApi.save(Object.values(comps).map((c) => ({ id: c.id, name: c.name, tree: c.tree })));
         await tokensApi.save(tokens);
+        await styleManagerApi.save({ collections: varCollections, stylesheets, custom_media: customMedia });
         dirty = false;
         return res;
       } catch (e) {

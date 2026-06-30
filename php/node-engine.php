@@ -865,6 +865,67 @@ function outpost_public_class_css(?array $only = null): string {
     return $css;
 }
 
+/**
+ * Sanitise a raw CSS blob (global stylesheet / :root variables) for safe
+ * injection into a <style> element. Strips anything that could break out of
+ * the style context or load external resources, while allowing arbitrary
+ * selectors, at-rules, and custom-property declarations.
+ */
+function outpost_sanitise_raw_css(string $css): string {
+    if ($css === '') return '';
+    $css = mb_substr($css, 0, 100000);
+    $css = str_replace('<', '', $css);
+    $css = preg_replace('#@import\b[^;]*;?#i', '', $css);
+    $css = preg_replace('#@charset\b[^;]*;?#i', '', $css);
+    $css = preg_replace('#expression\s*\(#i', '', $css);
+    $css = preg_replace('#(javascript|vbscript)\s*:#i', '', $css);
+    return $css;
+}
+
+/** Parse the stored @custom-media definitions into a name => condition map. */
+function outpost_custom_media_map(): array {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'builder_custom_media'");
+    $text = $row['value'] ?? '';
+    $map = [];
+    if ($text && preg_match_all('/@custom-media\s+--([A-Za-z0-9_-]+)\s+([^;{}]+);/i', $text, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $cond = trim($m[2]);
+            if (str_starts_with($cond, '(') && str_ends_with($cond, ')')) {
+                $cond = trim(substr($cond, 1, -1));
+            }
+            if ($cond !== '' && strlen($cond) <= 200 && preg_match('/^[A-Za-z0-9 ():>=,.\/-]+$/', $cond)) {
+                $map[$m[1]] = $cond;
+            }
+        }
+    }
+    return $map;
+}
+
+/** Expand @media (--name) / @container (--name) references using a custom-media map. */
+function outpost_expand_custom_media(string $css, array $map): string {
+    if (!$map) return $css;
+    return preg_replace_callback('/@(media|container)([^{]*)\{/i', function ($m) use ($map) {
+        $prelude = preg_replace_callback('/\(\s*--([A-Za-z0-9_-]+)\s*\)/', function ($mm) use ($map) {
+            return isset($map[$mm[1]]) ? '(' . $map[$mm[1]] . ')' : $mm[0];
+        }, $m[2]);
+        return '@' . $m[1] . $prelude . '{';
+    }, $css);
+}
+
+/** Concatenated global CSS: variable collections + extra stylesheets (sanitised). */
+function outpost_global_style_css(): string {
+    $css = '';
+    $vc = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'builder_variable_collections'");
+    foreach (json_decode($vc['value'] ?? '[]', true) ?: [] as $col) {
+        if (is_array($col) && !empty($col['css'])) $css .= outpost_sanitise_raw_css((string) $col['css']) . "\n";
+    }
+    $ss = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'builder_stylesheets'");
+    foreach (json_decode($ss['value'] ?? '[]', true) ?: [] as $sheet) {
+        if (is_array($sheet) && !empty($sheet['css'])) $css .= outpost_sanitise_raw_css((string) $sheet['css']) . "\n";
+    }
+    return $css;
+}
+
 function outpost_bake_node_page(int $pageId): bool {
     $page = OutpostDB::fetchOne('SELECT path, title FROM pages WHERE id = ?', [$pageId]);
     if (!$page) return false;
@@ -914,6 +975,7 @@ function outpost_bake_node_page(int $pageId): bool {
     $jsLink = file_exists($renderRoot . '/' . $base . '.js')
         ? '<script src="/' . $base . '.js" defer></script>' . "\n" : '';
     $classCss = outpost_public_class_css(outpost_tree_class_names($tree));
+    $allCss = outpost_expand_custom_media(outpost_global_style_css() . $classCss, outpost_custom_media_map());
     $titleEsc = htmlspecialchars($page['title'] ?: 'Page', ENT_QUOTES);
 
     $doc = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
@@ -923,7 +985,7 @@ function outpost_bake_node_page(int $pageId): bool {
         . "<outpost-seo></outpost-seo>\n"
         . $preservedLinks
         . $pageCssLink
-        . "<style>\n{$classCss}</style>\n"
+        . "<style>\n{$allCss}</style>\n"
         . "</head>\n<body>\n{$body}\n{$jsLink}</body>\n</html>\n";
 
     return file_put_contents($existingFile, $doc) !== false;

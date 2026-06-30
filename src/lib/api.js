@@ -123,6 +123,11 @@ export const designTokens = {
   save: (tokens) => request('design-tokens', { method: 'PUT', body: { tokens } }),
 };
 
+export const styleManager = {
+  get: () => request('style-manager'),
+  save: (data) => request('style-manager', { method: 'PUT', body: data }),
+};
+
 // Pages
 export const pages = {
   list: (search = '') =>

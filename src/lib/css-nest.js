@@ -161,6 +161,39 @@ export function emitClassCss(scope, name, decls) {
   return emitRule(selector, decls || {});
 }
 
+export function parseCustomMedia(text) {
+  const map = {};
+  const re = /@custom-media\s+--([A-Za-z0-9_-]+)\s+([^;{}]+);/gi;
+  let m;
+  while ((m = re.exec(String(text || '')))) {
+    let cond = m[2].trim();
+    if (cond.startsWith('(') && cond.endsWith(')')) cond = cond.slice(1, -1).trim();
+    if (cond && cond.length <= 200 && /^[A-Za-z0-9 ():<>=,.\/-]+$/.test(cond)) map[m[1]] = cond;
+  }
+  return map;
+}
+
+export function expandCustomMedia(css, map) {
+  if (!map || !Object.keys(map).length) return css;
+  return String(css || '').replace(/@(media|container)([^{]*)\{/gi, (full, type, prelude) => {
+    const expanded = prelude.replace(/\(\s*--([A-Za-z0-9_-]+)\s*\)/g, (mm, name) =>
+      Object.prototype.hasOwnProperty.call(map, name) ? `(${map[name]})` : mm
+    );
+    return `@${type}${expanded}{`;
+  });
+}
+
+export function sanitizeRawCss(css) {
+  if (!css) return '';
+  return String(css)
+    .slice(0, 100000)
+    .replace(/</g, '')
+    .replace(/@import\b[^;]*;?/gi, '')
+    .replace(/@charset\b[^;]*;?/gi, '')
+    .replace(/expression\s*\(/gi, '')
+    .replace(/(javascript|vbscript)\s*:/gi, '');
+}
+
 export function topLevelProps(decls) {
   return flatProps(decls || {});
 }
