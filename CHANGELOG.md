@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.20] — 2026-06-30
+
+Multi-breakpoint canvas — preview the page at device widths, or all three at once.
+
+### Added
+- **Device-mode canvas.** A device bar above the canvas: Desktop (fluid), Tablet (820px), Mobile (390px), and **All screens** (Desktop/Tablet/Mobile side by side, scaled Figma-style). Each frame renders the real responsive layout live (media queries and custom-media breakpoints apply per width). Click a frame's label in All-screens to zoom into that single device.
+- `CanvasFrame.svelte` — the iframe canvas extracted into a reusable frame so any number can render the same tree + global CSS at once.
+
+### Fixed
+- **Style Manager layout.** The class-list sidebar used a generic `.sidebar` class that collided with the admin nav's global `.sidebar` (position: fixed), pulling it off-screen to the top-left. Namespaced to `.sm-sidebar`.
+
+---
+
 ## [6.0.0-beta.19] — 2026-06-30
 
 A global Style Manager — variables, stylesheets, custom media, and a selector browser, applied to the canvas and every published page.
