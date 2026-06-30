@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.22] — 2026-06-30
+
+Dynamic holes, authored in the builder — mark any element as editable content that updates the live page without a rebuild.
+
+### Added
+- **Dynamic content binding.** The inspector gains a "Dynamic content" toggle for text/image/button/link nodes. Binding a node makes it a `data-outpost` hole with a named field; the canvas marks holes with a dashed outline and renders the live field value (WYSIWYG). Previously only the AI could bind fields (`bind_field`).
+- **In-builder hole editing.** When a node is bound, its content input (and Content mode) edits the **field value**, not the static text — saved to the `fields` table on Save via the new `nodes/fields` GET/PUT endpoint. The static node text becomes the fallback/default.
+- **Live on save.** Editing a hole's value and saving updates the published page immediately (the engine fills `data-outpost` holes at request time from the live `fields` table, cache clears on edit) — no rebuild. Confirms the "static (cached) except the holes, deploys like WordPress" model now works from the visual builder, end to end.
+
+### Security
+- `nodes/fields` PUT is auth + CSRF + rate-limited and requires the `content.*` capability; richtext content is sanitized (`OutpostSanitizer`), link/image values are scheme-filtered, and text fields are escaped on render. Parameterized upserts.
+
+---
+
 ## [6.0.0-beta.21] — 2026-06-30
 
 The multi-screen view is now a true Figma-style canvas.

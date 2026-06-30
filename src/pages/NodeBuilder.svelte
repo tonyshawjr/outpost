@@ -101,6 +101,36 @@
   function setProp(key, e) { editor.updateProps(selected.id, { [key]: e.target.value }); }
   function setTag(e) { editor.setTag(selected.id, e.target.value); }
 
+  let boundField = $derived(selected?.props?.field || null);
+  let canBind = $derived(selected && ['text', 'image', 'button', 'link'].includes(selected.type));
+
+  let primaryValue = $derived.by(() => {
+    if (!selected) return '';
+    const fallback = selected.type === 'image' ? (selected.props.src || '') : (selected.props.text || '');
+    if (boundField) {
+      const v = editor.fieldValue(boundField);
+      return v != null && v !== '' ? v : fallback;
+    }
+    return fallback;
+  });
+
+  function setPrimary(e) {
+    const v = e.target.value;
+    if (boundField) editor.setFieldValue(boundField, v);
+    else if (selected.type === 'image') editor.updateProps(selected.id, { src: v });
+    else editor.updateProps(selected.id, { text: v });
+  }
+
+  function toggleDynamic(e) {
+    if (e.target.checked) {
+      const base = selected.type === 'image' ? 'image' : (selected.props.text || selected.type);
+      editor.bindField(selected.id, base || 'field');
+    } else {
+      editor.unbindField(selected.id);
+    }
+  }
+  function renameField(e) { editor.bindField(selected.id, e.target.value); }
+
   function componentize() {
     const raw = prompt('Component name', selected.type === 'container' ? 'Section' : 'Component');
     if (raw === null) return;
@@ -269,15 +299,28 @@
             </label>
           {/if}
 
+          {#if canBind && editMode === 'design'}
+            <div class="dyn">
+              <label class="dyn-toggle">
+                <input type="checkbox" checked={!!boundField} onchange={toggleDynamic} />
+                <span>Dynamic content</span>
+              </label>
+              {#if boundField}
+                <input class="dyn-name" type="text" value={boundField} oninput={renameField} aria-label="Field name" spellcheck="false" />
+                <p class="dyn-hint">Editable as a field — updates the live page without rebuilding.</p>
+              {/if}
+            </div>
+          {/if}
+
           {#if selected.type === 'text'}
             <label class="field">
-              <span>Text</span>
-              <textarea rows="3" value={selected.props.text || ''} oninput={setText}></textarea>
+              <span>{boundField ? 'Content' : 'Text'}</span>
+              <textarea rows="3" value={primaryValue} oninput={setPrimary}></textarea>
             </label>
           {:else if selected.type === 'image'}
             <label class="field">
-              <span>Image URL</span>
-              <input type="text" value={selected.props.src || ''} oninput={(e) => setProp('src', e)} />
+              <span>{boundField ? 'Image URL (dynamic)' : 'Image URL'}</span>
+              <input type="text" value={primaryValue} oninput={setPrimary} />
             </label>
             <label class="field">
               <span>Alt text</span>
@@ -286,7 +329,7 @@
           {:else if selected.type === 'button' || selected.type === 'link'}
             <label class="field">
               <span>Label</span>
-              <input type="text" value={selected.props.text || ''} oninput={setText} />
+              <input type="text" value={primaryValue} oninput={setPrimary} />
             </label>
             <label class="field">
               <span>Link URL</span>
@@ -605,6 +648,36 @@
     outline: none;
     border-color: var(--purple);
   }
+
+  .dyn {
+    margin-bottom: 14px;
+    padding: 10px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--hover);
+  }
+  .dyn-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .dyn-toggle input { accent-color: var(--purple); }
+  .dyn-name {
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+  }
+  .dyn-name:focus-visible { outline: none; border-color: var(--purple); }
+  .dyn-hint { font-size: 11px; color: var(--dim); line-height: 1.45; margin: 7px 0 0; }
 
   .ins-actions {
     display: flex;

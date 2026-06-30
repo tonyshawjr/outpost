@@ -113,6 +113,11 @@ export const styleClasses = {
   save: (classes) => request('classes', { method: 'PUT', body: { classes } }),
 };
 
+export const nodeFields = {
+  get: (ownerId) => request('nodes/fields', { params: { owner_id: ownerId } }),
+  save: (ownerId, fields) => request('nodes/fields', { method: 'PUT', params: { owner_id: ownerId }, body: { fields } }),
+};
+
 export const nodeComponents = {
   get: () => request('components'),
   save: (components) => request('components', { method: 'PUT', body: { components } }),

@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.22">6.0.0-beta.22 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-30</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Dynamic holes in the visual builder</strong> &mdash; Mark any text/image/button/link element as <strong>Dynamic content</strong> (inspector toggle) and it becomes a named editable field (a <code>data-outpost</code> hole). The page is static HTML; the holes fill from the live <code>fields</code> table at request time, so editing a hole updates the published page with no rebuild &mdash; "static except the holes, deploys like WordPress." A bound node's content edits the field value (saved via <code>nodes/fields</code>); the canvas shows the live value and outlines holes. Imported pages keep their existing <code>data-outpost</code> regions.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>The content-write endpoint is auth + CSRF + rate-limited and requires the content capability; richtext is sanitized, link/image values are scheme-filtered, and text fields are escaped on render.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.21">6.0.0-beta.21 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-30</span></h2>
     <h3>Changed</h3>
     <ul>

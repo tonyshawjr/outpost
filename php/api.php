@@ -319,6 +319,8 @@ match (true) {
 
     // Fields
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
+    $action === 'nodes/fields' && $method === 'GET' && isset($_GET['owner_id']) => handle_node_fields_get(),
+    $action === 'nodes/fields' && $method === 'PUT' && isset($_GET['owner_id']) => handle_node_fields_save(),
 
     // Global fields
     $action === 'globals' && $method === 'GET' => handle_globals_get(),
@@ -2716,6 +2718,71 @@ function handle_page_delete(): void {
 }
 
 // ── Field Handlers ───────────────────────────────────────
+function handle_node_fields_get(): void {
+    $pid = (int) ($_GET['owner_id'] ?? 0);
+    if (!$pid) json_error('owner_id required', 400);
+    $rows = OutpostDB::fetchAll(
+        "SELECT field_name, field_type, content, default_value FROM fields WHERE page_id = ? AND (theme = '' OR theme IS NULL)",
+        [$pid]
+    );
+    $out = [];
+    foreach ($rows as $r) {
+        $out[$r['field_name']] = [
+            'content' => $r['content'],
+            'type' => $r['field_type'],
+            'default' => $r['default_value'],
+        ];
+    }
+    json_response(['fields' => $out]);
+}
+
+function handle_node_fields_save(): void {
+    outpost_require_cap('content.*');
+    $pid = (int) ($_GET['owner_id'] ?? 0);
+    if (!$pid) json_error('owner_id required', 400);
+    $page = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [$pid]);
+    if (!$page) json_error('Page not found', 404);
+
+    $body = get_json_body();
+    $fields = is_array($body['fields'] ?? null) ? $body['fields'] : [];
+    if (count($fields) > 1000) json_error('Too many fields in one request', 413);
+    $now = date('Y-m-d H:i:s');
+    $count = 0;
+    foreach ($fields as $name => $spec) {
+        $name = preg_replace('/[^A-Za-z0-9_]/', '', (string) $name);
+        if ($name === '') continue;
+        $content = is_array($spec) ? (string) ($spec['content'] ?? '') : (string) $spec;
+        if (strlen($content) > 2097152) json_error('Field content too large', 413);
+        $clientType = is_array($spec) ? preg_replace('/[^a-z]/', '', strtolower((string) ($spec['type'] ?? 'text'))) : 'text';
+        if ($clientType === '') $clientType = 'text';
+        $existing = OutpostDB::fetchOne(
+            "SELECT field_type FROM fields WHERE page_id = ? AND (theme = '' OR theme IS NULL) AND field_name = ?",
+            [$pid, $name]
+        );
+        $type = $existing ? (string) $existing['field_type'] : $clientType;
+        if ($type === '') $type = 'text';
+        if ($type === 'richtext') {
+            $content = OutpostSanitizer::clean($content);
+        } elseif (in_array($type, ['link', 'image'], true)) {
+            $probe = preg_replace('/[\s\x00-\x1f]/u', '', $content);
+            if ($probe !== null && preg_match('/^(javascript|data|vbscript)\s*:/i', $probe)) $content = '';
+        }
+        OutpostDB::query(
+            "INSERT INTO fields (page_id, theme, field_name, field_type, content, default_value, updated_at)
+             VALUES (?, '', ?, ?, ?, '', ?)
+             ON CONFLICT(page_id, theme, field_name) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at",
+            [$pid, $name, $type, $content, $now]
+        );
+        $count++;
+    }
+    if ($page['path'] === '__global__') {
+        if (function_exists('outpost_clear_cache')) outpost_clear_cache();
+    } elseif ($page['path'] && function_exists('outpost_clear_cache')) {
+        outpost_clear_cache($page['path']);
+    }
+    json_response(['ok' => true, 'updated' => $count]);
+}
+
 function handle_fields_bulk_update(): void {
     $data = get_json_body();
     $fields = $data['fields'] ?? [];

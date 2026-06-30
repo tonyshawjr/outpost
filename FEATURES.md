@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Dynamic Holes — Authored in the Builder (v6.0.0-beta.22)
+
+- **"Static except the holes," from the visual builder.** Mark any text/image/button/link node as **Dynamic content** (inspector toggle) — it becomes a named `data-outpost` hole. The page bakes to static HTML; the engine fills the holes at request time from the live `fields` table (cache clears on edit), so editing a hole updates the published page with no rebuild. "Deploys like WordPress."
+- **In-builder editing.** A bound node's content input (and Content mode) edits the **field value**, saved to `fields` on Save (`nodes/fields` endpoint). The static node text is the fallback. The canvas shows the live value (WYSIWYG) and outlines holes.
+- **Imported pages keep their holes.** Imported HTML with `data-outpost` markers parses into bound nodes, so imported templates already have their dynamic regions designated.
+- **One source of truth.** Holes edited in the builder, in Content mode, or via on-page click-to-edit all flow to the same `fields` table that the live render reads.
+- **Secure** — content-write endpoint is auth + CSRF + capability gated; richtext sanitized, link/image scheme-filtered, text escaped on render.
+
 ## Multi-Breakpoint Canvas — Visual Builder (v6.0.0-beta.20–21)
 
 - **Device modes** — a device bar above the canvas: Desktop (fluid), Tablet (820px), Mobile (390px) for focused responsive editing.

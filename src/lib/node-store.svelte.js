@@ -1,7 +1,15 @@
 import * as T from './node-tree.js';
 import * as TOK from './builder-tokens.js';
 import { emitClassCss, serializeCssBody, parseCssBody, sanitizeRawCss, parseCustomMedia, expandCustomMedia } from './css-nest.js';
-import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi, styleManager as styleManagerApi } from './api.js';
+import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi, styleManager as styleManagerApi, nodeFields as nodeFieldsApi } from './api.js';
+
+function fieldNameSlug(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+}
+function fieldTypeFor(node) {
+  if (node.type === 'image') return 'image';
+  return 'text';
+}
 
 const CLASS_NAME_RE = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 const STYLE_VALUE_RE = /[{}<>;]/g;
@@ -81,6 +89,7 @@ export function createNodeEditor() {
   let stylesheets = $state([]);
   let customMedia = $state('');
   let savingStyles = $state(false);
+  let fieldValues = $state({});
 
   function getTree() {
     return editingComponentId && comps[editingComponentId] ? comps[editingComponentId].tree : pageTree;
@@ -225,6 +234,34 @@ export function createNodeEditor() {
       } finally {
         savingStyles = false;
       }
+    },
+
+    get fieldValues() { return fieldValues; },
+    fieldValue(name) { return name ? (fieldValues[name] ?? null) : null; },
+    isBound(id) {
+      const n = getTree().nodes[id];
+      return !!(n && n.props && n.props.field);
+    },
+    setFieldValue(name, value) {
+      if (!name) return;
+      fieldValues = { ...fieldValues, [name]: String(value ?? '') };
+      dirty = true;
+    },
+    bindField(id, rawName) {
+      const node = getTree().nodes[id];
+      if (!node) return null;
+      const name = fieldNameSlug(rawName);
+      if (!name) return null;
+      const type = fieldTypeFor(node);
+      commit((t) => T.updateProps(t, id, { field: name, fieldType: type }));
+      if (fieldValues[name] == null || fieldValues[name] === '') {
+        const seed = node.type === 'image' ? (node.props.src || '') : (node.props.text || node.props.href || '');
+        if (seed) fieldValues = { ...fieldValues, [name]: String(seed) };
+      }
+      return name;
+    },
+    unbindField(id) {
+      return commit((t) => T.updateProps(t, id, { field: '' }));
     },
 
     classCssText(name) {
@@ -588,7 +625,7 @@ export function createNodeEditor() {
 
     async load(id, type = 'page') {
       ownerType = type; ownerId = id;
-      const [res, cr, comp, tk, sm] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get(), tokensApi.get(), styleManagerApi.get().catch(() => ({}))]);
+      const [res, cr, comp, tk, sm, nf] = await Promise.all([nodesApi.get(id, type), styleClassesApi.get(), componentsApi.get(), tokensApi.get(), styleManagerApi.get().catch(() => ({})), (type === 'page' ? nodeFieldsApi.get(id).catch(() => ({})) : Promise.resolve({}))]);
       pageTree = T.validate(res.tree);
       version = res.version || 0;
       templateCss = res.templateCss || '';
@@ -604,6 +641,9 @@ export function createNodeEditor() {
       varCollections = Array.isArray(sm.collections) ? sm.collections : [];
       stylesheets = Array.isArray(sm.stylesheets) ? sm.stylesheets : [];
       customMedia = typeof sm.custom_media === 'string' ? sm.custom_media : '';
+      const fv = {};
+      for (const name in (nf.fields || {})) fv[name] = nf.fields[name].content ?? '';
+      fieldValues = fv;
       editingComponentId = null;
       resetHistory();
       dirty = false; conflict = false; selectedId = null;
@@ -619,6 +659,20 @@ export function createNodeEditor() {
         await componentsApi.save(Object.values(comps).map((c) => ({ id: c.id, name: c.name, tree: c.tree })));
         await tokensApi.save(tokens);
         await styleManagerApi.save({ collections: varCollections, stylesheets, custom_media: customMedia });
+        if (ownerType === 'page') {
+          const types = {};
+          const collect = (t) => {
+            for (const nid in t.nodes) {
+              const n = t.nodes[nid];
+              if (n.props && n.props.field) types[n.props.field] = n.props.fieldType || fieldTypeFor(n);
+            }
+          };
+          collect(pageTree);
+          for (const cid in comps) collect(comps[cid].tree);
+          const payload = {};
+          for (const name in fieldValues) payload[name] = { content: fieldValues[name], type: types[name] || 'text' };
+          if (Object.keys(payload).length) await nodeFieldsApi.save(ownerId, payload);
+        }
         dirty = false;
         return res;
       } catch (e) {
