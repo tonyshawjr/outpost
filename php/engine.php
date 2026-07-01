@@ -769,7 +769,7 @@ function cms_seo(): void {
     if ($_outpost_page_id) {
         try {
             $row = OutpostDB::fetchOne(
-                'SELECT meta_title, meta_description, visibility FROM pages WHERE id = ?',
+                'SELECT meta_title, meta_description, og_image, visibility FROM pages WHERE id = ?',
                 [$_outpost_page_id]
             );
             if ($row) {
@@ -815,7 +815,7 @@ function cms_seo(): void {
     } else {
         $title        = $pageMeta['meta_title'] ?? '';
         $desc         = ($pageMeta['meta_description'] ?? '') ?: $siteTagline;
-        $image        = $ogImageGlobal;
+        $image        = ($pageMeta['og_image'] ?? '') ?: $ogImageGlobal;
         $author       = '';
         $publishedIso = '';
     }

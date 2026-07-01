@@ -205,6 +205,7 @@ ensure_channels_tables();
 ensure_totp_columns();
 ensure_user_collection_grants_table();
 ensure_pages_locked_column();
+ensure_pages_og_image_column();
 ensure_media_focal_columns();
 ensure_media_folders_table();
 ensure_media_folder_items_table();
@@ -1171,6 +1172,13 @@ function ensure_pages_locked_column(): void {
     $existing = array_column($cols, 'name');
     if (!in_array('locked', $existing)) {
         OutpostDB::connect()->exec("ALTER TABLE pages ADD COLUMN locked INTEGER NOT NULL DEFAULT 0");
+    }
+}
+
+function ensure_pages_og_image_column(): void {
+    $cols = OutpostDB::fetchAll("PRAGMA table_info(pages)");
+    if (!in_array('og_image', array_column($cols, 'name'))) {
+        OutpostDB::connect()->exec("ALTER TABLE pages ADD COLUMN og_image TEXT DEFAULT ''");
     }
 }
 
@@ -2548,7 +2556,7 @@ function handle_page_update(): void {
 
     require_page_unlocked($id);
 
-    $allowed = ['title', 'meta_title', 'meta_description', 'status', 'visibility', 'locked'];
+    $allowed = ['title', 'meta_title', 'meta_description', 'og_image', 'status', 'visibility', 'locked'];
     $update = [];
     foreach ($allowed as $key) {
         if (isset($data[$key])) {

@@ -6,20 +6,17 @@
   import { NODE_TYPES } from '$lib/node-tree.js';
   import LayersPanel from '$components/builder/LayersPanel.svelte';
   import SelectorsPanel from '$components/builder/SelectorsPanel.svelte';
-  import TokensPanel from '$components/builder/TokensPanel.svelte';
   import ContentPanel from '$components/builder/ContentPanel.svelte';
   import NodeCanvas from '$components/builder/NodeCanvas.svelte';
   import StylePanel from '$components/builder/StylePanel.svelte';
   import ContextMenu from '$components/builder/ContextMenu.svelte';
   import AiPanel from '$components/builder/AiPanel.svelte';
-  import PageSettingsPanel from '$components/builder/PageSettingsPanel.svelte';
   import StyleManager from '$components/builder/StyleManager.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
   let pageTitle = $state('Page');
-  let pageData = $state(null);
   let loading = $state(true);
   let loadError = $state('');
   let leftPanel = $state('layers');
@@ -61,8 +58,7 @@
       }
       try {
         const res = await pagesApi.get(id);
-        pageData = res.page || res;
-        pageTitle = pageData?.title || 'Page';
+        pageTitle = (res.page || res)?.title || 'Page';
       } catch { pageTitle = 'Page'; }
       await editor.load(id);
     } catch (e) {
@@ -71,11 +67,6 @@
       loading = false;
     }
   });
-
-  function onPageUpdated(next) {
-    pageData = next;
-    pageTitle = next.title || pageTitle;
-  }
 
   $effect(() => {
     const onKey = (e) => {
@@ -181,7 +172,6 @@
       <div class="mode" role="group" aria-label="Edit mode">
         <button class:on={editMode === 'design'} aria-pressed={editMode === 'design'} onclick={() => (editMode = 'design')}>Design</button>
         <button class:on={editMode === 'content'} aria-pressed={editMode === 'content'} onclick={() => (editMode = 'content')}>Content</button>
-        <button class:on={editMode === 'page'} aria-pressed={editMode === 'page'} onclick={() => (editMode = 'page')}>Page</button>
       </div>
     </div>
 
@@ -194,10 +184,8 @@
           </button>
         {/each}
       </div>
-    {:else if editMode === 'content'}
-      <div class="center content-hint">Content mode — editing text &amp; media only</div>
     {:else}
-      <div class="center content-hint">Page settings</div>
+      <div class="center content-hint">Content mode — editing text &amp; media only</div>
     {/if}
 
     <div class="right">
@@ -240,8 +228,6 @@
     <div class="message">Loading…</div>
   {:else if loadError}
     <div class="message error">{loadError}</div>
-  {:else if editMode === 'page'}
-    <PageSettingsPanel {editor} page={pageData} onupdated={onPageUpdated} />
   {:else}
     <div class="body">
       <div class="left-col">
@@ -252,14 +238,11 @@
           <div class="left-tabs" role="tablist" aria-label="Left panel">
             <button role="tab" aria-selected={leftPanel === 'layers'} class:on={leftPanel === 'layers'} onclick={() => (leftPanel = 'layers')}>Layers</button>
             <button role="tab" aria-selected={leftPanel === 'selectors'} class:on={leftPanel === 'selectors'} onclick={() => (leftPanel = 'selectors')}>Selectors</button>
-            <button role="tab" aria-selected={leftPanel === 'tokens'} class:on={leftPanel === 'tokens'} onclick={() => (leftPanel = 'tokens')}>Tokens</button>
           </div>
-          {#if leftPanel === 'layers'}
-            <LayersPanel {editor} oncontext={openContext} />
-          {:else if leftPanel === 'selectors'}
+          {#if leftPanel === 'selectors'}
             <SelectorsPanel {editor} />
           {:else}
-            <TokensPanel {editor} />
+            <LayersPanel {editor} oncontext={openContext} />
           {/if}
         {/if}
       </div>
