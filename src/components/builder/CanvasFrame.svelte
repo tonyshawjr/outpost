@@ -2,12 +2,14 @@
   import { mount, unmount } from 'svelte';
   import CanvasContent from './CanvasContent.svelte';
 
-  let { editor, oncontext, fitHeight = false } = $props();
+  let { editor, oncontext, fitHeight = false, viewportHeight = 0 } = $props();
   let iframeEl = $state(null);
   let styleEl = $state(null);
 
   const BASE_CSS = `
     html, body { margin: 0; padding: 0; }
+    html { scrollbar-width: none; -ms-overflow-style: none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     body { background: #ffffff; color: #111; }
     .oc-canvas { min-height: 100vh; }
     img { max-width: 100%; }
@@ -17,6 +19,11 @@
     [data-component-ref] { outline: 1px dashed #A78BFA; outline-offset: 1px; }
     [data-component-ref][data-selected] { outline: 2px solid #7C3AED; }
   `;
+
+  function withViewportHeight(css, vh) {
+    if (!vh) return css;
+    return css.replace(/(-?[\d.]+)(dvh|svh|lvh|vh)\b/gi, (_, n) => `${(parseFloat(n) / 100) * vh}px`);
+  }
 
   $effect(() => {
     const iframe = iframeEl;
@@ -29,7 +36,7 @@
     doc.close();
 
     const baseStyle = doc.createElement('style');
-    baseStyle.textContent = BASE_CSS;
+    baseStyle.textContent = withViewportHeight(BASE_CSS, fitHeight ? viewportHeight : 0);
     doc.head.appendChild(baseStyle);
 
     const dynStyle = doc.createElement('style');
@@ -78,7 +85,7 @@
 
   $effect(() => {
     const css = editor.allStyleCss;
-    if (styleEl) styleEl.textContent = css;
+    if (styleEl) styleEl.textContent = withViewportHeight(css, fitHeight ? viewportHeight : 0);
   });
 </script>
 

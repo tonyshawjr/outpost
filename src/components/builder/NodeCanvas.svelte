@@ -8,9 +8,9 @@
 
   const SINGLE_WIDTH = { desktop: null, tablet: 820, mobile: 390 };
   const ALL = [
-    { key: 'desktop', label: 'Desktop', w: 1366 },
-    { key: 'tablet', label: 'Tablet', w: 820 },
-    { key: 'mobile', label: 'Mobile', w: 390 },
+    { key: 'desktop', label: 'Desktop', w: 1366, h: 800 },
+    { key: 'tablet', label: 'Tablet', w: 820, h: 1180 },
+    { key: 'mobile', label: 'Mobile', w: 390, h: 844 },
   ];
 
   const DEVICES = [
@@ -119,7 +119,7 @@
           <div class="device" style:width={`${d.w}px`}>
             <button class="device-label" onclick={() => (mode = d.key)} title={`Open ${d.label}`}>{d.label} · {d.w}px</button>
             <div class="device-frame">
-              <CanvasFrame {editor} fitHeight />
+              <CanvasFrame {editor} fitHeight viewportHeight={d.h} />
             </div>
           </div>
         {/each}
@@ -205,11 +205,7 @@
     position: relative;
     overflow: hidden;
     cursor: grab;
-    background:
-      repeating-linear-gradient(0deg, transparent, transparent 23px, var(--border) 23px, var(--border) 24px),
-      repeating-linear-gradient(90deg, transparent, transparent 23px, var(--border) 23px, var(--border) 24px),
-      var(--bg);
-    background-blend-mode: normal;
+    background: var(--bg);
   }
   .fig-viewport.dragging { cursor: grabbing; }
   .fig-viewport.dragging :global(iframe) { pointer-events: none; }
