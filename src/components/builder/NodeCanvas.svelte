@@ -58,14 +58,13 @@
     zoom = nz;
   }
 
+  function applyWheel({ deltaX, deltaY, ctrl, x, y }) {
+    if (ctrl) zoomAt(deltaY < 0 ? 1.1 : 0.9, x, y);
+    else { panX -= deltaX; panY -= deltaY; }
+  }
   function onWheel(e) {
     e.preventDefault();
-    if (e.ctrlKey || e.metaKey) {
-      zoomAt(e.deltaY < 0 ? 1.1 : 0.9, e.clientX, e.clientY);
-    } else {
-      panX -= e.deltaX;
-      panY -= e.deltaY;
-    }
+    applyWheel({ deltaX: e.deltaX, deltaY: e.deltaY, ctrl: e.ctrlKey || e.metaKey, x: e.clientX, y: e.clientY });
   }
 
   function onPanStart(e) {
@@ -123,7 +122,7 @@
           <div class="device" style:width={`${d.w}px`}>
             <button class="device-label" onclick={() => (mode = d.key)} title={`Open ${d.label}`}>{d.label} · {d.w}px</button>
             <div class="device-frame">
-              <CanvasFrame {editor} fitHeight viewportHeight={d.h} />
+              <CanvasFrame {editor} fitHeight viewportHeight={d.h} onwheel={applyWheel} />
             </div>
           </div>
         {/each}
@@ -208,6 +207,7 @@
     min-height: 0;
     position: relative;
     overflow: hidden;
+    overscroll-behavior: none;
     cursor: grab;
     background: var(--bg);
   }

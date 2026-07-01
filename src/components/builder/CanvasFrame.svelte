@@ -2,12 +2,12 @@
   import { mount, unmount } from 'svelte';
   import CanvasContent from './CanvasContent.svelte';
 
-  let { editor, oncontext, fitHeight = false, viewportHeight = 0 } = $props();
+  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel } = $props();
   let iframeEl = $state(null);
   let styleEl = $state(null);
 
   const BASE_CSS = `
-    html, body { margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; overscroll-behavior: none; }
     html { scrollbar-width: none; -ms-overflow-style: none; }
     html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     body { background: #ffffff; color: #111; }
@@ -62,6 +62,20 @@
     doc.addEventListener('click', onClick);
     if (oncontext) doc.addEventListener('contextmenu', onCtx);
 
+    const onWheelFwd = (e) => {
+      e.preventDefault();
+      const rect = iframe.getBoundingClientRect();
+      const factor = iframe.clientWidth ? rect.width / iframe.clientWidth : 1;
+      onwheel({
+        deltaX: e.deltaX,
+        deltaY: e.deltaY,
+        ctrl: e.ctrlKey || e.metaKey,
+        x: rect.left + e.clientX * factor,
+        y: rect.top + e.clientY * factor,
+      });
+    };
+    if (onwheel) doc.addEventListener('wheel', onWheelFwd, { passive: false });
+
     let ro = null;
     if (fitHeight) {
       const fit = () => {
@@ -79,6 +93,7 @@
       if (ro) ro.disconnect();
       doc.removeEventListener('click', onClick);
       doc.removeEventListener('contextmenu', onCtx);
+      doc.removeEventListener('wheel', onWheelFwd);
       styleEl = null;
     };
   });
