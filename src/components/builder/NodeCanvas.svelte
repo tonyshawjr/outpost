@@ -29,6 +29,10 @@
 
   const clampZoom = (z) => Math.max(0.05, Math.min(2, z));
 
+  $effect(() => {
+    editor.setBreakpoint(mode);
+  });
+
   function fit() {
     const vp = viewportEl, row = rowEl;
     if (!vp || !row) return;

@@ -22,6 +22,20 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.23">6.0.0-beta.23 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Per-breakpoint editing</strong> &mdash; In Tablet or Mobile canvas mode, editing a style writes a <code>@media</code> override (tablet &le; 991px, mobile &le; 479px) into the class instead of the base &mdash; responsive editing without touching CSS. The style panel badges which breakpoint you're editing.</li>
+      <li><strong>Per-page OG/social image</strong> &mdash; Added the page <code>og_image</code> field and made the SEO output prefer it over the site-wide image; the SEO drawer now persists and emits <code>og:image</code>/<code>twitter:image</code>.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Multi-screen canvas polish: <code>100vh</code> resolves to a real device viewport per frame (heroes no longer stretch), scrollbars hidden, grid background removed.</li>
+      <li>Consolidated variables into the Style Manager (removed the builder Tokens tab) and removed the "Page" builder tab.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.22">6.0.0-beta.22 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-06-30</span></h2>
     <h3>Added</h3>
     <ul>

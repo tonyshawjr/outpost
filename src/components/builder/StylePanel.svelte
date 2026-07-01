@@ -19,9 +19,9 @@
     return list.length ? list[list.length - 1] : null;
   });
 
-  let decls = $derived(activeClass ? (editor.classes[activeClass] || {}) : {});
-  let display = $derived(decls.display || '');
-  let position = $derived(decls.position || '');
+  let display = $derived(activeClass ? editor.getDeclaration(activeClass, 'display') : '');
+  let position = $derived(activeClass ? editor.getDeclaration(activeClass, 'position') : '');
+  let bpLabel = $derived(editor.breakpoint === 'tablet' ? 'Tablet' : editor.breakpoint === 'mobile' ? 'Mobile' : null);
 
   let suggestions = $derived.by(() => {
     const q = query.trim().toLowerCase();
@@ -42,7 +42,7 @@
     if (!cssFocused) cssText = serialized;
   });
 
-  function val(prop) { return decls[prop] || ''; }
+  function val(prop) { return editor.getDeclaration(activeClass, prop) || ''; }
   function set(prop, e) { editor.setDeclaration(activeClass, prop, e.target.value); }
 
   function onCssInput(e) {
@@ -138,7 +138,7 @@
 
     {#if activeClass}
       <div class="editing-row">
-        <span class="editing">Editing <span class="ec">.{activeClass}</span></span>
+        <span class="editing">Editing <span class="ec">.{activeClass}</span>{#if bpLabel}<span class="bp">@ {bpLabel}</span>{/if}</span>
         <div class="vtabs" role="tablist" aria-label="Style editor view">
           <button role="tab" aria-selected={view === 'visual'} class:on={view === 'visual'} onclick={() => (view = 'visual')}>Visual</button>
           <button role="tab" aria-selected={view === 'css'} class:on={view === 'css'} onclick={() => (view = 'css')}>CSS</button>
@@ -369,6 +369,17 @@
   .editing .ec {
     color: var(--purple-soft);
     font-family: var(--font-mono, ui-monospace, monospace);
+  }
+  .editing .bp {
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--purple-bg, var(--hover));
+    color: var(--purple-soft, var(--purple));
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .vtabs {

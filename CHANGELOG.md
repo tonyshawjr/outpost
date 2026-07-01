@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.23] — 2026-07-01
+
+Builder cleanup pass: canvas polish, consolidation, OG image, and per-breakpoint editing.
+
+### Added
+- **Per-breakpoint visual editing.** In Tablet or Mobile canvas mode, editing a style writes a `@media` override (tablet ≤ 991px, mobile ≤ 479px) into the class instead of the base — Webflow-style responsive editing, built on the nested-CSS model. The style panel shows an "@ Tablet"/"@ Mobile" badge so you know which breakpoint you're editing.
+- **Per-page OG/social image.** Added the `pages.og_image` column + migration, allowed it in the page update, and made `cms_seo` prefer the per-page image over the site global — it was previously dropped. The existing SEO drawer now persists and emits `og:image` / `twitter:image`.
+
+### Changed
+- **Multi-screen canvas polish.** `100vh` now resolves to a real device viewport height per frame (so hero sections don't stretch the whole frame), scrollbars are hidden in the frames, and the dotted grid background is gone.
+- **Consolidated variables.** Removed the builder's "Tokens" left-panel tab; global CSS variables now live only in the Style Manager's Variables.
+- **Removed the "Page" builder tab** (built on an earlier misread); page route/SEO/visibility remain in the standalone page editor.
+
+---
+
 ## [6.0.0-beta.22] — 2026-06-30
 
 Dynamic holes, authored in the builder — mark any element as editable content that updates the live page without a rebuild.

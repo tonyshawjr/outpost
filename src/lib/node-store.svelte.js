@@ -90,6 +90,8 @@ export function createNodeEditor() {
   let customMedia = $state('');
   let savingStyles = $state(false);
   let fieldValues = $state({});
+  let breakpoint = $state('desktop');
+  const BP_MEDIA = { tablet: '@media (max-width: 991px)', mobile: '@media (max-width: 479px)' };
 
   function getTree() {
     return editingComponentId && comps[editingComponentId] ? comps[editingComponentId].tree : pageTree;
@@ -555,12 +557,35 @@ export function createNodeEditor() {
       dirty = true;
       return true;
     },
+    get breakpoint() { return breakpoint; },
+    setBreakpoint(bp) { breakpoint = (bp === 'tablet' || bp === 'mobile') ? bp : 'desktop'; },
+    getDeclaration(name, prop) {
+      const cls = classes[name];
+      if (!cls) return '';
+      if (breakpoint !== 'desktop') {
+        const block = cls[BP_MEDIA[breakpoint]];
+        if (block && typeof block === 'object' && block[prop] != null && block[prop] !== '') return block[prop];
+      }
+      const v = cls[prop];
+      return (v != null && typeof v !== 'object') ? v : '';
+    },
     setDeclaration(name, prop, value) {
       if (!classes[name]) return;
-      const decls = { ...classes[name] };
-      if (value === '' || value == null) delete decls[prop];
-      else decls[prop] = value;
-      classes = { ...classes, [name]: decls };
+      if (breakpoint === 'desktop') {
+        const decls = { ...classes[name] };
+        if (value === '' || value == null) delete decls[prop];
+        else decls[prop] = value;
+        classes = { ...classes, [name]: decls };
+      } else {
+        const mk = BP_MEDIA[breakpoint];
+        const cls = { ...classes[name] };
+        const block = { ...(cls[mk] && typeof cls[mk] === 'object' ? cls[mk] : {}) };
+        if (value === '' || value == null) delete block[prop];
+        else block[prop] = value;
+        if (Object.keys(block).length) cls[mk] = block;
+        else delete cls[mk];
+        classes = { ...classes, [name]: cls };
+      }
       dirty = true;
     },
     addClassToNode(nodeId, name) {
