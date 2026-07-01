@@ -163,6 +163,10 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   <Login />
 {:else if route === 'setup'}
   <SetupWizard />
+{:else if route === 'node-builder'}
+  <div class="fullscreen-builder">
+    <NodeBuilder />
+  </div>
 {:else}
   <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'} class:ranger-open={$rangerOpen}>
     <Sidebar />
@@ -264,8 +268,6 @@ import EditorialAI from '$pages/EditorialAI.svelte';
           <CreatePage />
         {:else if route === 'page-import'}
           <ImportPage />
-        {:else if route === 'node-builder'}
-          <NodeBuilder />
         {:else if route === 'backups'}
           {#if hasSettingsAccess}
             <Backups />

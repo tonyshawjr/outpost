@@ -324,6 +324,16 @@ a:hover {
   overflow: hidden;
 }
 
+.fullscreen-builder {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  z-index: 50;
+}
+
 /* ── Sidebar — Sites style (fixed dark column) ───────── */
 .sidebar {
   width: var(--sidebar-width);

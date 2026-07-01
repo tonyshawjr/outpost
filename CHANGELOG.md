@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.24] — 2026-07-01
+
+### Changed
+- **Full-screen Visual Builder.** The builder now takes over the whole viewport — no admin sidebar, no footer — as its own screen. A back button in the toolbar returns to the CMS (with an unsaved-changes prompt). The page itself no longer scrolls; only the canvas pans/zooms.
+
+---
+
 ## [6.0.0-beta.23] — 2026-07-01
 
 Builder cleanup pass: canvas polish, consolidation, OG image, and per-breakpoint editing.

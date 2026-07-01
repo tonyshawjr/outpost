@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { currentPageId, addToast } from '$lib/stores.js';
+  import { currentPageId, addToast, navigate } from '$lib/stores.js';
   import { pages as pagesApi } from '$lib/api.js';
   import { createNodeEditor } from '$lib/node-store.svelte.js';
   import { NODE_TYPES } from '$lib/node-tree.js';
@@ -86,6 +86,11 @@
     editor.insert(type, insertTarget);
   }
 
+  function goBack() {
+    if (editor.dirty && !confirm('You have unsaved changes. Leave the builder anyway?')) return;
+    navigate('pages');
+  }
+
   let isComponentRef = $derived(selected?.type === 'component-ref');
 
   function setText(e) { editor.updateProps(selected.id, { text: e.target.value }); }
@@ -168,6 +173,9 @@
 <div class="builder">
   <header class="toolbar">
     <div class="left">
+      <button class="back-cms" onclick={goBack} title="Back to CMS" aria-label="Back to CMS">
+        <ArrowLeft size={18} aria-hidden="true" />
+      </button>
       <h1 class="title">{pageTitle}</h1>
       <div class="mode" role="group" aria-label="Edit mode">
         <button class:on={editMode === 'design'} aria-pressed={editMode === 'design'} onclick={() => (editMode = 'design')}>Design</button>
@@ -385,7 +393,20 @@
     flex-shrink: 0;
   }
 
-  .left { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; }
+  .left { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+
+  .back-cms {
+    display: inline-flex;
+    padding: 7px;
+    border: none;
+    border-radius: 8px;
+    background: var(--hover);
+    color: var(--sec);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .back-cms:hover { background: var(--sidebar-bg-active); color: var(--text); }
+  .back-cms:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
   .mode { display: inline-flex; gap: 2px; background: var(--hover); border-radius: 8px; padding: 2px; flex-shrink: 0; }
   .mode button {
