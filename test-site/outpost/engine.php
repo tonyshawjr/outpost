@@ -1262,6 +1262,13 @@ function outpost_cache_output(string $buffer): string {
         $buffer = preg_replace('/<\/body>/i', $authJs . "\n</body>", $buffer, 1);
     }
 
+    // 2e. Inject embed CSS when media embeds are present on the page
+    if (strpos($buffer, 'oc-embed') !== false && stripos($buffer, '</head>') !== false) {
+        require_once __DIR__ . '/node-engine.php';
+        $embedCss = '<style>' . outpost_embed_base_css() . '</style>';
+        $buffer = preg_replace('/<\/head>/i', $embedCss . "\n</head>", $buffer, 1);
+    }
+
     // 3. Inject frontend editor overlay + admin bar before </body> (never cached -- admin only, skip in customizer preview)
     if (outpost_is_admin() && !$isCustomizerPreview) {
         // Inject editor CSS — only right padding for icon rail (no top bar)

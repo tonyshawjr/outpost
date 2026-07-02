@@ -46,6 +46,11 @@ function outpost_node_types(): array {
             'children' => false,
             'void' => false,
         ],
+        'embed' => [
+            'tags' => ['div'],
+            'children' => false,
+            'void' => false,
+        ],
     ];
 }
 
@@ -892,6 +897,24 @@ function outpost_render_node(array $tree, string $id, array $components, array $
             }
             return "<button{$cls}{$fld} type=\"button\">{$text}</button>";
 
+        case 'embed':
+            if (!function_exists('embed_src_safe')) require_once __DIR__ . '/embeds.php';
+            $embedUrl = (string) ($props['embedUrl'] ?? '');
+            if ($embedUrl === '' || !embed_src_safe($embedUrl)) {
+                return "<div{$cls}{$fld}></div>";
+            }
+            $u = htmlspecialchars($embedUrl, ENT_QUOTES);
+            $title = htmlspecialchars((string) ($props['title'] ?? ''), ENT_QUOTES);
+            $w = (int) ($props['width'] ?? 0) ?: 16;
+            $h = (int) ($props['height'] ?? 0) ?: 9;
+            if (($props['kind'] ?? '') === 'photo') {
+                return "<div{$cls}{$fld}><span class=\"oc-embed oc-embed--photo\"><img src=\"{$u}\" alt=\"{$title}\" width=\"{$w}\" height=\"{$h}\" loading=\"lazy\"></span></div>";
+            }
+            return "<div{$cls}{$fld}><span class=\"oc-embed\">"
+                . "<iframe src=\"{$u}\" title=\"{$title}\" width=\"{$w}\" height=\"{$h}\" loading=\"lazy\" "
+                . "allow=\"autoplay; encrypted-media; picture-in-picture; fullscreen\" allowfullscreen "
+                . "referrerpolicy=\"strict-origin-when-cross-origin\"></iframe></span></div>";
+
         case 'container':
         default:
             $inner = '';
@@ -921,6 +944,17 @@ function outpost_public_class_css(?array $only = null): string {
         $css .= outpost_emit_rule('.' . $r['name'], $decls);
     }
     return $css;
+}
+
+function outpost_embed_base_css(): string {
+    return '.oc-embed{display:block;max-width:100%}.oc-embed iframe,.oc-embed img{display:block;width:100%;height:auto;border:0}';
+}
+
+function outpost_tree_has_embed(array $tree): bool {
+    foreach (($tree['nodes'] ?? []) as $node) {
+        if (($node['type'] ?? '') === 'embed') return true;
+    }
+    return false;
 }
 
 function outpost_node_styles_css(array $tree): string {
@@ -1045,7 +1079,8 @@ function outpost_bake_node_page(int $pageId): bool {
         ? '<script src="/' . $base . '.js" defer></script>' . "\n" : '';
     $classCss = outpost_public_class_css(outpost_tree_class_names($tree));
     $nodeCss = outpost_node_styles_css($tree);
-    $allCss = outpost_expand_custom_media(outpost_global_style_css() . $classCss . $nodeCss, outpost_custom_media_map());
+    $embedCss = outpost_tree_has_embed($tree) ? outpost_embed_base_css() : '';
+    $allCss = outpost_expand_custom_media(outpost_global_style_css() . $classCss . $nodeCss . $embedCss, outpost_custom_media_map());
     $titleEsc = htmlspecialchars($page['title'] ?: 'Page', ENT_QUOTES);
 
     $doc = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"

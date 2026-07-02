@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.30">6.0.0-beta.30 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-02</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Embed videos &amp; media &mdash; builder and posts</strong> &mdash; An "Embed" button in both the visual builder and the post/richtext editor turns a pasted YouTube, Vimeo, Spotify, SoundCloud, or Flickr link into a responsive embed. Outpost resolves the link through the provider's oEmbed endpoint and re-emits its own sanitized iframe (host allow-listed, https-only) &mdash; provider markup is never trusted, and off-allow-list sources are dropped both at bake and by the richtext sanitizer.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Embeds render with a class-based <code>.oc-embed</code> treatment (no inline CSS), and the richtext sanitizer now permits <code>&lt;iframe&gt;</code> only when its <code>src</code> is on the embed host allow-list.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.29">6.0.0-beta.29 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
     <h3>Added</h3>
     <ul>

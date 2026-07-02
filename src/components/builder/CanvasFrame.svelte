@@ -14,6 +14,10 @@
     .oc-canvas { min-height: 100vh; }
     img { max-width: 100%; }
     [data-node-id] { cursor: pointer; scroll-margin: 96px 0; }
+    .oc-embed { display: block; max-width: 100%; }
+    .oc-embed iframe, .oc-embed img { display: block; width: 100%; height: auto; border: 0; }
+    .oc-embed iframe { pointer-events: none; }
+    .oc-embed-empty { display: block; padding: 24px; text-align: center; color: #888; border: 1px dashed #ccc; }
     [data-field] { outline: 1px dashed rgba(124,58,237,0.45); outline-offset: 1px; }
     [data-node-id][data-selected] { outline: 2px solid #7C3AED; outline-offset: 1px; }
     [data-component-ref] { outline: 1px dashed #A78BFA; outline-offset: 1px; }

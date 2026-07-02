@@ -284,6 +284,10 @@ export const ranger = {
   updateSettings: (data) => request('ranger/settings', { method: 'PUT', body: data }),
 };
 
+export const embeds = {
+  resolve: (url) => request('embed/resolve', { method: 'POST', body: { url } }),
+};
+
 export const stock = {
   providers: () => request('stock/providers'),
   search: (provider, q, page = 1) => request('stock/search', { params: { provider, q, page } }),

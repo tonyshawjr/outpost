@@ -1,10 +1,11 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { Editor } from '@tiptap/core';
+  import { Editor, Node, mergeAttributes } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Link from '@tiptap/extension-link';
   import Image from '@tiptap/extension-image';
   import Placeholder from '@tiptap/extension-placeholder';
+  import { embeds as embedsApi } from '../lib/api.js';
 
   let {
     content = '',
@@ -14,6 +15,41 @@
 
   let element = $state(null);
   let editor = $state(null);
+
+  const EmbedNode = Node.create({
+    name: 'embed',
+    group: 'block',
+    atom: true,
+    draggable: true,
+    selectable: true,
+    addAttributes() {
+      return {
+        src: { default: null },
+        title: { default: '' },
+        width: { default: 16 },
+        height: { default: 9 },
+      };
+    },
+    parseHTML() {
+      return [{
+        tag: 'iframe[src]',
+        getAttrs: (el) => ({
+          src: el.getAttribute('src'),
+          title: el.getAttribute('title') || '',
+          width: el.getAttribute('width') || 16,
+          height: el.getAttribute('height') || 9,
+        }),
+      }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      return ['span', { class: 'oc-embed' }, ['iframe', mergeAttributes(HTMLAttributes, {
+        loading: 'lazy',
+        allowfullscreen: 'true',
+        frameborder: '0',
+        referrerpolicy: 'strict-origin-when-cross-origin',
+      })]];
+    },
+  });
 
   onMount(() => {
     editor = new Editor({
@@ -25,6 +61,7 @@
           HTMLAttributes: { rel: 'noopener noreferrer' },
         }),
         Image,
+        EmbedNode,
         Placeholder.configure({ placeholder }),
       ],
       content: content,
@@ -68,6 +105,29 @@
     const url = prompt('Enter image URL:');
     if (url) {
       editor?.chain().focus().setImage({ src: url }).run();
+    }
+  }
+
+  let embedding = $state(false);
+  async function addEmbed() {
+    if (embedding) return;
+    const url = prompt('Paste a YouTube, Vimeo, Spotify, SoundCloud, or Flickr link');
+    if (!url) return;
+    embedding = true;
+    try {
+      const res = await embedsApi.resolve(url.trim());
+      if (res.kind === 'photo') {
+        editor?.chain().focus().setImage({ src: res.embedUrl, alt: res.title || '' }).run();
+      } else {
+        editor?.chain().focus().insertContent({
+          type: 'embed',
+          attrs: { src: res.embedUrl, title: res.title || '', width: res.width || 16, height: res.height || 9 },
+        }).run();
+      }
+    } catch (e) {
+      alert(e?.message || 'Could not embed that link');
+    } finally {
+      embedding = false;
     }
   }
 </script>
@@ -164,8 +224,12 @@
       </button>
     {/if}
 
-    <button type="button" onclick={addImage} title="Add image">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <button type="button" onclick={addImage} title="Add image" aria-label="Add image">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </button>
+
+    <button type="button" onclick={addEmbed} disabled={embedding} title="Embed a video or media link" aria-label="Embed a video or media link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 15 10 10 12" fill="currentColor" stroke="none"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
     </button>
 
     <button type="button" onclick={setHR} title="Horizontal rule">

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.30] — 2026-07-02
+
+### Added
+- **Embed videos & media — builder and posts.** An "Embed" button in both the **visual builder** (new `embed` node type) and the **post/richtext editor** turns a pasted YouTube, Vimeo, Spotify, SoundCloud, or Flickr link into a responsive embed. The server resolves the link through the provider's oEmbed endpoint and re-emits our own sanitized iframe/img (host allow-listed, https-only) — provider markup is never trusted, and off-allow-list srcs are dropped at bake and by the richtext sanitizer.
+
+### Changed
+- Embeds render with a class-based `.oc-embed` treatment (no inline CSS) — the baseline is injected only on pages that contain an embed.
+- The richtext HTML sanitizer now allows `<iframe>`, but only when its `src` passes the embed host allow-list; every other iframe is stripped.
+
+---
+
 ## [6.0.0-beta.29] — 2026-07-01
 
 ### Added

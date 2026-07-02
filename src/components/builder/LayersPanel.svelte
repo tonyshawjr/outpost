@@ -119,6 +119,7 @@
     if (row.type === 'image') return 'Image';
     if (row.type === 'button') return 'Button';
     if (row.type === 'link') return 'Link';
+    if (row.type === 'embed') return 'Embed';
     if (row.type === 'component-ref') return editor.componentName(row.compId) || 'Component';
     return 'Container';
   }

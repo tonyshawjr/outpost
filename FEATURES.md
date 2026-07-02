@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Media Embeds — oEmbed (v6.0.0-beta.30)
+
+- **Builder embed node.** New `embed` node type + toolbar "Embed" button: paste a YouTube/Vimeo/Spotify/SoundCloud/Flickr URL → `php/embeds.php` resolves it via the provider's oEmbed endpoint and returns a normalized `{kind, provider, embedUrl, width, height, title}`. The builder inserts an embed node; the canvas renders the iframe with `pointer-events:none` (clicks select the node); the bake emits a responsive `aspect-ratio` iframe (or img for photo providers).
+- **Safe by construction.** We only call hardcoded provider endpoints (never the pasted URL directly), parse the iframe `src` out of the provider HTML, and re-validate it against a per-provider host allow-list (https-only) — provider markup is never re-emitted. `outpost_render_node` and the canvas both drop any embedUrl that fails `embed_src_safe()`. Curated MVP list is iframe/photo, anonymous providers only; script-based (Twitter/X, TikTok) and token/Cloudflare-gated (Instagram, CodePen) deferred.
+- **Richtext embeds.** A TipTap `embed` node + toolbar button in `RichTextEditor` (WCAG: `aria-label`, focusable) inserts the same resolved embed into post/collection content. The HTML sanitizer (`OutpostSanitizer`) now allows `<iframe>` **only** when its `src` passes `embed_src_safe()` (host allow-list, https) — every other iframe is stripped, along with event handlers and `javascript:` srcs.
+- **Class-based, no inline CSS.** Embeds bake to a `.oc-embed` wrapper + iframe `width`/`height` attributes (no inline styles); the `.oc-embed` baseline is injected into builder-baked pages (`outpost_embed_base_css`) and, on the front end, by the engine only when a page contains an embed. One source of truth for the CSS.
+
+---
+
 ## Stock Photo Credit Capture (v6.0.0-beta.29)
 
 - **Capture, surface, never inject.** Inserting a stock photo stores its credit (`author`, `author_url`, `provider`, `provider_url`) on the image node's `props.credit`. The builder inspector shows a "Photo credit" block (photographer + provider links + Copy button + a note that it's not auto-shown). Credit survives save/validate and is **never emitted into baked HTML** — the site owner displays it wherever they choose.

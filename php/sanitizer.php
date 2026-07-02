@@ -10,7 +10,7 @@ class OutpostSanitizer {
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'ul', 'ol', 'li',
         'blockquote', 'pre', 'code',
-        'a', 'img',
+        'a', 'img', 'iframe',
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
         'hr', 'div', 'span', 'figure', 'figcaption',
     ];
@@ -18,6 +18,7 @@ class OutpostSanitizer {
     private static array $allowedAttrs = [
         'a' => ['href', 'title', 'target', 'rel'],
         'img' => ['src', 'alt', 'title', 'width', 'height', 'loading'],
+        'iframe' => ['src', 'title', 'width', 'height', 'loading', 'allow', 'allowfullscreen', 'referrerpolicy', 'frameborder'],
         'td' => ['colspan', 'rowspan'],
         'th' => ['colspan', 'rowspan'],
         '*' => ['class', 'id'],
@@ -57,6 +58,14 @@ class OutpostSanitizer {
                     $text = $dom->createTextNode($child->textContent);
                     $toRemove[] = ['old' => $child, 'new' => $text];
                     continue;
+                }
+
+                if ($tagName === 'iframe') {
+                    if (!function_exists('embed_src_safe')) require_once __DIR__ . '/embeds.php';
+                    if (!embed_src_safe($child->getAttribute('src'))) {
+                        $toRemove[] = ['old' => $child, 'new' => $dom->createTextNode('')];
+                        continue;
+                    }
                 }
 
                 // Filter attributes

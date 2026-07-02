@@ -29,6 +29,16 @@
     src={imgSrc}
     alt={node.props.alt || ''}
   />
+{:else if node.type === 'embed'}
+  <div data-node-id={nid} data-selected={selected || undefined} class={cls}>
+    {#if node.props.kind === 'photo' && node.props.embedUrl}
+      <span class="oc-embed oc-embed--photo"><img src={node.props.embedUrl} alt={node.props.title || ''} width={node.props.width || 16} height={node.props.height || 9} /></span>
+    {:else if node.props.embedUrl}
+      <span class="oc-embed"><iframe src={node.props.embedUrl} title={node.props.title || 'Embedded media'} width={node.props.width || 16} height={node.props.height || 9} loading="lazy"></iframe></span>
+    {:else}
+      <span class="oc-embed-empty">Embed</span>
+    {/if}
+  </div>
 {:else if node.type === 'container'}
   <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} class={cls}>
     {#each node.children as cid (cid)}

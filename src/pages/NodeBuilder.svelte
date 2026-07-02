@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { currentPageId, addToast, navigate } from '$lib/stores.js';
-  import { pages as pagesApi } from '$lib/api.js';
+  import { pages as pagesApi, embeds as embedsApi } from '$lib/api.js';
   import { createNodeEditor } from '$lib/node-store.svelte.js';
   import { NODE_TYPES } from '$lib/node-tree.js';
   import LayersPanel from '$components/builder/LayersPanel.svelte';
@@ -14,7 +14,7 @@
   import StyleManager from '$components/builder/StyleManager.svelte';
   import SectionImportModal from '$components/builder/SectionImportModal.svelte';
   import StockPhotoPicker from '$components/builder/StockPhotoPicker.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images } from 'lucide-svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -109,6 +109,24 @@
 
   function add(type) {
     editor.insert(type, insertTarget);
+  }
+
+  async function addEmbed(existingId) {
+    const url = prompt('Paste a YouTube, Vimeo, Spotify, SoundCloud, or Flickr link');
+    if (!url) return;
+    try {
+      const res = await embedsApi.resolve(url.trim());
+      const props = { provider: res.provider, embedUrl: res.embedUrl, kind: res.kind, title: res.title || '', width: res.width || 0, height: res.height || 0 };
+      if (existingId) {
+        editor.updateProps(existingId, props);
+      } else {
+        const id = editor.insert('embed', insertTarget);
+        if (id) editor.updateProps(id, props);
+      }
+      addToast('Embed added', 'success');
+    } catch (e) {
+      addToast(e.message || 'Could not embed that link', 'error');
+    }
   }
 
   function goBack() {
@@ -216,6 +234,10 @@
             <span>{a.label}</span>
           </button>
         {/each}
+        <button class="add" onclick={() => addEmbed()} title="Embed a video or media link">
+          <Film size={15} aria-hidden="true" />
+          <span>Embed</span>
+        </button>
         <span class="add-sep" aria-hidden="true"></span>
         <button class="add" onclick={() => (importOpen = true)} title="Import a section from HTML, CSS &amp; JavaScript">
           <Download size={15} aria-hidden="true" />
@@ -372,6 +394,15 @@
               <span>Link URL</span>
               <input type="text" value={selected.props.href || ''} oninput={(e) => setProp('href', e)} />
             </label>
+          {:else if selected.type === 'embed'}
+            <div class="field">
+              <span>Embed</span>
+              <p class="embed-meta">{selected.props.provider || '—'}{selected.props.title ? ' · ' + selected.props.title : ''}</p>
+            </div>
+            <button class="ghost stock-btn" type="button" onclick={() => addEmbed(selected.id)}>
+              <Film size={14} aria-hidden="true" />
+              <span>Replace embed link</span>
+            </button>
           {/if}
 
           {#if editMode === 'design'}
@@ -776,6 +807,7 @@
   .ghost:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
   .ghost.danger:hover:not(:disabled) { color: var(--red); }
   .stock-btn { width: 100%; justify-content: center; margin: -6px 0 14px; }
+  .embed-meta { margin: 0; font-size: 13px; color: var(--text); text-transform: capitalize; }
 
   .credit-box {
     margin-bottom: 14px;

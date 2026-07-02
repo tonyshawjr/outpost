@@ -27,6 +27,7 @@ require_once __DIR__ . '/brand.php';
 require_once __DIR__ . '/ranger.php';
 require_once __DIR__ . '/builder-ai.php';
 require_once __DIR__ . '/stock-photos.php';
+require_once __DIR__ . '/embeds.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
@@ -684,6 +685,9 @@ match (true) {
     $action === 'stock/import' && $method === 'POST' => handle_stock_import(),
     $action === 'stock/settings' && $method === 'GET' => handle_stock_settings_get(),
     $action === 'stock/settings' && $method === 'PUT' => handle_stock_settings_update(),
+
+    // oEmbed resolver (rich media embeds)
+    $action === 'embed/resolve' && $method === 'POST' => handle_embed_resolve(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
