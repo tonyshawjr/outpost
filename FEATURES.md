@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Grammar & Spelling — LanguageTool (v6.0.0-beta.31)
+
+- **In-editor checking.** A toolbar toggle (WCAG: `aria-label`/`aria-pressed`) in `RichTextEditor` runs a debounced check when on. `src/lib/grammar-extension.js` is a TipTap/ProseMirror extension: it extracts the doc's plain text with a text-offset→doc-position map, sends it to the server, maps LanguageTool matches back to positions, and renders inline `Decoration`s (wavy underline, colored by issue type — spelling/grammar/style). Clicking a mark opens a popover with the message + one-click replacements (`insertContentAt`).
+- **Server proxy.** `php/grammar.php` `grammar/check` (content.*) proxies text to a LanguageTool server so the API key stays server-side. `grammar/settings` (settings.*) stores the server URL + optional Premium username/apikey (apikey encrypted). Default is the free public API (`api.languagetool.org`); an admin can point it at a self-hosted Docker instance via one URL field — identical API. Text capped at 20KB, `FOLLOWLOCATION` off, response size-capped, 429 surfaced.
+- **Intentional + rate-aware.** Off by default; only checks when the writer toggles it on, respecting the public tier's automated-request guidance (self-host or Premium for heavy use).
+
+---
+
 ## Media Embeds — oEmbed (v6.0.0-beta.30)
 
 - **Builder embed node.** New `embed` node type + toolbar "Embed" button: paste a YouTube/Vimeo/Spotify/SoundCloud/Flickr URL → `php/embeds.php` resolves it via the provider's oEmbed endpoint and returns a normalized `{kind, provider, embedUrl, width, height, title}`. The builder inserts an embed node; the canvas renders the iframe with `pointer-events:none` (clicks select the node); the bake emits a responsive `aspect-ratio` iframe (or img for photo providers).

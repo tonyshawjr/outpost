@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi, stock as stockApi } from '$lib/api.js';
+  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi, stock as stockApi, grammar as grammarApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import Checkbox from '$components/Checkbox.svelte';
 
@@ -35,6 +35,11 @@
   let stockSaving = $state(false);
   let showPexelsKey = $state(false);
   let showUnsplashKey = $state(false);
+
+  // Grammar (LanguageTool)
+  let grammarSettings = $state({ server_url: '', username: '', apikey: '' });
+  let grammarSaving = $state(false);
+  let showLtKey = $state(false);
 
   // API Keys
   let apiKeysList = $state([]);
@@ -101,6 +106,18 @@
       }
     } catch (_) {}
 
+    // Load grammar settings
+    try {
+      const data = await grammarApi.getSettings();
+      if (data.settings) {
+        grammarSettings = {
+          server_url: data.settings.languagetool_server_url || '',
+          username: data.settings.languagetool_username || '',
+          apikey: data.settings.languagetool_apikey || '',
+        };
+      }
+    } catch (_) {}
+
     // Load API keys
     try {
       const data = await apikeysApi.list();
@@ -149,6 +166,22 @@
       addToast(err.message, 'error');
     } finally {
       stockSaving = false;
+    }
+  }
+
+  async function saveGrammarSettings() {
+    grammarSaving = true;
+    try {
+      await grammarApi.updateSettings({
+        languagetool_server_url: grammarSettings.server_url,
+        languagetool_username: grammarSettings.username,
+        languagetool_apikey: grammarSettings.apikey,
+      });
+      addToast('Grammar settings saved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      grammarSaving = false;
     }
   }
 
@@ -533,6 +566,38 @@
 
     <button class="btn btn-primary" onclick={saveStockSettings} disabled={stockSaving} type="button">
       {stockSaving ? 'Saving...' : 'Save Stock Photo Settings'}
+    </button>
+  </div>
+
+  <!-- Grammar (LanguageTool) -->
+  <div class="int-block">
+    <h4 class="int-block-title">Grammar &amp; Spelling</h4>
+    <p class="int-block-desc">Inline grammar and spelling suggestions in the post editor, powered by LanguageTool. Leave the server URL blank to use the free public API, or point it at your own self-hosted server for unlimited private checks.</p>
+
+    <div class="form-group">
+      <label class="form-label">Server URL</label>
+      <input class="input" type="text" placeholder="https://api.languagetool.org/v2/check" bind:value={grammarSettings.server_url} />
+      <p class="form-hint">Default: the free public API (20 requests/min). Self-host with Docker (<code>erikvl87/languagetool</code>) and use e.g. <code>http://localhost:8010/v2/check</code>.</p>
+    </div>
+
+    <div class="ranger-provider-block">
+      <div class="ranger-provider-label">Premium (optional)</div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="input" type="text" placeholder="LanguageTool account email" bind:value={grammarSettings.username} />
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+          <input class="input" type={showLtKey ? 'text' : 'password'} placeholder="LanguageTool API key" bind:value={grammarSettings.apikey} style="flex: 1;" />
+          <button class="btn btn-ghost btn-sm" type="button" onclick={() => showLtKey = !showLtKey}>{showLtKey ? 'Hide' : 'Show'}</button>
+        </div>
+        <p class="form-hint">Only needed for LanguageTool Premium (higher limits + extra rules). Sent to the Premium host.</p>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick={saveGrammarSettings} disabled={grammarSaving} type="button">
+      {grammarSaving ? 'Saving...' : 'Save Grammar Settings'}
     </button>
   </div>
 

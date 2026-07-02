@@ -5,7 +5,8 @@
   import Link from '@tiptap/extension-link';
   import Image from '@tiptap/extension-image';
   import Placeholder from '@tiptap/extension-placeholder';
-  import { embeds as embedsApi } from '../lib/api.js';
+  import { embeds as embedsApi, grammar as grammarApi } from '../lib/api.js';
+  import { GrammarExtension, extractText, mapMatches, setGrammarMatches, clearGrammar } from '../lib/grammar-extension.js';
 
   let {
     content = '',
@@ -62,18 +63,82 @@
         }),
         Image,
         EmbedNode,
+        GrammarExtension,
         Placeholder.configure({ placeholder }),
       ],
       content: content,
+      editorProps: {
+        handleClick(view, pos) {
+          if (!grammarOn) return false;
+          const m = grammarMatches.find((mm) => pos >= mm.from && pos < mm.to);
+          if (m) { showPopover(m, view); return false; }
+          popover = null;
+          return false;
+        },
+      },
       onTransaction: () => {
-        // Force Svelte reactivity
         editor = editor;
       },
       onUpdate: ({ editor: ed }) => {
         onupdate(ed.getHTML());
+        if (grammarOn) scheduleGrammar();
       },
     });
   });
+
+  let grammarOn = $state(false);
+  let grammarBusy = $state(false);
+  let grammarMatches = $state([]);
+  let popover = $state(null);
+  let grammarTimer = null;
+
+  async function runGrammar() {
+    if (!editor || !grammarOn) return;
+    const { text, segs } = extractText(editor.state.doc);
+    if (!text.trim()) { grammarMatches = []; setGrammarMatches(editor.view, []); return; }
+    grammarBusy = true;
+    try {
+      const res = await grammarApi.check(text, 'auto');
+      const mapped = mapMatches(res.matches || [], segs);
+      grammarMatches = mapped;
+      setGrammarMatches(editor.view, mapped);
+    } catch (_) {
+      grammarMatches = grammarMatches;
+    } finally {
+      grammarBusy = false;
+    }
+  }
+
+  function scheduleGrammar() {
+    clearTimeout(grammarTimer);
+    grammarTimer = setTimeout(runGrammar, 900);
+  }
+
+  function toggleGrammar() {
+    grammarOn = !grammarOn;
+    popover = null;
+    if (grammarOn) {
+      runGrammar();
+    } else {
+      grammarMatches = [];
+      if (editor) clearGrammar(editor.view);
+    }
+  }
+
+  function showPopover(m, view) {
+    const coords = view.coordsAtPos(m.from);
+    popover = { match: m, x: coords.left, y: coords.bottom + 4 };
+  }
+
+  function applyFix(rep) {
+    if (!popover) return;
+    const m = popover.match;
+    editor?.chain().focus().insertContentAt({ from: m.from, to: m.to }, { type: 'text', text: rep }).run();
+    grammarMatches = grammarMatches.filter((x) => x !== m);
+    if (editor) setGrammarMatches(editor.view, grammarMatches);
+    popover = null;
+    scheduleGrammar();
+  }
 
   onDestroy(() => {
     if (editor) editor.destroy();
@@ -232,10 +297,35 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 15 10 10 12" fill="currentColor" stroke="none"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
     </button>
 
-    <button type="button" onclick={setHR} title="Horizontal rule">
+    <button type="button" onclick={setHR} title="Horizontal rule" aria-label="Horizontal rule">
       &mdash;
+    </button>
+
+    <div class="separator"></div>
+
+    <button type="button" onclick={toggleGrammar} class:active={grammarOn} title="Check grammar & spelling" aria-label="Check grammar and spelling" aria-pressed={grammarOn}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7V5h16v2"/><path d="M9 20h6"/><path d="M12 5v15"/><polyline points="16 16 18 18 22 14"/></svg>
     </button>
   </div>
 
   <div bind:this={element}></div>
+
+  {#if popover}
+    <div class="lt-popover" style="left:{popover.x}px; top:{popover.y}px" role="dialog" aria-label="Writing suggestion">
+      <p class="lt-msg">{popover.match.message}</p>
+      {#if popover.match.replacements.length}
+        <div class="lt-fixes">
+          {#each popover.match.replacements as rep (rep)}
+            <button type="button" class="lt-fix" onclick={() => applyFix(rep)}>{rep}</button>
+          {/each}
+        </div>
+      {:else}
+        <p class="lt-nofix">No suggestion available.</p>
+      {/if}
+      <button type="button" class="lt-dismiss" onclick={() => (popover = null)}>Dismiss</button>
+    </div>
+  {/if}
 </div>
+
+<svelte:window onmousedown={(e) => { if (popover && !e.target.closest('.lt-popover') && !e.target.closest('.lt-mark')) popover = null; }} />
+

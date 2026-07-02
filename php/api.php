@@ -28,6 +28,7 @@ require_once __DIR__ . '/ranger.php';
 require_once __DIR__ . '/builder-ai.php';
 require_once __DIR__ . '/stock-photos.php';
 require_once __DIR__ . '/embeds.php';
+require_once __DIR__ . '/grammar.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
@@ -688,6 +689,11 @@ match (true) {
 
     // oEmbed resolver (rich media embeds)
     $action === 'embed/resolve' && $method === 'POST' => handle_embed_resolve(),
+
+    // Grammar & readability (LanguageTool)
+    $action === 'grammar/check' && $method === 'POST' => handle_grammar_check(),
+    $action === 'grammar/settings' && $method === 'GET' => handle_grammar_settings_get(),
+    $action === 'grammar/settings' && $method === 'PUT' => handle_grammar_settings_update(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),

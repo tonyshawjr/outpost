@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grammar &amp; Spelling &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Grammar &amp; Spelling</h1>
+    <p class="lead">Inline grammar and spelling suggestions in the rich-text editor, powered by <strong>LanguageTool</strong>. Toggle the check on, and mistakes are underlined where you write &mdash; click one to see the fix and apply it in a single tap. Your text is proxied through Outpost so any API key stays server-side.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Grammar &amp; Spelling adds a proofreading pass to the post/rich-text editor. When you switch it on, Outpost sends the editor&rsquo;s plain text to a LanguageTool server, gets back a list of issues, and draws a wavy underline under each one. Clicking an underline opens a small popover with the explanation and one-click replacement buttons.</p>
+    <p>Everything runs through a small PHP proxy (<code>grammar.php</code>). The browser never talks to LanguageTool directly &mdash; the server URL and any credentials are configured by an admin and, in the case of a Premium key, encrypted at rest. By default Outpost uses LanguageTool&rsquo;s free public API, so there is nothing to install to get started.</p>
+
+    <div class="callout callout-note"><strong>Off by default.</strong> Grammar checking is not running until you toggle it on in the editor toolbar. Outpost never sends your draft anywhere unless you turn the check on for that editor.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Where to find it</h2>
+    <ol class="steps">
+      <li>Open any content with a <strong>rich-text</strong> body &mdash; a page or a collection item&rsquo;s rich-text field.</li>
+      <li>In the editor toolbar, find the <strong>Check grammar &amp; spelling</strong> button (the spell-check icon at the far right of the toolbar).</li>
+      <li>Click it to toggle checking <strong>on</strong>. The button highlights while it is active.</li>
+      <li>Mistakes are underlined as you write. Outpost re-checks automatically a short moment after you stop typing (debounced), so you don&rsquo;t get flicker on every keystroke.</li>
+      <li>Click the button again to turn checking <strong>off</strong> &mdash; all underlines clear immediately.</li>
+    </ol>
+    <p>The toggle is per-editor and starts in the off position every time the editor loads.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>How it works</h2>
+
+    <h3>Underlines by issue type</h3>
+    <p>Each suggestion is drawn as a colored wavy underline, classed by the kind of issue LanguageTool reported:</p>
+    <table>
+      <thead><tr><th>Underline</th><th>Issue type</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td><code>lt-spell</code></td><td>Misspelling</td><td>A word LanguageTool doesn&rsquo;t recognize.</td></tr>
+        <tr><td><code>lt-grammar</code></td><td>Grammar</td><td>Agreement, tense, punctuation, and similar rule violations.</td></tr>
+        <tr><td><code>lt-style</code></td><td>Style</td><td>Wordiness, redundancy, or phrasing the style rules flag.</td></tr>
+      </tbody>
+    </table>
+    <p>The underlines are drawn as editor decorations, so they never become part of your saved content &mdash; they are purely visual hints layered over the text.</p>
+
+    <h3>Click-to-fix popover</h3>
+    <p>Click any underlined span while checking is on and a popover appears anchored to the mistake. It shows:</p>
+    <ul>
+      <li>The <strong>message</strong> &mdash; LanguageTool&rsquo;s explanation of the issue.</li>
+      <li>One button per <strong>suggested replacement</strong> (up to eight). Click one and Outpost replaces exactly the flagged span with your choice &mdash; the surrounding text is untouched.</li>
+      <li>A <strong>Dismiss</strong> button to close the popover without changing anything. If LanguageTool offered no replacement, the popover says so.</li>
+    </ul>
+    <p>After you apply a fix, that underline disappears and Outpost re-checks shortly after, so any downstream issues stay current.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; Language is auto-detected. Outpost sends <code>auto</code> as the language, so LanguageTool figures out what you&rsquo;re writing in without you picking a locale.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>The free public API vs. self-hosting</h2>
+    <p>Grammar checking needs a LanguageTool server. You have two choices, and switching between them is a single field.</p>
+
+    <h3>Free public API (default)</h3>
+    <p>Leave the <strong>Server URL</strong> blank and Outpost uses LanguageTool&rsquo;s public endpoint at <code>https://api.languagetool.org/v2/check</code>. Nothing to install &mdash; it just works. This is the right choice for occasional proofreading on a single site.</p>
+
+    <h3>Self-hosted (for heavy or private use)</h3>
+    <p>Run your own LanguageTool server and point Outpost at it. The API is identical, so nothing else changes &mdash; you only swap the URL. The simplest way is the official Docker image:</p>
+    <pre><code>docker run -d -p 8010:8010 erikvl87/languagetool</code></pre>
+    <p>Then set the <strong>Server URL</strong> to your instance&rsquo;s check endpoint, for example:</p>
+    <pre><code>http://localhost:8010/v2/check</code></pre>
+    <p>Self-hosting keeps your text on your own infrastructure and removes the public rate limit &mdash; the right choice for a busy editorial team or any content you&rsquo;d rather not send to a third party.</p>
+
+    <div class="callout callout-note"><strong>Same API, one field.</strong> The public API and a self-hosted server speak the same protocol. Moving from one to the other is just editing the Server URL in Settings &mdash; no code changes, no re-configuration.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Optional LanguageTool Premium</h2>
+    <p>If you have a paid LanguageTool account, you can supply Premium credentials for higher limits and extra rules. Under <strong>Premium (optional)</strong> in the settings block, add:</p>
+    <ul>
+      <li><strong>Username</strong> &mdash; your LanguageTool account email.</li>
+      <li><strong>API Key</strong> &mdash; your Premium API key.</li>
+    </ul>
+    <p>When both are present, Outpost includes them on the request to the configured host. The API key is <strong>encrypted at rest</strong> (Ranger crypto) and is only ever sent server-side &mdash; it never reaches the browser. Leave these blank if you&rsquo;re not a Premium subscriber; they aren&rsquo;t needed for the free public API or a self-hosted server.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Rate limits</h2>
+    <p>The LanguageTool public API is rate-limited &mdash; roughly <strong>20 requests per minute</strong> per IP. Because Outpost debounces checks (it waits until you pause typing), normal editing rarely hits this. If you do exceed it, the check surfaces a clear message:</p>
+    <div class="callout callout-warn"><strong>Grammar check rate limit reached</strong> &mdash; try again shortly or connect a self-hosted server. If you proofread constantly or have multiple editors working at once, self-host LanguageTool (see above) to remove the limit entirely.</div>
+    <p>Text is capped at <strong>20&nbsp;KB</strong> per check; anything longer is truncated before it&rsquo;s sent. Very long documents are checked up to that limit.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Configuring it</h2>
+    <p>Go to <strong>Settings &rarr; Integrations &rarr; Grammar &amp; Spelling</strong>:</p>
+    <ul>
+      <li><strong>Server URL</strong> &mdash; blank for the free public API, or your self-hosted check endpoint. It must start with <code>http://</code> or <code>https://</code>.</li>
+      <li><strong>Premium Username</strong> and <strong>API Key</strong> &mdash; only if you have a LanguageTool Premium account.</li>
+    </ul>
+    <p>Reading and writing these settings requires the <code>settings.*</code> capability. The stored server URL and username are shown back to you so you can confirm or update them; the Premium key is decrypted on demand server-side.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Endpoints</h2>
+    <p>Both routes are on the admin API (<code>api.php?action=&hellip;</code>). Checking requires the <code>content.*</code> capability; reading and writing settings require <code>settings.*</code>.</p>
+    <table>
+      <thead><tr><th>Route</th><th>Method</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>grammar/check</code></td><td>POST</td><td>Check text. Body: <code>{ text, language }</code> (<code>language</code> defaults to <code>auto</code>; <code>text</code> capped at 20&nbsp;KB). Returns <code>{ matches: [&hellip;] }</code>.</td></tr>
+        <tr><td><code>grammar/settings</code></td><td>GET / PUT</td><td>Read or write the LanguageTool configuration. GET returns the server URL, username, and (decrypted) key. PUT accepts <code>languagetool_server_url</code>, <code>languagetool_username</code>, and <code>languagetool_apikey</code> (stored encrypted).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Match shape</h3>
+    <p>Each item in <code>matches</code> is normalized to the same shape, regardless of which LanguageTool server produced it:</p>
+    <pre><code>{
+  "offset": 12,              // start position in the plain text
+  "length": 7,               // length of the flagged span
+  "message": "Possible spelling mistake found.",
+  "shortMessage": "Spelling",
+  "replacements": ["writing", "waiting"],   // up to 8
+  "ruleId": "MORFOLOGIK_RULE_EN_US",
+  "category": "Possible Typo",
+  "issueType": "misspelling"  // drives the underline color
+}</code></pre>
+    <p>The editor maps each match&rsquo;s <code>offset</code>/<code>length</code> from plain-text coordinates back to positions in the document to draw the underline in the right place, and <code>issueType</code> selects the <code>lt-spell</code> / <code>lt-grammar</code> / <code>lt-style</code> class.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Privacy &amp; security</h2>
+    <ul>
+      <li><strong>Server-side proxy</strong> &mdash; text and credentials are sent from Outpost&rsquo;s server, never from the browser. The LanguageTool URL and key are not exposed to page source.</li>
+      <li><strong>Encrypted Premium key</strong> &mdash; the API key is stored encrypted (Ranger crypto) in the <code>settings</code> table and decrypted only when a request is made.</li>
+      <li><strong>Opt-in</strong> &mdash; checking is off until you toggle it, so no draft leaves your server unless you ask for a check.</li>
+      <li><strong>Self-host for full privacy</strong> &mdash; point the Server URL at your own instance to keep every check on your own infrastructure.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="content/pages.html">Pages</a> &mdash; the rich-text editor where grammar checking lives</li>
+      <li><a href="features/ranger.html">Ranger AI Assistant</a> &mdash; shares the same encrypted key storage</li>
+      <li><a href="reference/security.html">Security</a> &mdash; encryption and server-side request handling across Outpost</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

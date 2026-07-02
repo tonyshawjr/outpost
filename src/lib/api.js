@@ -288,6 +288,12 @@ export const embeds = {
   resolve: (url) => request('embed/resolve', { method: 'POST', body: { url } }),
 };
 
+export const grammar = {
+  check: (text, language = 'auto') => request('grammar/check', { method: 'POST', body: { text, language } }),
+  getSettings: () => request('grammar/settings'),
+  updateSettings: (data) => request('grammar/settings', { method: 'PUT', body: data }),
+};
+
 export const stock = {
   providers: () => request('stock/providers'),
   search: (provider, q, page = 1) => request('stock/search', { params: { provider, q, page } }),

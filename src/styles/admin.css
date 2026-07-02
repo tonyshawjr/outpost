@@ -1017,6 +1017,69 @@ input[type="color"].input {
   margin: 4px;
 }
 
+.lt-mark {
+  text-decoration: underline wavy;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.lt-spell { text-decoration-color: #dc2626; }
+.lt-grammar { text-decoration-color: #d97706; }
+.lt-style { text-decoration-color: #2563eb; }
+
+.lt-popover {
+  position: fixed;
+  z-index: 1000;
+  max-width: 280px;
+  padding: 10px 12px;
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.lt-popover .lt-msg {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.lt-popover .lt-fixes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.lt-popover .lt-fix {
+  padding: 4px 10px;
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lt-popover .lt-fix:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.lt-popover .lt-nofix {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.lt-popover .lt-dismiss {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.lt-popover .lt-dismiss:hover {
+  color: var(--text-primary);
+}
+
 .ProseMirror {
   min-height: 200px;
   padding: var(--space-md);

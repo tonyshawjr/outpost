@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.31] — 2026-07-02
+
+### Added
+- **Grammar & spelling check in the post editor.** A "Check grammar & spelling" toggle in the richtext toolbar underlines spelling, grammar, and style issues (powered by LanguageTool); click a mark for a suggestion popover and one-click fix. Defaults to the free public API, or point it at your own self-hosted LanguageTool server in Settings → Integrations (optional Premium key, encrypted). Off by default and only checks when toggled on.
+
+---
+
 ## [6.0.0-beta.30] — 2026-07-02
 
 ### Added

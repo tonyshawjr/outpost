@@ -4362,3 +4362,28 @@ Search royalty-free photos from Pexels and Unsplash inside the visual builder. I
 
 - Attribution: the photographer's name is shown on each result tile and returned in the `credit` object on insert; the picker footer reminds you to credit the photographer. A fuller on-page/credits treatment is planned.
 - SSRF/hardening on the download path: host allow-list (`images.pexels.com` / `images.unsplash.com` only), HTTPS-only (`CURLPROTO_HTTPS`), redirects disabled (`FOLLOWLOCATION` off), size cap (`OUTPOST_MAX_UPLOAD_SIZE`) and `image/*` content-type check, strict photo-id validation (Pexels digits only; Unsplash `[A-Za-z0-9_-]{5,32}`). Invalid references rejected as `bad_source` before any network call. Provider toggle in the picker only appears when both providers are configured.
+
+## Grammar & Spelling (LanguageTool)
+
+Inline grammar and spelling proofreading in the rich-text editor, powered by LanguageTool via a server-side proxy (`php/grammar.php`) that keeps any API key off the client. The TipTap extension is `src/lib/grammar-extension.js`; the toolbar toggle, debounced check, and click-to-fix popover live in `src/components/RichTextEditor.svelte`; settings are in `src/pages/settings/IntegrationsSettings.svelte` (Settings → Integrations → Grammar & Spelling).
+
+Off by default: the editor's "Check grammar & spelling" toolbar button toggles it on per-editor (starts off every load). When on, the plain text is extracted and sent (language `auto`), issues are drawn as wavy underlines (decorations, never saved into content) classed by issue type — `lt-spell` (misspelling), `lt-grammar` (grammar), `lt-style` (style). Clicking an underline opens a popover with the message and up to 8 replacement buttons; applying one replaces exactly the flagged span via `insertContentAt`. Checks are debounced (~900ms after typing stops).
+
+### Config (Settings → Integrations → Grammar & Spelling)
+
+- `languagetool_server_url` — blank = free public API (`https://api.languagetool.org/v2/check`, ~20 req/min). Must start with `http://`/`https://`. Self-host to remove the limit and keep text private.
+- `languagetool_username` + `languagetool_apikey` — optional LanguageTool Premium credentials (higher limits + extra rules). Key stored encrypted (`ranger_encrypt`), decrypted server-side, never sent to the browser. Sent on the request only when both are present.
+
+### Self-hosting
+
+Same API as the public server — only the URL changes. Run the official Docker image and point the Server URL at it:
+
+```
+docker run -d -p 8010:8010 erikvl87/languagetool
+# then Server URL = http://localhost:8010/v2/check
+```
+
+### Endpoints (api.php?action=…)
+
+- `POST grammar/check` — requires `content.*`. Body `{ text, language }` (`language` defaults `auto`; `text` capped at 20KB). Returns `{ matches: [...] }`. Each match normalized to `{ offset, length, message, shortMessage, replacements[] (≤8), ruleId, category, issueType }`. HTTP 429 from the server → `rate_limited` (surfaced as "rate limit reached — try again shortly or connect a self-hosted server").
+- `GET/PUT grammar/settings` — requires `settings.*`. GET returns `languagetool_server_url`, `languagetool_username`, and the decrypted `languagetool_apikey`. PUT accepts any of those keys; URL validated for `http(s)://`, key stored encrypted.
