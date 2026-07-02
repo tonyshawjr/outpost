@@ -4,7 +4,7 @@
 
 ## Documentation
 
-- [Full Developer Docs](/outpost/docs/): Complete reference for themes, template syntax, collections, members, API, and deploy
+- [Full Developer Docs](/outpost/docs/): Complete reference for site structure, template syntax, collections, members, API, and deploy
 - [Template Syntax Reference](/outpost/docs/template-syntax/): All template tags
 - [Collection Loops](/outpost/docs/loops/collection-loops.html): Looping over collection items with options
 - [Flexible Content Loops](/outpost/docs/loops/flexible-content-loops.html): Layout builder loops with named layouts
@@ -63,7 +63,7 @@ your-site/                       # OUTPOST_SITE_ROOT — the content source
     footer.html                  # </body></html>
   assets/
     style.css
-  theme.json                     # optional — framework flag, metadata
+  theme.json                     # Legacy — removed in v5.0
   .htaccess                      # Apache rewrite rules (auto-generated on install)
   outpost/                       # entire CMS engine
     admin/                       # built Svelte SPA (do not edit directly)
@@ -128,7 +128,7 @@ Links in templates must use **route paths** (the URL visitors see), never templa
 
 In collection loops use `<span data-outpost="url"></span>` — Outpost generates correct URLs automatically. In menu loops use `<span data-outpost="url"></span>` — already contains the configured route path.
 
-**When converting static HTML sites to Outpost themes, update every `<a href="page.html">` to `<a href="/page">`.**
+**When converting static HTML sites to Outpost sites, update every `<a href="page.html">` to `<a href="/page">`.**
 
 ### Defining custom routes
 
@@ -145,7 +145,7 @@ Dynamic routes use collections: create a collection with URL pattern `/event/{sl
 
 **What you cannot do:**
 - Multi-segment static routes like `/docs/getting-started` — template files map 1:1 to single-segment paths. Use query params (`/docs?page=getting-started`) or collection URL patterns instead.
-- Custom PHP route handlers — the router is not extensible. For custom server-side logic, create a standalone PHP file (e.g. `/custom-api.php`) outside the theme.
+- Custom PHP route handlers — the router is not extensible. For custom server-side logic, create a standalone PHP file (e.g. `/custom-api.php`) outside the CMS.
 - Route parameters beyond `{slug}` — collections and channels support only `{slug}` in URL patterns.
 
 ### Adding a new route
@@ -187,17 +187,62 @@ Bootstrap files: `config.php` (constants), `db.php` (OutpostDB), `engine.php` (t
 
 Route the custom PHP file via Apache rewrite (`RewriteRule ^search$ search.php [L]`), Nginx location block, or by adding a check in `front-router.php`.
 
+### How the front controller renders templates (index.php internals)
+
+The site-root `index.php` is the production front controller. Here is its routing pipeline:
+
+```php
+// 1. Bootstrap
+require_once $outpostDir . '/config.php';
+require_once $outpostDir . '/db.php';
+
+// 2. Special routes handled first (sitemap, robots, RSS feeds)
+// /sitemap.xml → sitemap.php
+// /robots.txt  → sitemap.php (robots generator)
+// /feed        → feed.php
+
+// 3. Boost page cache — serves cached HTML if available
+require_once $outpostDir . '/boost.php';
+
+// 4. Template engine detection — v2 (data attributes) or v1 (Liquid)
+$themeDir = OUTPOST_SITE_ROOT;  // v5: site root IS the content source
+$useV2 = outpost_detect_engine_version($themeDir);
+require_once $outpostDir . ($useV2 ? '/template-engine-v2.php' : '/template-engine.php');
+
+// 5. Route matching (first match wins):
+//    a) Lodge member portal routes (/lodge/*)
+//    b) Direct page match: /about → about.html, / → index.html
+//    c) Collection URL patterns: /post/{slug} → post.html
+//    d) Channel URL patterns: /listing/{slug} → listing.html
+//    e) No match → 404.html or plain 404
+
+// 6. Render the matched template
+outpost_init();                                    // runs migrations, loads field registry
+outpost_render_template($templateFile, $themeDir); // compiles + executes cached PHP
+```
+
+Key functions in `engine.php`:
+- `outpost_init()` — bootstraps the template system (field registry, migrations, page detection)
+- `outpost_render_template($file, $siteRoot, $editorMode)` — compiles an HTML template to PHP (or loads from cache), then executes it
+- `outpost_detect_engine_version($siteRoot)` — returns `true` for v2 (data attributes) if `index.html` contains `data-outpost=`
+- `outpost_resolve_field($name, $type, $default)` — resolves a field value from the database (called by compiled templates)
+- `cms_text($name)`, `cms_image($name)`, `cms_link($name)` — lower-level field accessors used by compiled v1 templates
+
+To extend routing, create a standalone PHP file (not inside engine.php) and add an Apache/Nginx rewrite rule. The front controller is not designed to be modified — it is replaced on every Outpost update.
+
 ### Asset paths must be absolute
 
 Always use absolute paths starting with `/` for CSS, JS, images, and fonts:
-- Correct: `/outpost/themes/my-theme/assets/style.css`
+- Correct: `/assets/style.css`
 - Wrong: `assets/style.css` (breaks on `/about`, `/post/hello-world`, etc.)
 
 Relative paths resolve differently per page URL. On `/about`, `assets/style.css` becomes `/about/assets/style.css` — a 404.
 
-## theme.json (optional)
+## theme.json (Removed in v5.0)
 
-An optional `theme.json` at the site root provides metadata and enables the CSS framework.
+> **Removed in v5.0.** The theme layer no longer exists. The following section is retained for reference only if maintaining pre-v5 sites.
+
+An optional `theme.json` at the site root previously provided metadata and enabled the CSS framework.
 
 ```json
 {
@@ -596,8 +641,8 @@ All loop types support `<outpost-else>` for empty-state fallbacks (v1.9.3). This
 | `data-outpost="field" data-type="focal"` | Focal point as CSS `X% Y%` for `object-position` |
 | `data-outpost="field" data-type="edit"` | Opt-in on-page editing (append to any type: `data-outpost="field" data-type="image" data-edit`) |
 | `data-outpost="@global"` | Output global field |
-| `<span data-outpost="title"></span>Default` | `<title>` tag (legacy — use `<outpost-seo />` in new themes) |
-| `<span data-outpost="description"></span>Default` | `<meta name="description">` tag (legacy — use `<outpost-seo />` in new themes) |
+| `<span data-outpost="title"></span>Default` | `<title>` tag (legacy — use `<outpost-seo />` in new sites) |
+| `<span data-outpost="description"></span>Default` | `<meta name="description">` tag (legacy — use `<outpost-seo />` in new sites) |
 | `<outpost-seo />` | Full SEO block: title, description, OG, Twitter Card, canonical, JSON-LD, robots |
 | `<outpost-each collection="slug">` | Collection loop |
 | `<outpost-single collection="slug">` | Single item by slug |
@@ -619,7 +664,7 @@ All loop types support `<outpost-else>` for empty-state fallbacks (v1.9.3). This
 
 ### Engine Detection
 
-Themes are automatically detected as v2 if `index.html` contains `data-outpost=` or `<outpost-` patterns. No configuration needed — the engine is selected per-theme at render time.
+Themes are automatically detected as v2 if `index.html` contains `data-outpost=` or `<outpost-` patterns. No configuration needed — the engine is selected per-site at render time.
 
 ### Fields
 
@@ -1203,10 +1248,85 @@ Upload files through Admin → Media or via image field pickers in page/item edi
 - Template filter: `data-outpost="field" data-type="focal"` outputs `X% Y%` for CSS
 - Use with `object-position` or `background-position`:
 ```html
-<img src="<img data-outpost="hero_image" data-type="image">" style="object-fit: cover; object-position: data-outpost="hero_image" data-type="focal";">
+<img data-outpost="hero_image" data-type="image" src="placeholder.jpg"
+     style="object-fit: cover; object-position: 50% 50%;">
+<!-- The focal point value is available via a separate field output: -->
+<span data-outpost="hero_image" data-type="focal" hidden></span>
 ```
 - Works on collection items: `<span data-outpost="featured_image" data-type="focal"></span>`
 - Returns `50% 50%` if no custom focal point set
+
+### Retrieving image URLs
+
+All uploaded files are publicly accessible at `/outpost/content/uploads/{filename}`. The media manager stores the filename in the database; templates and API responses output the full relative path.
+
+**In templates (v2 data-attribute syntax):**
+```html
+<!-- Basic image field — outputs the stored URL as the src attribute -->
+<img data-outpost="hero_image" data-type="image" src="placeholder.jpg" alt="Hero">
+
+<!-- Image with conditional (only render if field has a value) -->
+<outpost-if field="profile_photo" exists>
+  <img data-outpost="profile_photo" data-type="image" src="" alt="Profile">
+</outpost-if>
+
+<!-- Global image (shared across all pages) -->
+<img data-outpost="site_logo" data-scope="global" data-type="image" src="logo.png" alt="Logo">
+
+<!-- Collection item image inside a loop -->
+<outpost-each collection="team">
+  <div class="card">
+    <img data-outpost="photo" data-type="image" src="default-avatar.jpg" alt="">
+    <h3 data-outpost="name">Name</h3>
+  </div>
+</outpost-each>
+```
+
+**In PHP (standalone scripts or custom endpoints):**
+```php
+<?php
+require_once __DIR__ . '/outpost/config.php';
+require_once __DIR__ . '/outpost/db.php';
+
+// Get a specific media item by filename
+$media = OutpostDB::fetchOne("SELECT * FROM media WHERE filename = ?", ['my-image.webp']);
+$publicUrl = '/outpost/content/uploads/' . $media['filename'];
+// Result: /outpost/content/uploads/my-image.webp
+
+// Get image from a page field
+require_once __DIR__ . '/outpost/engine.php';
+outpost_init();
+$imageUrl = outpost_resolve_field('hero_image', 'image', '');
+// Result: /outpost/content/uploads/1234567890_hero.webp
+
+// Get image from a collection item's data JSON
+$item = OutpostDB::fetchOne(
+    "SELECT data FROM collection_items WHERE collection_id = ? AND slug = ?",
+    [1, 'my-post']
+);
+$data = json_decode($item['data'], true);
+$imageUrl = $data['featured_image'] ?? '';
+// Result: /outpost/content/uploads/1234567890_featured.webp
+```
+
+**In the Content API (headless/JavaScript):**
+```javascript
+// Fetch a collection item and construct full image URL
+const res = await fetch('/outpost/content-api.php?collection=team&slug=jane-doe');
+const { item } = await res.json();
+const imageUrl = item.photo; // "/outpost/content/uploads/1234567890_jane.webp"
+
+// Use in an <img> tag
+document.querySelector('.avatar').src = imageUrl;
+```
+
+**Key facts:**
+- Upload directory: `outpost/content/uploads/` (publicly accessible)
+- Thumbnails: `outpost/content/uploads/thumb_{filename}` (400×300px max)
+- Images wider than 2400px are auto-scaled down
+- JPEG/PNG auto-converted to WebP (configurable)
+- The `data-type="image"` attribute tells the template engine to set the element's `src` attribute to the stored URL
+- The Content API returns image field values as relative paths (e.g., `/outpost/content/uploads/filename.webp`)
 
 **Media folders:**
 - Organize files into folders (up to 3 levels of nesting)
@@ -1451,7 +1571,7 @@ Render a builder form in any template:
 <outpost-form slug="contact" />
 ```
 
-This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required. Outpost injects no default form styles — your theme CSS has full control.
+This outputs a complete `<form>` with proper field types, labels, validation, honeypot spam protection, and submit button. No JavaScript required. Outpost injects no default form styles — your site CSS has full control.
 
 **Rendered HTML structure** (example with name, email, message fields):
 
@@ -1965,7 +2085,7 @@ Place `<outpost-seo />` once in `head.html`. It outputs a complete SEO block aut
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <outpost-seo />
-  <link rel="stylesheet" href="/outpost/themes/my-theme/assets/style.css">
+  <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
 ```
@@ -2014,7 +2134,7 @@ Place `<outpost-seo />` once in `head.html`. It outputs a complete SEO block aut
 }
 ```
 
-`<outpost-seo />` replaces `<span data-outpost="title"></span>` and `<span data-outpost="description"></span>`. Do not use both — `<outpost-seo />` already outputs `<title>` and description. Individual meta tags still work in legacy themes.
+`<outpost-seo />` replaces `<span data-outpost="title"></span>` and `<span data-outpost="description"></span>`. Do not use both — `<outpost-seo />` already outputs `<title>` and description. Individual meta tags still work in legacy sites using v1 syntax.
 
 ## WordPress Import
 
@@ -2052,9 +2172,9 @@ v2 autocomplete (v4.1.1): Context-aware completions triggered by:
 - Typing `<!-- outpost` — suggests block comment and settings comment patterns
 
 Endpoints added to `code-editor.php`:
-- `code/files` GET — list theme code files
-- `code/read` GET — read a theme file
-- `code/write` POST — write a theme file
+- `code/files` GET — list site code files
+- `code/read` GET — read a site file
+- `code/write` POST — write a site file
 - `code/create` POST — create file or folder
 - `code/rename` POST — rename/move (validates extension)
 - `code/delete` DELETE — recursive for directories
@@ -2126,13 +2246,13 @@ Supports demo HTML sites at the site root — pure HTML/CSS pages that can be an
 
 ### Insert Asset
 
-Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the theme's `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
+Right-click in an HTML file (even without selecting text) to see "Insert Asset" in the Forge context menu. Opens a searchable modal that auto-discovers files from the site root `assets/` directory — CSS, JS, images, fonts, and more. Click any file to insert the correct HTML reference tag at the cursor position:
 
 - `.css` → `<link rel="stylesheet" href="/assets/{path}">`
 - `.js` → `<script src="/assets/{path}"></script>`
 - images → `<img src="/assets/{path}" alt="">`
 
-Powered by the `code/assets` API endpoint which scans the theme's `assets/` directory recursively.
+Powered by the `code/assets` API endpoint which scans the site root `assets/` directory recursively.
 
 ### Forge Site Analysis
 
@@ -2829,7 +2949,7 @@ Key columns:
 
 **`pages`:** `id`, `title`, `slug`, `body`, `meta_title`, `meta_description`, `og_image`, `visibility` (`'public'|'members'|'paid'`), `status` (`'published'|'draft'`), `locked` (0|1 — admin-only lock), `sort_order`, `created_at`, `updated_at`
 
-**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name). In v5, `theme` is always empty string.
+**`fields`:** `id`, `page_id`, `theme`, `field_name`, `field_type`, `content`, `default_value`, `options` (JSON), `sort_order` — one row per unique (page_id, theme, field_name). The `theme` column is vestigial from pre-v5; always empty string in v5+.
 
 **`collections`:** `id`, `slug`, `name`, `singular_name`, `url_pattern`, `schema` (JSON field definitions), `sort_field`, `sort_direction`, `items_per_page`, `created_at`, `updated_at`. `sort_field` only accepts: `created_at`, `updated_at`, `published_at`, `slug`, `sort_order` — invalid values default to `created_at`.
 
@@ -2888,14 +3008,101 @@ Cache bypass: `?nocache=1` in URL (development only).
 
 **CDN / reverse proxy:** Place Cloudflare, Fastly, or Nginx caching in front of the site. Outpost's HTML cache headers respect standard cache-control. Static assets in `assets/` at the site root can be served directly by the web server with long cache headers.
 
-**Template warm-up:** After deploying a new theme or clearing the template cache, the first request for each page compiles the template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
+**Template warm-up:** After deploying new site templates or clearing the template cache, the first request for each page compiles the template to PHP. Subsequent requests use the cached PHP file. To pre-warm, `curl` each page after deploy.
 
 **SQLite tuning** (optional, in a custom bootstrap):
 ```php
 $db = OutpostDB::connect();
-$db->exec("PRAGMA cache_size = -20000");    // 20 MB page cache
+$db->exec("PRAGMA cache_size = -20000");    // 20 MB page cache (default: ~2 MB)
 $db->exec("PRAGMA mmap_size = 268435456");  // 256 MB memory-mapped I/O
 ```
+
+**Database optimization API:**
+```bash
+# Optimize SQLite database (VACUUM + ANALYZE + integrity check)
+curl -X POST "https://example.com/outpost/api.php?action=boost/optimize-db" \
+  -H "Authorization: Bearer op_your_api_key"
+```
+This runs `VACUUM` (reclaims space, defragments), `ANALYZE` (updates query planner statistics), and `integrity_check`. Run monthly or after large content imports/deletions.
+
+### Complete high-traffic optimization strategy
+
+For sites expecting 10,000+ daily visitors or heavy API consumption:
+
+**Layer 1 — Boost page cache (built-in, enabled by default):**
+- Fully rendered HTML pages served as static files — zero PHP/SQLite execution
+- TTL: 1 hour default (configurable via `OUTPOST_CACHE_TTL`)
+- Auto-invalidated on content save
+- Admin users bypass cache automatically
+- API: `POST api.php?action=boost/clear-cache` to manually purge
+
+**Layer 2 — CDN / reverse proxy (recommended for high traffic):**
+- Place Cloudflare, Fastly, or Nginx in front of the site
+- Static assets (`/assets/`, `/outpost/content/uploads/`) get long cache headers
+- HTML pages respect `Cache-Control` headers from Boost
+- Configure CDN to cache `/outpost/content-api.php` responses with short TTL (60s)
+
+**Layer 3 — Query optimization (template design):**
+```html
+<!-- BAD: Multiple loops querying same collection -->
+<outpost-each collection="post" limit="3"><!-- featured --></outpost-each>
+<outpost-each collection="post" limit="10"><!-- all posts --></outpost-each>
+
+<!-- GOOD: Single loop with limit -->
+<outpost-each collection="post" limit="10" orderby="published_at">
+  <!-- Use CSS/JS to feature first 3 -->
+</outpost-each>
+```
+- Each `<outpost-each>` runs a SQL query — minimize loop count per page
+- Use `limit:N` to cap results (default returns ALL published items)
+- Use `paginate:N` for large collections — renders N items per page with pagination controls
+- Use `filteredby:folder_slug` to narrow results instead of loading everything
+
+**Layer 4 — Content API pagination (for headless consumers):**
+```bash
+# Paginated API requests
+curl "https://example.com/outpost/content-api.php?collection=products&limit=20&offset=0"
+curl "https://example.com/outpost/content-api.php?collection=products&limit=20&offset=20"
+```
+- Always set `limit` on API requests — unbounded queries on large collections are slow
+- Use `offset` for pagination
+- Response includes `total` count for building pagination UI
+
+**Layer 5 — SQLite connection tuning:**
+```php
+// In a custom bootstrap or outpost/config.php
+// These are already set by default — only change if benchmarking shows improvement
+$db = OutpostDB::connect();
+$db->exec("PRAGMA journal_mode=WAL");       // Already default — concurrent reads
+$db->exec("PRAGMA busy_timeout=5000");      // Already default — 5s wait on lock
+$db->exec("PRAGMA cache_size = -20000");    // Optional: increase to 20 MB
+$db->exec("PRAGMA mmap_size = 268435456");  // Optional: 256 MB memory-mapped I/O
+$db->exec("PRAGMA synchronous = NORMAL");   // Optional: faster writes (slight durability tradeoff)
+```
+
+**Layer 6 — Template pre-warming:**
+```bash
+# After deploy, warm all page templates so first visitors don't wait for compilation
+curl -s https://example.com/ > /dev/null
+curl -s https://example.com/about > /dev/null
+curl -s https://example.com/services > /dev/null
+curl -s https://example.com/blog > /dev/null
+# Or use Boost's built-in preloader via admin panel
+```
+
+**Layer 7 — Monitoring:**
+- Boost logs cache hit/miss rates in `outpost/cache/boost_hits.log`
+- Shield logs request patterns in `shield_traffic` table
+- Built-in analytics tracks pageviews, referrers, top pages (zero external dependencies)
+- `GET api.php?action=boost/stats` returns cache hit rate, total pages cached, cache size
+
+**What Outpost handles automatically (no configuration needed):**
+- WAL mode for concurrent reads
+- Prepared statements (PDO) prevent SQL injection and allow query plan reuse
+- Template compilation caching (only recompiles when source file changes)
+- HTML page cache with auto-invalidation on content changes
+- WebP auto-conversion (25-50% smaller images)
+- Minification and compression via Boost (optional)
 
 ## Architecture — Design Philosophy
 
@@ -3215,7 +3422,7 @@ const res = await fetch('/outpost/api.php?action=content/items&collection=post&c
 Runs automatically on fresh installs. Generates `.htaccess` for Apache URL rewriting. Checks `setup_completed` setting via `auth/me`. Existing sites auto-skip via migration detection (if pages or collections exist, `setup_completed` is set to `1`).
 
 ### Content Packs
-JSON files in `content-packs/` directory. Manifest: `packs.json` (array of pack defs with id, name, description, icon, themes array). Per-theme pack files: `{theme}-{pack}.json` (e.g. `personal-blog.json`). Each contains: settings, globals, collections (with schema + items + folders), menus. The `blank` pack has no file — just activates the theme. Applied in a single SQLite transaction via `POST setup/apply`.
+JSON files in `content-packs/` directory. Manifest: `packs.json` (array of pack defs with id, name, description, icon, themes array). Pack files: `{pack}.json` (e.g. `personal-blog.json`). Each contains: settings, globals, collections (with schema + items + folders), menus. The `blank` pack has no file — just activates the theme. Applied in a single SQLite transaction via `POST setup/apply`.
 
 ### Getting Started Checklist
 Dashboard card after wizard completion. 5 items: add_logo, edit_homepage, create_post, setup_navigation, configure_brand. Dynamically computed via `GET setup/checklist`. Dismiss via `POST setup/checklist/dismiss` (persists in settings table).
@@ -3228,9 +3435,9 @@ Reusable `EmptyState.svelte` with props: icon (SVG string), title, description, 
 
 ### Setup API Endpoints
 
-- `GET setup/packs` — returns available content pack metadata filtered by theme
-- `POST setup/apply` — applies wizard choices (site_name, theme, pack) in transaction
-- `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_theme)
+- `GET setup/packs` — returns available content pack metadata
+- `POST setup/apply` — applies wizard choices (site_name, pack) in transaction
+- `GET setup/checklist` — returns dynamic checklist completion (add_logo, edit_homepage, create_post, setup_navigation, customize_site)
 - `POST setup/checklist/dismiss` — sets `setup_checklist_dismissed = '1'` in settings
 
 ## Collaboration & Comments (v3.3.0)
@@ -3427,7 +3634,7 @@ No Outpost account or subscription required — bring your own API key.
 
 ### Example Requests
 - "Create a blog collection with title, excerpt, featured_image, and body fields"
-- "Build me a restaurant theme with homepage, menu, and contact pages"
+- "Build me a restaurant site with homepage, menu, and contact pages"
 - "Upload this image from Unsplash: [URL]"
 - "Turn on dark mode"
 - "Add a new admin user called Sarah"
@@ -3481,7 +3688,7 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - `upload_media` — upload a file to the media library
 - `upload_media_from_url` — download an image from a URL and add to media library
 
-**Site file tools:**
+**Site file tools** (named `theme_file` for historical reasons; all operate on files at the site root):
 - `create_theme_file` — create a new file at the site root
 - `update_theme_file` — update file contents at the site root
 - `delete_theme_file` — delete a file from the site root
@@ -3512,7 +3719,7 @@ Conversations are saved automatically. Access via the history icon in the Ranger
 - `query_database` — run read-only SELECT queries against the SQLite database
 - `debug_template` — check a template file for syntax errors and render issues
 - `search_docs` — search the Outpost developer documentation
-- `get_system_info` — get CMS version, PHP version, active theme, database stats
+- `get_system_info` — get CMS version, PHP version, database stats
 
 **Frontend tools:**
 - `frontend_action` — toggle dark mode, open/close navigation, or trigger other UI actions
@@ -3575,7 +3782,7 @@ Lodge has its own sub-router in `front-router.php`. All URLs live under a config
 | `/lodge/create/posts` | `lodge/create.html` | `$_GET['collection'] = 'posts'` |
 | `/lodge/profile` | `lodge/profile.html` | — |
 
-Templates go in `themes/{theme}/lodge/` subdirectory. Falls back from `{custom-slug}/` to `lodge/`. All routes require member auth — unauthenticated users redirect to login.
+Templates go in the `lodge/` subdirectory at the site root. Falls back from `{custom-slug}/` to `lodge/`. All routes require member auth — unauthenticated users redirect to login.
 
 ### Lodge API endpoints (member-api.php)
 
@@ -3927,3 +4134,231 @@ Stored as JSON in `settings` table under key `shield_config`:
 - `shield_log` — id, ip, path, method, rule, payload, blocked, created_at
 - `shield_file_hashes` — file_path (PK), hash, checked_at
 - `shield_traffic` — id, ip, path, method, status_code, user_agent, threat, created_at
+
+
+---
+
+## v6 — New endpoints and architecture (added in v6.0.0-beta.14)
+
+The v6 build rolls multiple feature modules onto the existing CMS surface. Architecture remains hybrid (PHP rendering + REST/MCP API). What's new:
+
+### Themes-as-folders + active theme dir
+
+Each theme is a self-contained folder under `content/themes/{slug}/`:
+
+- `theme.json` (or `blueprint.json`) — name, brand, settings, templates
+- `blocks/{slug}/` — block library: `{slug}.html`, optional `block.json`, optional `{slug}.css`
+- `templates/`, `partials/`, `styles/` — theme markup
+- `schema.json` (NEW) — declares the collections this theme expects (autoboot)
+
+Production routing reads from the active theme dir first, with v5 themeless fallback intact.
+
+### Reusable field presets (v6 Section 1)
+
+Define a named field bundle once, drop into any collection schema with
+`{ "type": "preset", "preset": "image-with-credit" }`.
+
+Endpoints:
+- `GET field-presets`
+- `GET field-presets/get?slug=X`
+- `POST field-presets`            — body: `{ slug, name, description, fields[] }`
+- `PUT field-presets&slug=X`
+- `DELETE field-presets&slug=X`
+
+Built-in presets (cannot be deleted): `image-with-credit`, `seo-meta`, `cta`.
+
+### Theme schema.json autoboot (v6 Section 1.3)
+
+If a theme ships `schema.json` at its root, the admin can bootstrap missing collections in one click. Existing collections are never touched.
+
+```
+{
+  "collections": [
+    { "slug": "blog", "name": "Blog", "schema": [...] }
+  ]
+}
+```
+
+Endpoints:
+- `GET theme/bootstrap/preview?theme=X` — preview what would be created
+- `POST theme/bootstrap` — body: `{ theme: "X" }`
+
+### Schema iteration safety / Unknown fields panel (v6 Section 1.7)
+
+When a schema field is renamed or removed, item rows still hold the old key. Detect and resolve.
+
+Endpoints:
+- `GET schema/orphans?collection=X` — returns `{ orphans: { key: { count, sample } } }`
+- `POST schema/orphans/promote` — body: `{ collection, key }` — adds the orphan as a text field
+- `POST schema/orphans/strip` — body: `{ collection, key }` — strips key from every item, snapshots prior state to revisions
+
+### Click-to-edit intent resolver (v6 Section 2.5)
+
+Public site overlay clicks → admin SPA route. Browser sends data-outpost-* hints; resolver returns the right hash route.
+
+Endpoints:
+- `GET edit-intent/resolve?block=X&page=X&field=X&collection=X&item=X&path=X`
+  → `{ route: "#/page-builder/123?block=4&field=headline", kind: "page-builder" }`
+
+### Portable Text foundations (v6 Section 4)
+
+New field type `richtext-blocks` stores a JSON array of typed blocks (Sanity-compatible Portable Text-lite).
+
+Block shapes:
+- `{ type: "block", style: "h2"|"h3"|"normal"|"blockquote", children: [{ type: "span", text, marks?, linkHref? }] }`
+- `{ type: "image", src, alt, caption? }`
+- `{ type: "code", code, language? }`
+- `{ type: "block", style: "normal", listItem: "bullet"|"number", children: [...] }` — list item
+
+Server helpers:
+- `outpost_richtext_blocks_validate($value): bool`
+- `outpost_richtext_blocks_to_html($value): string` — safe-by-default escaping
+- `outpost_html_to_richtext_blocks($html): array` — one-way migration from legacy HTML richtext
+
+Marks supported: `strong`, `em`, `code`, `link` (with `linkHref`). javascript: URLs are blocked.
+
+### Editorial AI scheduler (v6 Section 5)
+
+Cron-driven AI content drafting. Per-job + daily-spend caps. AI is summoned or scheduled — never ambient. If no AI provider is wired, jobs stage placeholder drafts so the schedule shows it's alive.
+
+Tables:
+- `editorial_jobs` — name, cadence (manual/hourly/daily/weekly), collection_slug, prompt, target_status, cost_cap_cents, enabled, last_run_at, next_run_at
+- `editorial_runs` — job_id, started_at, finished_at, status, cost_cents, created_item_id, error, log
+
+Setting: `editorial_daily_cap_cents` (default 500 cents = $5/day). Hitting the cap halts further runs that day.
+
+Endpoints:
+- `GET editorial/jobs`
+- `POST editorial/jobs`            — body: `{ name, collection_slug, prompt, cadence, cost_cap_cents, target_status, enabled }`
+- `PUT editorial/jobs&id=X`
+- `DELETE editorial/jobs&id=X`
+- `POST editorial/jobs/run`        — body: `{ id }` — run now (bypasses enabled check)
+- `GET editorial/runs?job_id=X`
+- `GET editorial/budget`           — daily cap + spent today + remaining
+- `PUT editorial/budget`           — body: `{ daily_cap_cents }`
+- `POST editorial/find-and-update` — body: `{ find, replace, collection? }` — JSON-walk replacement across collection_items.data, snapshotted to revisions
+
+Cron entry point: `editorial_cron_tick()` — call from the existing `?action=cron` endpoint.
+
+### Release approval gates + diff (v6 Section 6)
+
+State machine: `draft → review → approved → published` with `rejected → draft`. Editor submits, admin approves, then publishes via the existing release publish flow. Reject sends back to draft with reason.
+
+Added columns on `releases`: `submitted_at`, `submitted_by`, `approved_at`, `approved_by`, `rejected_reason`.
+
+Endpoints:
+- `POST releases/submit-for-review` — body: `{ id }`
+- `POST releases/approve`            — body: `{ id }` (admin only)
+- `POST releases/reject`             — body: `{ id, reason }` (admin only)
+- `GET releases/diff?id=X`           — per-change before/after JSON + changed-keys array
+
+### Media usage tracking (v6 Section 7)
+
+Before deleting an asset, scan content for references to its filename/path. Surfaces a list of pages, page blocks, and collection items that use this asset, with one-click edit routes.
+
+Endpoint:
+- `GET media/usage?id=X` → `{ count, references: [{ kind, edit_route, ... }] }`
+
+Search scope:
+- collection_items.data (JSON)
+- page_blocks.fields (JSON)
+- fields.content (LIKE)
+
+### Presence indicators / phase 1 (v6 Section 2)
+
+"Tony is also editing this" warning. No real-time CRDT — just heartbeat polling. Pings every 15s; sessions older than 60s drop off.
+
+Endpoint:
+- `POST presence/ping` — body: `{ entity_type: "page" | "collection_item" | "page_block", entity_id }` → `{ others: [{ id, display_name, avatar, last_seen }] }`
+
+Table: `presence_sessions(user_id, entity_type, entity_id, last_seen)`
+
+### Conventions
+
+All new endpoints: same auth + CSRF rules as the rest of the API. JSON bodies for POST/PUT/DELETE. Identifier names validated by allow-list regex (`^[a-zA-Z0-9_-]+$`) before use in queries.
+
+Database migrations: `ensure_*_table()` and `ensure_*_columns()` functions called at API bootstrap. Idempotent — re-running them is safe.
+
+## Section Import & AI Generation (v6)
+
+The Visual Builder toolbar has an **Import** button that opens the Section Import modal. Import takes three separate parts — HTML, CSS, JavaScript — and turns them into a live section inserted at the selected container (or the page root):
+
+- **HTML** is "exploded" into the builder node tree — every supported tag becomes an editable node.
+- **CSS** is parsed into named style classes and merged into the site stylesheet.
+- **JavaScript** is appended to the page's script file `{slug}.js` and runs on the PUBLISHED page only — not in the builder canvas.
+
+Imported markup is "static except the holes": it bakes to plain static HTML except elements tagged with `data-outpost`, which become editable server-rendered fields.
+
+### Import-ready HTML spec
+
+One top-level element wraps the section (it becomes the section root). Only these tags survive; everything else is transformed or dropped:
+
+- Containers (hold children): `div, section, main, header, footer, article, aside, nav, ul, ol, li, figure`
+- Text (content only): `p, span, h1–h6, strong, em, small, blockquote, label`
+- Media: `img` (keeps `src`, `alt`) · Interactive: `a` (keeps `href`), `button`
+- Any other tag (`table, svg, input, select, form, video, iframe`, web components) collapses to a plain `div` and loses its attributes. `script, style, link, meta, br, hr` are dropped entirely.
+- Inline `style=""` is discarded — style ONLY with the `class` attribute.
+
+**Text elements flatten inner markup.** A text element's text is taken whole; `<p>Save <strong>50%</strong></p>` flattens to the plain text "Save 50%". To style part of a line, make the pieces siblings inside a container (e.g. a `<div>` holding a `<span>` and a `<span class="accent">`), not children of one `<p>`.
+
+### Dynamic holes
+
+Add `data-outpost="snake_case_name"` to any text/image/link/button element to make its content an editable, server-rendered field. The page bakes to static HTML except these holes, which fill from managed content at request time (no rebuild on edit).
+
+- Optional `data-type="text|richtext|image|url"` — how the field is edited/rendered.
+- Optional `data-scope="global"` — a site-wide field shared across pages.
+
+### CSS rules
+
+Single-class selectors only, mapped onto the builder's nested-style model:
+
+- Supported: single-class base rules (`.hero-title { }`), comma groups (`.a, .b { }`), pseudo-classes/elements on one class (`.btn:hover`, `.card::before`), and `@media` / `@container` / `@supports` blocks whose inner rules are single-class rules.
+- Ignored (never depend on): descendant/child combinators (`.a .b`, `.a > .b`), compound/multi-class selectors (`.a.b`), element/id/attribute-only selectors, `@keyframes`, `@import`.
+- Prefer CSS variables (design tokens). Values with `expression()`, `url(javascript:)`, or `behavior` are rejected.
+
+### Endpoints
+
+- `POST nodes/import-section&owner_id=X` — body `{ html, css, js }`. Requires `content.*`. Returns `{ tree, classes, js_written }`. Caps: HTML 500k chars, CSS/JS 200k each. PHP tags stripped; parse limits depth 100 / 5000 nodes.
+- `POST builder/import-ai` — body `{ prompt, context?, provider?, model? }`. Requires `content.*`. Streams SSE. The model is instructed with the import-ready spec (and site design tokens if present) and calls an `emit_section` tool once; the endpoint emits a `section` event `{ html, css, js }`, then a `done` event with token usage. Uses the BYO provider key from Settings → Integrations (`ranger_default_provider` / `ranger_api_key_{provider}` / `ranger_model_{provider}`); model self-selected. Prompt capped at 8000 chars.
+
+### MCP resource
+
+`outpost://import/guide` (mimeType `text/markdown`) returns the same import-ready HTML/CSS/JS spec (from `outpost_import_conventions()`), so an external LLM can fetch it and emit paste-ready sections a human drops into the Import modal.
+
+## Element & Class Styling
+
+The visual builder's Style panel styles either a reusable CSS class or a single element directly. It picks the target automatically: if the selected node has a class, it edits the node's active class (the last class in its list); if it has no class, it edits the element itself. The header reads "Editing .class" vs "Editing this <tag>". Both modes offer the same Visual field editor and a raw/nested CSS box (Visual / CSS tabs), and both support pseudo-classes (`&:hover`), descendant selectors (`& .child`), and `@media` blocks. The breakpoint switcher (Desktop / Tablet / Mobile) reads/writes per-breakpoint declarations under a media block; a non-default breakpoint shows an "@ Tablet"/"@ Mobile" badge.
+
+### Class vs element — when to use
+
+- **Class** = reusable. Stored in the shared style-class store keyed by class name; bakes to a `.class { }` rule in the site stylesheet. Use for anything repeated (buttons, cards, sections).
+- **Element** = one-off. Stored in the node's own `styles` field in the page tree; bakes to a scoped `[data-node-id="n_…"] { }` rule. Use for page-specific tweaks that don't deserve a name.
+- **Promotion:** adding a class to a node (search or create in the panel's combobox) flips the panel target from the element to that class, making subsequent edits reusable. Element mode shows the hint "Add a class above to make these styles reusable across elements."
+
+### Nested style model & baking
+
+Styles use a nested object: scalar props at top, plus `&`-selectors and `@media` blocks as nested objects. `&` = the target selector (`.class` in class mode, `[data-node-id]` in element mode); a nested plain selector without `&` becomes a descendant (`& .child`).
+
+- Client: `src/lib/node-store.svelte.js` exposes `getElementDeclaration`/`setElementDeclaration`/`elementCssText`/`setElementCss` (element target) alongside `getDeclaration`/`setDeclaration`/`classCssText`/`setClassCss` (class target). `nodeStylesCss()` emits canvas CSS via `emitScopedCss` (`src/lib/css-nest.js`).
+- Server: `php/node-engine.php` — `outpost_render_node()` adds `data-node-id="n_…"` only to nodes that have styles (and whose id matches `^n_[a-z0-9]+$`); `outpost_node_styles_css()` bakes `[data-node-id="n_…"] { }` rules via `outpost_emit_rule` (the same emitter and sanitization used for class rules). Element styles are a scoped stylesheet rule, not an inline `style=""` attribute — so `:hover`, `@media`, and nesting work for a single element.
+
+## Stock Photo Search
+
+Search royalty-free photos from Pexels and Unsplash inside the visual builder. Implemented in `php/stock-photos.php`; the picker is `src/components/builder/StockPhotoPicker.svelte`, opened from the "Search stock photos" button in the image-node inspector (`src/pages/NodeBuilder.svelte`). Keys are added in Settings → Integrations → Stock Photos (`src/pages/settings/IntegrationsSettings.svelte`). Free keys: Pexels at `pexels.com/api` (200 req/hour), Unsplash at `unsplash.com/developers` (demo apps 50 req/hour). Keys are encrypted with Ranger crypto (`ranger_encrypt`) and stored per-provider in `settings` as `stock_api_key_pexels` / `stock_api_key_unsplash`; the browser never sees them.
+
+### Pexels vs Unsplash behavior (important)
+
+- **Pexels** photos are downloaded server-side and saved to the media library via `OutpostMedia::importFromFile()` (resized to max width, auto-converted to WebP, thumbnail generated). Self-hosted in `uploads/`. Import returns `{ type: "media", url, media_id, alt, credit }`. Toast: "Photo added to media".
+- **Unsplash** photos are hotlinked from `images.unsplash.com` (CDN sizing params `w=1600&q=80&fm=jpg&fit=max`) and never copied locally; a required `download_location` trigger is fired on the Unsplash API when the photo is used. Import returns `{ type: "hotlink", url, alt, credit }`. Toast: "Photo added (hotlinked)".
+
+### Endpoints (api.php?action=…)
+
+- `GET stock/providers` — requires `content.*`. Returns `{ providers: [{ id, configured }] }`.
+- `GET stock/search` — requires `content.*`. Params `provider` (`pexels`|`unsplash`, default `pexels`), `q` (≤120 chars), `page` (1–100). Returns `{ results, page, has_more }`, 24 per page. Each result normalized to `{ provider, id, thumb, preview, full, width, height, alt, author, author_url, link }`.
+- `POST stock/import` — requires `content.*`. Body `{ provider, id, alt }` (`alt` ≤500 chars). Returns the insert result above; `credit` = `{ author, author_url, provider, provider_url }`.
+- `GET/PUT stock/settings` — requires `settings.*`. GET returns decrypted keys; PUT accepts `stock_api_key_pexels` / `stock_api_key_unsplash`, stored encrypted.
+
+### Attribution & security
+
+- Attribution: the photographer's name is shown on each result tile and returned in the `credit` object on insert; the picker footer reminds you to credit the photographer. A fuller on-page/credits treatment is planned.
+- SSRF/hardening on the download path: host allow-list (`images.pexels.com` / `images.unsplash.com` only), HTTPS-only (`CURLPROTO_HTTPS`), redirects disabled (`FOLLOWLOCATION` off), size cap (`OUTPOST_MAX_UPLOAD_SIZE`) and `image/*` content-type check, strict photo-id validation (Pexels digits only; Unsplash `[A-Za-z0-9_-]{5,32}`). Invalid references rejected as `bad_source` before any network call. Provider toggle in the picker only appears when both providers are configured.

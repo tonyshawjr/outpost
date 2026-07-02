@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Section Import &amp; AI Generation &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Section Import &amp; AI Generation</h1>
+    <p class="lead">Paste a self-contained section of HTML, CSS, and JavaScript &mdash; or describe one and let AI write it &mdash; and Outpost explodes the markup into editable builder elements, merges the styles into your site stylesheet, and drops the section onto the canvas.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>The Visual Builder toolbar has an <strong>Import</strong> button that opens the Section Import modal. Import takes three separate parts &mdash; HTML, CSS, and JavaScript &mdash; and turns them into a live section:</p>
+    <ul>
+      <li><strong>HTML</strong> is &ldquo;exploded&rdquo; into the builder&rsquo;s node tree: every supported tag becomes an individually editable element.</li>
+      <li><strong>CSS</strong> is parsed into named style classes and merged into the site stylesheet, so the section keeps its look and stays editable in the style panel.</li>
+      <li><strong>JavaScript</strong> is appended to the page&rsquo;s script file (<code>{slug}.js</code>) and runs on the <strong>published page only</strong> &mdash; not inside the builder canvas.</li>
+    </ul>
+    <p>The new section is inserted at the currently selected container, or at the page root if nothing is selected.</p>
+
+    <div class="callout callout-note"><strong>Static except the holes.</strong> Imported markup bakes to plain static HTML. Any element you tag with <code>data-outpost</code> becomes an editable, server-rendered field &mdash; the rest of the section is fixed structure. This is the same node model the rest of the builder uses.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Where to find it</h2>
+    <ol class="steps">
+      <li>Open any page in the <strong>Visual Builder</strong>.</li>
+      <li>(Optional) Select the container you want the section to land inside. With nothing selected, the section is inserted at the page root.</li>
+      <li>Click <strong>Import</strong> in the builder toolbar.</li>
+      <li>Paste your HTML, CSS, and JavaScript into the three tabs &mdash; or use the <strong>Generate with AI</strong> bar at the top to have them written for you.</li>
+      <li>Click <strong>Import section</strong>. The markup explodes onto the canvas, the styles merge in, and the JavaScript is written to the page&rsquo;s script file.</li>
+    </ol>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Import-ready HTML</h2>
+    <p>The importer is deliberately strict: only a fixed set of tags survive, and styling is class-only. Producing markup that follows these rules is what lets Outpost turn it into clean, editable nodes instead of an opaque blob.</p>
+
+    <h3>Supported tags</h3>
+    <p>One top-level element wraps the section &mdash; it becomes the section root. Only these tags survive the import; everything else is transformed or dropped.</p>
+    <table>
+      <thead><tr><th>Role</th><th>Tags</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Containers</strong> (hold children)</td><td><code>div</code>, <code>section</code>, <code>main</code>, <code>header</code>, <code>footer</code>, <code>article</code>, <code>aside</code>, <code>nav</code>, <code>ul</code>, <code>ol</code>, <code>li</code>, <code>figure</code></td><td>Children are recursed into individual nodes.</td></tr>
+        <tr><td><strong>Text</strong> (content only)</td><td><code>p</code>, <code>span</code>, <code>h1</code>&ndash;<code>h6</code>, <code>strong</code>, <code>em</code>, <code>small</code>, <code>blockquote</code>, <code>label</code></td><td>Text is taken whole &mdash; inner markup is flattened (see below).</td></tr>
+        <tr><td><strong>Media</strong></td><td><code>img</code></td><td>Keeps <code>src</code> and <code>alt</code>.</td></tr>
+        <tr><td><strong>Interactive</strong></td><td><code>a</code>, <code>button</code></td><td><code>a</code> keeps <code>href</code>; text is taken whole.</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>Any other tag (<code>table</code>, <code>svg</code>, <code>input</code>, <code>select</code>, <code>form</code>, <code>video</code>, <code>iframe</code>, web components&hellip;) collapses to a plain <code>div</code> and loses its attributes.</li>
+      <li><code>script</code>, <code>style</code>, <code>link</code>, <code>meta</code>, <code>br</code>, and <code>hr</code> are dropped entirely. Put behavior in the JS part and decoration in the CSS part.</li>
+      <li>Inline <code>style=&quot;&quot;</code> attributes are discarded on import. Style only with the <code>class</code> attribute.</li>
+    </ul>
+
+    <div class="callout callout-warn"><strong>Text elements flatten inner markup.</strong> A text element&rsquo;s text is taken whole &mdash; do <em>not</em> nest elements inside it. <code>&lt;p&gt;Save &lt;strong&gt;50%&lt;/strong&gt;&lt;/p&gt;</code> flattens to the plain text &ldquo;Save 50%&rdquo;. To style part of a line, make the pieces <strong>siblings inside a container</strong> &mdash; e.g. a <code>&lt;div&gt;</code> holding a <code>&lt;span&gt;</code> and a <code>&lt;span class=&quot;accent&quot;&gt;</code> &mdash; not children of one <code>&lt;p&gt;</code>.</div>
+
+    <h3>Dynamic holes</h3>
+    <p>Add <code>data-outpost=&quot;snake_case_name&quot;</code> to any text, image, link, or button element to make its content an editable, server-rendered field. The page bakes to static HTML <em>except</em> these holes, which fill from managed content at request time &mdash; editing a hole updates the live page with no rebuild.</p>
+    <table>
+      <thead><tr><th>Attribute</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-outpost=&quot;name&quot;</code></td><td>Marks the element as an editable field. Name is normalized to snake_case letters, numbers, and underscores.</td></tr>
+        <tr><td><code>data-type=&quot;text|richtext|image|url&quot;</code></td><td>Optional. Declares how the field is edited and rendered.</td></tr>
+        <tr><td><code>data-scope=&quot;global&quot;</code></td><td>Optional. Makes it a site-wide field shared across every page (e.g. a shared CTA or contact number).</td></tr>
+      </tbody>
+    </table>
+    <p>Use holes for anything editable or data-driven &mdash; hero headline, subhead, price, CTA label, hero image. Leave purely decorative or structural text as plain nodes.</p>
+
+    <h3>CSS rules</h3>
+    <p>The CSS parser maps single-class selectors onto the builder&rsquo;s style model. It supports more than a flat list of classes, but the selector shapes it understands are limited.</p>
+    <table>
+      <thead><tr><th>Supported</th><th>Ignored (never depend on)</th></tr></thead>
+      <tbody>
+        <tr><td>Single-class base rules: <code>.hero-title { &hellip; }</code></td><td>Descendant / child combinators: <code>.a .b</code>, <code>.a &gt; .b</code></td></tr>
+        <tr><td>Comma groups of single classes: <code>.a, .b { &hellip; }</code></td><td>Compound / multi-class selectors: <code>.a.b</code></td></tr>
+        <tr><td>Pseudo-classes / elements on one class: <code>.btn:hover</code>, <code>.card::before</code></td><td>Element, id, and attribute-only selectors: <code>div</code>, <code>#id</code>, <code>[data-x]</code></td></tr>
+        <tr><td><code>@media</code>, <code>@container</code>, <code>@supports</code> blocks whose inner rules are single-class rules</td><td><code>@keyframes</code>, <code>@import</code></td></tr>
+      </tbody>
+    </table>
+    <p>Give every element its own class and style it by that class. Prefer CSS variables (design tokens) for color and spacing so the section stays on-brand. Values containing <code>expression()</code>, <code>url(javascript:)</code>, or <code>behavior</code> are rejected. BEM class names are encouraged (<code>.hero</code>, <code>.hero__title</code>, <code>.hero__cta--ghost</code>).</p>
+
+    <div class="callout callout-note"><strong>Why single-class only?</strong> Hover states and responsive rules survive because they map onto the builder&rsquo;s nested-style model &mdash; a hover or <code>@media</code> block becomes a nested variant of the class, not a separate selector. Descendant and compound selectors have no place in that per-element model, so they are dropped rather than silently half-applied.</div>
+
+    <h3>JavaScript</h3>
+    <ul>
+      <li>Vanilla JS only &mdash; no build step, no framework.</li>
+      <li>It runs on the <strong>published page only</strong>, not in the builder canvas, and is appended to the page&rsquo;s script file.</li>
+      <li>Scope every query to the section&rsquo;s own classes so it can&rsquo;t touch the rest of the page, and guard for elements that may not be present.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Worked example</h2>
+    <p>A call-to-action section with an editable eyebrow, headline, and button link (three dynamic holes), a <code>:hover</code> lift on the button, and a responsive <code>@media</code> rule.</p>
+
+    <h3>HTML</h3>
+    <pre><code>&lt;section class=&quot;cta&quot;&gt;
+  &lt;p class=&quot;cta__eyebrow&quot; data-outpost=&quot;cta_eyebrow&quot;&gt;Limited beta&lt;/p&gt;
+  &lt;h2 class=&quot;cta__title&quot; data-outpost=&quot;cta_title&quot;&gt;Ship pages before lunch&lt;/h2&gt;
+  &lt;a class=&quot;cta__btn&quot; href=&quot;/signup&quot; data-outpost=&quot;cta_href&quot;&gt;Start free&lt;/a&gt;
+&lt;/section&gt;</code></pre>
+
+    <h3>CSS</h3>
+    <pre><code>.cta { padding: var(--space-xl, 4rem) 1.5rem; text-align: center; background: var(--surface, #0b0b12); color: #fff; }
+.cta__title { font-size: clamp(1.75rem, 4vw, 2.75rem); margin: 0 0 1rem; }
+.cta__btn { display: inline-block; padding: 0.8rem 1.6rem; border-radius: 10px; background: var(--primary, #6d5efc); color: #fff; text-decoration: none; }
+.cta__btn:hover { transform: translateY(-2px); }
+@media (max-width: 600px) { .cta { padding: 2.5rem 1rem; } }</code></pre>
+
+    <h3>JavaScript</h3>
+    <pre><code>document.querySelectorAll('.cta__btn').forEach((b) =&gt; b.addEventListener('click', () =&gt; {}));</code></pre>
+
+    <p>After import: the <code>&lt;section&gt;</code> becomes the section root; the eyebrow, title, and button are editable fields (edit their text or link inline, and the live page updates with no rebuild); <code>.cta</code>, <code>.cta__title</code>, and <code>.cta__btn</code> (with its hover and responsive variants) are added to the site stylesheet; and the click handler is written to the page&rsquo;s <code>{slug}.js</code> to run on the published page.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Generate with AI</h2>
+    <p>At the top of the modal is a <strong>Generate with AI</strong> bar. Describe the section you want &mdash; for example, &ldquo;a pricing CTA with three tiers&rdquo; &mdash; and the model fills the three panes with import-ready HTML, CSS, and JavaScript that you can review and edit before importing.</p>
+    <ul>
+      <li>The model is instructed with the exact import-ready spec above, so its output is built to explode cleanly into editable nodes.</li>
+      <li>If your site defines design tokens, they are passed to the model so it prefers your CSS variables and stays on-brand.</li>
+      <li>Generation streams into the panes; you can stop it mid-flight. Nothing is imported until you click <strong>Import section</strong>.</li>
+    </ul>
+
+    <div class="callout callout-note"><strong>Bring your own key.</strong> Generation uses the AI provider and key configured in <strong>Settings &rarr; Integrations</strong> (the same keys Ranger uses). The model is self-selected for the chosen provider. If no key is configured, generation returns a message asking you to add one. Usage and cost are reported when generation finishes.</div>
+
+    <h3>Endpoint</h3>
+    <table>
+      <thead><tr><th>Route</th><th>Method</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>api.php?action=builder/import-ai</code></td><td>POST</td><td>Streams (SSE) a generated section. Body: <code>{ prompt, context?, provider?, model? }</code>. Emits a <code>section</code> event with <code>html</code>, <code>css</code>, and <code>js</code> from the model&rsquo;s single <code>emit_section</code> tool call, then a <code>done</code> event with token usage.</td></tr>
+        <tr><td><code>api.php?action=nodes/import-section&amp;owner_id={pageId}</code></td><td>POST</td><td>Performs the import. Body: <code>{ html, css, js }</code>. Returns the parsed node <code>tree</code>, the parsed style <code>classes</code>, and <code>js_written</code>.</td></tr>
+      </tbody>
+    </table>
+    <p>Both endpoints require the <code>content.*</code> capability.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>For external tools (MCP)</h2>
+    <p>The same import-ready spec is exposed as an MCP resource so an external LLM &mdash; Claude Code, Claude Desktop, or any MCP client &mdash; can fetch it and emit paste-ready sections directly.</p>
+    <table>
+      <thead><tr><th>URI</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>outpost://import/guide</code></td><td>The full import-ready HTML/CSS/JS spec: supported tag set, class-only styling with hover + <code>@media</code>, dynamic holes (<code>data-outpost</code>), the parser limits, and a worked example.</td></tr>
+      </tbody>
+    </table>
+    <p>An external tool reads this resource, generates HTML/CSS/JS that follows it, and you paste the three parts into the Import modal. See the <a href="features/mcp-server.html">MCP Server</a> page for connection setup.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Limits &amp; safeguards</h2>
+    <ul>
+      <li><strong>Size caps</strong> &mdash; HTML is capped at 500,000 characters; CSS and JS at 200,000 each. AI prompts are capped at 8,000 characters.</li>
+      <li><strong>PHP stripped</strong> &mdash; PHP tags are removed from imported HTML and JS before anything is stored or written.</li>
+      <li><strong>URL sanitization</strong> &mdash; <code>javascript:</code>, <code>data:</code>, and <code>vbscript:</code> URLs are blocked in <code>href</code>/<code>src</code> and field values.</li>
+      <li><strong>Tree limits</strong> &mdash; parsing stops at a depth of 100 or 5,000 nodes; dangling child references and cycles are broken during validation.</li>
+      <li><strong>JS target</strong> &mdash; JavaScript is only written for real pages with a simple single-segment slug; it is never written for the globals owner.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="features/ranger.html">Ranger AI Assistant</a> &mdash; the built-in AI assistant that shares the same provider keys</li>
+      <li><a href="features/mcp-server.html">MCP Server</a> &mdash; connect external AI tools and fetch the <code>outpost://import/guide</code> resource</li>
+      <li><a href="api/admin-api.html">Admin API</a> &mdash; technical reference for the builder and import endpoints</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

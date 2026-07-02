@@ -106,6 +106,8 @@ export const nodes = {
     request('nodes', { method: 'PUT', params: { owner_id: ownerId, owner_type: ownerType }, body: { tree, version } }),
   render: (ownerId, ownerType = 'page') =>
     request('nodes/render', { params: { owner_id: ownerId, owner_type: ownerType } }),
+  importSection: (ownerId, html, css, js) =>
+    request('nodes/import-section', { method: 'POST', params: { owner_id: ownerId }, body: { html, css, js } }),
 };
 
 export const styleClasses = {
@@ -280,6 +282,14 @@ export const ranger = {
   deleteConversation: (id) => request('ranger/conversations', { method: 'DELETE', params: { id } }),
   getSettings: () => request('ranger/settings'),
   updateSettings: (data) => request('ranger/settings', { method: 'PUT', body: data }),
+};
+
+export const stock = {
+  providers: () => request('stock/providers'),
+  search: (provider, q, page = 1) => request('stock/search', { params: { provider, q, page } }),
+  import: (provider, id, alt = '') => request('stock/import', { method: 'POST', body: { provider, id, alt } }),
+  getSettings: () => request('stock/settings'),
+  updateSettings: (data) => request('stock/settings', { method: 'PUT', body: data }),
 };
 
 // Stats

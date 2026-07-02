@@ -1,6 +1,6 @@
 import * as T from './node-tree.js';
 import * as TOK from './builder-tokens.js';
-import { emitClassCss, serializeCssBody, parseCssBody, sanitizeRawCss, parseCustomMedia, expandCustomMedia } from './css-nest.js';
+import { emitClassCss, emitScopedCss, serializeCssBody, parseCssBody, sanitizeRawCss, parseCustomMedia, expandCustomMedia, nestedKeyValid } from './css-nest.js';
 import { nodes as nodesApi, styleClasses as styleClassesApi, nodeComponents as componentsApi, designTokens as tokensApi, styleManager as styleManagerApi, nodeFields as nodeFieldsApi } from './api.js';
 
 function fieldNameSlug(s) {
@@ -39,6 +39,26 @@ function cleanDeclarations(decls) {
     if (!p || raw == null) continue;
     const val = String(raw).replace(STYLE_VALUE_RE, '').trim().slice(0, 400);
     if (val) out[p] = val;
+  }
+  return out;
+}
+
+function cleanNestedDeclarations(decls, depth = 0) {
+  const out = {};
+  if (depth > 20 || !decls || typeof decls !== 'object') return out;
+  for (const key in decls) {
+    if (!Object.hasOwn(decls, key) || RESERVED_KEYS.has(key)) continue;
+    const val = decls[key];
+    if (val && typeof val === 'object') {
+      if (!nestedKeyValid(key)) continue;
+      const sub = cleanNestedDeclarations(val, depth + 1);
+      if (Object.keys(sub).length) out[key] = sub;
+    } else if (val != null) {
+      const p = String(key).toLowerCase().replace(/[^a-z-]/g, '');
+      if (!p) continue;
+      const clean = String(val).replace(STYLE_VALUE_RE, '').trim().slice(0, 400);
+      if (clean) out[p] = clean;
+    }
   }
   return out;
 }
@@ -116,6 +136,21 @@ export function createNodeEditor() {
     comps = nc;
   }
 
+  function nodeStylesCss() {
+    let css = '';
+    const emit = (tree) => {
+      for (const id in tree.nodes) {
+        const st = tree.nodes[id].styles;
+        if (st && typeof st === 'object' && Object.keys(st).length) {
+          css += emitScopedCss(`.oc-canvas [data-node-id="${id}"]`, st);
+        }
+      }
+    };
+    emit(pageTree);
+    for (const cid in comps) emit(comps[cid].tree);
+    return css;
+  }
+
   function pushHistory(prev) {
     undoStack.push(snap(prev));
     if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
@@ -177,6 +212,7 @@ export function createNodeEditor() {
     get classesCss() {
       let css = TOK.tokensToCss(tokens);
       for (const name in classes) css += emitClassCss('.oc-canvas ', name, classes[name]);
+      css += nodeStylesCss();
       return css;
     },
 
@@ -189,6 +225,7 @@ export function createNodeEditor() {
       const sheets = stylesheets.map((s) => sanitizeRawCss(s.css || '')).join('\n');
       let css = TOK.tokensToCss(tokens);
       for (const name in classes) css += emitClassCss('.oc-canvas ', name, classes[name]);
+      css += nodeStylesCss();
       const raw = (templateCss || '') + '\n' + vars + '\n' + sheets + '\n' + css;
       return expandCustomMedia(raw, parseCustomMedia(customMedia));
     },
@@ -264,6 +301,62 @@ export function createNodeEditor() {
     },
     unbindField(id) {
       return commit((t) => T.updateProps(t, id, { field: '' }));
+    },
+
+    insertSubtree(parentId, subtree) {
+      if (!subtree || !subtree.root || !subtree.nodes) return null;
+      const t0 = getTree();
+      const pid = (parentId && t0.nodes[parentId] && T.NODE_TYPES[t0.nodes[parentId].type]?.children) ? parentId : t0.root;
+      pushHistory(t0);
+      const tree = snap(t0);
+      const idMap = Object.create(null);
+      for (const oldId in subtree.nodes) {
+        if (RESERVED_KEYS.has(oldId)) continue;
+        idMap[oldId] = T.newId();
+      }
+      for (const oldId in subtree.nodes) {
+        if (RESERVED_KEYS.has(oldId)) continue;
+        const n = subtree.nodes[oldId];
+        if (!n || !T.NODE_TYPES[n.type]) continue;
+        tree.nodes[idMap[oldId]] = {
+          id: idMap[oldId],
+          type: n.type,
+          tag: n.tag,
+          props: n.props || {},
+          classes: Array.isArray(n.classes) ? n.classes : [],
+          styles: n.styles || {},
+          children: (n.children || []).map((c) => idMap[c]).filter(Boolean),
+        };
+      }
+      const newRoot = idMap[subtree.root];
+      if (!newRoot || !tree.nodes[newRoot]) return null;
+      tree.nodes[pid].children.push(newRoot);
+      let clean;
+      try { clean = T.validate(tree); } catch { return null; }
+      setTree(clean);
+      dirty = true;
+      if (clean.nodes[newRoot]) selectedId = newRoot;
+      return newRoot;
+    },
+    mergeClasses(map) {
+      if (!map || typeof map !== 'object') return 0;
+      const next = { ...classes };
+      let n = 0;
+      for (const name in map) {
+        const clean = sanitizeClassName(name);
+        if (!clean) continue;
+        const decls = cleanNestedDeclarations(map[name]);
+        if (Object.keys(decls).length) { next[clean] = { ...(next[clean] || {}), ...decls }; n++; }
+      }
+      classes = next;
+      if (n) dirty = true;
+      return n;
+    },
+    async importSection(html, css, js, parentId) {
+      const res = await nodesApi.importSection(ownerId, html, css, js);
+      const inserted = res.tree ? this.insertSubtree(parentId, res.tree) : null;
+      const classCount = res.classes ? this.mergeClasses(res.classes) : 0;
+      return { inserted, classCount, jsWritten: !!res.js_written };
     },
 
     classCssText(name) {
@@ -587,6 +680,49 @@ export function createNodeEditor() {
         classes = { ...classes, [name]: cls };
       }
       dirty = true;
+    },
+    getElementDeclaration(nodeId, prop) {
+      const st = getTree().nodes[nodeId]?.styles;
+      if (!st || typeof st !== 'object') return '';
+      if (breakpoint !== 'desktop') {
+        const block = st[BP_MEDIA[breakpoint]];
+        if (block && typeof block === 'object' && block[prop] != null && block[prop] !== '') return block[prop];
+      }
+      const v = st[prop];
+      return (v != null && typeof v !== 'object') ? v : '';
+    },
+    setElementDeclaration(nodeId, prop, value) {
+      const t = getTree();
+      const node = t.nodes[nodeId];
+      if (!node) return;
+      const st = { ...(node.styles && typeof node.styles === 'object' ? node.styles : {}) };
+      if (breakpoint === 'desktop') {
+        if (value === '' || value == null) delete st[prop];
+        else st[prop] = value;
+      } else {
+        const mk = BP_MEDIA[breakpoint];
+        const block = { ...(st[mk] && typeof st[mk] === 'object' ? st[mk] : {}) };
+        if (value === '' || value == null) delete block[prop];
+        else block[prop] = value;
+        if (Object.keys(block).length) st[mk] = block;
+        else delete st[mk];
+      }
+      setTree({ ...t, nodes: { ...t.nodes, [nodeId]: { ...node, styles: st } } });
+      dirty = true;
+    },
+    elementCssText(nodeId) {
+      const st = getTree().nodes[nodeId]?.styles;
+      return st && typeof st === 'object' && Object.keys(st).length ? serializeCssBody(st) : '';
+    },
+    setElementCss(nodeId, text) {
+      let parsed;
+      try { parsed = parseCssBody(text); } catch { return false; }
+      const t = getTree();
+      const node = t.nodes[nodeId];
+      if (!node) return false;
+      setTree({ ...t, nodes: { ...t.nodes, [nodeId]: { ...node, styles: parsed } } });
+      dirty = true;
+      return true;
     },
     addClassToNode(nodeId, name) {
       if (!CLASS_NAME_RE.test(name)) return false;

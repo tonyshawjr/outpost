@@ -19,8 +19,11 @@
     return list.length ? list[list.length - 1] : null;
   });
 
-  let display = $derived(activeClass ? editor.getDeclaration(activeClass, 'display') : '');
-  let position = $derived(activeClass ? editor.getDeclaration(activeClass, 'position') : '');
+  let styleTarget = $derived(activeClass ? { kind: 'class', name: activeClass } : (node ? { kind: 'element', id: node.id } : null));
+  let targetLabel = $derived(activeClass ? `.${activeClass}` : (node ? `this ${node.tag}` : ''));
+
+  let display = $derived(val('display'));
+  let position = $derived(val('position'));
   let bpLabel = $derived(editor.breakpoint === 'tablet' ? 'Tablet' : editor.breakpoint === 'mobile' ? 'Mobile' : null);
 
   let suggestions = $derived.by(() => {
@@ -37,17 +40,29 @@
   });
 
   $effect(() => {
-    const name = activeClass;
-    const serialized = name ? editor.classCssText(name) : '';
+    const t = styleTarget;
+    const serialized = !t ? '' : (t.kind === 'class' ? editor.classCssText(t.name) : editor.elementCssText(t.id));
     if (!cssFocused) cssText = serialized;
   });
 
-  function val(prop) { return editor.getDeclaration(activeClass, prop) || ''; }
-  function set(prop, e) { editor.setDeclaration(activeClass, prop, e.target.value); }
+  function val(prop) {
+    const t = styleTarget;
+    if (!t) return '';
+    return (t.kind === 'class' ? editor.getDeclaration(t.name, prop) : editor.getElementDeclaration(t.id, prop)) || '';
+  }
+  function set(prop, e) {
+    const t = styleTarget;
+    if (!t) return;
+    if (t.kind === 'class') editor.setDeclaration(t.name, prop, e.target.value);
+    else editor.setElementDeclaration(t.id, prop, e.target.value);
+  }
 
   function onCssInput(e) {
     cssText = e.target.value;
-    editor.setClassCss(activeClass, cssText);
+    const t = styleTarget;
+    if (!t) return;
+    if (t.kind === 'class') editor.setClassCss(t.name, cssText);
+    else editor.setElementCss(t.id, cssText);
   }
 
   function choose(item) {
@@ -136,9 +151,9 @@
       {/if}
     </div>
 
-    {#if activeClass}
+    {#if styleTarget}
       <div class="editing-row">
-        <span class="editing">Editing <span class="ec">.{activeClass}</span>{#if bpLabel}<span class="bp">@ {bpLabel}</span>{/if}</span>
+        <span class="editing">Editing <span class="ec">{targetLabel}</span>{#if bpLabel}<span class="bp">@ {bpLabel}</span>{/if}</span>
         <div class="vtabs" role="tablist" aria-label="Style editor view">
           <button role="tab" aria-selected={view === 'visual'} class:on={view === 'visual'} onclick={() => (view = 'visual')}>Visual</button>
           <button role="tab" aria-selected={view === 'css'} class:on={view === 'css'} onclick={() => (view = 'css')}>CSS</button>
@@ -146,7 +161,7 @@
       </div>
 
       {#if view === 'css'}
-        <label class="css-label" for="css-box">CSS for .{activeClass}</label>
+        <label class="css-label" for="css-box">CSS for {targetLabel}</label>
         <textarea
           id="css-box"
           class="css-box"
@@ -240,8 +255,10 @@
         {@render text('Transition', 'transition')}
         {@render pick('Blend', 'mix-blend-mode', ['normal', 'multiply', 'screen', 'overlay', 'difference', 'lighten', 'darken'])}
       {/if}
-    {:else}
-      <p class="hint">Add a class to start styling this element. Styles you set on a class apply everywhere that class is used.</p>
+    {/if}
+
+    {#if styleTarget && styleTarget.kind === 'element'}
+      <p class="hint">Styling this element directly. Add a class above to make these styles reusable across elements.</p>
     {/if}
   </div>
 {/if}

@@ -1381,6 +1381,12 @@ function handle_mcp_resources_list(mixed $id): never {
                 'description' => 'How to build pages in Outpost: the node-tree model, styling, dynamic islands, and the apply_page_ops operation vocabulary. Read this before using get_page_tree / apply_page_ops.',
                 'mimeType' => 'text/markdown',
             ],
+            [
+                'uri' => 'outpost://import/guide',
+                'name' => 'Import HTML Guide',
+                'description' => 'How to write import-ready Outpost HTML/CSS/JS: the supported tag set, class-only styling with hover + @media, dynamic holes (data-outpost), and the parser limits. Read this to generate a section a human can paste into the visual builder Import.',
+                'mimeType' => 'text/markdown',
+            ],
         ],
     ]);
 }
@@ -1410,6 +1416,8 @@ function handle_mcp_resources_read(mixed $id, array $params): never {
         mcp_resource_globals($id, $uri);
     } elseif ($uri === 'outpost://builder/guide') {
         mcp_resource_builder_guide($id, $uri);
+    } elseif ($uri === 'outpost://import/guide') {
+        mcp_resource_import_guide($id, $uri);
     } elseif (preg_match('#^outpost://collections/([a-z0-9-]+)$#', $uri, $m)) {
         mcp_resource_collection($id, $uri, $m[1]);
     } else {
@@ -1423,6 +1431,17 @@ function mcp_resource_builder_guide(mixed $id, string $uri): never {
             'uri' => $uri,
             'mimeType' => 'text/markdown',
             'text' => outpost_builder_conventions(),
+        ]],
+    ]);
+}
+
+function mcp_resource_import_guide(mixed $id, string $uri): never {
+    if (!function_exists('outpost_import_conventions')) require_once __DIR__ . '/node-engine.php';
+    mcp_response($id, [
+        'contents' => [[
+            'uri' => $uri,
+            'mimeType' => 'text/markdown',
+            'text' => outpost_import_conventions(),
         ]],
     ]);
 }

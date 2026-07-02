@@ -12,7 +12,9 @@
   import ContextMenu from '$components/builder/ContextMenu.svelte';
   import AiPanel from '$components/builder/AiPanel.svelte';
   import StyleManager from '$components/builder/StyleManager.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette } from 'lucide-svelte';
+  import SectionImportModal from '$components/builder/SectionImportModal.svelte';
+  import StockPhotoPicker from '$components/builder/StockPhotoPicker.svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -23,6 +25,29 @@
   let editMode = $state('design');
   let aiOpen = $state(false);
   let styleManagerOpen = $state(false);
+  let importOpen = $state(false);
+  let stockOpen = $state(false);
+
+  function applyStockPhoto(res) {
+    if (!selected || selected.type !== 'image' || !res?.url) return;
+    const props = {};
+    if (res.credit) props.credit = res.credit;
+    if (boundField) {
+      editor.setFieldValue(boundField, res.url);
+    } else {
+      props.src = res.url;
+      if (res.alt && !selected.props.alt) props.alt = res.alt;
+    }
+    if (Object.keys(props).length) editor.updateProps(selected.id, props);
+  }
+
+  function copyCredit() {
+    const c = selected?.props?.credit;
+    if (!c) return;
+    const parts = [`Photo by ${c.author || 'photographer'} on ${c.provider || 'stock'}`];
+    if (c.author_url) parts.push(c.author_url);
+    navigator.clipboard?.writeText(parts.join(' — ')).then(() => addToast('Credit copied', 'success'));
+  }
 
   let selected = $derived(editor.selectedNode);
   let status = $derived(
@@ -191,6 +216,11 @@
             <span>{a.label}</span>
           </button>
         {/each}
+        <span class="add-sep" aria-hidden="true"></span>
+        <button class="add" onclick={() => (importOpen = true)} title="Import a section from HTML, CSS &amp; JavaScript">
+          <Download size={15} aria-hidden="true" />
+          <span>Import</span>
+        </button>
       </div>
     {:else}
       <div class="center content-hint">Content mode — editing text &amp; media only</div>
@@ -313,10 +343,26 @@
               <span>{boundField ? 'Image URL (dynamic)' : 'Image URL'}</span>
               <input type="text" value={primaryValue} oninput={setPrimary} />
             </label>
+            <button class="ghost stock-btn" onclick={() => (stockOpen = true)} type="button">
+              <Images size={14} aria-hidden="true" />
+              <span>Search stock photos</span>
+            </button>
             <label class="field">
               <span>Alt text</span>
               <input type="text" value={selected.props.alt || ''} oninput={(e) => setProp('alt', e)} />
             </label>
+            {#if selected.props.credit}
+              <div class="credit-box">
+                <span class="credit-head">Photo credit</span>
+                <p class="credit-text">Photo by {selected.props.credit.author || 'Unknown'} on {selected.props.credit.provider || 'stock'}</p>
+                <div class="credit-links">
+                  {#if selected.props.credit.author_url}<a href={selected.props.credit.author_url} target="_blank" rel="noopener">Photographer</a>{/if}
+                  {#if selected.props.credit.provider_url}<a href={selected.props.credit.provider_url} target="_blank" rel="noopener">{selected.props.credit.provider}</a>{/if}
+                </div>
+                <button class="ghost credit-copy" type="button" onclick={copyCredit}>Copy credit</button>
+                <p class="credit-note">Captured for you — display it wherever you like. Not shown on the page automatically.</p>
+              </div>
+            {/if}
           {:else if selected.type === 'button' || selected.type === 'link'}
             <label class="field">
               <span>Label</span>
@@ -371,6 +417,28 @@
 
   {#if styleManagerOpen}
     <StyleManager {editor} onclose={() => (styleManagerOpen = false)} />
+  {/if}
+
+  {#if stockOpen}
+    <StockPhotoPicker
+      onclose={() => (stockOpen = false)}
+      onselect={(res) => { applyStockPhoto(res); addToast(res?.type === 'hotlink' ? 'Photo added (hotlinked)' : 'Photo added to media', 'success'); }}
+    />
+  {/if}
+
+  {#if importOpen}
+    <SectionImportModal
+      {editor}
+      parentId={insertTarget}
+      onclose={() => (importOpen = false)}
+      onimported={(res) => {
+        const parts = [];
+        if (res.inserted) parts.push('section added');
+        if (res.classCount) parts.push(`${res.classCount} style${res.classCount === 1 ? '' : 's'} merged`);
+        if (res.jsWritten) parts.push('script saved');
+        addToast(parts.length ? `Imported — ${parts.join(', ')}` : 'Nothing to import', res.inserted || res.classCount || res.jsWritten ? 'success' : 'error');
+      }}
+    />
   {/if}
 </div>
 
@@ -461,6 +529,7 @@
   }
   .add:hover { background: var(--hover); color: var(--text); }
   .add:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
+  .add-sep { width: 1px; align-self: stretch; margin: 4px 4px; background: var(--border); }
 
   .icon {
     display: inline-flex;
@@ -706,6 +775,28 @@
   .ghost:disabled { opacity: 0.4; cursor: default; }
   .ghost:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
   .ghost.danger:hover:not(:disabled) { color: var(--red); }
+  .stock-btn { width: 100%; justify-content: center; margin: -6px 0 14px; }
+
+  .credit-box {
+    margin-bottom: 14px;
+    padding: 10px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--hover);
+  }
+  .credit-head {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--dim);
+  }
+  .credit-text { margin: 6px 0; font-size: 12.5px; color: var(--text); }
+  .credit-links { display: flex; gap: 12px; margin-bottom: 8px; }
+  .credit-links a { font-size: 12px; color: var(--purple-soft, var(--purple)); text-decoration: none; }
+  .credit-links a:hover { text-decoration: underline; }
+  .credit-copy { width: 100%; justify-content: center; }
+  .credit-note { margin: 8px 0 0; font-size: 11px; color: var(--dim); line-height: 1.4; }
 
   .ins-empty {
     font-size: 13px;

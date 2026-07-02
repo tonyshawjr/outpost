@@ -136,6 +136,152 @@ function builder_ai_tools(): array {
     ]];
 }
 
+function import_ai_system_prompt(array $context): string {
+    if (!function_exists('outpost_import_conventions')) require_once __DIR__ . '/node-engine.php';
+    $conventions = outpost_import_conventions();
+    $tokens = '';
+    if (!empty($context['tokens'])) {
+        $tokenJson = json_encode($context['tokens'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $tokens = "\n# Available design tokens\nPrefer these CSS variables for colour and spacing so the section stays on-brand:\n$tokenJson\n";
+    }
+
+    return <<<PROMPT
+You generate a single import-ready section for Outpost. The user describes a section and you return its HTML, CSS, and JavaScript by calling the emit_section tool exactly once. Follow the rules below precisely — output that breaks them will not explode into editable nodes.
+
+$conventions
+$tokens
+Call emit_section with the three parts. Keep the CSS self-contained to the section's classes. Leave js empty unless real behaviour is needed. Do not wrap the parts in markdown fences inside the tool fields — put raw code in each field.
+PROMPT;
+}
+
+function import_ai_tools(): array {
+    return [[
+        'name' => 'emit_section',
+        'description' => 'Return the generated section as three raw code strings. Called exactly once.',
+        'parameters' => [
+            'type' => 'object',
+            'properties' => [
+                'html' => ['type' => 'string', 'description' => 'The section HTML (one top-level element).'],
+                'css' => ['type' => 'string', 'description' => 'CSS targeting the section classes. Single-class selectors, :hover, and @media only.'],
+                'js' => ['type' => 'string', 'description' => 'Optional vanilla JS scoped to the section, or empty.'],
+            ],
+            'required' => ['html'],
+        ],
+    ]];
+}
+
+function handle_import_ai_generate(): void {
+    outpost_require_cap('content.*');
+    set_time_limit(600);
+
+    $raw = file_get_contents('php://input');
+    if ($raw === false || strlen($raw) > 200_000) {
+        ranger_sse_init();
+        ranger_sse_send(['type' => 'error', 'message' => 'Request too large']);
+        ranger_sse_send(['type' => 'done']);
+        return;
+    }
+    $data = json_decode($raw, true);
+    $prompt = is_array($data) && is_string($data['prompt'] ?? null) ? trim(mb_substr($data['prompt'], 0, 8000)) : '';
+    if ($prompt === '') {
+        ranger_sse_init();
+        ranger_sse_send(['type' => 'error', 'message' => 'Describe the section you want.']);
+        ranger_sse_send(['type' => 'done']);
+        return;
+    }
+    $context = is_array($data['context'] ?? null) ? $data['context'] : [];
+
+    $requestedProvider = $data['provider'] ?? null;
+    $requestedModel = $data['model'] ?? null;
+    $defaultProvider = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'ranger_default_provider'");
+    $provider = $requestedProvider ?: ($defaultProvider['value'] ?? 'claude');
+    $modelRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = ?", ["ranger_model_$provider"]);
+    $modelHint = $requestedModel ?: ($modelRow['value'] ?? '');
+    $apiKeyRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = ?", ["ranger_api_key_$provider"]);
+    if (!$apiKeyRow || empty($apiKeyRow['value'])) {
+        ranger_sse_init();
+        ranger_sse_send(['type' => 'error', 'message' => "No AI key configured for $provider. Add one in Settings → Integrations."]);
+        ranger_sse_send(['type' => 'done']);
+        return;
+    }
+    try {
+        $apiKey = ranger_decrypt($apiKeyRow['value']);
+    } catch (\Throwable) {
+        ranger_sse_init();
+        ranger_sse_send(['type' => 'error', 'message' => 'Could not read the AI key. Re-enter it in Settings → Integrations.']);
+        ranger_sse_send(['type' => 'done']);
+        return;
+    }
+
+    $model = outpost_builder_resolve_model($provider, $apiKey, $modelHint);
+    $systemPrompt = import_ai_system_prompt($context);
+    $tools = import_ai_tools();
+    $messages = [['role' => 'user', 'content' => $prompt]];
+
+    $providerInstance = match ($provider) {
+        'openai' => new RangerOpenAI($apiKey),
+        'gemini' => new RangerGemini($apiKey),
+        default => new RangerClaude($apiKey),
+    };
+
+    ranger_sse_init();
+    register_shutdown_function(function () {
+        $error = error_get_last();
+        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+            echo "data: " . json_encode(['type' => 'error', 'message' => 'An internal error occurred.']) . "\n\n";
+            echo "data: " . json_encode(['type' => 'done']) . "\n\n";
+        }
+    });
+
+    $totalInput = 0;
+    $totalOutput = 0;
+    $totalCached = 0;
+    $emitted = false;
+
+    try {
+        foreach ($providerInstance->stream($systemPrompt, $messages, $tools, $model) as $event) {
+            if (!is_array($event)) continue;
+            switch ($event['type']) {
+                case 'text':
+                    ranger_sse_send(['type' => 'text', 'content' => $event['content']]);
+                    break;
+                case 'tool_use':
+                    $input = is_array($event['input'] ?? null) ? $event['input'] : [];
+                    if (($event['name'] ?? '') === 'emit_section') {
+                        ranger_sse_send([
+                            'type' => 'section',
+                            'html' => is_string($input['html'] ?? null) ? $input['html'] : '',
+                            'css' => is_string($input['css'] ?? null) ? $input['css'] : '',
+                            'js' => is_string($input['js'] ?? null) ? $input['js'] : '',
+                        ]);
+                        $emitted = true;
+                    }
+                    break;
+                case 'usage':
+                    $totalInput += $event['input_tokens'] ?? 0;
+                    $totalOutput += $event['output_tokens'] ?? 0;
+                    $totalCached += ($event['cache_read_tokens'] ?? 0) + ($event['cache_creation_tokens'] ?? 0);
+                    break;
+                case 'error':
+                    ranger_sse_send(['type' => 'error', 'message' => $event['message']]);
+                    break;
+            }
+        }
+        if (!$emitted) {
+            ranger_sse_send(['type' => 'error', 'message' => 'The model did not return a section. Try rephrasing.']);
+        }
+    } catch (\Throwable $e) {
+        error_log('Import AI error: ' . $e->getMessage());
+        ranger_sse_send(['type' => 'error', 'message' => 'An internal error occurred.']);
+    }
+
+    $costCents = ranger_calculate_cost($model, $totalInput, $totalOutput, $totalCached);
+    ranger_sse_send([
+        'type' => 'done',
+        'usage' => ['input_tokens' => $totalInput, 'output_tokens' => $totalOutput, 'cached_tokens' => $totalCached, 'cost_cents' => $costCents],
+    ]);
+}
+
 function handle_builder_ai_chat(): void {
     outpost_require_cap('content.*');
     set_time_limit(600);

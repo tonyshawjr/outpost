@@ -4,6 +4,49 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Stock Photo Credit Capture (v6.0.0-beta.29)
+
+- **Capture, surface, never inject.** Inserting a stock photo stores its credit (`author`, `author_url`, `provider`, `provider_url`) on the image node's `props.credit`. The builder inspector shows a "Photo credit" block (photographer + provider links + Copy button + a note that it's not auto-shown). Credit survives save/validate and is **never emitted into baked HTML** — the site owner displays it wherever they choose.
+- **Why:** Pexels/Unsplash API attribution is the site owner's obligation under their own BYO key. Outpost makes compliance easy and available without forcing a visible credit or risking breaking the user's template/footer.
+
+---
+
+## Element-Level Styling (v6.0.0-beta.28)
+
+- **Style any element, class or not.** The builder's `StylePanel` now targets either the active class (reusable styles) or, when the element has no class, the element itself — so the full Visual + raw/nested CSS editor is always available. Fixes classless elements (e.g. a fresh stock image) showing no style options.
+- **Per-node storage, scoped bake.** Element styles live in the node's `styles` field (the same nested model as classes: scalars + `&`-selectors + `@media`). The canvas emits `.oc-canvas [data-node-id="…"]` rules; the bake adds `data-node-id` to elements that have styles and emits `[data-node-id="…"]{…}` through `outpost_emit_rule` — identical sanitization to class CSS (`behavior`/`javascript:`/`expression()` stripped). New store methods: `getElementDeclaration`/`setElementDeclaration`/`elementCssText`/`setElementCss` + `emitScopedCss` in css-nest.
+- **Both modes coexist.** Add a class anytime to promote element styles to reusable ones; the panel labels which you're editing ("Editing .class" vs "Editing this img").
+
+---
+
+## Stock Photo Search — Pexels + Unsplash (v6.0.0-beta.27)
+
+- **In-builder picker.** A "Search stock photos" button on the image-node inspector opens a modal (`StockPhotoPicker`) with a provider toggle, keyword search, paginated grid, per-photo photographer credit, and one-click insert. Entry point wired in `NodeBuilder`; reusable component.
+- **Two providers, two models.** `php/stock-photos.php` normalizes both APIs to one shape. **Pexels** photos are downloaded server-side and saved to the media library via the new `OutpostMedia::importFromFile()` (resize + WebP + thumbnail, SVG rejected). **Unsplash** requires hotlinking, so its images are embedded by CDN URL and the required `download_location` trigger is fired on use — no local copy.
+- **Keys, encrypted + BYO.** Pexels/Unsplash keys live in Settings → Integrations (`stock/settings`, encrypted with the Ranger crypto). `stock/providers` reports which are configured so the picker only offers connected sources.
+- **SSRF-hardened download.** Download hosts are allow-listed to `images.pexels.com` / `images.unsplash.com`, redirects disabled, size/content-type capped, and photo ids strictly validated (`ctype_digit` / `^[A-Za-z0-9_-]{5,32}$`) before any provider call. Search/import gated by `content.*`, settings by `settings.*`.
+- **Attribution:** photographer credit is shown in the picker and on each result; visible on-page credit placement for baked pages is an open follow-up (matters most for Unsplash compliance).
+
+---
+
+## AI Import-HTML Spec + Generation (v6.0.0-beta.26)
+
+- **One canonical spec, many consumers.** `outpost_import_conventions()` is the single source of truth for import-ready HTML: the supported tag→node map, the "text tags flatten inner markup" caveat, class-only styling, dynamic holes (`data-outpost`), the CSS parser's real limits, and a worked example. It feeds the in-app generation system prompt, the MCP resource `outpost://import/guide`, and the docs — edit it once, everything updates.
+- **In-app generation.** "Generate with AI" in the Import modal (`builder/import-ai` SSE endpoint) turns a prompt into HTML/CSS/JS via an `emit_section` tool, filling the three panes for review before import. Reuses the Ranger BYO-key providers + self-updating model resolution; passes the page's design tokens so output stays on-brand.
+- **Import CSS gained hover + responsive.** `outpost_parse_css_classes` now recurses `@media`/`@container`/`@supports` and maps `.class:hover` / `.class::before` / `.class[attr]` into the builder's nested-style model (`&`-selectors and at-rule keys), validated by `outpost_css_nested_key_valid`. The client `mergeClasses` preserves nesting via a new `cleanNestedDeclarations`. Descendant/compound/id/element selectors are still ignored by design.
+- **Closed loop, verified.** Describe → generate (spec-compliant, with `data-outpost` holes + hover + `@media`) → import → explodes into editable nodes with dynamic holes and nested CSS intact — "static except the holes."
+
+---
+
+## Section Import + Click-to-Reveal (v6.0.0-beta.25)
+
+- **Import a section from raw code.** An **Import** button in the Visual Builder toolbar opens a three-pane HTML / CSS / JavaScript modal. The HTML is parsed server-side into a node subtree (`nodes/import-section`), the CSS into style classes, and both are inserted at the selected container (or root) and merged into the in-memory store, saved on the next builder Save. JavaScript is appended to the page's `{slug}.js` file and runs only on the published page.
+- **Sanitised end to end.** Imported markup drops `<script>`/`<style>`/`<iframe>` and event-handler attributes at parse; `javascript:`/`data:`/`vbscript:` (incl. control-char bypasses) URLs are neutralised at render; CSS strips `expression()`, `@import`, `javascript:` URLs, and the legacy `behavior`/`-moz-binding` HTC/XBL vectors. Client-side class merge is prototype-pollution guarded.
+- **Firewall ordering fix.** The admin session initialises before the Shield WAF runs, so authenticated requests legitimately carrying HTML/JS bodies (import, code editor, theme writes) are recognised and pass, while anonymous attack traffic is still pattern-blocked.
+- **Click-to-reveal targeting.** Selecting a node scrolls the canvas to bring it into view, and scrolls the Layers/Content panel to the matching row (expanding collapsed ancestors) — in both design and content mode, whichever side the selection originates from.
+
+---
+
 ## Dynamic Holes — Authored in the Builder (v6.0.0-beta.22)
 
 - **"Static except the holes," from the visual builder.** Mark any text/image/button/link node as **Dynamic content** (inspector toggle) — it becomes a named `data-outpost` hole. The page bakes to static HTML; the engine fills the holes at request time from the live `fields` table (cache clears on edit), so editing a hole updates the published page with no rebuild. "Deploys like WordPress."

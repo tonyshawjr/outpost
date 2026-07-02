@@ -26,6 +26,7 @@ require_once __DIR__ . '/customizer.php';
 require_once __DIR__ . '/brand.php';
 require_once __DIR__ . '/ranger.php';
 require_once __DIR__ . '/builder-ai.php';
+require_once __DIR__ . '/stock-photos.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
@@ -89,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // ── Shield Security Check ────────────────────────────────
+OutpostAuth::init();
 shield_check_request();
 
 // ── Route ────────────────────────────────────────────────
@@ -322,6 +324,7 @@ match (true) {
     $action === 'fields/bulk' && $method === 'PUT' => handle_fields_bulk_update(),
     $action === 'nodes/fields' && $method === 'GET' && isset($_GET['owner_id']) => handle_node_fields_get(),
     $action === 'nodes/fields' && $method === 'PUT' && isset($_GET['owner_id']) => handle_node_fields_save(),
+    $action === 'nodes/import-section' && $method === 'POST' && isset($_GET['owner_id']) => handle_import_section(),
 
     // Global fields
     $action === 'globals' && $method === 'GET' => handle_globals_get(),
@@ -673,6 +676,14 @@ match (true) {
 
     // Visual builder AI agent (live canvas)
     $action === 'builder/ai' && $method === 'POST' => handle_builder_ai_chat(),
+    $action === 'builder/import-ai' && $method === 'POST' => handle_import_ai_generate(),
+
+    // Stock photo search (Pexels + Unsplash)
+    $action === 'stock/providers' && $method === 'GET' => handle_stock_providers(),
+    $action === 'stock/search' && $method === 'GET' => handle_stock_search(),
+    $action === 'stock/import' && $method === 'POST' => handle_stock_import(),
+    $action === 'stock/settings' && $method === 'GET' => handle_stock_settings_get(),
+    $action === 'stock/settings' && $method === 'PUT' => handle_stock_settings_update(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),
@@ -2162,8 +2173,14 @@ function outpost_parse_css_declarations(string $body): array {
 }
 
 function outpost_parse_css_classes(string $css): array {
+    if (!function_exists('outpost_css_nested_key_valid')) require_once __DIR__ . '/node-engine.php';
     $css = preg_replace('#/\*.*?\*/#s', '', $css);
     $classes = [];
+    outpost_collect_css_rules($css, null, $classes);
+    return $classes;
+}
+
+function outpost_collect_css_rules(string $css, ?string $atRule, array &$classes): void {
     $len = strlen($css);
     $i = 0;
     while ($i < $len) {
@@ -2172,23 +2189,66 @@ function outpost_parse_css_classes(string $css): array {
         $prelude = trim(substr($css, $i, $brace - $i));
         $depth = 1;
         $j = $brace + 1;
+        $quote = '';
         while ($j < $len && $depth > 0) {
-            if ($css[$j] === '{') $depth++;
-            elseif ($css[$j] === '}') $depth--;
+            $ch = $css[$j];
+            if ($quote !== '') {
+                if ($ch === $quote) $quote = '';
+            } elseif ($ch === '"' || $ch === "'") {
+                $quote = $ch;
+            } elseif ($ch === '{') {
+                $depth++;
+            } elseif ($ch === '}') {
+                $depth--;
+            }
             $j++;
         }
-        $body = substr($css, $brace + 1, $j - 1 - ($brace + 1));
+        $body = substr($css, $brace + 1, max(0, $j - 1 - ($brace + 1)));
         $i = $j;
-        if ($prelude === '' || $prelude[0] === '@') continue;
+        if ($prelude === '') continue;
+
+        if ($prelude[0] === '@') {
+            if ($atRule === null && preg_match('/^@(media|container|supports)\b/i', $prelude) && outpost_css_nested_key_valid($prelude)) {
+                outpost_collect_css_rules($body, $prelude, $classes);
+            }
+            continue;
+        }
+
         foreach (explode(',', $prelude) as $sel) {
             $sel = trim($sel);
-            if (preg_match('/^\.([A-Za-z_][A-Za-z0-9_-]*)$/', $sel, $m)) {
-                $decls = outpost_parse_css_declarations($body);
-                if ($decls) $classes[$m[1]] = array_merge($classes[$m[1]] ?? [], $decls);
+            if (!preg_match('/^\.([A-Za-z_][A-Za-z0-9_-]*)((?::{1,2}[A-Za-z-]+(?:\([^)]*\))?|\[[^\]]*\])*)$/', $sel, $m)) continue;
+            $name = $m[1];
+            $suffix = $m[2] ?? '';
+            $decls = outpost_parse_css_declarations($body);
+            if (!$decls) continue;
+
+            $nestKey = null;
+            if ($suffix !== '') {
+                $nestKey = '&' . $suffix;
+                if (!outpost_css_nested_key_valid($nestKey)) continue;
+            }
+            if (!isset($classes[$name]) || !is_array($classes[$name])) $classes[$name] = [];
+
+            if ($atRule !== null) {
+                if (!isset($classes[$name][$atRule]) || !is_array($classes[$name][$atRule])) $classes[$name][$atRule] = [];
+                if ($nestKey !== null) {
+                    $classes[$name][$atRule][$nestKey] = array_merge(
+                        (is_array($classes[$name][$atRule][$nestKey] ?? null) ? $classes[$name][$atRule][$nestKey] : []),
+                        $decls
+                    );
+                } else {
+                    $classes[$name][$atRule] = array_merge($classes[$name][$atRule], $decls);
+                }
+            } elseif ($nestKey !== null) {
+                $classes[$name][$nestKey] = array_merge(
+                    (is_array($classes[$name][$nestKey] ?? null) ? $classes[$name][$nestKey] : []),
+                    $decls
+                );
+            } else {
+                $classes[$name] = array_merge($classes[$name], $decls);
             }
         }
     }
-    return $classes;
 }
 
 function outpost_upsert_style_classes(array $classes): int {
@@ -2726,6 +2786,49 @@ function handle_page_delete(): void {
 }
 
 // ── Field Handlers ───────────────────────────────────────
+function handle_import_section(): void {
+    outpost_require_cap('content.*');
+    if (!function_exists('outpost_html_to_node_tree')) require_once __DIR__ . '/node-engine.php';
+    $pid = (int) ($_GET['owner_id'] ?? 0);
+    if (!$pid) json_error('owner_id required', 400);
+
+    $body = get_json_body();
+    $html = is_string($body['html'] ?? null) ? $body['html'] : '';
+    $css  = is_string($body['css'] ?? null) ? $body['css'] : '';
+    $js   = is_string($body['js'] ?? null) ? $body['js'] : '';
+    if (trim($html) === '' && trim($css) === '' && trim($js) === '') json_error('Nothing to import', 400);
+
+    $tree = null;
+    if (trim($html) !== '') {
+        $clean = outpost_strip_php_tags(mb_substr($html, 0, 500000));
+        try {
+            $tree = outpost_html_to_node_tree($clean);
+        } catch (\Throwable $e) {
+            json_error('Could not parse HTML', 400);
+        }
+    }
+
+    $classes = trim($css) !== '' ? outpost_parse_css_classes(mb_substr($css, 0, 200000)) : [];
+
+    $jsWritten = false;
+    if (trim($js) !== '') {
+        if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+        $page = OutpostDB::fetchOne('SELECT path FROM pages WHERE id = ?', [$pid]);
+        if ($page && !empty($page['path']) && $page['path'] !== '__global__') {
+            $base = ($page['path'] === '/') ? 'index' : trim($page['path'], '/');
+            if ($base !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $base)) {
+                $renderRoot = rtrim(outpost_active_render_root(), '/');
+                $jsFile = $renderRoot . '/' . $base . '.js';
+                $cleanJs = outpost_strip_php_tags(mb_substr($js, 0, 200000));
+                $existing = file_exists($jsFile) ? (@file_get_contents($jsFile) ?: '') : '';
+                if (@file_put_contents($jsFile, rtrim($existing) . "\n" . $cleanJs . "\n") !== false) $jsWritten = true;
+            }
+        }
+    }
+
+    json_response(['tree' => $tree, 'classes' => $classes, 'js_written' => $jsWritten]);
+}
+
 function handle_node_fields_get(): void {
     $pid = (int) ($_GET['owner_id'] ?? 0);
     if (!$pid) json_error('owner_id required', 400);

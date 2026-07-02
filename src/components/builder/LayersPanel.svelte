@@ -42,6 +42,23 @@
     collapsed = next;
   }
 
+  $effect(() => {
+    const id = editor.selectedId;
+    if (!id || !treeEl) return;
+    const tree = editor.tree;
+    const anc = [];
+    let p = parentOf(tree, id);
+    while (p) { anc.push(p); p = parentOf(tree, p); }
+    if (anc.some((a) => collapsed.has(a))) {
+      const next = new Set(collapsed);
+      anc.forEach((a) => next.delete(a));
+      collapsed = next;
+    }
+    requestAnimationFrame(() => {
+      treeEl?.querySelector(`[data-layer-id="${id}"]`)?.scrollIntoView({ block: 'nearest' });
+    });
+  });
+
   function focusRow(row) {
     if (!row) return;
     editor.select(row.id);
@@ -181,6 +198,7 @@
     color: var(--sec);
     font-size: 13px;
     user-select: none;
+    scroll-margin: 32px 0;
   }
 
   .row:hover {

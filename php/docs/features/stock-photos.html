@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Photo Search &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Stock Photo Search</h1>
+    <p class="lead">Search royalty-free photos from Pexels and Unsplash without leaving the visual builder. Pick an image node, search, and insert &mdash; Pexels photos are saved to your media library, Unsplash photos are hotlinked from their CDN.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Stock Photo Search adds a photo picker to the visual builder&rsquo;s image-node inspector. It talks to two providers &mdash; <strong>Pexels</strong> and <strong>Unsplash</strong> &mdash; through a small PHP file (<code>stock-photos.php</code>) that keeps your API keys server-side and encrypted. You bring a free API key for either (or both) providers; Outpost handles search, pagination, and inserting the chosen photo.</p>
+    <p>The two providers behave differently by design, because their licenses require it: Pexels photos are downloaded and self-hosted in your media library, while Unsplash photos are embedded by CDN URL and never copied locally. That difference is the most important thing to understand on this page.</p>
+
+    <div class="callout callout-note"><strong>Zero extra services.</strong> No proxy, no third-party account beyond the provider key itself. Keys are encrypted with Ranger&rsquo;s crypto and stored per-provider in the <code>settings</code> table. The picker never sees your key &mdash; all provider calls happen on the server.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Where to find it</h2>
+    <ol class="steps">
+      <li>Open a page in the <strong>Visual Builder</strong> and select an <strong>image</strong> node.</li>
+      <li>In the image inspector, click <strong>Search stock photos</strong>.</li>
+      <li>If more than one provider is configured, use the <strong>Pexels / Unsplash</strong> toggle in the dialog header to choose a source.</li>
+      <li>Type a query and press <strong>Search</strong>. Results load as a grid; each tile shows the photographer&rsquo;s name as a credit overlay. Use <strong>Load more</strong> to page through results.</li>
+      <li>Click a photo to insert it. The image node&rsquo;s <code>src</code> (and <code>alt</code>, when available) update immediately.</li>
+    </ol>
+    <p>If no provider is connected yet, the dialog shows an empty state pointing you to <strong>Settings &rarr; Integrations</strong>.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Adding API keys</h2>
+    <p>Go to <strong>Settings &rarr; Integrations &rarr; Stock Photos</strong> and paste a key for either provider. Both are free to obtain:</p>
+    <table>
+      <thead><tr><th>Provider</th><th>Where to get a key</th><th>Free tier</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pexels</strong></td><td><code>pexels.com/api</code></td><td>200 requests/hour</td></tr>
+        <tr><td><strong>Unsplash</strong></td><td><code>unsplash.com/developers</code></td><td>Demo apps allow 50 requests/hour</td></tr>
+      </tbody>
+    </table>
+    <p>You only need one to start &mdash; the provider toggle in the picker only appears when both are configured. Keys are write-through encrypted on save (<code>ranger_encrypt</code>) and decrypted on demand server-side; the settings form re-displays the stored key so you can confirm or rotate it.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Pexels vs. Unsplash: the key difference</h2>
+    <p>The two providers are inserted in fundamentally different ways. This is not a preference &mdash; it follows each provider&rsquo;s API guidelines.</p>
+    <table>
+      <thead><tr><th></th><th>Pexels</th><th>Unsplash</th></tr></thead>
+      <tbody>
+        <tr><td><strong>How it&rsquo;s inserted</strong></td><td>Downloaded server-side and saved to your media library</td><td>Hotlinked directly from the Unsplash CDN</td></tr>
+        <tr><td><strong>Stored in <code>uploads/</code>?</strong></td><td>Yes &mdash; self-hosted</td><td>No &mdash; served from <code>images.unsplash.com</code></td></tr>
+        <tr><td><strong>Media library record</strong></td><td>Created (returns a <code>media_id</code>)</td><td>None</td></tr>
+        <tr><td><strong>Processing</strong></td><td>Resized to the max width and auto-converted to WebP by <code>OutpostMedia::importFromFile()</code></td><td>Served at request time with CDN sizing params (<code>w=1600&amp;q=80&amp;fm=jpg&amp;fit=max</code>)</td></tr>
+        <tr><td><strong>Extra requirement</strong></td><td>None</td><td>A <code>download_location</code> trigger is fired on the Unsplash API when the photo is used (required by their guidelines)</td></tr>
+        <tr><td><strong>Insert result <code>type</code></strong></td><td><code>media</code></td><td><code>hotlink</code></td></tr>
+      </tbody>
+    </table>
+    <p>The builder reflects this: inserting a Pexels photo shows a &ldquo;Photo added to media&rdquo; toast, while an Unsplash photo shows &ldquo;Photo added (hotlinked)&rdquo;.</p>
+
+    <div class="callout callout-warn"><strong>Unsplash images are not on your server.</strong> A hotlinked photo depends on the Unsplash CDN staying reachable and the image staying live. It does not appear in your Media library and is not covered by your own backups. If you need a photo to be permanently yours, prefer Pexels &mdash; or download it and upload it manually.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Attribution</h2>
+    <p>Both Pexels and Unsplash are free to use without attribution being legally required, but crediting the photographer is expected and appreciated &mdash; and required by Unsplash&rsquo;s guidelines in spirit. The picker surfaces the credit you need:</p>
+    <ul>
+      <li>Every result tile shows the <strong>photographer&rsquo;s name</strong> as an overlay.</li>
+      <li>The picker footer reminds you to credit the photographer and links to both providers.</li>
+      <li>The insert response includes a <code>credit</code> object &mdash; <code>author</code>, <code>author_url</code>, <code>provider</code>, and <code>provider_url</code> &mdash; so credit data travels with the photo.</li>
+    </ul>
+    <div class="callout callout-note"><strong>Coming soon.</strong> A fuller on-page / credits treatment (rendering attribution automatically near the image or on a credits page) is planned. For now, use the photographer name shown in the picker and the <code>credit</code> data returned on insert.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Endpoints</h2>
+    <p>All routes are on the admin API (<code>api.php?action=&hellip;</code>). Search and import require the <code>content.*</code> capability; reading and writing keys require <code>settings.*</code>.</p>
+    <table>
+      <thead><tr><th>Route</th><th>Method</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>stock/providers</code></td><td>GET</td><td>Which providers are configured. Returns <code>{ providers: [{ id, configured }] }</code>.</td></tr>
+        <tr><td><code>stock/search</code></td><td>GET</td><td>Search a provider. Params: <code>provider</code> (<code>pexels</code>|<code>unsplash</code>, default <code>pexels</code>), <code>q</code> (query, capped at 120 chars), <code>page</code> (1&ndash;100). Returns <code>{ results, page, has_more }</code>, 24 results per page.</td></tr>
+        <tr><td><code>stock/import</code></td><td>POST</td><td>Insert a photo. Body: <code>{ provider, id, alt }</code> (<code>alt</code> capped at 500 chars). Returns the insert result (see below).</td></tr>
+        <tr><td><code>stock/settings</code></td><td>GET / PUT</td><td>Read or write the per-provider API keys. GET returns decrypted keys; PUT accepts <code>stock_api_key_pexels</code> and/or <code>stock_api_key_unsplash</code> and stores them encrypted.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Search result shape</h3>
+    <p>Each item in <code>results</code> is normalized to the same shape across both providers:</p>
+    <pre><code>{
+  "provider": "pexels",
+  "id": "3861969",
+  "thumb": "https://images.pexels.com/...",   // grid thumbnail
+  "preview": "https://images.pexels.com/...",
+  "full": "https://images.pexels.com/...",
+  "width": 4000,
+  "height": 6000,
+  "alt": "Person working at a laptop",
+  "author": "Jane Doe",
+  "author_url": "https://www.pexels.com/@janedoe",
+  "link": "https://www.pexels.com/photo/3861969/"
+}</code></pre>
+
+    <h3>Import result shape</h3>
+    <p>The <code>type</code> field tells you which path was taken:</p>
+    <pre><code>// Pexels — downloaded and stored
+{ "type": "media", "url": "/outpost/content/uploads/...webp",
+  "media_id": 42, "alt": "...", "credit": { ... } }
+
+// Unsplash — hotlinked, no local copy
+{ "type": "hotlink", "url": "https://images.unsplash.com/...&amp;w=1600&amp;q=80&amp;fm=jpg&amp;fit=max",
+  "alt": "...", "credit": { ... } }</code></pre>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Security posture</h2>
+    <p>Because import fetches a remote URL server-side, the download path is hardened against SSRF and abuse:</p>
+    <ul>
+      <li><strong>Host allow-list</strong> &mdash; downloads are only permitted from <code>images.pexels.com</code> and <code>images.unsplash.com</code>. Any other host is rejected as <code>bad_source</code>.</li>
+      <li><strong>HTTPS only</strong> &mdash; the download curl handle restricts protocols to HTTPS; plain-HTTP URLs are refused.</li>
+      <li><strong>No redirects</strong> &mdash; <code>CURLOPT_FOLLOWLOCATION</code> is disabled so a response can&rsquo;t bounce the fetch to an internal address.</li>
+      <li><strong>Size &amp; type caps</strong> &mdash; downloads are capped at the upload size limit and the response content-type must start with <code>image/</code>.</li>
+      <li><strong>Strict photo-id validation</strong> &mdash; Pexels ids must be all digits; Unsplash ids must match <code>[A-Za-z0-9_-]{5,32}</code>. Invalid references are rejected before any network call.</li>
+      <li><strong>Encrypted keys</strong> &mdash; keys are stored encrypted (Ranger crypto), never exposed to the browser, and used only in server-side provider requests.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="content/media.html">Media</a> &mdash; the media library where imported Pexels photos land</li>
+      <li><a href="features/ranger.html">Ranger AI Assistant</a> &mdash; shares the same encrypted key storage</li>
+      <li><a href="reference/security.html">Security</a> &mdash; SSRF prevention and hardening across Outpost</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

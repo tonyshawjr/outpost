@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi } from '$lib/api.js';
+  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi, stock as stockApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import Checkbox from '$components/Checkbox.svelte';
 
@@ -29,6 +29,12 @@
   let showAnthropicKey = $state(false);
   let showOpenaiKey = $state(false);
   let showGeminiKey = $state(false);
+
+  // Stock photo providers
+  let stockSettings = $state({ pexels_key: '', unsplash_key: '' });
+  let stockSaving = $state(false);
+  let showPexelsKey = $state(false);
+  let showUnsplashKey = $state(false);
 
   // API Keys
   let apiKeysList = $state([]);
@@ -84,6 +90,17 @@
     } catch (_) {}
     rangerLoading = false;
 
+    // Load stock photo settings
+    try {
+      const data = await stockApi.getSettings();
+      if (data.settings) {
+        stockSettings = {
+          pexels_key: data.settings.stock_api_key_pexels || '',
+          unsplash_key: data.settings.stock_api_key_unsplash || '',
+        };
+      }
+    } catch (_) {}
+
     // Load API keys
     try {
       const data = await apikeysApi.list();
@@ -117,6 +134,21 @@
       addToast(err.message, 'error');
     } finally {
       rangerSaving = false;
+    }
+  }
+
+  async function saveStockSettings() {
+    stockSaving = true;
+    try {
+      await stockApi.updateSettings({
+        stock_api_key_pexels: stockSettings.pexels_key,
+        stock_api_key_unsplash: stockSettings.unsplash_key,
+      });
+      addToast('Stock photo settings saved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      stockSaving = false;
     }
   }
 
@@ -456,6 +488,52 @@
         {rangerSaving ? 'Saving...' : 'Save Ranger Settings'}
       </button>
     {/if}
+  </div>
+
+  <!-- Stock Photos -->
+  <div class="int-block">
+    <h4 class="int-block-title">Stock Photos</h4>
+    <p class="int-block-desc">Search and insert royalty-free photos in the visual builder. Add a free API key for either provider. Pexels images are saved to your media library; Unsplash images are hotlinked from their CDN (per Unsplash's guidelines) — credit the photographer either way.</p>
+
+    <div class="ranger-provider-block">
+      <div class="ranger-provider-label">Pexels</div>
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+          <input
+            class="input"
+            type={showPexelsKey ? 'text' : 'password'}
+            placeholder="Pexels API key"
+            bind:value={stockSettings.pexels_key}
+            style="flex: 1;"
+          />
+          <button class="btn btn-ghost btn-sm" type="button" onclick={() => showPexelsKey = !showPexelsKey}>{showPexelsKey ? 'Hide' : 'Show'}</button>
+        </div>
+        <p class="form-hint">Free at <code>pexels.com/api</code>. 200 requests/hour.</p>
+      </div>
+    </div>
+
+    <div class="ranger-provider-block">
+      <div class="ranger-provider-label">Unsplash</div>
+      <div class="form-group">
+        <label class="form-label">Access Key</label>
+        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+          <input
+            class="input"
+            type={showUnsplashKey ? 'text' : 'password'}
+            placeholder="Unsplash Access Key"
+            bind:value={stockSettings.unsplash_key}
+            style="flex: 1;"
+          />
+          <button class="btn btn-ghost btn-sm" type="button" onclick={() => showUnsplashKey = !showUnsplashKey}>{showUnsplashKey ? 'Hide' : 'Show'}</button>
+        </div>
+        <p class="form-hint">Free at <code>unsplash.com/developers</code>. Demo apps allow 50 requests/hour.</p>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick={saveStockSettings} disabled={stockSaving} type="button">
+      {stockSaving ? 'Saving...' : 'Save Stock Photo Settings'}
+    </button>
   </div>
 
   <!-- reCAPTCHA -->

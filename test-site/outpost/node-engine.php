@@ -95,6 +95,61 @@ Operations run in order. Supported operations:
 GUIDE;
 }
 
+function outpost_import_conventions(): string {
+    return <<<GUIDE
+# Outpost import-ready HTML
+
+Produce a self-contained section as three separate parts — HTML, CSS, and JavaScript. Outpost's Import "explodes" the HTML into editable nodes, merges the CSS into the site stylesheet, and appends the JS to the page. Emit the three parts as separate fenced blocks (```html / ```css / ```js) or the three fields of the emit_section tool. Keep each part focused on ONE section.
+
+# HTML
+- One top-level element wraps the section (it becomes the section root). Build real, semantic, accessible markup: headings in order, alt text on every image, descriptive link text.
+- Only these tags survive the import; use nothing else:
+  - Containers (hold children): div, section, main, header, footer, article, aside, nav, ul, ol, li, figure
+  - Text (content only, no children): p, span, h1–h6, strong, em, small, blockquote, label
+  - Media: img (src, alt) · Interactive: a (href), button
+- A text element's text is taken whole — do NOT nest elements inside a text element. `<p>Save <strong>50%</strong></p>` flattens to the plain text "Save 50%". To style part of a line, make the pieces siblings inside a container (e.g. a `<div>` holding a `<span>` and a `<span class="accent">`), not children of one `<p>`.
+- Any other tag (table, svg, input, select, form, video, iframe, web components) collapses to a plain div and loses its attributes; script/style/link/meta/br/hr are dropped entirely. Do not rely on them — put behavior in the JS part, decoration in CSS.
+- Style ONLY with the class attribute. Inline style="" is discarded on import.
+
+# Dynamic holes (the "static except the holes" model)
+- Add data-outpost="snake_case_name" to any text/image/button/link element to make its content an editable, server-rendered field. The page bakes to static HTML except these holes, which fill from managed content at request time — editing a hole updates the live page with no rebuild.
+- Optional: data-type="text|richtext|image|url" and data-scope="global" (site-wide field shared across pages).
+- Use holes for anything editable or data-driven: hero headline, subhead, price, CTA label, hero image. Leave purely decorative/structural text as plain nodes.
+
+# CSS
+- Target elements by a SINGLE class only: `.hero-title { ... }`. Comma groups are fine: `.a, .b { ... }`.
+- Supported: base rules, pseudo-classes/elements on one class (`.btn:hover`, `.card::before`), and `@media` / `@container` / `@supports` blocks whose inner rules are single-class rules. These map to the builder's nested-style model, so hover states and responsive rules survive.
+- NOT supported — ignored on import, so never depend on them: descendant/child combinators (`.a .b`, `.a > .b`), compound/multi-class selectors (`.a.b`), element/id/attribute-only selectors, `@keyframes`, `@import`. Give every element its own class and style it by that class.
+- Prefer CSS variables (design tokens) for color and spacing so the section stays on-brand. No `expression()`, no `url(javascript:)`, no `behavior`.
+
+# JavaScript
+- Vanilla JS, no build step, no framework. It runs on the PUBLISHED page only — not in the builder canvas — and is appended to the page's script file.
+- Scope every query to the section's own classes so it can't touch the rest of the page. Guard for elements possibly not present.
+
+# Class names
+Letters, numbers, hyphens, underscores. BEM is encouraged (`.hero`, `.hero__title`, `.hero__cta--ghost`).
+
+# Example
+```html
+<section class="cta">
+  <p class="cta__eyebrow" data-outpost="cta_eyebrow">Limited beta</p>
+  <h2 class="cta__title" data-outpost="cta_title">Ship pages before lunch</h2>
+  <a class="cta__btn" href="/signup" data-outpost="cta_href">Start free</a>
+</section>
+```
+```css
+.cta { padding: var(--space-xl, 4rem) 1.5rem; text-align: center; background: var(--surface, #0b0b12); color: #fff; }
+.cta__title { font-size: clamp(1.75rem, 4vw, 2.75rem); margin: 0 0 1rem; }
+.cta__btn { display: inline-block; padding: 0.8rem 1.6rem; border-radius: 10px; background: var(--primary, #6d5efc); color: #fff; text-decoration: none; }
+.cta__btn:hover { transform: translateY(-2px); }
+@media (max-width: 600px) { .cta { padding: 2.5rem 1rem; } }
+```
+```js
+document.querySelectorAll('.cta__btn').forEach((b) => b.addEventListener('click', () => {}));
+```
+GUIDE;
+}
+
 /** Generate a node id matching the JS store format (n_ + 10 hex). */
 function outpost_node_id(): string {
     return 'n_' . bin2hex(random_bytes(5));
@@ -128,9 +183,8 @@ function outpost_node_sanitise_class(string $c): string {
 function outpost_node_sanitise_url(string $url): string {
     $url = trim($url);
     if ($url === '') return '';
-    if (preg_match('/^\s*javascript:/i', $url)) return '';
-    if (preg_match('/^\s*data:/i', $url)) return '';
-    if (preg_match('/^\s*vbscript:/i', $url)) return '';
+    $probe = preg_replace('/[\x00-\x20]+/', '', $url);
+    if ($probe !== null && preg_match('/^(javascript|data|vbscript):/i', $probe)) return '';
     return $url;
 }
 
@@ -552,8 +606,9 @@ function outpost_html_map_tag(string $tag): array {
     return [null, null];
 }
 
-function outpost_dom_to_node(\DOMNode $el, array &$nodes): ?string {
+function outpost_dom_to_node(\DOMNode $el, array &$nodes, int $depth = 0): ?string {
     if ($el->nodeType !== XML_ELEMENT_NODE) return null;
+    if ($depth > 100 || count($nodes) > 5000) return null;
     $tag = strtolower($el->nodeName);
     if (in_array($tag, ['script', 'style', 'link', 'meta', 'head', 'title', 'br', 'hr'], true)) return null;
 
@@ -592,7 +647,7 @@ function outpost_dom_to_node(\DOMNode $el, array &$nodes): ?string {
         if ($el instanceof \DOMElement && $el->hasAttribute('href')) $props['href'] = $el->getAttribute('href');
     } else {
         foreach ($el->childNodes as $child) {
-            $cid = outpost_dom_to_node($child, $nodes);
+            $cid = outpost_dom_to_node($child, $nodes, $depth + 1);
             if ($cid) $children[] = $cid;
         }
     }
@@ -657,6 +712,7 @@ function outpost_class_name_valid(string $name): bool {
 }
 
 function outpost_css_property_valid(string $prop): bool {
+    if (in_array($prop, ['behavior', '-moz-binding'], true)) return false;
     return (bool) preg_match('/^[a-z][a-z-]*$/', $prop);
 }
 
@@ -801,19 +857,21 @@ function outpost_render_node(array $tree, string $id, array $components, array $
     $tag = $node['tag'];
     $cls = outpost_node_class_attr($node['classes']);
     $props = (array) $node['props'];
-    $fld = outpost_node_field_attr($props);
+    $sid = (preg_match('/^n_[a-z0-9]+$/', $id) && is_array($node['styles'] ?? null) && $node['styles'])
+        ? ' data-node-id="' . $id . '"' : '';
+    $fld = outpost_node_field_attr($props) . $sid;
 
     switch ($node['type']) {
         case 'component-ref':
             $cid = (string) ($props['componentId'] ?? '');
             if ($cid === '' || in_array($cid, $stack, true) || !isset($components[$cid]['tree'])) {
-                return "<div{$cls}></div>";
+                return "<div{$cls}{$sid}></div>";
             }
             $ctree = outpost_node_validate($components[$cid]['tree']);
             $inner = isset($ctree['nodes'][$ctree['root']])
                 ? outpost_render_node($ctree, $ctree['root'], $components, array_merge($stack, [$cid]))
                 : '';
-            return "<div{$cls}>{$inner}</div>";
+            return "<div{$cls}{$sid}>{$inner}</div>";
 
         case 'image':
             $src = htmlspecialchars(outpost_node_sanitise_url((string) ($props['src'] ?? '')), ENT_QUOTES);
@@ -861,6 +919,17 @@ function outpost_public_class_css(?array $only = null): string {
         $decls = json_decode($r['declarations'] ?: '{}', true) ?: [];
         if (!is_array($decls)) continue;
         $css .= outpost_emit_rule('.' . $r['name'], $decls);
+    }
+    return $css;
+}
+
+function outpost_node_styles_css(array $tree): string {
+    $css = '';
+    foreach (($tree['nodes'] ?? []) as $id => $node) {
+        if (!is_string($id) || !preg_match('/^n_[a-z0-9]+$/', $id)) continue;
+        $styles = $node['styles'] ?? null;
+        if (!is_array($styles) || !$styles) continue;
+        $css .= outpost_emit_rule('[data-node-id="' . $id . '"]', $styles);
     }
     return $css;
 }
@@ -975,7 +1044,8 @@ function outpost_bake_node_page(int $pageId): bool {
     $jsLink = file_exists($renderRoot . '/' . $base . '.js')
         ? '<script src="/' . $base . '.js" defer></script>' . "\n" : '';
     $classCss = outpost_public_class_css(outpost_tree_class_names($tree));
-    $allCss = outpost_expand_custom_media(outpost_global_style_css() . $classCss, outpost_custom_media_map());
+    $nodeCss = outpost_node_styles_css($tree);
+    $allCss = outpost_expand_custom_media(outpost_global_style_css() . $classCss . $nodeCss, outpost_custom_media_map());
     $titleEsc = htmlspecialchars($page['title'] ?: 'Page', ENT_QUOTES);
 
     $doc = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"

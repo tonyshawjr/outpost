@@ -13,7 +13,7 @@
     body { background: #ffffff; color: #111; }
     .oc-canvas { min-height: 100vh; }
     img { max-width: 100%; }
-    [data-node-id] { cursor: pointer; }
+    [data-node-id] { cursor: pointer; scroll-margin: 96px 0; }
     [data-field] { outline: 1px dashed rgba(124,58,237,0.45); outline-offset: 1px; }
     [data-node-id][data-selected] { outline: 2px solid #7C3AED; outline-offset: 1px; }
     [data-component-ref] { outline: 1px dashed #A78BFA; outline-offset: 1px; }
@@ -101,6 +101,19 @@
   $effect(() => {
     const css = editor.allStyleCss;
     if (styleEl) styleEl.textContent = withViewportHeight(css, fitHeight ? viewportHeight : 0);
+  });
+
+  $effect(() => {
+    const id = editor.selectedId;
+    const iframe = iframeEl;
+    if (!id || !iframe || fitHeight) return;
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+    const raf = (doc.defaultView || window).requestAnimationFrame;
+    raf(() => {
+      const el = doc.querySelector(`[data-node-id="${id}"]`);
+      if (el) el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    });
   });
 </script>
 

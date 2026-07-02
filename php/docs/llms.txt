@@ -4278,3 +4278,87 @@ Table: `presence_sessions(user_id, entity_type, entity_id, last_seen)`
 All new endpoints: same auth + CSRF rules as the rest of the API. JSON bodies for POST/PUT/DELETE. Identifier names validated by allow-list regex (`^[a-zA-Z0-9_-]+$`) before use in queries.
 
 Database migrations: `ensure_*_table()` and `ensure_*_columns()` functions called at API bootstrap. Idempotent — re-running them is safe.
+
+## Section Import & AI Generation (v6)
+
+The Visual Builder toolbar has an **Import** button that opens the Section Import modal. Import takes three separate parts — HTML, CSS, JavaScript — and turns them into a live section inserted at the selected container (or the page root):
+
+- **HTML** is "exploded" into the builder node tree — every supported tag becomes an editable node.
+- **CSS** is parsed into named style classes and merged into the site stylesheet.
+- **JavaScript** is appended to the page's script file `{slug}.js` and runs on the PUBLISHED page only — not in the builder canvas.
+
+Imported markup is "static except the holes": it bakes to plain static HTML except elements tagged with `data-outpost`, which become editable server-rendered fields.
+
+### Import-ready HTML spec
+
+One top-level element wraps the section (it becomes the section root). Only these tags survive; everything else is transformed or dropped:
+
+- Containers (hold children): `div, section, main, header, footer, article, aside, nav, ul, ol, li, figure`
+- Text (content only): `p, span, h1–h6, strong, em, small, blockquote, label`
+- Media: `img` (keeps `src`, `alt`) · Interactive: `a` (keeps `href`), `button`
+- Any other tag (`table, svg, input, select, form, video, iframe`, web components) collapses to a plain `div` and loses its attributes. `script, style, link, meta, br, hr` are dropped entirely.
+- Inline `style=""` is discarded — style ONLY with the `class` attribute.
+
+**Text elements flatten inner markup.** A text element's text is taken whole; `<p>Save <strong>50%</strong></p>` flattens to the plain text "Save 50%". To style part of a line, make the pieces siblings inside a container (e.g. a `<div>` holding a `<span>` and a `<span class="accent">`), not children of one `<p>`.
+
+### Dynamic holes
+
+Add `data-outpost="snake_case_name"` to any text/image/link/button element to make its content an editable, server-rendered field. The page bakes to static HTML except these holes, which fill from managed content at request time (no rebuild on edit).
+
+- Optional `data-type="text|richtext|image|url"` — how the field is edited/rendered.
+- Optional `data-scope="global"` — a site-wide field shared across pages.
+
+### CSS rules
+
+Single-class selectors only, mapped onto the builder's nested-style model:
+
+- Supported: single-class base rules (`.hero-title { }`), comma groups (`.a, .b { }`), pseudo-classes/elements on one class (`.btn:hover`, `.card::before`), and `@media` / `@container` / `@supports` blocks whose inner rules are single-class rules.
+- Ignored (never depend on): descendant/child combinators (`.a .b`, `.a > .b`), compound/multi-class selectors (`.a.b`), element/id/attribute-only selectors, `@keyframes`, `@import`.
+- Prefer CSS variables (design tokens). Values with `expression()`, `url(javascript:)`, or `behavior` are rejected.
+
+### Endpoints
+
+- `POST nodes/import-section&owner_id=X` — body `{ html, css, js }`. Requires `content.*`. Returns `{ tree, classes, js_written }`. Caps: HTML 500k chars, CSS/JS 200k each. PHP tags stripped; parse limits depth 100 / 5000 nodes.
+- `POST builder/import-ai` — body `{ prompt, context?, provider?, model? }`. Requires `content.*`. Streams SSE. The model is instructed with the import-ready spec (and site design tokens if present) and calls an `emit_section` tool once; the endpoint emits a `section` event `{ html, css, js }`, then a `done` event with token usage. Uses the BYO provider key from Settings → Integrations (`ranger_default_provider` / `ranger_api_key_{provider}` / `ranger_model_{provider}`); model self-selected. Prompt capped at 8000 chars.
+
+### MCP resource
+
+`outpost://import/guide` (mimeType `text/markdown`) returns the same import-ready HTML/CSS/JS spec (from `outpost_import_conventions()`), so an external LLM can fetch it and emit paste-ready sections a human drops into the Import modal.
+
+## Element & Class Styling
+
+The visual builder's Style panel styles either a reusable CSS class or a single element directly. It picks the target automatically: if the selected node has a class, it edits the node's active class (the last class in its list); if it has no class, it edits the element itself. The header reads "Editing .class" vs "Editing this <tag>". Both modes offer the same Visual field editor and a raw/nested CSS box (Visual / CSS tabs), and both support pseudo-classes (`&:hover`), descendant selectors (`& .child`), and `@media` blocks. The breakpoint switcher (Desktop / Tablet / Mobile) reads/writes per-breakpoint declarations under a media block; a non-default breakpoint shows an "@ Tablet"/"@ Mobile" badge.
+
+### Class vs element — when to use
+
+- **Class** = reusable. Stored in the shared style-class store keyed by class name; bakes to a `.class { }` rule in the site stylesheet. Use for anything repeated (buttons, cards, sections).
+- **Element** = one-off. Stored in the node's own `styles` field in the page tree; bakes to a scoped `[data-node-id="n_…"] { }` rule. Use for page-specific tweaks that don't deserve a name.
+- **Promotion:** adding a class to a node (search or create in the panel's combobox) flips the panel target from the element to that class, making subsequent edits reusable. Element mode shows the hint "Add a class above to make these styles reusable across elements."
+
+### Nested style model & baking
+
+Styles use a nested object: scalar props at top, plus `&`-selectors and `@media` blocks as nested objects. `&` = the target selector (`.class` in class mode, `[data-node-id]` in element mode); a nested plain selector without `&` becomes a descendant (`& .child`).
+
+- Client: `src/lib/node-store.svelte.js` exposes `getElementDeclaration`/`setElementDeclaration`/`elementCssText`/`setElementCss` (element target) alongside `getDeclaration`/`setDeclaration`/`classCssText`/`setClassCss` (class target). `nodeStylesCss()` emits canvas CSS via `emitScopedCss` (`src/lib/css-nest.js`).
+- Server: `php/node-engine.php` — `outpost_render_node()` adds `data-node-id="n_…"` only to nodes that have styles (and whose id matches `^n_[a-z0-9]+$`); `outpost_node_styles_css()` bakes `[data-node-id="n_…"] { }` rules via `outpost_emit_rule` (the same emitter and sanitization used for class rules). Element styles are a scoped stylesheet rule, not an inline `style=""` attribute — so `:hover`, `@media`, and nesting work for a single element.
+
+## Stock Photo Search
+
+Search royalty-free photos from Pexels and Unsplash inside the visual builder. Implemented in `php/stock-photos.php`; the picker is `src/components/builder/StockPhotoPicker.svelte`, opened from the "Search stock photos" button in the image-node inspector (`src/pages/NodeBuilder.svelte`). Keys are added in Settings → Integrations → Stock Photos (`src/pages/settings/IntegrationsSettings.svelte`). Free keys: Pexels at `pexels.com/api` (200 req/hour), Unsplash at `unsplash.com/developers` (demo apps 50 req/hour). Keys are encrypted with Ranger crypto (`ranger_encrypt`) and stored per-provider in `settings` as `stock_api_key_pexels` / `stock_api_key_unsplash`; the browser never sees them.
+
+### Pexels vs Unsplash behavior (important)
+
+- **Pexels** photos are downloaded server-side and saved to the media library via `OutpostMedia::importFromFile()` (resized to max width, auto-converted to WebP, thumbnail generated). Self-hosted in `uploads/`. Import returns `{ type: "media", url, media_id, alt, credit }`. Toast: "Photo added to media".
+- **Unsplash** photos are hotlinked from `images.unsplash.com` (CDN sizing params `w=1600&q=80&fm=jpg&fit=max`) and never copied locally; a required `download_location` trigger is fired on the Unsplash API when the photo is used. Import returns `{ type: "hotlink", url, alt, credit }`. Toast: "Photo added (hotlinked)".
+
+### Endpoints (api.php?action=…)
+
+- `GET stock/providers` — requires `content.*`. Returns `{ providers: [{ id, configured }] }`.
+- `GET stock/search` — requires `content.*`. Params `provider` (`pexels`|`unsplash`, default `pexels`), `q` (≤120 chars), `page` (1–100). Returns `{ results, page, has_more }`, 24 per page. Each result normalized to `{ provider, id, thumb, preview, full, width, height, alt, author, author_url, link }`.
+- `POST stock/import` — requires `content.*`. Body `{ provider, id, alt }` (`alt` ≤500 chars). Returns the insert result above; `credit` = `{ author, author_url, provider, provider_url }`.
+- `GET/PUT stock/settings` — requires `settings.*`. GET returns decrypted keys; PUT accepts `stock_api_key_pexels` / `stock_api_key_unsplash`, stored encrypted.
+
+### Attribution & security
+
+- Attribution: the photographer's name is shown on each result tile and returned in the `credit` object on insert; the picker footer reminds you to credit the photographer. A fuller on-page/credits treatment is planned.
+- SSRF/hardening on the download path: host allow-list (`images.pexels.com` / `images.unsplash.com` only), HTTPS-only (`CURLPROTO_HTTPS`), redirects disabled (`FOLLOWLOCATION` off), size cap (`OUTPOST_MAX_UPLOAD_SIZE`) and `image/*` content-type check, strict photo-id validation (Pexels digits only; Unsplash `[A-Za-z0-9_-]{5,32}`). Invalid references rejected as `bad_source` before any network call. Provider toggle in the picker only appears when both providers are configured.

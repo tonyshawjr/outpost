@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Element &amp; Class Styling &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Element &amp; Class Styling</h1>
+    <p class="lead">The builder&rsquo;s Style panel edits either a reusable CSS class or a single element directly. Pick a node, style it, and Outpost bakes the result &mdash; a shared <code>.class</code> rule for reusable styles, or a scoped <code>[data-node-id]</code> rule for one-offs.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>Every element you select in the visual builder can be styled two ways, and the Style panel chooses the right one automatically:</p>
+    <ul>
+      <li><strong>Class styling</strong> &mdash; when the element has a class, the panel edits that class. The styles are <em>reusable</em>: every element carrying the class gets them.</li>
+      <li><strong>Element styling</strong> &mdash; when the element has no class, the panel edits the element itself. The styles are a <em>one-off</em>, scoped to that single node.</li>
+    </ul>
+    <p>The panel header tells you which mode you&rsquo;re in at a glance: it reads <strong>Editing <code>.class</code></strong> for class styling, or <strong>Editing this <code>&lt;tag&gt;</code></strong> for element styling. Both modes offer the same controls &mdash; a visual field editor and a raw CSS box &mdash; toggled with the <strong>Visual</strong> / <strong>CSS</strong> tabs.</p>
+
+    <div class="callout callout-note"><strong>One panel, two targets.</strong> There is no separate &ldquo;class editor&rdquo; and &ldquo;element editor.&rdquo; The Style panel always styles the element&rsquo;s <em>active class</em> if it has one (the last class in its list), and falls back to the element itself when it has none.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>When to use each</h2>
+    <table>
+      <thead><tr><th></th><th>Class styling</th><th>Element styling</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Use for</strong></td><td>A look you&rsquo;ll reuse &mdash; buttons, cards, section wrappers</td><td>A one-off tweak on a single element</td></tr>
+        <tr><td><strong>Reusable?</strong></td><td>Yes &mdash; shared by every element with the class</td><td>No &mdash; applies to this element only</td></tr>
+        <tr><td><strong>How it&rsquo;s stored</strong></td><td>In the shared style-class store, keyed by class name</td><td>In the node&rsquo;s own <code>styles</code> field, in the page tree</td></tr>
+        <tr><td><strong>How it bakes</strong></td><td>A <code>.class { &hellip; }</code> rule in the site stylesheet</td><td>A scoped <code>[data-node-id="&hellip;"] { &hellip; }</code> rule</td></tr>
+      </tbody>
+    </table>
+    <p>Rule of thumb: reach for a class the moment a style is worth repeating. Use element styling for the small, page-specific adjustments that don&rsquo;t deserve a name.</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Promoting an element style to a class</h2>
+    <p>Element styling is a starting point, not a dead end. The Style panel has a class combobox at the top &mdash; search for an existing class or type a new name to create one. The moment you add a class, the panel switches its target to that class (the header flips from <strong>this <code>&lt;tag&gt;</code></strong> to <strong><code>.class</code></strong>), and subsequent edits become reusable.</p>
+    <div class="callout callout-note"><strong>Panel hint.</strong> While you&rsquo;re styling an element directly, the panel reminds you: &ldquo;Styling this element directly. Add a class above to make these styles reusable across elements.&rdquo;</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Pseudo-classes, responsive rules, and nesting</h2>
+    <p>Both modes use the same nested-style model, so both support more than a flat list of properties:</p>
+    <ul>
+      <li><strong>Pseudo-classes and pseudo-elements</strong> &mdash; <code>:hover</code>, <code>:focus</code>, <code>::before</code>, and friends, written as nested <code>&amp;</code>-selectors.</li>
+      <li><strong>Responsive breakpoints</strong> &mdash; <code>@media</code> blocks. The builder&rsquo;s breakpoint switcher (Desktop / Tablet / Mobile) writes and reads per-breakpoint declarations, and the panel header shows an <strong>@ Tablet</strong> / <strong>@ Mobile</strong> badge when you&rsquo;re editing a non-default breakpoint.</li>
+      <li><strong>Descendant selectors</strong> &mdash; nested <code>&amp; .child</code> rules.</li>
+    </ul>
+
+    <h3>The raw CSS box</h3>
+    <p>Switch to the <strong>CSS</strong> tab to edit the target&rsquo;s declarations as plain, nested CSS. Scalar properties sit at the top; nested <code>&amp;</code>-selectors and <code>@media</code> blocks follow. The two tabs stay in sync &mdash; edits in the CSS box update the visual fields and vice versa.</p>
+    <pre><code>color: var(--primary);
+padding: 1rem 1.5rem;
+border-radius: 10px;
+
+&amp;:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+  padding: 0.75rem 1rem;
+}</code></pre>
+    <p>The <code>&amp;</code> stands for the target selector &mdash; the class (<code>.card</code>) in class mode, or the scoped element selector (<code>[data-node-id="&hellip;"]</code>) in element mode. Nesting a plain selector like <code>.child</code> without <code>&amp;</code> is treated as a descendant (<code>&amp; .child</code>).</p>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>How element styles bake</h2>
+    <p>Element styles live in the node&rsquo;s <code>styles</code> field inside the page tree. On render, Outpost gives any node that has styles a stable <code>data-node-id</code> attribute and emits a matching scoped rule &mdash; so the one-off CSS attaches to exactly that element and nothing else.</p>
+    <ul>
+      <li><strong>Attribute</strong> &mdash; <code>outpost_render_node()</code> adds <code>data-node-id="n_&hellip;"</code> only to nodes that actually carry styles (and whose id matches the internal <code>n_&hellip;</code> pattern). Styleless nodes stay clean.</li>
+      <li><strong>Rule</strong> &mdash; <code>outpost_node_styles_css()</code> walks the tree and bakes a <code>[data-node-id="n_&hellip;"] { &hellip; }</code> rule for each styled node, expanding nested <code>&amp;</code>-selectors and <code>@media</code> blocks through the same emitter that produces class rules.</li>
+      <li><strong>Same sanitization as classes</strong> &mdash; element CSS runs through the identical property/value/selector validation used for class CSS. There is no weaker path for one-off styles.</li>
+    </ul>
+    <p>Class styles bake the way you&rsquo;d expect &mdash; a <code>.class { &hellip; }</code> rule in the stylesheet &mdash; using the same nesting-aware emitter. The only difference between the two is the selector: a class name versus a scoped <code>data-node-id</code>.</p>
+
+    <div class="callout callout-note"><strong>Scoped, not inline.</strong> Element styles are emitted as a real stylesheet rule keyed on <code>data-node-id</code>, not as an inline <code>style=""</code> attribute. That keeps <code>:hover</code>, <code>@media</code>, and nested selectors possible for a single element &mdash; things inline styles can&rsquo;t express.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="features/section-import.html">Section Import &amp; AI Generation</a> &mdash; how imported CSS maps onto the same class model</li>
+      <li><a href="features/forge.html">Forge</a> &mdash; turning existing HTML into editable builder nodes</li>
+      <li><a href="reference/sanitization.html">Sanitization</a> &mdash; how CSS properties, values, and selectors are validated before baking</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

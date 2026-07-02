@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.29] — 2026-07-01
+
+### Added
+- **Stock photo credit capture.** When you insert a stock photo, its photographer/provider credit (name + links) is captured and shown in the image inspector with a Copy button — so you can display it wherever you want. Nothing is auto-injected into the page, and the credit never renders in the baked HTML unless you place it yourself. (Attribution when using the Pexels/Unsplash APIs is the site owner's responsibility under their BYO API key; Outpost just makes it available.)
+
+---
+
+## [6.0.0-beta.28] — 2026-07-01
+
+### Added
+- **Element-level styling in the visual builder.** The style panel now works for any element even without a class — style the element directly (Layout, spacing, effects, and raw/nested CSS incl. `:hover` and `@media`), or add a class to make the styles reusable. Element styles are stored per-node and baked as a scoped `[data-node-id]` rule (same sanitization as class styles). Fixes the case where a freshly-inserted image (e.g. from stock search) showed no style options.
+
+---
+
+## [6.0.0-beta.27] — 2026-07-01
+
+### Added
+- **Stock photo search in the visual builder.** A "Search stock photos" button on any image node opens a Pexels + Unsplash picker — search, browse, and insert without leaving the builder. Pexels images are downloaded into the media library (self-hosted); Unsplash images are hotlinked from their CDN with the required download trigger, per Unsplash's API guidelines. Photographer credit is shown for every result. Add free API keys in Settings → Integrations (keys encrypted at rest).
+
+### Security
+- Server-side photo download is SSRF-guarded: the download host is allow-listed to the provider CDN, redirects are disabled, size/content-type are capped, and photo ids are strictly validated before any provider call.
+
+---
+
+## [6.0.0-beta.26] — 2026-07-01
+
+### Added
+- **AI section generation in the Import modal.** A "Generate with AI" bar turns a plain-language description into import-ready HTML/CSS/JS and fills the three panes — review and edit the code, then import. Uses your provider key from Settings → Integrations and self-selects the model.
+- **Import-ready HTML spec, as one source of truth.** A canonical convention guide (the supported tag set, class-only styling, dynamic-hole markers, and parser limits) now drives the generation system prompt, a new MCP resource (`outpost://import/guide`), and the docs — so any LLM (in-app, Claude Code, external tools) can emit HTML that explodes cleanly into Outpost nodes.
+
+### Changed
+- **Import CSS understands hover and responsive rules.** The section-import parser now ingests `:hover`/pseudo-classes and `@media`/`@container`/`@supports` blocks (single-class selectors) into the builder's nested-style model, so imported and generated sections keep their hover states and breakpoints instead of dropping them. Descendant/compound selectors are still ignored — give each element its own class.
+
+---
+
+## [6.0.0-beta.25] — 2026-07-01
+
+### Added
+- **Import a section in the Visual Builder.** A new **Import** button opens a three-pane (HTML / CSS / JavaScript) modal — paste a section and it explodes into editable nodes, merges the CSS into the site stylesheet, and drops onto the canvas at the selected container. JavaScript is appended to the page's script file and runs on the published page.
+- **Click-to-reveal targeting.** Selecting a node now scrolls the canvas to bring it into view (e.g. picking a top section from the Layers panel while scrolled to the bottom jumps back up to it). The reverse holds too — clicking on the canvas scrolls the Layers/Content panel to the matching row and expands any collapsed ancestors.
+
+### Security
+- **Firewall ordering fix.** The session now starts before the WAF check so authenticated-admin requests carrying legitimate HTML/JS/CSS bodies (section import, code/theme writes) are recognised and no longer blocked with an opaque 403. Imported HTML/CSS is still sanitised at the parse and render layers (scripts, event handlers, `javascript:`/control-char URLs, `expression()`, `@import`, and `behavior`/`-moz-binding` all stripped).
+
+---
+
 ## [6.0.0-beta.24] — 2026-07-01
 
 ### Changed

@@ -44,3 +44,7 @@ mcp-server/
 
 # Client site workspaces (contain credentials)
 sites/
+
+# Local tooling artifacts
+.playwright-mcp/
+.serena/

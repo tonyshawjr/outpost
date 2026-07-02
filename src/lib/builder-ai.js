@@ -45,6 +45,54 @@ export function serializeContext(editor) {
   };
 }
 
+export async function generateImportSection({ editor, prompt, provider, model, signal, onText, onSection, onError, onDone }) {
+  const url = new URL(getApiBase(), window.location.origin);
+  url.searchParams.set('action', 'builder/import-ai');
+
+  const tokens = {
+    colors: (editor?.tokens?.colors || []).map((c) => ({ name: c.name, value: c.value })),
+    variables: editor?.tokenVars || [],
+  };
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() },
+    credentials: 'include',
+    signal,
+    body: JSON.stringify({ prompt, context: { tokens }, provider: provider || undefined, model: model || undefined }),
+  });
+
+  if (!res.ok) {
+    let message = `Request failed (${res.status})`;
+    try { message = (await res.json()).error || message; } catch { /* keep default */ }
+    onError?.(message);
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6);
+      if (payload === '[DONE]') continue;
+      let event;
+      try { event = JSON.parse(payload); } catch { continue; }
+      if (event.type === 'text') onText?.(event.content || '');
+      else if (event.type === 'section') onSection?.({ html: event.html || '', css: event.css || '', js: event.js || '' });
+      else if (event.type === 'error') onError?.(event.message || 'Error');
+      else if (event.type === 'done') onDone?.(event.usage || null);
+    }
+  }
+}
+
 export async function runBuilderAgent({ editor, messages, provider, model, signal, onText, onOps, onError, onDone }) {
   const url = new URL(getApiBase(), window.location.origin);
   url.searchParams.set('action', 'builder/ai');

@@ -161,6 +161,10 @@ export function emitClassCss(scope, name, decls) {
   return emitRule(selector, decls || {});
 }
 
+export function emitScopedCss(selector, decls) {
+  return emitRule(selector, decls || {});
+}
+
 export function parseCustomMedia(text) {
   const map = {};
   const re = /@custom-media\s+--([A-Za-z0-9_-]+)\s+([^;{}]+);/gi;

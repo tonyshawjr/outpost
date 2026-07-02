@@ -5,6 +5,16 @@
 
   const ICONS = { text: Type, image: ImageIcon, button: MousePointerClick, link: LinkIcon };
 
+  let listEl = $state(null);
+
+  $effect(() => {
+    const id = editor.selectedId;
+    if (!id || !listEl) return;
+    requestAnimationFrame(() => {
+      listEl?.querySelector(`[data-content-id="${id}"]`)?.scrollIntoView({ block: 'nearest' });
+    });
+  });
+
   let items = $derived.by(() => {
     const tree = editor.tree;
     const out = [];
@@ -28,11 +38,11 @@
 
 <div class="content-panel">
   <p class="intro">Edit the page's content. Layout and styling are locked. Items marked <Zap size={11} aria-hidden="true" /> are dynamic.</p>
-  <ul class="list" aria-label="Editable content">
+  <ul class="list" aria-label="Editable content" bind:this={listEl}>
     {#each items as item (item.id)}
       {@const Icon = ICONS[item.type]}
       <li>
-        <button class="row" class:selected={editor.selectedId === item.id} onclick={() => editor.select(item.id)}>
+        <button class="row" class:selected={editor.selectedId === item.id} data-content-id={item.id} onclick={() => editor.select(item.id)}>
           <Icon size={15} aria-hidden="true" />
           <span class="label">{item.label}</span>
           {#if item.field}
@@ -71,6 +81,7 @@
     font-size: 13px;
     text-align: left;
     cursor: pointer;
+    scroll-margin: 32px 0;
   }
   .row:hover { background: var(--hover); color: var(--text); }
   .row.selected { background: var(--sidebar-bg-active); color: var(--text); }

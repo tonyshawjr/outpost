@@ -122,6 +122,93 @@ class OutpostMedia {
         return $record;
     }
 
+    public static function importFromFile(string $srcPath, string $originalName, string $altText = ''): array {
+        if (!is_file($srcPath)) {
+            return ['error' => 'Source file not found'];
+        }
+        $size = filesize($srcPath);
+        if ($size === false || $size <= 0) {
+            return ['error' => 'Empty file'];
+        }
+        if ($size > OUTPOST_MAX_UPLOAD_SIZE) {
+            $maxMB = OUTPOST_MAX_UPLOAD_SIZE / 1024 / 1024;
+            return ['error' => "File exceeds maximum size of {$maxMB}MB"];
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($srcPath);
+        if (!in_array($mime, OUTPOST_ALLOWED_MIME_TYPES)) {
+            return ['error' => 'MIME type not allowed: ' . $mime];
+        }
+        if (!str_starts_with($mime, 'image/') || $mime === 'image/svg+xml') {
+            return ['error' => 'Only raster images can be imported'];
+        }
+
+        $mimeExt = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        if (!in_array($ext, OUTPOST_ALLOWED_EXTENSIONS)) {
+            $ext = $mimeExt[$mime] ?? 'jpg';
+        }
+
+        $safeName = self::sanitizeFilename($originalName !== '' ? $originalName : ('photo.' . $ext));
+        if (strtolower(pathinfo($safeName, PATHINFO_EXTENSION)) !== $ext) {
+            $safeName = pathinfo($safeName, PATHINFO_FILENAME) . '.' . $ext;
+        }
+        $filename = time() . '_' . $safeName;
+
+        if (!is_dir(OUTPOST_UPLOADS_DIR)) {
+            mkdir(OUTPOST_UPLOADS_DIR, 0755, true);
+        }
+        $destPath = OUTPOST_UPLOADS_DIR . $filename;
+        if (!copy($srcPath, $destPath)) {
+            return ['error' => 'Failed to store image'];
+        }
+        @unlink($srcPath);
+
+        $info = getimagesize($destPath);
+        if (!$info) {
+            @unlink($destPath);
+            return ['error' => 'Not a valid image'];
+        }
+        $width = $info[0];
+        $height = $info[1];
+
+        if ($width > OUTPOST_MAX_IMAGE_WIDTH) {
+            self::resizeImage($destPath, OUTPOST_MAX_IMAGE_WIDTH);
+            $info = getimagesize($destPath);
+            if ($info) {
+                $width = $info[0];
+                $height = $info[1];
+            }
+        }
+
+        if (OUTPOST_WEBP_AUTO_CONVERT) {
+            $webpResult = self::convertToWebp($destPath, $mime);
+            if ($webpResult) {
+                $destPath = $webpResult['path'];
+                $filename = $webpResult['filename'];
+                $mime = $webpResult['mime_type'];
+            }
+        }
+
+        $thumbPath = self::generateThumbnail($destPath, $filename);
+        $relativePath = self::relativePath($destPath);
+        $relativeThumb = $thumbPath ? self::relativePath($thumbPath) : '';
+
+        $id = OutpostDB::insert('media', [
+            'filename' => $filename,
+            'original_name' => $originalName !== '' ? $originalName : $filename,
+            'path' => $relativePath,
+            'thumb_path' => $relativeThumb,
+            'mime_type' => $mime,
+            'file_size' => filesize($destPath),
+            'width' => $width,
+            'height' => $height,
+            'alt_text' => mb_substr($altText, 0, 500),
+        ]);
+        return OutpostDB::fetchOne('SELECT * FROM media WHERE id = ?', [$id]);
+    }
+
     public static function delete(array $media): void {
         // Delete physical files
         $basePath = self::absolutePath($media['path']);

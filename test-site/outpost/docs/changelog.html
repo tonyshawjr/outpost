@@ -22,6 +22,60 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.29">6.0.0-beta.29 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Stock photo credit capture</strong> &mdash; Inserting a stock photo captures its photographer/provider credit and shows it in the image inspector with a Copy button, so you can display it wherever you like. It's never auto-injected into the page and never appears in the baked HTML unless you place it yourself. Attribution when using the Pexels/Unsplash APIs is the site owner's responsibility under their own API key.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="6.0.0-beta.28">6.0.0-beta.28 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Element-level styling</strong> &mdash; The style panel now works on any element even without a class: style the element directly (Layout, spacing, effects, and raw/nested CSS including <code>:hover</code> and <code>@media</code>), or add a class to make the styles reusable. Element styles bake as a scoped <code>[data-node-id]</code> rule with the same sanitization as class styles. Fixes freshly-inserted images (e.g. from stock search) showing no style options.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="6.0.0-beta.27">6.0.0-beta.27 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Stock photo search in the builder</strong> &mdash; A "Search stock photos" button on any image node opens a Pexels + Unsplash picker &mdash; search and insert without leaving the builder. Pexels images are saved to your media library; Unsplash images are hotlinked from their CDN with the required download trigger (per Unsplash's guidelines). Every result shows the photographer's credit. Add free API keys in Settings &rarr; Integrations (encrypted at rest).</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Server-side photo download is SSRF-guarded &mdash; the download host is allow-listed to the provider CDN, redirects are disabled, size and content-type are capped, and photo ids are strictly validated before any provider request.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="6.0.0-beta.26">6.0.0-beta.26 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Generate a section with AI</strong> &mdash; A "Generate with AI" bar in the Import modal turns a plain-language description into import-ready HTML/CSS/JS and fills the three panes, so you can review and edit before importing. Uses your provider key from Settings &rarr; Integrations and picks the model automatically.</li>
+      <li><strong>Import-ready HTML spec</strong> &mdash; A canonical convention guide (supported tags, class-only styling, dynamic-hole markers, parser limits, and a worked example) is now the single source of truth behind AI generation, a new MCP resource (<code>outpost://import/guide</code>), and these docs &mdash; so any LLM can emit HTML that explodes cleanly into Outpost nodes.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Import CSS keeps hover and responsive rules</strong> &mdash; The section-import parser now reads <code>:hover</code>/pseudo-classes and <code>@media</code>/<code>@container</code>/<code>@supports</code> blocks (single-class selectors) into the builder's nested-style model, so imported and generated sections keep their hover states and breakpoints. Descendant and compound selectors are still ignored &mdash; give each element its own class.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2 id="6.0.0-beta.25">6.0.0-beta.25 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Import a section in the Visual Builder</strong> &mdash; An <strong>Import</strong> button opens a three-pane HTML / CSS / JavaScript modal. Paste a section and it explodes into editable nodes, merges the CSS into the site stylesheet, and drops onto the canvas at the selected container. JavaScript is appended to the page's script file and runs on the published page.</li>
+      <li><strong>Click-to-reveal targeting</strong> &mdash; Selecting a node scrolls the canvas to bring it into view (pick a top section from the Layers panel while scrolled to the bottom and the canvas jumps back up to it), and clicking on the canvas scrolls the Layers/Content panel to the matching row, expanding any collapsed ancestors.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>The session now starts before the Shield firewall runs, so authenticated-admin requests carrying legitimate HTML/JS/CSS bodies (section import, code and theme writes) are recognised and no longer blocked with a 403. Imported HTML/CSS is still sanitised at parse and render &mdash; scripts, event handlers, <code>javascript:</code>/control-char URLs, <code>expression()</code>, <code>@import</code>, and <code>behavior</code>/<code>-moz-binding</code> are stripped.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.24">6.0.0-beta.24 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-01</span></h2>
     <h3>Changed</h3>
     <ul>

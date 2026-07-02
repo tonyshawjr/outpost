@@ -10,6 +10,18 @@
 
 ---
 
+## 0a. NORTH STAR (Tony, 2026-06-29) — READ FIRST, this reframes everything
+
+**The product thesis is NOT a visual page builder.** It is:
+
+> Build a static HTML site with Claude/ChatGPT (or hand, or Astro export) → **import that HTML as a theme** into Outpost → the CMS makes parts of it dynamic via **"dynamic holes"/windows** (Astro-islands / Instatic-holes model). The site stays static except the holes. "Deploys like WordPress."
+
+The import-as-theme + dynamic-holes pipeline is the CORE. The data-attribute templating engine (`data-outpost`) is the existing vehicle for marking those holes. **Do NOT let the visual node-tree builder become the center of gravity** — that would make Outpost "a non-WordPress Elementor," which Tony explicitly does not want.
+
+**The visual builder is the SECONDARY / optional layer** (Tony's "it's basically a plugin"). It's for building a page from scratch visually when you don't have hand/AI HTML. It must not swallow or replace the import+templating path.
+
+**Re-prioritisation:** the highest-value work is now the **import pipeline (paste/upload static HTML → theme)** and **dynamic holes** (auto-detect + bind CMS content), NOT continuing visual-builder depth (#7 multi-breakpoint, etc.). Those visual-builder phases drop in priority; the AI/MCP angle stays valuable because it serves the "AI builds the HTML" thesis.
+
 ## 0. TL;DR — the one decision everything hangs on
 
 Outpost today edits content two ways: **form fields bound to `data-outpost` attributes** in flat theme templates, and a **list-based block builder** (`page_blocks`, ordered, drag-to-reorder via SortableJS, fields edited in a side form). There is **no node tree, no nesting, no visual canvas, no class system.**
@@ -162,7 +174,31 @@ Effort: **XL**, but it's the differentiator. Sequence it right after a minimal c
 
 ---
 
-## 5. Phased roadmap
+## 5a. CANONICAL BUILD ROADMAP (current — 2026-06-29, supersedes §5)
+
+The single source of truth for what we're building, in order. Reordered around the North Star (§0a): **import is the priority; the visual builder is the secondary/optional layer.**
+
+**DONE (visual builder core + pages):**
+1. ✅ Admin polish + sidebar restyle (Instatic dark look, purple active pill). *Deferred bits: top-nav restyle + floating mode toolbar → folded into #13.*
+2. ✅ Node-tree engine (flat-map tree, save, snapshot undo/redo, optimistic lock, PHP renderer).
+3. ✅ Canvas + layers panel (click-to-select, color-coded ARIA tree).
+4. ✅ Class-based style panel + Componentize (live scoped CSS, reusable components, edit-once-update-all).
+5. ✅ Selectors panel (searchable class library: usage, rename-across-nodes, duplicate, unused).
+6. ✅ Design tokens (one color → HSL shade/tint scale + utility classes; fluid type/spacing scales).
+- ✅ Extras: Pages list (real pages table), Create Page screen, `pages POST` create, BEM auto-class, right-click context menu, searchable class combobox.
+
+**NEXT (in order — do from the top):**
+7. **Import HTML → theme + unified page model** *(THE priority — core thesis).* Endpoint + UI: paste a page or upload a folder/zip of static HTML (AI/ChatGPT/Astro output) → becomes Outpost pages/templates → existing auto-scan (`engine.php` template scanner) lights up the `data-outpost` fields. Forces the page-model decision: a page is **Template-backed** (imported/coded `.html`) OR **Visual** (node tree); the Pages list + front-router must render both. The in-admin Code Editor already exposes the theme/blocks structure — the importer automates "drop the files in + register." This is "ChatGPT builds it, drop it in, it's my CMS."
+8. **AI build sidebar (in-app agent).** "Describe it and I'll build it," BYO key (Anthropic/OpenAI/OpenRouter/Ollama). Edits the canvas as real nodes AND fills the dynamic holes/fields. Reuses the node-tree mutation API + import pipeline. Core to "AI builds it (inside)."
+9. **Builder MCP.** Same mutation engine as #8 exposed via the existing `php/mcp.php` so Claude Code builds in Outpost from the terminal (Etch-Bridge pattern). Core to "AI builds it (outside)."
+10. **Multi-breakpoint canvas + live mode.** Three-screens-at-once Figma view + zoom-into-one live editing. Visual-builder finish; nice-to-have (secondary layer).
+11. **Dynamic holes / lazy islands.** Astro-island performance: static baked page + lazy-loaded dynamic fragments (vs. today's full server-render + Boost full-page cache). The "static except the holes" performance story.
+12. **AI convention + generation spec (ongoing).** System prompt + before/after examples + machine spec so an LLM emits import-ready Outpost HTML (`data-outpost` markers). `php/docs/llms.txt` is the reference; this is the generation-side companion. Per Tony: finalize after the above, then **constantly evolve** as the AI hits issues in real use.
+13. **Hardening + release.** Finish #1's deferred top-nav restyle + floating mode toolbar; full security audit (per CLAUDE.md rule); update HTML docs + `llms.txt`; version bump + GitHub Release.
+
+Ordering rationale: #7 first because import is the product thesis ("we definitely need that"). #8–#9 next because "AI builds it" (both inside and outside) is central to both workflows. #10 (multi-breakpoint) drops below the AI work since the visual builder is the secondary layer. #11–#13 round out performance, the AI-enablement docs, and release.
+
+## 5. Phased roadmap (ORIGINAL — superseded by §5a, kept for history)
 
 Each phase ships something usable. Don't build the whole thing before shipping.
 
