@@ -166,6 +166,8 @@
     return String(n).charAt(0).toUpperCase();
   });
 
+  let avatarUrl = $derived(currentUser?.avatar || currentUser?.avatar_url || '');
+
   $effect(() => {
     if (openGroup === null && !userMenuOpen) return;
     function handler(e) {
@@ -262,8 +264,12 @@
       </button>
     {/if}
     <div class="tn-user">
-      <button class="tn-avatar" onclick={() => (userMenuOpen = !userMenuOpen)} aria-expanded={userMenuOpen} aria-label="Account menu">
-        {initials}
+      <button class="tn-avatar" class:has-img={avatarUrl} onclick={() => (userMenuOpen = !userMenuOpen)} aria-expanded={userMenuOpen} aria-label="Account menu">
+        {#if avatarUrl}
+          <img class="tn-avatar-img" src={avatarUrl} alt="" />
+        {:else}
+          {initials}
+        {/if}
       </button>
       {#if userMenuOpen}
         <div class="tn-menu tn-user-menu" role="menu">
@@ -512,7 +518,14 @@
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.12s ease;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
   }
+  .tn-avatar.has-img { background: transparent; }
+  .tn-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
   .tn-avatar:hover { opacity: 0.9; }
   .tn-avatar:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
   .tn-user-menu { left: auto; right: 0; min-width: 216px; }
