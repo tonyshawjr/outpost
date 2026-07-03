@@ -9640,12 +9640,15 @@ function outpost_apply_content_pack(array $pack, string $themeSlug): array {
             // Items
             if (!empty($collDef['items'])) {
                 foreach ($collDef['items'] as $itemDef) {
+                    $itemData = $itemDef['data'] ?? [];
+                    if (!isset($itemData['title']) && isset($itemDef['title'])) {
+                        $itemData['title'] = $itemDef['title'];
+                    }
                     OutpostDB::insert('collection_items', [
                         'collection_id' => $collId,
-                        'title' => $itemDef['title'],
                         'slug' => $itemDef['slug'],
                         'status' => $itemDef['status'] ?? 'published',
-                        'data' => json_encode($itemDef['data'] ?? []),
+                        'data' => json_encode($itemData),
                     ]);
                     $summary['items']++;
                 }
