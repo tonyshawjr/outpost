@@ -12,6 +12,7 @@
     LayoutGrid, Box, PenSquare, Mail, Calendar, GitBranch, MessageSquare, ClipboardList,
     Columns3, Database, FolderOpen, BarChart3, Rss, Workflow, Archive, Upload, Lock,
     Code, Search, Sun, Moon, Settings, Settings2, ChevronDown, LifeBuoy, Image, Utensils, Briefcase, Wrench,
+    ArrowRight,
   } from 'lucide-svelte';
 
   let route = $derived($currentRoute);
@@ -51,20 +52,23 @@
   let contentCollections = $derived(
     (grants == null ? allColls : allColls.filter((c) => grants.includes(c.id)))
       .filter((c) => c.slug !== 'pages')
-      .map((c) => ({ label: c.name || c.label || c.slug, slug: c.slug, icon: collIcon(c.slug) }))
+      .map((c) => {
+        const name = c.name || c.label || c.slug;
+        return { label: name, slug: c.slug, icon: collIcon(c.slug), desc: c.description || `Manage your ${String(name).toLowerCase()}` };
+      })
   );
 
   let groups = $derived([
     { label: 'Dashboard', icon: Home, route: 'dashboard' },
     {
       label: 'Site', icon: Globe, items: [
-        { label: 'Pages', route: 'pages', icon: FileText, on: true, activeAlso: ['node-builder', 'page-new', 'page-import'] },
-        { label: 'Navigation', route: 'navigation', icon: Layout, on: feat('navigation') },
-        { label: 'Globals', route: 'globals', icon: Sparkles, on: true },
-        { label: 'Design', route: 'design', icon: SwatchBook, on: showSettings },
-        { label: 'Brand', route: 'brand', icon: Palette, on: showSettings },
-        { label: 'Redirects', route: 'redirects', icon: ArrowLeftRight, on: showAdmin },
-        { label: 'View site', route: 'view-site', icon: Globe, on: true },
+        { label: 'Pages', route: 'pages', icon: FileText, on: true, activeAlso: ['node-builder', 'page-new', 'page-import'], desc: 'Build and edit standalone pages' },
+        { label: 'Navigation', route: 'navigation', icon: Layout, on: feat('navigation'), desc: 'Menus and links across your site' },
+        { label: 'Globals', route: 'globals', icon: Sparkles, on: true, desc: 'Reusable content shared site-wide' },
+        { label: 'Design', route: 'design', icon: SwatchBook, on: showSettings, desc: 'Theme, colors, and typography' },
+        { label: 'Brand', route: 'brand', icon: Palette, on: showSettings, desc: 'Logo, favicon, and brand assets' },
+        { label: 'Redirects', route: 'redirects', icon: ArrowLeftRight, on: showAdmin, desc: 'Forward old URLs to new ones' },
+        { label: 'View site', route: 'view-site', icon: Globe, on: true, desc: 'Open your live site in a new tab' },
       ],
     },
     {
@@ -73,37 +77,37 @@
           title: 'Collections',
           items: [
             ...contentCollections.map((c) => ({
-              label: c.label, icon: c.icon, on: feat('collections'),
+              label: c.label, icon: c.icon, on: feat('collections'), desc: c.desc,
               route: 'collection-items', collectionSlug: c.slug,
             })),
-            { label: 'Manage collections', icon: Settings2, route: 'collections', on: showSettings || showDeveloper, activeAlso: ['collection-schema'] },
+            { label: 'Manage collections', icon: Settings2, route: 'collections', on: showSettings || showDeveloper, activeAlso: ['collection-schema'], desc: 'Create and edit collection types' },
           ],
         },
         {
           title: 'Create & manage',
           items: [
-            { label: 'Page Builder', route: 'page-builder', icon: LayoutGrid, on: showSettings || showDeveloper },
-            { label: 'Visual Builder', route: 'node-builder', icon: Box, on: showSettings || showDeveloper },
-            { label: 'Editorial AI', route: 'editorial-ai', icon: Sparkles, on: showAdmin },
-            { label: 'Newsletter', route: 'newsletter', icon: Mail, on: showAdmin },
-            { label: 'Calendar', route: 'calendar', icon: Calendar, on: showAdmin },
-            { label: 'Releases', route: 'releases', icon: GitBranch, on: showAdmin },
-            { label: 'Review Links', route: 'review-tokens', icon: MessageSquare, on: showAdmin },
-            { label: 'Forms', route: 'forms-list', icon: ClipboardList, on: showFormBuilder, activeAlso: ['forms', 'form-builder', 'form-submissions'] },
+            { label: 'Page Builder', route: 'page-builder', icon: LayoutGrid, on: showSettings || showDeveloper, desc: 'Assemble pages from blocks' },
+            { label: 'Visual Builder', route: 'node-builder', icon: Box, on: showSettings || showDeveloper, desc: 'Design pages on a live canvas' },
+            { label: 'Editorial AI', route: 'editorial-ai', icon: Sparkles, on: showAdmin, desc: 'Draft and refine content with AI' },
+            { label: 'Newsletter', route: 'newsletter', icon: Mail, on: showAdmin, desc: 'Compose and send email campaigns' },
+            { label: 'Calendar', route: 'calendar', icon: Calendar, on: showAdmin, desc: 'Schedule and plan your content' },
+            { label: 'Releases', route: 'releases', icon: GitBranch, on: showAdmin, desc: 'Bundle changes and publish together' },
+            { label: 'Review Links', route: 'review-tokens', icon: MessageSquare, on: showAdmin, desc: 'Share drafts for private feedback' },
+            { label: 'Forms', route: 'forms-list', icon: ClipboardList, on: showFormBuilder, activeAlso: ['forms', 'form-builder', 'form-submissions'], desc: 'Build forms and collect responses' },
           ],
         },
       ],
     },
     {
       label: 'Data', icon: Database, items: [
-        { label: 'Collections', route: 'collections', icon: Columns3, on: showSettings || showDeveloper, activeAlso: ['collection-schema'] },
-        { label: 'Field Presets', route: 'field-presets', icon: Database, on: showSettings || showDeveloper },
-        { label: 'Folders', route: 'folder-manager', icon: FolderOpen, on: showSettings || showDeveloper },
-        { label: 'Analytics', route: 'analytics', icon: BarChart3, on: showAdmin, activeAlso: ['analytics-events', 'analytics-goals', 'analytics-search', 'analytics-content', 'analytics-funnels'] },
-        { label: 'Channels', route: 'channels', icon: Rss, on: showChannels, activeAlso: ['channel-builder'] },
-        { label: 'Workflows', route: 'workflows', icon: Workflow, on: showAdmin },
-        { label: 'Backups', route: 'backups', icon: Archive, on: showAdmin },
-        { label: 'Code Editor', route: 'code-editor', icon: Code, on: showCode },
+        { label: 'Collections', route: 'collections', icon: Columns3, on: showSettings || showDeveloper, activeAlso: ['collection-schema'], desc: 'Define collection types and fields' },
+        { label: 'Field Presets', route: 'field-presets', icon: Database, on: showSettings || showDeveloper, desc: 'Reusable field groups for schemas' },
+        { label: 'Folders', route: 'folder-manager', icon: FolderOpen, on: showSettings || showDeveloper, desc: 'Organize your media into folders' },
+        { label: 'Analytics', route: 'analytics', icon: BarChart3, on: showAdmin, activeAlso: ['analytics-events', 'analytics-goals', 'analytics-search', 'analytics-content', 'analytics-funnels'], desc: 'Traffic, events, and goals' },
+        { label: 'Channels', route: 'channels', icon: Rss, on: showChannels, activeAlso: ['channel-builder'], desc: 'Pull in external feeds and APIs' },
+        { label: 'Workflows', route: 'workflows', icon: Workflow, on: showAdmin, desc: 'Custom editorial approval stages' },
+        { label: 'Backups', route: 'backups', icon: Archive, on: showAdmin, desc: 'Snapshot and restore your site' },
+        { label: 'Code Editor', route: 'code-editor', icon: Code, on: showCode, desc: 'Edit theme templates and code' },
       ],
     },
     { label: 'Media', icon: Upload, route: 'media', on: feat('media') },
@@ -186,9 +190,13 @@
                 <div class="tn-col">
                   {#if sec.title}<div class="tn-sec-label">{sec.title}</div>{/if}
                   {#each sec.items as it (it.collectionSlug || it.route)}
-                    <button class="tn-menu-item" class:active={itemActive(it)} role="menuitem" onclick={() => go(it)}>
-                      <span class="tn-ic"><it.icon size={15} aria-hidden="true" /></span>
-                      <span>{it.label}</span>
+                    <button class="tn-menu-item" class:has-desc={it.desc} class:active={itemActive(it)} role="menuitem" onclick={() => go(it)}>
+                      <span class="tn-ic"><it.icon size={17} aria-hidden="true" /></span>
+                      <span class="tn-item-body">
+                        <span class="tn-item-title">{it.label}</span>
+                        {#if it.desc}<span class="tn-item-desc">{it.desc}</span>{/if}
+                      </span>
+                      {#if it.desc}<ArrowRight size={15} aria-hidden="true" class="tn-arrow" />{/if}
                     </button>
                   {/each}
                 </div>
@@ -271,11 +279,11 @@
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    min-width: 230px;
-    padding: 7px;
+    min-width: 300px;
+    padding: 8px;
     background: var(--raised, #17171b);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 16px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14), 0 18px 44px rgba(0, 0, 0, 0.42);
     z-index: 100;
     transform-origin: top left;
@@ -285,48 +293,66 @@
     from { opacity: 0; transform: translateY(-7px) scale(0.97); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .tn-menu.mega { display: grid; grid-template-columns: 208px 216px; gap: 4px; min-width: 0; }
-  .tn-menu.mega .tn-col + .tn-col { border-left: 1px solid var(--border); padding-left: 5px; }
+  .tn-menu.mega { display: grid; grid-template-columns: 288px 300px; gap: 6px; min-width: 0; }
+  .tn-menu.mega .tn-col + .tn-col { border-left: 1px solid var(--border); padding-left: 7px; }
 
   .tn-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-  .tn-sec-label { padding: 8px 10px 5px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+  .tn-sec-label { padding: 9px 10px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); }
 
   .tn-menu-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 9px;
+    gap: 12px;
+    padding: 9px 10px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     background: transparent;
     color: var(--sec);
-    font-size: 13px;
     text-align: left;
     cursor: pointer;
     width: 100%;
     transition: background 0.11s, color 0.11s;
   }
-  .tn-menu-item:hover { background: var(--hover); color: var(--text); }
-  .tn-menu-item.active { color: var(--purple-soft, var(--purple)); }
+  .tn-menu-item.has-desc { align-items: flex-start; }
+  .tn-menu-item:hover { background: var(--hover); }
   .tn-menu-item:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
   .tn-menu-item.danger:hover { color: var(--red); }
+
+  .tn-item-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .tn-item-title { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
+  .tn-item-desc { font-size: 12px; color: var(--dim); line-height: 1.3; }
+  .tn-menu-item:not(.has-desc) .tn-item-title,
+  .tn-menu-item:not(.has-desc) > span:last-child { font-weight: 500; }
+  .tn-menu-item.active .tn-item-title { color: var(--purple-soft, var(--purple)); }
 
   .tn-ic {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
     background: var(--hover);
     flex-shrink: 0;
     transition: background 0.11s;
   }
-  .tn-ic :global(svg) { color: var(--dim); transition: color 0.11s; }
+  .tn-menu-item.has-desc .tn-ic { margin-top: 1px; }
+  .tn-ic :global(svg) { color: var(--sec); transition: color 0.11s; }
   .tn-menu-item:hover .tn-ic :global(svg) { color: var(--text); }
   .tn-menu-item.active .tn-ic { background: var(--purple-bg, var(--hover)); }
   .tn-menu-item.active .tn-ic :global(svg) { color: var(--purple-soft, var(--purple)); }
   .tn-menu-item.danger:hover .tn-ic :global(svg) { color: var(--red); }
+
+  .tn-menu-item :global(.tn-arrow) {
+    align-self: center;
+    color: var(--dim);
+    opacity: 0;
+    transform: translateX(-3px);
+    transition: opacity 0.12s, transform 0.12s;
+    flex-shrink: 0;
+  }
+  .tn-menu-item:hover :global(.tn-arrow) { opacity: 1; transform: translateX(0); }
+  .tn-menu-item.active :global(.tn-arrow) { opacity: 1; color: var(--purple-soft, var(--purple)); }
 
   .tn-right { display: flex; align-items: center; gap: 4px; margin-left: auto; }
   .tn-icon {
