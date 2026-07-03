@@ -87,16 +87,6 @@
     {
       label: 'Content', icon: PenSquare, mega: true, sections: [
         {
-          title: 'Collections',
-          items: [
-            ...contentCollections.map((c) => ({
-              label: c.label, icon: c.icon, on: feat('collections'), desc: c.desc,
-              route: 'collection-items', collectionSlug: c.slug,
-            })),
-            { label: 'Manage collections', icon: Settings2, route: 'collections', on: showSettings || showDeveloper, activeAlso: ['collection-schema'], desc: 'Create and edit collection types' },
-          ],
-        },
-        {
           title: 'Create & manage',
           items: [
             { label: 'Page Builder', route: 'page-builder', icon: LayoutGrid, on: showSettings || showDeveloper, desc: 'Assemble pages from blocks' },
@@ -107,6 +97,16 @@
             { label: 'Releases', route: 'releases', icon: GitBranch, on: showAdmin, desc: 'Bundle changes and publish together' },
             { label: 'Review Links', route: 'review-tokens', icon: MessageSquare, on: showAdmin, desc: 'Share drafts for private feedback' },
             { label: 'Forms', route: 'forms-list', icon: ClipboardList, on: showFormBuilder, activeAlso: ['forms', 'form-builder', 'form-submissions'], desc: 'Build forms and collect responses' },
+          ],
+        },
+        {
+          title: 'Collections',
+          items: [
+            ...contentCollections.map((c) => ({
+              label: c.label, icon: c.icon, on: feat('collections'), desc: c.desc,
+              route: 'collection-items', collectionSlug: c.slug,
+            })),
+            { label: 'Manage collections', icon: Settings2, route: 'collections', on: showSettings || showDeveloper, activeAlso: ['collection-schema'], desc: 'Create and edit collection types' },
           ],
         },
       ],
@@ -345,10 +345,15 @@
     from { opacity: 0; transform: translateY(-6px) scale(0.985); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .tn-menu.mega { display: grid; grid-template-columns: 300px 320px; gap: 20px; min-width: 0; padding: 8px; }
-  .tn-menu.mega.has-recent { grid-template-columns: 252px 272px 264px; gap: 8px; padding: 8px; }
+  .tn-menu.mega { display: grid; grid-template-columns: 300px 320px; gap: 0; min-width: 0; padding: 8px; }
+  .tn-menu.mega.has-recent { grid-template-columns: 268px 288px 276px; gap: 0; padding: 8px; }
 
   .tn-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .tn-menu.mega .tn-col + .tn-col {
+    border-left: 1px solid var(--border);
+    padding-left: 20px;
+    margin-left: 20px;
+  }
   .tn-sec-label {
     padding: 6px 10px 8px;
     font-size: 11px;
@@ -414,7 +419,7 @@
     flex-direction: column;
     min-width: 0;
     padding-left: 20px;
-    margin-left: 12px;
+    margin-left: 20px;
     border-left: 1px solid var(--border);
   }
   .tn-recent-list { display: flex; flex-direction: column; gap: 1px; }
