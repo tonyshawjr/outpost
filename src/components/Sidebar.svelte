@@ -28,7 +28,7 @@
     Columns3, ChevronRight, Search, Sun, Moon, LogOut, User,
     Layout, Rss, Lock, GitBranch, Workflow, Webhook,
     ArrowLeftRight, ClipboardList, Palette, Users, Shield, Zap,
-    MessageSquare, Database, BarChart3, Clock, Archive, Sparkles, Box
+    MessageSquare, Database, BarChart3, Clock, Archive, Sparkles, Box, Mail
   } from 'lucide-svelte';
   import { auth } from '$lib/api.js';
 
@@ -287,6 +287,10 @@
           <a class="sb-item" class:active={route === 'redirects'} onclick={() => nav('redirects')}>
             <ArrowLeftRight size={19} />
             <span>Redirects</span>
+          </a>
+          <a class="sb-item" class:active={route === 'newsletter'} onclick={() => nav('newsletter')}>
+            <Mail size={19} />
+            <span>Newsletter</span>
           </a>
           <a class="sb-item" class:active={route === 'review-tokens'} onclick={() => nav('review-tokens')}>
             <MessageSquare size={19} />

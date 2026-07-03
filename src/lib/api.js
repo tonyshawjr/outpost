@@ -294,6 +294,13 @@ export const grammar = {
   updateSettings: (data) => request('grammar/settings', { method: 'PUT', body: data }),
 };
 
+export const newsletter = {
+  getSettings: () => request('newsletter/settings'),
+  updateSettings: (data) => request('newsletter/settings', { method: 'PUT', body: data }),
+  subscribers: () => request('newsletter/subscribers'),
+  send: (data) => request('newsletter/send', { method: 'POST', body: data }),
+};
+
 export const stock = {
   providers: () => request('stock/providers'),
   search: (provider, q, page = 1) => request('stock/search', { params: { provider, q, page } }),

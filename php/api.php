@@ -29,6 +29,7 @@ require_once __DIR__ . '/builder-ai.php';
 require_once __DIR__ . '/stock-photos.php';
 require_once __DIR__ . '/embeds.php';
 require_once __DIR__ . '/grammar.php';
+require_once __DIR__ . '/newsletter.php';
 require_once __DIR__ . '/releases.php';
 require_once __DIR__ . '/workflows.php';
 require_once __DIR__ . '/comments.php';
@@ -171,6 +172,20 @@ if ($action === 'review/comment' && $method === 'POST') {
 if ($action === 'review/comments' && $method === 'GET') {
     ensure_comment_tables();
     handle_review_comments_list();
+    exit;
+}
+
+// Public newsletter endpoints (double opt-in — anonymous visitors)
+if ($action === 'newsletter/subscribe' && $method === 'POST') {
+    handle_newsletter_subscribe_public();
+    exit;
+}
+if ($action === 'newsletter/confirm' && $method === 'GET') {
+    handle_newsletter_confirm_public();
+    exit;
+}
+if ($action === 'newsletter/unsubscribe' && ($method === 'GET' || $method === 'POST')) {
+    handle_newsletter_unsubscribe_public();
     exit;
 }
 
@@ -694,6 +709,12 @@ match (true) {
     $action === 'grammar/check' && $method === 'POST' => handle_grammar_check(),
     $action === 'grammar/settings' && $method === 'GET' => handle_grammar_settings_get(),
     $action === 'grammar/settings' && $method === 'PUT' => handle_grammar_settings_update(),
+
+    // Newsletter (admin)
+    $action === 'newsletter/settings' && $method === 'GET' => handle_newsletter_settings_get(),
+    $action === 'newsletter/settings' && $method === 'PUT' => handle_newsletter_settings_update(),
+    $action === 'newsletter/subscribers' && $method === 'GET' => handle_newsletter_subscribers(),
+    $action === 'newsletter/send' && $method === 'POST' => handle_newsletter_send(),
 
     // Ranger AI Assistant
     $action === 'ranger/chat' && $method === 'POST' => handle_ranger_chat(),

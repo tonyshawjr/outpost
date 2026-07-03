@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi, stock as stockApi, grammar as grammarApi } from '$lib/api.js';
+  import { webhooks as whApi, apikeys as apikeysApi, ranger as rangerApi, stock as stockApi, grammar as grammarApi, newsletter as newsletterApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import Checkbox from '$components/Checkbox.svelte';
 
@@ -40,6 +40,11 @@
   let grammarSettings = $state({ server_url: '', username: '', apikey: '' });
   let grammarSaving = $state(false);
   let showLtKey = $state(false);
+
+  // Newsletter (Resend)
+  let newsletterSettings = $state({ resend_api_key: '', newsletter_from: '', newsletter_reply_to: '' });
+  let newsletterSaving = $state(false);
+  let showResendKey = $state(false);
 
   // API Keys
   let apiKeysList = $state([]);
@@ -106,6 +111,18 @@
       }
     } catch (_) {}
 
+    // Load newsletter settings
+    try {
+      const data = await newsletterApi.getSettings();
+      if (data.settings) {
+        newsletterSettings = {
+          resend_api_key: data.settings.resend_api_key || '',
+          newsletter_from: data.settings.newsletter_from || '',
+          newsletter_reply_to: data.settings.newsletter_reply_to || '',
+        };
+      }
+    } catch (_) {}
+
     // Load grammar settings
     try {
       const data = await grammarApi.getSettings();
@@ -166,6 +183,22 @@
       addToast(err.message, 'error');
     } finally {
       stockSaving = false;
+    }
+  }
+
+  async function saveNewsletterSettings() {
+    newsletterSaving = true;
+    try {
+      await newsletterApi.updateSettings({
+        resend_api_key: newsletterSettings.resend_api_key,
+        newsletter_from: newsletterSettings.newsletter_from,
+        newsletter_reply_to: newsletterSettings.newsletter_reply_to,
+      });
+      addToast('Newsletter settings saved', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      newsletterSaving = false;
     }
   }
 
@@ -566,6 +599,34 @@
 
     <button class="btn btn-primary" onclick={saveStockSettings} disabled={stockSaving} type="button">
       {stockSaving ? 'Saving...' : 'Save Stock Photo Settings'}
+    </button>
+  </div>
+
+  <!-- Newsletter (Resend) -->
+  <div class="int-block">
+    <h4 class="int-block-title">Newsletter (Resend)</h4>
+    <p class="int-block-desc">Send newsletters to your subscribers via Resend. Verify a sending domain in your Resend dashboard (add the SPF/DKIM DNS records), then paste your API key here. Without a verified domain you can still send test emails from Resend's sandbox address.</p>
+
+    <div class="form-group">
+      <label class="form-label">Resend API Key</label>
+      <div style="display: flex; align-items: center; gap: var(--space-sm);">
+        <input class="input" type={showResendKey ? 'text' : 'password'} placeholder="re_..." bind:value={newsletterSettings.resend_api_key} style="flex: 1;" />
+        <button class="btn btn-ghost btn-sm" type="button" onclick={() => showResendKey = !showResendKey}>{showResendKey ? 'Hide' : 'Show'}</button>
+      </div>
+      <p class="form-hint">Free at <code>resend.com</code> — 3,000 emails/month, 100/day.</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">From Address</label>
+      <input class="input" type="text" placeholder="Your Name &lt;news@yourdomain.com&gt;" bind:value={newsletterSettings.newsletter_from} />
+      <p class="form-hint">Must be on a domain you've verified in Resend. Leave blank to send tests from the Resend sandbox.</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reply-To (optional)</label>
+      <input class="input" type="email" placeholder="hello@yourdomain.com" bind:value={newsletterSettings.newsletter_reply_to} />
+    </div>
+
+    <button class="btn btn-primary" onclick={saveNewsletterSettings} disabled={newsletterSaving} type="button">
+      {newsletterSaving ? 'Saving...' : 'Save Newsletter Settings'}
     </button>
   </div>
 

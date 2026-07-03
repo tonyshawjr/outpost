@@ -67,6 +67,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   import ReviewTokens from '$pages/ReviewTokens.svelte';
   import Lodge from '$pages/Lodge.svelte';
   import Redirects from '$pages/Redirects.svelte';
+  import Newsletter from '$pages/Newsletter.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import RightSidebar from '$components/RightSidebar.svelte';
@@ -304,6 +305,8 @@ import EditorialAI from '$pages/EditorialAI.svelte';
           {:else}
             <AccessDenied />
           {/if}
+        {:else if route === 'newsletter'}
+          <Newsletter />
         {:else if route === 'field-presets'}
           <FieldPresets />
         {:else if route === 'editorial-ai'}

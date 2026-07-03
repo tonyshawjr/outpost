@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.32] — 2026-07-03
+
+### Added
+- **Newsletter.** Send email newsletters to your subscribers. A new Newsletter admin page composes (richtext) and sends to the union of confirmed subscribers and opted-in members, with a send-test option and a subscriber list. Double opt-in: a `data-outpost-newsletter` signup form (drop it in any theme) sends a confirmation email; subscribers confirm before they're active, and every email carries a one-click unsubscribe (RFC 8058). Powered by Resend (BYO key, verified sending domain) — connect it in Settings → Integrations.
+
+---
+
 ## [6.0.0-beta.31] — 2026-07-02
 
 ### Added

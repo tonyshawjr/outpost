@@ -1269,6 +1269,12 @@ function outpost_cache_output(string $buffer): string {
         $buffer = preg_replace('/<\/head>/i', $embedCss . "\n</head>", $buffer, 1);
     }
 
+    // 2f. Inject newsletter client when a subscribe form is present
+    if (strpos($buffer, 'data-outpost-newsletter') !== false && stripos($buffer, '</body>') !== false) {
+        $nlJs = '<script src="/outpost/newsletter-client.js?v=' . OUTPOST_VERSION . '"></script>';
+        $buffer = preg_replace('/<\/body>/i', $nlJs . "\n</body>", $buffer, 1);
+    }
+
     // 3. Inject frontend editor overlay + admin bar before </body> (never cached -- admin only, skip in customizer preview)
     if (outpost_is_admin() && !$isCustomizerPreview) {
         // Inject editor CSS — only right padding for icon rail (no top bar)

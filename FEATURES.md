@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Newsletter — Resend (v6.0.0-beta.32)
+
+- **Hybrid subscribers + double opt-in.** `php/newsletter.php`: a `subscribers` table (email, status, confirm/unsub tokens) plus a `newsletter_optin` flag on member-role users. Recipients = confirmed subscribers ∪ opted-in members (deduped). Public flow: `newsletter/subscribe` (creates pending + sends a confirmation email), `newsletter/confirm` (token → confirmed page), `newsletter/unsubscribe` (token → page + RFC 8058 one-click POST). All three are pre-auth public routes; subscribe is cooldown- + IP-rate-limited against email-bombing.
+- **Resend sending.** Batch send (`/emails/batch`, 100/chunk) with a per-recipient `List-Unsubscribe` header + `Idempotency-Key` per chunk; single send for confirmations; `onboarding@resend.dev` fallback when no verified domain. Key encrypted, server-side only. Free tier 3k/mo, 100/day; 429 surfaced.
+- **Admin + front-end.** A Newsletter page (compose richtext → send test → broadcast to the union) + subscriber list/stats; a `data-outpost-newsletter` signup form (vanilla `newsletter-client.js`, injected by the engine when the marker is present) drops into any theme.
+- **Remaining:** a member-facing opt-in toggle in the Lodge portal, and live send needs the site owner's Resend key + a verified domain (SPF/DKIM).
+
+---
+
 ## Grammar & Spelling — LanguageTool (v6.0.0-beta.31)
 
 - **In-editor checking.** A toolbar toggle (WCAG: `aria-label`/`aria-pressed`) in `RichTextEditor` runs a debounced check when on. `src/lib/grammar-extension.js` is a TipTap/ProseMirror extension: it extracts the doc's plain text with a text-offset→doc-position map, sends it to the server, maps LanguageTool matches back to positions, and renders inline `Decoration`s (wavy underline, colored by issue type — spelling/grammar/style). Clicking a mark opens a popover with the message + one-click replacements (`insertContentAt`).
