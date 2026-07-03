@@ -14,8 +14,19 @@
   let grants = $derived($collectionGrants);
 
   const HIDDEN = ['node-builder', 'setup'];
+  const SELF_PRIMARY = new Set([
+    'pages', 'media', 'newsletter', 'collections', 'collection-schema',
+    'collection-items', 'forms-list', 'forms',
+  ]);
 
-  let actions = $derived.by(() => {
+  function singular(name) {
+    const n = String(name || '');
+    if (/ies$/i.test(n)) return n.replace(/ies$/i, 'y');
+    if (/[^s]s$/i.test(n)) return n.replace(/s$/i, '');
+    return n;
+  }
+
+  let rawActions = $derived.by(() => {
     switch (route) {
       case 'pages':
         return [
@@ -39,12 +50,15 @@
     }
   });
 
+  let primaryAction = $derived(!SELF_PRIMARY.has(route) && rawActions.length ? rawActions[0] : null);
+  let ghostActions = $derived(rawActions.slice(1));
+
   let createOptions = $derived([
     { label: 'New page', icon: FileText, run: () => navigate('node-builder') },
     { label: 'Upload media', icon: Upload, run: () => navigate('media') },
     ...(grants == null ? allColls : allColls.filter((c) => grants.includes(c.id)))
       .filter((c) => c.slug !== 'pages')
-      .map((c) => ({ label: `New ${c.name || c.label || c.slug}`, icon: PenSquare, run: () => navigate('collection-editor', { collectionSlug: c.slug }) })),
+      .map((c) => ({ label: `New ${singular(c.name || c.label || c.slug)}`, icon: PenSquare, run: () => navigate('collection-editor', { collectionSlug: c.slug }) })),
   ]);
 
   let createOpen = $state(false);
@@ -62,31 +76,25 @@
 
 {#if !HIDDEN.includes(route)}
   <div class="fb" role="toolbar" aria-label="Quick actions">
-    {#if actions.length}
-      {@const PrimaryIcon = actions[0].icon}
-      <button class="fb-primary" onclick={() => run(actions[0].run)}>
+    {#if primaryAction}
+      {@const PrimaryIcon = primaryAction.icon}
+      <button class="fb-primary" onclick={() => run(primaryAction.run)}>
         <PrimaryIcon size={16} aria-hidden="true" />
-        <span>{actions[0].label}</span>
+        <span>{primaryAction.label}</span>
       </button>
-      {#each actions.slice(1) as a (a.label)}
-        <button class="fb-ghost" onclick={() => run(a.run)} title={a.label}>
-          <a.icon size={16} aria-hidden="true" />
-          <span class="fb-ghost-label">{a.label}</span>
-        </button>
-      {/each}
     {/if}
 
     <div class="fb-create-wrap">
       <button
-        class:fb-primary={actions.length === 0}
-        class:fb-plus={actions.length > 0}
+        class:fb-primary={!primaryAction}
+        class:fb-plus={primaryAction}
         onclick={() => (createOpen = !createOpen)}
         aria-expanded={createOpen}
         aria-label="Create"
         title="Create"
       >
         <Plus size={16} aria-hidden="true" />
-        {#if actions.length === 0}<span>Create</span>{/if}
+        {#if !primaryAction}<span>Create</span>{/if}
       </button>
       {#if createOpen}
         <div class="fb-menu" role="menu">
@@ -99,6 +107,13 @@
         </div>
       {/if}
     </div>
+
+    {#each ghostActions as a (a.label)}
+      <button class="fb-ghost" onclick={() => run(a.run)} title={a.label}>
+        <a.icon size={16} aria-hidden="true" />
+        <span class="fb-ghost-label">{a.label}</span>
+      </button>
+    {/each}
 
     <span class="fb-divider" aria-hidden="true"></span>
 
