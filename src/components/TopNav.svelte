@@ -204,12 +204,12 @@
                   {#if sec.title}<div class="tn-sec-label">{sec.title}</div>{/if}
                   {#each sec.items as it (it.collectionSlug || it.route)}
                     <button class="tn-menu-item" class:has-desc={it.desc} class:active={itemActive(it)} role="menuitem" onclick={() => go(it)}>
-                      <span class="tn-ic"><it.icon size={20} aria-hidden="true" /></span>
+                      <span class="tn-ic"><it.icon size={17} aria-hidden="true" /></span>
                       <span class="tn-item-body">
                         <span class="tn-item-title">{it.label}</span>
                         {#if it.desc}<span class="tn-item-desc">{it.desc}</span>{/if}
                       </span>
-                      {#if it.desc}<ArrowRight size={16} aria-hidden="true" class="tn-arrow" />{/if}
+                      {#if it.desc}<ArrowRight size={15} aria-hidden="true" class="tn-arrow" />{/if}
                     </button>
                   {/each}
                 </div>
@@ -225,7 +225,7 @@
                         {#if item.thumb}
                           <img class="tn-recent-thumb" src={item.thumb} alt="" loading="lazy" />
                         {:else}
-                          <span class="tn-recent-thumb tn-recent-ph"><RIcon size={20} aria-hidden="true" /></span>
+                          <span class="tn-recent-thumb tn-recent-ph"><RIcon size={17} aria-hidden="true" /></span>
                         {/if}
                         <span class="tn-recent-body">
                           <span class="tn-recent-title">{item.title}</span>
@@ -237,7 +237,7 @@
                   {#if viewAllCollection}
                     <button class="tn-recent-all" onclick={() => go({ route: 'collection-items', collectionSlug: viewAllCollection })}>
                       <span>View all content</span>
-                      <ArrowRight size={15} aria-hidden="true" />
+                      <ArrowRight size={14} aria-hidden="true" />
                     </button>
                   {/if}
                 </div>
@@ -269,9 +269,9 @@
         <div class="tn-menu tn-user-menu" role="menu">
           <div class="tn-col">
             <div class="tn-user-name">{currentUser?.display_name || currentUser?.email || 'Account'}</div>
-            <button class="tn-menu-item" role="menuitem" onclick={() => go('user-profile')}><span class="tn-ic"><Settings size={15} aria-hidden="true" /></span><span>Profile</span></button>
-            <button class="tn-menu-item" role="menuitem" onclick={() => go('help')}><span class="tn-ic"><LifeBuoy size={15} aria-hidden="true" /></span><span>Help &amp; Support</span></button>
-            <button class="tn-menu-item danger" role="menuitem" onclick={signOut}><span class="tn-ic"><Lock size={15} aria-hidden="true" /></span><span>Sign out</span></button>
+            <button class="tn-menu-item" role="menuitem" onclick={() => go('user-profile')}><span class="tn-ic"><Settings size={16} aria-hidden="true" /></span><span>Profile</span></button>
+            <button class="tn-menu-item" role="menuitem" onclick={() => go('help')}><span class="tn-ic"><LifeBuoy size={16} aria-hidden="true" /></span><span>Help &amp; Support</span></button>
+            <button class="tn-menu-item danger" role="menuitem" onclick={signOut}><span class="tn-ic"><Lock size={16} aria-hidden="true" /></span><span>Sign out</span></button>
           </div>
         </div>
       {/if}
@@ -283,222 +283,248 @@
   .topnav {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     height: 54px;
     padding: 0 16px;
-    background: var(--raised, #17171b);
+    background: var(--raised);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
-  .tn-brand { font-weight: 800; font-size: 16px; color: var(--text); cursor: pointer; padding-right: 6px; }
-  .tn-brand:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; border-radius: 4px; }
+  .tn-brand {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    cursor: pointer;
+    padding-right: 4px;
+  }
+  .tn-brand:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; border-radius: 4px; }
 
-  .tn-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; }
+  .tn-nav { display: flex; align-items: center; gap: 1px; flex: 1; min-width: 0; }
   .tn-group { position: relative; }
   .tn-top {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 7px 12px;
+    padding: 6px 10px;
     border: none;
-    border-radius: 9px;
+    border-radius: 7px;
     background: transparent;
     color: var(--sec);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 500;
+    letter-spacing: -0.005em;
     cursor: pointer;
     white-space: nowrap;
-    transition: background 0.12s, color 0.12s;
+    transition: background 0.12s ease, color 0.12s ease;
   }
-  .tn-top:hover { background: var(--hover); color: var(--text); }
-  .tn-top.active { background: var(--purple-bg, var(--hover)); color: var(--purple-soft, var(--purple)); }
+  .tn-top :global(svg) { color: var(--dim); transition: color 0.12s ease; }
+  .tn-top:hover { color: var(--text); background: var(--hover); }
+  .tn-top:hover :global(svg) { color: var(--sec); }
+  .tn-top.active { color: var(--text); font-weight: 550; background: var(--hover); }
+  .tn-top.active :global(svg) { color: var(--text); }
   .tn-top:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
-  .tn-top :global(.tn-caret) { transition: transform 0.18s ease; opacity: 0.6; }
+  .tn-top :global(.tn-caret) { transition: transform 0.18s ease; color: var(--dim); }
   .tn-top :global(.tn-caret.up) { transform: rotate(180deg); }
 
   .tn-menu {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 6px);
     left: 0;
-    min-width: 340px;
-    padding: 14px;
-    background: var(--raised, #17171b);
+    min-width: 300px;
+    padding: 6px;
+    background: var(--raised);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14), 0 24px 56px rgba(0, 0, 0, 0.44);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
     z-index: 100;
     transform-origin: top left;
-    animation: tn-menu-in 0.17s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: tn-menu-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
   }
   @keyframes tn-menu-in {
-    from { opacity: 0; transform: translateY(-8px) scale(0.975); }
+    from { opacity: 0; transform: translateY(-6px) scale(0.985); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .tn-menu.mega { display: grid; grid-template-columns: 344px 364px; gap: 28px; min-width: 0; padding: 18px 20px; }
-  .tn-menu.mega.has-recent { grid-template-columns: 276px 300px 300px; gap: 20px; padding: 16px; }
+  .tn-menu.mega { display: grid; grid-template-columns: 300px 320px; gap: 20px; min-width: 0; padding: 8px; }
+  .tn-menu.mega.has-recent { grid-template-columns: 252px 272px 264px; gap: 8px; padding: 8px; }
+
+  .tn-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .tn-sec-label {
+    padding: 6px 10px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+  }
+
+  .tn-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--sec);
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.12s ease;
+  }
+  .tn-menu-item.has-desc { align-items: flex-start; }
+  .tn-menu-item:hover { background: var(--hover); }
+  .tn-menu-item:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
+
+  .tn-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    flex-shrink: 0;
+  }
+  .tn-menu-item.has-desc .tn-ic { margin-top: 2px; }
+  .tn-ic :global(svg) { color: var(--dim); transition: color 0.12s ease; }
+  .tn-menu-item:hover .tn-ic :global(svg) { color: var(--text); }
+  .tn-menu-item.active .tn-ic :global(svg) { color: var(--purple); }
+  .tn-menu-item.danger:hover .tn-ic :global(svg) { color: var(--red); }
+
+  .tn-item-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .tn-item-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.35; letter-spacing: -0.005em; }
+  .tn-item-desc { font-size: 12px; font-weight: 400; color: var(--dim); line-height: 1.4; }
+  .tn-menu-item:not(.has-desc) .tn-item-title,
+  .tn-menu-item:not(.has-desc) > span:last-child { font-size: 13px; font-weight: 500; color: var(--sec); }
+  .tn-menu-item:not(.has-desc):hover > span:last-child { color: var(--text); }
+  .tn-menu-item.active .tn-item-title { color: var(--purple); }
+  .tn-menu-item.danger:hover > span:last-child { color: var(--red); }
+
+  .tn-menu-item :global(.tn-arrow) {
+    align-self: center;
+    color: var(--dim);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    flex-shrink: 0;
+  }
+  .tn-menu-item:hover :global(.tn-arrow) { opacity: 1; transform: translateX(0); }
+  .tn-menu-item.active :global(.tn-arrow) { opacity: 1; color: var(--purple); transform: translateX(0); }
 
   .tn-recent {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    background: var(--purple-bg, rgba(124, 58, 237, 0.07));
-    border-radius: 14px;
-    padding: 14px 14px 10px;
+    padding-left: 20px;
+    margin-left: 12px;
+    border-left: 1px solid var(--border);
   }
-  .tn-recent .tn-sec-label { padding: 2px 6px 12px; }
-  .tn-recent-list { display: flex; flex-direction: column; gap: 4px; }
+  .tn-recent-list { display: flex; flex-direction: column; gap: 1px; }
   .tn-recent-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
+    padding: 6px 8px;
     border: none;
     background: transparent;
-    border-radius: 11px;
+    border-radius: 8px;
     cursor: pointer;
     text-align: left;
     width: 100%;
-    transition: background 0.12s;
+    transition: background 0.12s ease;
   }
-  .tn-recent-item:hover { background: var(--raised, #fff); }
+  .tn-recent-item:hover { background: var(--hover); }
   .tn-recent-item:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
   .tn-recent-thumb {
-    width: 46px;
-    height: 46px;
-    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     object-fit: cover;
     flex-shrink: 0;
     background: var(--hover);
   }
   .tn-recent-ph { display: inline-flex; align-items: center; justify-content: center; }
   .tn-recent-ph :global(svg) { color: var(--dim); }
-  .tn-recent-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .tn-recent-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .tn-recent-title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text);
-    line-height: 1.3;
+    line-height: 1.35;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: -0.005em;
   }
-  .tn-recent-meta { font-size: 11.5px; color: var(--dim); }
+  .tn-recent-meta { font-size: 11px; color: var(--dim); }
   .tn-recent-all {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: 8px;
-    padding: 9px 8px;
+    margin-top: 6px;
+    padding: 8px 8px;
     border: none;
     background: transparent;
-    color: var(--purple-soft, var(--purple, #7c3aed));
-    font-size: 13px;
-    font-weight: 600;
+    color: var(--purple-soft);
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
     border-radius: 8px;
   }
-  .tn-recent-all :global(svg) { transition: transform 0.12s; }
+  .tn-recent-all :global(svg) { transition: transform 0.12s ease; }
   .tn-recent-all:hover :global(svg) { transform: translateX(3px); }
   .tn-recent-all:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
   @media (max-width: 1240px) {
-    .tn-menu.mega.has-recent { grid-template-columns: 320px 344px; gap: 24px; padding: 18px 20px; }
+    .tn-menu.mega.has-recent { grid-template-columns: 300px 320px; gap: 20px; padding: 8px; }
     .tn-recent { display: none; }
   }
 
-  .tn-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .tn-sec-label { padding: 4px 12px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
-
-  .tn-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px 13px;
-    border: none;
-    border-radius: 14px;
-    background: transparent;
-    color: var(--sec);
-    text-align: left;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.12s, color 0.12s;
-  }
-  .tn-menu-item.has-desc { align-items: flex-start; }
-  .tn-menu-item:hover { background: var(--hover); }
-  .tn-menu-item:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
-  .tn-menu-item.danger:hover { color: var(--red); }
-
-  .tn-item-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
-  .tn-item-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
-  .tn-item-desc { font-size: 13px; color: var(--dim); line-height: 1.45; }
-  .tn-menu-item:not(.has-desc) .tn-item-title,
-  .tn-menu-item:not(.has-desc) > span:last-child { font-weight: 500; }
-  .tn-menu-item.active .tn-item-title { color: var(--purple-soft, var(--purple)); }
-
-  .tn-ic {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--hover);
-    flex-shrink: 0;
-    transition: background 0.12s;
-  }
-  .tn-menu-item.has-desc .tn-ic { margin-top: 1px; }
-  .tn-ic :global(svg) { color: var(--sec); transition: color 0.11s; }
-  .tn-menu-item:hover .tn-ic :global(svg) { color: var(--text); }
-  .tn-menu-item.active .tn-ic { background: var(--purple-bg, var(--hover)); }
-  .tn-menu-item.active .tn-ic :global(svg) { color: var(--purple-soft, var(--purple)); }
-  .tn-menu-item.danger:hover .tn-ic :global(svg) { color: var(--red); }
-
-  .tn-menu-item :global(.tn-arrow) {
-    align-self: center;
-    color: var(--dim);
-    opacity: 0;
-    transform: translateX(-3px);
-    transition: opacity 0.12s, transform 0.12s;
-    flex-shrink: 0;
-  }
-  .tn-menu-item:hover :global(.tn-arrow) { opacity: 1; transform: translateX(0); }
-  .tn-menu-item.active :global(.tn-arrow) { opacity: 1; color: var(--purple-soft, var(--purple)); }
-
-  .tn-right { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .tn-right { display: flex; align-items: center; gap: 2px; margin-left: auto; }
   .tn-icon {
     display: inline-flex;
     padding: 7px;
     border: none;
-    border-radius: 9px;
+    border-radius: 8px;
     background: transparent;
     color: var(--sec);
     cursor: pointer;
-    transition: background 0.12s, color 0.12s;
+    transition: background 0.12s ease, color 0.12s ease;
   }
-  .tn-icon:hover { background: var(--hover); color: var(--text); }
-  .tn-icon.active { color: var(--purple-soft, var(--purple)); }
+  .tn-icon :global(svg) { color: var(--dim); transition: color 0.12s ease; }
+  .tn-icon:hover { background: var(--hover); }
+  .tn-icon:hover :global(svg) { color: var(--text); }
+  .tn-icon.active :global(svg) { color: var(--purple); }
   .tn-icon:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
-  .tn-user { position: relative; margin-left: 4px; }
+  .tn-user { position: relative; margin-left: 6px; }
   .tn-avatar {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: none;
     background: var(--purple);
     color: #fff;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 12.5px;
+    font-weight: 600;
     cursor: pointer;
+    transition: opacity 0.12s ease;
   }
-  .tn-avatar:focus-visible { outline: 2px solid var(--purple-soft, var(--purple)); outline-offset: 2px; }
-  .tn-user-menu { left: auto; right: 0; min-width: 210px; }
-  .tn-user-name { padding: 6px 10px 9px; font-size: 12px; color: var(--dim); border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+  .tn-avatar:hover { opacity: 0.9; }
+  .tn-avatar:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+  .tn-user-menu { left: auto; right: 0; min-width: 216px; }
+  .tn-user-menu .tn-menu-item { align-items: center; gap: 12px; }
+  .tn-user-name {
+    padding: 8px 10px 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    margin-bottom: 2px;
+  }
 
   @media (max-width: 900px) {
     .tn-top span { display: none; }
     .tn-brand { display: none; }
     .tn-menu.mega { grid-template-columns: 1fr; }
-    .tn-menu.mega .tn-col + .tn-col { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 4px; margin-top: 2px; }
+    .tn-menu.mega .tn-col + .tn-col { margin-top: 4px; padding-top: 4px; }
   }
 </style>
