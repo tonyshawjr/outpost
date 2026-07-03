@@ -467,6 +467,8 @@ export const components = {
 
 // Public Content API (read-only, used by Template Reference)
 export const content = {
+  recent: () =>
+    request('recent-content'),
   schema: () =>
     request('content/schema'),
   syntax: () =>

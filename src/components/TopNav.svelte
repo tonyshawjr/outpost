@@ -6,7 +6,7 @@
     canManageMembers, canManageChannels, isDeveloper, isAdmin, featureFlags,
     collectionsList, collectionGrants,
   } from '$lib/stores.js';
-  import { auth, collections as collectionsApi } from '$lib/api.js';
+  import { auth, collections as collectionsApi, content as contentApi } from '$lib/api.js';
   import {
     Home, Globe, FileText, Layout, Sparkles, SwatchBook, Palette, ArrowLeftRight,
     LayoutGrid, Box, PenSquare, Mail, Calendar, GitBranch, MessageSquare, ClipboardList,
@@ -32,12 +32,25 @@
 
   function feat(key) { return !ff || ff[key] !== false; }
 
+  let recentContent = $state([]);
+
   onMount(async () => {
     try {
       const data = await collectionsApi.list();
       collectionsList.set(data.collections || []);
     } catch (e) {}
+    try {
+      const rc = await contentApi.recent();
+      recentContent = rc.results || [];
+    } catch (e) {}
   });
+
+  function openRecent(item) {
+    navigate('collection-editor', { itemId: item.id, collectionSlug: item.collection_slug });
+    openGroup = null;
+  }
+
+  let viewAllCollection = $derived(recentContent[0]?.collection_slug || contentCollections[0]?.slug || null);
 
   function collIcon(slug) {
     const s = String(slug || '');
@@ -185,7 +198,7 @@
             <ChevronDown size={13} aria-hidden="true" class="tn-caret {openGroup === g.label ? 'up' : ''}" />
           </button>
           {#if openGroup === g.label}
-            <div class="tn-menu" class:mega={g.mega} role="menu">
+            <div class="tn-menu" class:mega={g.mega} class:has-recent={g.mega && recentContent.length} role="menu">
               {#each sectionsOf(g) as sec (sec.title)}
                 <div class="tn-col">
                   {#if sec.title}<div class="tn-sec-label">{sec.title}</div>{/if}
@@ -201,6 +214,34 @@
                   {/each}
                 </div>
               {/each}
+
+              {#if g.mega && recentContent.length}
+                <div class="tn-recent">
+                  <div class="tn-sec-label">Recent</div>
+                  <div class="tn-recent-list">
+                    {#each recentContent.slice(0, 4) as item (item.id)}
+                      {@const RIcon = collIcon(item.collection_slug)}
+                      <button class="tn-recent-item" onclick={() => openRecent(item)}>
+                        {#if item.thumb}
+                          <img class="tn-recent-thumb" src={item.thumb} alt="" loading="lazy" />
+                        {:else}
+                          <span class="tn-recent-thumb tn-recent-ph"><RIcon size={20} aria-hidden="true" /></span>
+                        {/if}
+                        <span class="tn-recent-body">
+                          <span class="tn-recent-title">{item.title}</span>
+                          <span class="tn-recent-meta">{item.collection_name}</span>
+                        </span>
+                      </button>
+                    {/each}
+                  </div>
+                  {#if viewAllCollection}
+                    <button class="tn-recent-all" onclick={() => go({ route: 'collection-items', collectionSlug: viewAllCollection })}>
+                      <span>View all content</span>
+                      <ArrowRight size={15} aria-hidden="true" />
+                    </button>
+                  {/if}
+                </div>
+              {/if}
             </div>
           {/if}
         </div>
@@ -294,6 +335,76 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
   .tn-menu.mega { display: grid; grid-template-columns: 344px 364px; gap: 28px; min-width: 0; padding: 18px 20px; }
+  .tn-menu.mega.has-recent { grid-template-columns: 276px 300px 300px; gap: 20px; padding: 16px; }
+
+  .tn-recent {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--purple-bg, rgba(124, 58, 237, 0.07));
+    border-radius: 14px;
+    padding: 14px 14px 10px;
+  }
+  .tn-recent .tn-sec-label { padding: 2px 6px 12px; }
+  .tn-recent-list { display: flex; flex-direction: column; gap: 4px; }
+  .tn-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    border-radius: 11px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: background 0.12s;
+  }
+  .tn-recent-item:hover { background: var(--raised, #fff); }
+  .tn-recent-item:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
+  .tn-recent-thumb {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--hover);
+  }
+  .tn-recent-ph { display: inline-flex; align-items: center; justify-content: center; }
+  .tn-recent-ph :global(svg) { color: var(--dim); }
+  .tn-recent-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .tn-recent-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tn-recent-meta { font-size: 11.5px; color: var(--dim); }
+  .tn-recent-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 9px 8px;
+    border: none;
+    background: transparent;
+    color: var(--purple-soft, var(--purple, #7c3aed));
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .tn-recent-all :global(svg) { transition: transform 0.12s; }
+  .tn-recent-all:hover :global(svg) { transform: translateX(3px); }
+  .tn-recent-all:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
+
+  @media (max-width: 1240px) {
+    .tn-menu.mega.has-recent { grid-template-columns: 320px 344px; gap: 24px; padding: 18px 20px; }
+    .tn-recent { display: none; }
+  }
 
   .tn-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .tn-sec-label { padding: 4px 12px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }

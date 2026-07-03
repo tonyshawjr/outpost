@@ -580,6 +580,7 @@ match (true) {
     // Search
     $action === 'search/content' && $method === 'GET' => handle_search_content(),
     $action === 'search/reindex' && $method === 'POST' => handle_search_reindex(),
+    $action === 'recent-content' && $method === 'GET' => handle_recent_content(),
 
     // Revisions
     $action === 'revisions' && $method === 'GET' => handle_revisions_list(),
@@ -6807,6 +6808,54 @@ function handle_search_content(): void {
             'subtitle' => $m['mime_type'], 'meta' => []];
     }
 
+    json_response(['results' => $results]);
+}
+
+function outpost_first_image_in_data($data): string {
+    if (!is_array($data)) return '';
+    foreach ($data as $k => $v) {
+        if (is_string($v) && $v !== ''
+            && preg_match('/(image|photo|thumb|thumbnail|featured|cover|hero|avatar|banner|picture|img)/i', (string) $k)
+            && (str_starts_with($v, 'http') || str_starts_with($v, '/'))) {
+            return $v;
+        }
+    }
+    foreach ($data as $v) {
+        if (is_string($v)) {
+            if (preg_match('/\.(jpe?g|png|webp|gif|avif|svg)(\?|$)/i', $v)) return $v;
+            if (str_contains($v, '/uploads/') || str_contains($v, 'images.unsplash.com') || str_contains($v, 'cloudinary')) return $v;
+        } elseif (is_array($v)) {
+            $nested = outpost_first_image_in_data($v);
+            if ($nested !== '') return $nested;
+        }
+    }
+    return '';
+}
+
+function handle_recent_content(): void {
+    $limit = 5;
+    $rows = OutpostDB::fetchAll(
+        "SELECT ci.id, ci.slug, ci.data, ci.status, ci.updated_at,
+                c.slug AS collection_slug, c.name AS collection_name
+         FROM collection_items ci JOIN collections c ON ci.collection_id = c.id
+         WHERE c.slug != 'pages'
+         ORDER BY ci.updated_at DESC LIMIT ?",
+        [$limit]
+    );
+    $results = [];
+    foreach ($rows as $row) {
+        $data  = json_decode($row['data'], true) ?: [];
+        $title = $data['title'] ?? $data['name'] ?? $data['heading'] ?? $row['slug'];
+        $results[] = [
+            'id'              => (int) $row['id'],
+            'title'           => $title !== '' ? $title : 'Untitled',
+            'collection_slug' => $row['collection_slug'],
+            'collection_name' => $row['collection_name'],
+            'status'          => $row['status'],
+            'updated_at'      => $row['updated_at'],
+            'thumb'           => outpost_first_image_in_data($data),
+        ];
+    }
     json_response(['results' => $results]);
 }
 
