@@ -297,6 +297,10 @@ a:hover {
   height: auto;
 }
 
+.app-layout.tn-layout .app-main {
+  margin-left: 0;
+}
+
 .app-layout.no-right-sidebar .right-sidebar {
   display: none;
 }
