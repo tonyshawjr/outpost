@@ -203,6 +203,12 @@
     }
   });
 
+  onMount(() => {
+    const handler = (e) => { if (e.detail === 'item:new') createNewItem(); };
+    window.addEventListener('outpost:quick-action', handler);
+    return () => window.removeEventListener('outpost:quick-action', handler);
+  });
+
   $effect(() => {
     if (activeSlug) {
       loadItems(activeSlug, statusFilter, activeLabelId);

@@ -37,6 +37,7 @@
 
   // Upload queue
   let uploadFiles = $state([]);
+  let uploadInput = $state(null);
 
   function displayName(item) {
     // Strip the Unix timestamp prefix (e.g. "1772552781_") from the stored filename
@@ -119,7 +120,12 @@
   onMount(() => {
     loadFolders();
     document.addEventListener('click', closeFolderContextMenu);
-    return () => document.removeEventListener('click', closeFolderContextMenu);
+    const quickAction = (e) => { if (e.detail === 'media:upload') uploadInput?.click(); };
+    window.addEventListener('outpost:quick-action', quickAction);
+    return () => {
+      document.removeEventListener('click', closeFolderContextMenu);
+      window.removeEventListener('outpost:quick-action', quickAction);
+    };
   });
 
   // Reload media when folder filter changes
@@ -722,7 +728,7 @@
       <label class="btn btn-primary" style="cursor: pointer;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Upload
-        <input type="file" multiple onchange={handleFileInput} hidden />
+        <input type="file" multiple onchange={handleFileInput} bind:this={uploadInput} hidden />
       </label>
     </div>
   </div>

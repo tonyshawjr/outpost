@@ -17,6 +17,12 @@
 
   onMount(loadForms);
 
+  onMount(() => {
+    const handler = (e) => { if (e.detail === 'form:new') startCreate(); };
+    window.addEventListener('outpost:quick-action', handler);
+    return () => window.removeEventListener('outpost:quick-action', handler);
+  });
+
   async function loadForms() {
     loading = true;
     try {
