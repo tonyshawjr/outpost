@@ -70,6 +70,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   import Newsletter from '$pages/Newsletter.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
+  import TopNav from '$components/TopNav.svelte';
   import RightSidebar from '$components/RightSidebar.svelte';
   import MobileNav from '$components/MobileNav.svelte';
   import Toast from '$components/Toast.svelte';
@@ -169,8 +170,9 @@ import EditorialAI from '$pages/EditorialAI.svelte';
     <NodeBuilder />
   </div>
 {:else}
-  <div class="app-layout" class:no-right-sidebar={route !== 'collection-editor'} class:ranger-open={$rangerOpen}>
-    <Sidebar />
+  <div class="tn-shell">
+  <TopNav />
+  <div class="app-layout tn-layout" class:no-right-sidebar={route !== 'collection-editor'} class:ranger-open={$rangerOpen}>
     <div class="app-main">
       <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'node-builder'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
@@ -337,6 +339,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
       </div>
     </div>
     <RightSidebar />
+  </div>
   </div>
   <Ranger open={$rangerOpen} onclose={() => rangerOpen.set(false)} />
   <MobileNav />

@@ -284,6 +284,19 @@ a:hover {
   min-height: 100vh;
 }
 
+.tn-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-layout.tn-layout {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
 .app-layout.no-right-sidebar .right-sidebar {
   display: none;
 }
