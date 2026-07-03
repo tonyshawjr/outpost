@@ -93,10 +93,11 @@
   });
 
   async function loadUser() {
-    if (!profileUserId) return;
+    const id = profileUserId || currentUser?.id;
+    if (!id) { loading = false; return; }
     loading = true;
     try {
-      const data = await usersApi.get(profileUserId);
+      const data = await usersApi.get(id);
       profileUser = data.user;
       formUsername = profileUser.username || '';
       formDisplayName = profileUser.display_name || '';

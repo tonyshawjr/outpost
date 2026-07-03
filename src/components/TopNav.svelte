@@ -269,8 +269,8 @@
         <div class="tn-menu tn-user-menu" role="menu">
           <div class="tn-col">
             <div class="tn-user-name">{currentUser?.display_name || currentUser?.email || 'Account'}</div>
-            <button class="tn-menu-item" role="menuitem" onclick={() => go('user-profile')}><span class="tn-ic"><Settings size={16} aria-hidden="true" /></span><span>Profile</span></button>
-            <button class="tn-menu-item" role="menuitem" onclick={() => go('help')}><span class="tn-ic"><LifeBuoy size={16} aria-hidden="true" /></span><span>Help &amp; Support</span></button>
+            <button class="tn-menu-item" role="menuitem" onclick={() => { navigate('user-profile', { userId: currentUser?.id }); userMenuOpen = false; }}><span class="tn-ic"><Settings size={16} aria-hidden="true" /></span><span>Profile</span></button>
+            <button class="tn-menu-item" role="menuitem" onclick={() => { window.open('/outpost/docs/', '_blank', 'noopener'); userMenuOpen = false; }}><span class="tn-ic"><LifeBuoy size={16} aria-hidden="true" /></span><span>Help &amp; Support</span></button>
             <button class="tn-menu-item danger" role="menuitem" onclick={signOut}><span class="tn-ic"><Lock size={16} aria-hidden="true" /></span><span>Sign out</span></button>
           </div>
         </div>
