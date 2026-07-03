@@ -331,7 +331,7 @@
     if (!activeSlug || !activeColl || creatingItem) return;
 
     if (activeSlug === 'pages') {
-      navigate('page-builder', { pageId: 0 });
+      navigate('node-builder', { pageId: 0 });
       return;
     }
 
@@ -383,7 +383,7 @@
 
   function editItem(item) {
     if (activeSlug === 'pages') {
-      navigate('page-builder', { pageId: item.id });
+      navigate('node-builder', { pageId: item.id });
     } else {
       navigate('collection-editor', { itemId: item.id, collectionSlug: activeSlug });
     }

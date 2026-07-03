@@ -89,7 +89,6 @@
         {
           title: 'Create & manage',
           items: [
-            { label: 'Page Builder', route: 'page-builder', icon: LayoutGrid, on: showSettings || showDeveloper, desc: 'Assemble pages from blocks' },
             { label: 'Visual Builder', route: 'node-builder', icon: Box, on: showSettings || showDeveloper, desc: 'Design pages on a live canvas' },
             { label: 'Editorial AI', route: 'editorial-ai', icon: Sparkles, on: showAdmin, desc: 'Draft and refine content with AI' },
             { label: 'Newsletter', route: 'newsletter', icon: Mail, on: showAdmin, desc: 'Compose and send email campaigns' },

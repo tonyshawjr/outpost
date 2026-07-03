@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <outpost-meta title="{{ meta.title }}{{ project.title }} — Forge Portfolio{{ /meta.title }}" description="{{ meta.description }}{{ project.description }}{{ /meta.description }}">
+  <outpost-seo>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ meta.title }}{{ project.title }} — Forge Portfolio{{ /meta.title }}</title>
+  <meta name="description" content="{{ meta.description }}{{ project.description }}{{ /meta.description }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/outpost/themes/forge-playground/assets/style.css">
+</head>
+<body>
+
+  {% include 'nav' %}
+
+  {% single project from collection.project %}
+  <!-- Project Hero -->
+  <!-- outpost:project_hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">{{ project.client }}</div>
+      <h1>{{ project.title }}</h1>
+      <p class="hero-sub">{{ project.description | textarea }}</p>
+      {% if project.project_url %}
+      <div class="hero-actions">
+        <a href="{{ project.project_url | link }}" class="btn btn-primary" target="_blank">Visit Live Site</a>
+        <a href="/projects" class="btn btn-ghost" data-outpost="project_hero_button" data-type="link">← Back to Projects</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  <!-- /outpost:project_hero -->
+
+  <!-- Project Content -->
+  <!-- outpost:project_not_found -->
+  <!-- outpost:related_projects -->
+  <!-- outpost:project_content -->
+  <section class="section">
+    <div class="container">
+      
+      <!-- Featured Image -->
+      {% if project.featured_image %}
+      <div style="text-align: center; margin-bottom: 64px;">
+        <img src="{{ project.featured_image | image }}" alt="{{ project.title }}" style="border-radius: var(--radius); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1); max-width: 100%; height: auto;">
+      </div>
+      {% endif %}
+
+      <!-- Project Details Grid -->
+      <div class="showcase" style="margin-bottom: 80px;">
+        <div class="showcase-text">
+          <h2 data-outpost="project_details_grid_heading">Project Overview</h2>
+          <div style="color: var(--color-muted); font-size: 17px; line-height: 1.7;">
+            {{ project.content | raw }}
+          </div>
+        </div>
+        <div>
+          <div style="background: var(--color-surface); padding: 32px; border-radius: var(--radius); border: 1px solid var(--color-border);">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted);" data-outpost="project_details_grid_subheading">Project Details</h3>
+            
+            {% if project.client %}
+            <div style="margin-bottom: 16px;">
+              <strong style="display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); margin-bottom: 4px;" data-outpost="project_details_grid_label_1">Client</strong>
+              <span>{{ project.client }}</span>
+            </div>
+            {% endif %}
+            
+            {% if project.project_date %}
+            <div style="margin-bottom: 16px;">
+              <strong style="display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); margin-bottom: 4px;" data-outpost="project_details_grid_label_2">Date</strong>
+              <span>{{ project.project_date }}</span>
+            </div>
+            {% endif %}
+            
+            {% if project.technologies %}
+            <div style="margin-bottom: 16px;">
+              <strong style="display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); margin-bottom: 8px;" data-outpost="project_details_grid_label_3">Technologies</strong>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                {% for tech in project.technologies %}
+                <span style="background: var(--color-bg); border: 1px solid var(--color-border); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">{{ tech }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            
+            {% if project.project_url %}
+            <div>
+              <strong style="display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); margin-bottom: 8px;" data-outpost="project_details_grid_label_4">Live Site</strong>
+              <a href="{{ project.project_url | link }}" target="_blank" style="color: var(--color-accent); font-weight: 600;">View Project →</a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Gallery -->
+      {% if project.gallery %}
+      <div style="margin-bottom: 80px;">
+        <h2 style="font-size: 32px; font-weight: 800; text-align: center; margin-bottom: 48px;" data-outpost="project_gallery_heading">Project Gallery</h2>
+        <div class="gallery-grid">
+          {% for image in project.gallery %}
+          <div class="gallery-item">
+            <img src="{{ image | image }}" alt="Project screenshot">
+          </div>
+          {% endfor %}
+  <!-- /outpost:project_not_found -->
+        </div>
+      </div>
+      {
+  <!-- /outpost:related_projects -->% endif %}
+
+    </div>
+  </section>
+  <!-- /outpost:project_content -->
+
+  <!-- Related Projects -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-outpost="related_projects_heading">More Projects</h2>
+        <p data-outpost="related_projects_text">Explore other work in the portfolio</p>
+      </div>
+      <div class="blog-grid">
+        {% for related_project in collection.project limit:3 %}
+          {% unless related_project.slug == project.slug %}
+          <article class="blog-card">
+            <a href="{{ related_project.url }}" class="blog-card-image">
+              <img src="{{ related_project.featured_image | image }}" alt="{{ related_project.title }}">
+            </a>
+            <div class="blog-card-body">
+              <div class="blog-card-meta">
+                <span class="blog-card-author">{{ related_project.client }}</span>
+                {% if related_project.project_date %}
+                <span class="blog-card-date">{{ related_project.project_date }}</span>
+                {% endif %}
+              </div>
+              <h3 class="blog-card-title">
+                <a href="{{ related_project.url }}">{{ related_project.title }}</a>
+              </h3>
+              <div class="blog-card-excerpt">
+                {{ related_project.description | textarea }}
+              </div>
+              <a href="{{ related_project.url }}" class="blog-card-link">View Project →</a>
+            </div>
+          </article>
+          {% endunless %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {% else %}
+  <!-- Project Not Found -->
+  <section class="section">
+    <div class="container" style="text-align: center;">
+      <h1 data-outpost="project_not_found_title">Project Not Found</h1>
+      <p style="margin: 20px 0;" data-outpost="project_not_found_text">The project you're looking for doesn't exist.</p>
+      <a href="/projects" class="btn btn-primary">← Back to Projects</a>
+    </div>
+  </section>
+  {% endsingle %}
+
+  {% include 'footer' %}
+
+</body>
+</html>

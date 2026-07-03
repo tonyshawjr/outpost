@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <outpost-meta title="Blog — Forge" description="Latest articles about building themes faster with Forge.">
+  <outpost-seo>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Forge</title>
+  <meta name="description" content="Latest articles about building themes faster with Forge.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/outpost/themes/forge-playground/assets/style.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">Forge<span>.</span></a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/gallery">Gallery</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+      <a href="/contact" class="nav-cta">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- outpost:blog -->
+  <section class="page-hero-sm">
+    <h1 data-outpost="blog_title">Blog</h1>
+    <p data-outpost="blog_text">Tips, tutorials, and behind-the-scenes stories from the Forge team.</p>
+  </section>
+  <!-- /outpost:blog -->
+
+  <!-- BLOG CARDS — Try: Select all 3 cards → Collection Loop → pick a collection → use the field mapper to connect each element -->
+  <!-- outpost:how_smart_detection_actually_w -->
+  <section class="section">
+    <div class="container">
+      <div class="blog-grid">
+
+        <article class="blog-card">
+          <a href="/post/smart-detection-deep-dive" class="blog-card-image" data-outpost="how_smart_detection_actually_w_link_1" data-type="link">
+            <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop" alt="Code on a dark screen">
+          </a>
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-card-author" data-outpost="how_smart_detection_actually_w_author_1">Alex Chen</span>
+              <time class="blog-card-date" data-outpost="how_smart_detection_actually_w_date_1">March 5, 2026</time>
+            </div>
+            <h2 class="blog-card-title">
+              <a href="/post/smart-detection-deep-dive" data-outpost="how_smart_detection_actually_w_heading_1" data-type="richtext">How Smart Detection Actually Works</a>
+            </h2>
+            <p class="blog-card-excerpt" data-outpost="how_smart_detection_actually_w_excerpt_1" data-type="richtext">A look inside the pattern matching engine that powers Forge's contextual suggestions. From regex heuristics to sibling detection — here's how Forge knows what you're trying to do.</p>
+            <a href="/post/smart-detection-deep-dive" class="blog-card-link">Read more &rarr;</a>
+          </div>
+        </article>
+
+        <article class="blog-card">
+          <a href="/post/building-themes-in-half-the-time" class="blog-card-image" data-outpost="how_smart_detection_actually_w_link_2" data-type="link">
+            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop" alt="Laptop showing code">
+          </a>
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-card-author" data-outpost="how_smart_detection_actually_w_author_2">Sarah Miller</span>
+              <time class="blog-card-date" data-outpost="how_smart_detection_actually_w_date_2">February 28, 2026</time>
+            </div>
+            <h2 class="blog-card-title">
+              <a href="/post/building-themes-in-half-the-time" data-outpost="how_smart_detection_actually_w_heading_2" data-type="richtext">Building Themes in Half the Time</a>
+            </h2>
+            <p class="blog-card-excerpt" data-outpost="how_smart_detection_actually_w_excerpt_2" data-type="richtext">We timed two developers building the same theme — one with Forge, one without. The difference wasn't just speed. The Forge-built theme was cleaner, more consistent, and had fewer template syntax bugs.</p>
+            <a href="/post/building-themes-in-half-the-time" class="blog-card-link">Read more &rarr;</a>
+          </div>
+        </article>
+
+        <article class="blog-card">
+          <a href="/post/extract-partial-workflow" class="blog-card-image" data-outpost="how_smart_detection_actually_w_link_3" data-type="link">
+            <img src="https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?w=600&h=400&fit=crop" alt="Modular blocks">
+          </a>
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-card-author" data-outpost="how_smart_detection_actually_w_author_3">Marcus Johnson</span>
+              <time class="blog-card-date" data-outpost="how_smart_detection_actually_w_date_3">February 20, 2026</time>
+            </div>
+            <h2 class="blog-card-title">
+              <a href="/post/extract-partial-workflow" data-outpost="how_smart_detection_actually_w_heading_3" data-type="richtext">The Extract Partial Workflow</a>
+            </h2>
+            <p class="blog-card-excerpt" data-outpost="how_smart_detection_actually_w_excerpt_3" data-type="richtext">One of Forge's most powerful features is extracting partials. Select a nav, click one button, and Forge creates the file, moves the HTML, inserts the include tag, and opens the new file — all at once.</p>
+            <a href="/post/extract-partial-workflow" class="blog-card-link">Read more &rarr;</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+  <!-- /outpost:how_smart_detection_actually_w -->
+
+  <!-- outpost:cta_banner -->
+  <section class="cta-banner">
+    <h2 data-outpost="cta_banner_heading">Want to contribute?</h2>
+    <p data-outpost="cta_banner_body" data-type="richtext">We're always looking for guest posts about theme development, CMS workflows, and creative uses of Forge.</p>
+    <a href="/contact" class="btn btn-primary" data-outpost="cta_banner_button" data-type="link">Get In Touch</a>
+  </section>
+  <!-- /outpost:cta_banner -->
+
+  <!-- outpost:footer global -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-brand">Forge<span>.</span></div>
+        <p data-outpost="footer_body" data-type="richtext">The visual tag builder for Outpost CMS. Select HTML, right-click, and build templates without memorizing syntax.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/features" data-outpost="footer_link_1" data-type="link">Features</a>
+        <a href="/blog" data-outpost="footer_link_2" data-type="link">Blog</a>
+        <a href="/gallery" data-outpost="footer_link_3" data-type="link">Gallery</a>
+        <a href="/about" data-outpost="footer_link_4" data-type="link">About</a>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#" data-outpost="footer_link_6" data-type="link">Documentation</a>
+        <a href="#">Template Syntax</a>
+        <a href="#">Changelog</a>
+        <a href="#">Roadmap</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <a href="#">Twitter</a>
+        <a href="#">GitHub</a>
+        <a href="#">Discord</a>
+        <a href="#">Email</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Forge. Built with Outpost CMS.</span>
+      <div class="footer-social">
+        <a href="#">Twitter</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </footer>
+  <!-- /outpost:footer -->
+
+</body>
+</html>

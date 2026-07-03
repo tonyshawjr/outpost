@@ -12,6 +12,7 @@
     canAccessCodeEditor,
     canManageChannels,
     canBuildForms,
+    isDeveloper,
     collectionGrants,
     mediaFolderGrants,
     featureFlags,
@@ -41,7 +42,6 @@
   import TemplateReference from '$pages/TemplateReference.svelte';
   import Brand from '$pages/Brand.svelte';
   import Design from '$pages/Design.svelte';
-  import PageBuilder from '$pages/PageBuilder.svelte';
   import NodeBuilder from '$pages/NodeBuilder.svelte';
   import PagesList from '$pages/PagesList.svelte';
   import CreatePage from '$pages/CreatePage.svelte';
@@ -51,7 +51,6 @@ import EditorialAI from '$pages/EditorialAI.svelte';
 
   import Globals from '$pages/Globals.svelte';
   import Navigation from '$pages/Navigation.svelte';
-  import Forms from '$pages/Forms.svelte';
   import FormsList from '$pages/FormsList.svelte';
   import FormBuilder from '$pages/FormBuilder.svelte';
   import FormSubmissions from '$pages/FormSubmissions.svelte';
@@ -132,6 +131,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   let hasCodeAccess = $derived($canAccessCodeEditor);
   let hasChannelsAccess = $derived($canManageChannels);
   let hasFormBuilderAccess = $derived($canBuildForms);
+  let hasDataAccess = $derived($canManageSettings || $isDeveloper);
 
   // Redirect old standalone routes into Settings hub
   $effect(() => {
@@ -185,7 +185,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
         {:else if route === 'dashboard'}
           <Dashboard />
         {:else if route === 'calendar'}
-          <Calendar />
+          {#if hasSettingsAccess}<Calendar />{:else}<AccessDenied />{/if}
         {:else if route === 'collections'}
           <CollectionList />
         {:else if route === 'collection-items'}
@@ -200,10 +200,12 @@ import EditorialAI from '$pages/EditorialAI.svelte';
           <Globals />
         {:else if route === 'navigation'}
           <Navigation />
-        {:else if route === 'forms'}
-          <Forms />
         {:else if route === 'forms-list'}
-          <FormsList />
+          {#if hasFormBuilderAccess}
+            <FormsList />
+          {:else}
+            <AccessDenied />
+          {/if}
         {:else if route === 'form-builder'}
           {#if hasFormBuilderAccess}
             <FormBuilder />
@@ -211,7 +213,11 @@ import EditorialAI from '$pages/EditorialAI.svelte';
             <AccessDenied />
           {/if}
         {:else if route === 'form-submissions'}
-          <FormSubmissions />
+          {#if hasFormBuilderAccess}
+            <FormSubmissions />
+          {:else}
+            <AccessDenied />
+          {/if}
         {:else if route === 'channels'}
           {#if hasChannelsAccess}
             <ChannelsList />
@@ -233,13 +239,13 @@ import EditorialAI from '$pages/EditorialAI.svelte';
         {:else if route === 'user-profile'}
           <UserProfile />
         {:else if route === 'folder-manager'}
-          <FolderManager />
+          {#if hasDataAccess}<FolderManager />{:else}<AccessDenied />{/if}
         {:else if route === 'folder-labels'}
-          <FolderLabels />
+          {#if hasDataAccess}<FolderLabels />{:else}<AccessDenied />{/if}
         {:else if route === 'folder-label-edit'}
-          <FolderLabelEdit />
+          {#if hasDataAccess}<FolderLabelEdit />{:else}<AccessDenied />{/if}
         {:else if route === 'folder-edit'}
-          <FolderEdit />
+          {#if hasDataAccess}<FolderEdit />{:else}<AccessDenied />{/if}
         {:else if route === 'code-editor'}
           {#if hasCodeAccess}
             <CodeEditor />
@@ -264,8 +270,6 @@ import EditorialAI from '$pages/EditorialAI.svelte';
           {:else}
             <AccessDenied />
           {/if}
-        {:else if route === 'page-builder'}
-          <PageBuilder />
         {:else if route === 'pages'}
           <PagesList />
         {:else if route === 'page-new'}
@@ -309,9 +313,9 @@ import EditorialAI from '$pages/EditorialAI.svelte';
             <AccessDenied />
           {/if}
         {:else if route === 'newsletter'}
-          <Newsletter />
+          {#if hasSettingsAccess}<Newsletter />{:else}<AccessDenied />{/if}
         {:else if route === 'field-presets'}
-          <FieldPresets />
+          {#if hasDataAccess}<FieldPresets />{:else}<AccessDenied />{/if}
         {:else if route === 'editorial-ai'}
           {#if hasSettingsAccess}
             <EditorialAI />

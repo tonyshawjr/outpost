@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <outpost-meta title="{{ meta.title }}Projects — Forge Portfolio{{ /meta.title }}" description="{{ meta.description }}A collection of projects built with modern web technologies.{{ /meta.description }}">
+  <outpost-seo>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ meta.title }}Projects — Forge Portfolio{{ /meta.title }}</title>
+  <meta name="description" content="{{ meta.description }}A collection of projects built with modern web technologies.{{ /meta.description }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/outpost/themes/forge-playground/assets/style.css">
+</head>
+<body>
+
+  {% include 'nav' %}
+
+  <!-- Page Hero -->
+  <!-- outpost:page_hero -->
+  <section class="page-hero-sm">
+    <div class="container">
+      <h1 data-outpost="page_hero_title">Projects</h1>
+      <p data-outpost="page_hero_body" data-type="richtext">A showcase of work spanning web development, design, and digital experiences. Each project represents a unique challenge and creative solution.</p>
+    </div>
+  </section>
+  <!-- /outpost:page_hero -->
+
+  <!-- Projects Grid -->
+  <!-- outpost:projects_grid -->
+  <section class="section">
+    <div class="container">
+      <div class="blog-grid">
+        {% for project in collection.project %}
+        <article class="blog-card">
+          <a href="{{ project.url }}" class="blog-card-image">
+            <img src="{{ project.featured_image | image }}" alt="{{ project.title }}">
+          </a>
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-card-author">{{ project.client }}</span>
+              {% if project.project_date %}
+              <span class="blog-card-date">{{ project.project_date }}</span>
+              {% endif %}
+            </div>
+            <h2 class="blog-card-title">
+              <a href="{{ project.url }}">{{ project.title }}</a>
+            </h2>
+            <div class="blog-card-excerpt">
+              {{ project.description | textarea }}
+            </div>
+            <a href="{{ project.url }}" class="blog-card-link">View Project →</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <!-- /outpost:projects_grid -->
+
+  {% include 'footer' %}
+
+</body>
+</html>

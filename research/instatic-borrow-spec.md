@@ -6,6 +6,8 @@
 **Source repo studied:** https://github.com/CoreBunch/Instatic (v0.0.6, MIT, Bun + React 19).
 **Goal:** Take *everything good* from Instatic's editing experience and bring it into Outpost (PHP 8 + SQLite + Svelte 5) **alongside** what Outpost already has — not a rewrite.
 
+**Companion:** [`mosaic-borrow-notes.md`](./mosaic-borrow-notes.md) — observations from the Mosaic (WordPress-native Webflow) getting-started walkthrough; validates this spec's node-tree spine and adds a strong wizard/onboarding + loop/dynamic-data borrow list.
+
 > Tony's directive: "Take all the good stuff." Outpost stays a **content manager AND a page builder.** This doc is the map for how.
 
 ---

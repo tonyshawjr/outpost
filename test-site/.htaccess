@@ -1,0 +1,19 @@
+# BEGIN Outpost CMS
+RewriteEngine On
+RewriteBase /
+
+# Let outpost admin and API through directly
+RewriteRule ^outpost/ - [L]
+
+# Serve static assets directly (not HTML — those go through Outpost)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} !\.(html?)$ [NC]
+RewriteRule ^ - [L]
+
+# Serve directories directly
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route everything else (including .html files) through Outpost
+RewriteRule ^(.*)$ outpost/front-router.php [QSA,L]
+# END Outpost CMS

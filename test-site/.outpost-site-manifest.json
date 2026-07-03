@@ -1,0 +1,647 @@
+{
+    "pages": {
+        "\/.forge-backup\/2026-07-03_154821\/about": {
+            "template": ".forge-backup\/2026-07-03_154821\/about.html",
+            "fields": [],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/blog": {
+            "template": ".forge-backup\/2026-07-03_154821\/blog.html",
+            "fields": [],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/contact": {
+            "template": ".forge-backup\/2026-07-03_154821\/contact.html",
+            "fields": [],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/features": {
+            "template": ".forge-backup\/2026-07-03_154821\/features.html",
+            "fields": [],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/gallery": {
+            "template": ".forge-backup\/2026-07-03_154821\/gallery.html",
+            "fields": [],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/project": {
+            "template": ".forge-backup\/2026-07-03_154821\/project.html",
+            "fields": [
+                "tech",
+                "image"
+            ],
+            "globals": [],
+            "collections": [
+                "project"
+            ],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/projects": {
+            "template": ".forge-backup\/2026-07-03_154821\/projects.html",
+            "fields": [],
+            "globals": [],
+            "collections": [
+                "project"
+            ],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/.forge-backup\/2026-07-03_154821\/test": {
+            "template": ".forge-backup\/2026-07-03_154821\/test.html",
+            "fields": [],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/about": {
+            "template": "about.html",
+            "fields": [
+                "about_forge_title",
+                "about_forge_text",
+                "why_we_built_forge_heading",
+                "built_by_people_who_build_them_heading",
+                "built_by_people_who_build_them_text_1",
+                "built_by_people_who_build_them_subheadin_1",
+                "built_by_people_who_build_them_text_2",
+                "built_by_people_who_build_them_image_2_a",
+                "built_by_people_who_build_them_text_3",
+                "built_by_people_who_build_them_image_3_a",
+                "built_by_people_who_build_them_text_4",
+                "our_values_heading",
+                "our_values_text",
+                "our_values_subheading_1",
+                "our_values_subheading_2",
+                "our_values_body_2",
+                "our_values_body_3",
+                "our_values_subheading_4",
+                "cta_banner_heading",
+                "cta_banner_button",
+                "footer_body",
+                "footer_link_1",
+                "footer_link_2",
+                "footer_link_3",
+                "footer_link_4",
+                "footer_link_6",
+                "footer_label"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/blog": {
+            "template": "blog.html",
+            "fields": [
+                "blog_title",
+                "blog_text",
+                "how_smart_detection_actually_w_link_1",
+                "how_smart_detection_actually_w_author_1",
+                "how_smart_detection_actually_w_date_1",
+                "how_smart_detection_actually_w_heading_1",
+                "how_smart_detection_actually_w_excerpt_1",
+                "how_smart_detection_actually_w_link_2",
+                "how_smart_detection_actually_w_author_2",
+                "how_smart_detection_actually_w_date_2",
+                "how_smart_detection_actually_w_heading_2",
+                "how_smart_detection_actually_w_excerpt_2",
+                "how_smart_detection_actually_w_link_3",
+                "how_smart_detection_actually_w_author_3",
+                "how_smart_detection_actually_w_date_3",
+                "how_smart_detection_actually_w_heading_3",
+                "how_smart_detection_actually_w_excerpt_3",
+                "cta_banner_heading",
+                "cta_banner_body",
+                "cta_banner_button",
+                "footer_body",
+                "footer_link_1",
+                "footer_link_2",
+                "footer_link_3",
+                "footer_link_4",
+                "footer_link_6"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "blog",
+                    "fields": [
+                        "blog_title",
+                        "blog_text"
+                    ]
+                },
+                {
+                    "name": "how_smart_detection_actually_w",
+                    "fields": [
+                        "how_smart_detection_actually_w_link_1",
+                        "how_smart_detection_actually_w_author_1",
+                        "how_smart_detection_actually_w_date_1",
+                        "how_smart_detection_actually_w_heading_1",
+                        "how_smart_detection_actually_w_excerpt_1",
+                        "how_smart_detection_actually_w_link_2",
+                        "how_smart_detection_actually_w_author_2",
+                        "how_smart_detection_actually_w_date_2",
+                        "how_smart_detection_actually_w_heading_2",
+                        "how_smart_detection_actually_w_excerpt_2",
+                        "how_smart_detection_actually_w_link_3",
+                        "how_smart_detection_actually_w_author_3",
+                        "how_smart_detection_actually_w_date_3",
+                        "how_smart_detection_actually_w_heading_3",
+                        "how_smart_detection_actually_w_excerpt_3"
+                    ]
+                },
+                {
+                    "name": "cta_banner",
+                    "fields": [
+                        "cta_banner_heading",
+                        "cta_banner_body",
+                        "cta_banner_button"
+                    ]
+                },
+                {
+                    "name": "footer",
+                    "fields": [
+                        "footer_body",
+                        "footer_link_1",
+                        "footer_link_2",
+                        "footer_link_3",
+                        "footer_link_4",
+                        "footer_link_6"
+                    ],
+                    "global": true
+                }
+            ]
+        },
+        "\/contact": {
+            "template": "contact.html",
+            "fields": [
+                "get_in_touch_title",
+                "get_in_touch_text",
+                "other_ways_to_reach_us_subheading",
+                "other_ways_to_reach_us_body",
+                "other_ways_to_reach_us_contact_1",
+                "other_ways_to_reach_us_contact_2",
+                "cta_banner_heading",
+                "cta_banner_text",
+                "cta_banner_button",
+                "footer_body",
+                "footer_link_2",
+                "footer_link_3",
+                "footer_link_4",
+                "footer_link_5",
+                "footer_link_6"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "get_in_touch",
+                    "fields": [
+                        "get_in_touch_title",
+                        "get_in_touch_text"
+                    ]
+                },
+                {
+                    "name": "other_ways_to_reach_us",
+                    "fields": [
+                        "other_ways_to_reach_us_subheading",
+                        "other_ways_to_reach_us_body",
+                        "other_ways_to_reach_us_contact_1",
+                        "other_ways_to_reach_us_contact_2"
+                    ]
+                },
+                {
+                    "name": "cta_banner",
+                    "fields": [
+                        "cta_banner_heading",
+                        "cta_banner_text",
+                        "cta_banner_button"
+                    ]
+                },
+                {
+                    "name": "footer",
+                    "fields": [
+                        "footer_body",
+                        "footer_link_2",
+                        "footer_link_3",
+                        "footer_link_4",
+                        "footer_link_5",
+                        "footer_link_6"
+                    ],
+                    "global": true
+                }
+            ]
+        },
+        "\/features": {
+            "template": "features.html",
+            "fields": [
+                "features_title",
+                "features_body",
+                "make_editable_heading",
+                "collection_loops_image",
+                "collection_loops_heading",
+                "conditionals_heading",
+                "conditionals_image",
+                "extract_partial_image",
+                "extract_partial_heading",
+                "meta_forms_badge",
+                "meta_forms_heading",
+                "meta_forms_text",
+                "meta_forms_subheading_1",
+                "meta_forms_body_1",
+                "meta_forms_subheading_2",
+                "meta_forms_body_2",
+                "smart_detection_deep_dive_badge",
+                "smart_detection_deep_dive_heading",
+                "smart_detection_deep_dive_body_1",
+                "smart_detection_deep_dive_label_1",
+                "smart_detection_deep_dive_subheading_1",
+                "smart_detection_deep_dive_body_2",
+                "smart_detection_deep_dive_label_2",
+                "smart_detection_deep_dive_subheading_2",
+                "smart_detection_deep_dive_body_3",
+                "smart_detection_deep_dive_label_3",
+                "smart_detection_deep_dive_subheading_3",
+                "smart_detection_deep_dive_body_4",
+                "smart_detection_deep_dive_label_4",
+                "smart_detection_deep_dive_subheading_4",
+                "smart_detection_deep_dive_body_5",
+                "cta_heading",
+                "cta_body",
+                "cta_button",
+                "footer_body",
+                "footer_link_1",
+                "footer_link_2",
+                "footer_link_3",
+                "footer_link_4",
+                "footer_link_6"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "features",
+                    "fields": [
+                        "features_title",
+                        "features_body"
+                    ]
+                },
+                {
+                    "name": "smart_detection_deep_dive",
+                    "fields": [
+                        "make_editable_heading"
+                    ]
+                },
+                {
+                    "name": "meta_forms",
+                    "fields": [
+                        "make_editable_heading"
+                    ]
+                },
+                {
+                    "name": "extract_partial",
+                    "fields": [
+                        "make_editable_heading"
+                    ]
+                },
+                {
+                    "name": "conditionals",
+                    "fields": [
+                        "make_editable_heading"
+                    ]
+                },
+                {
+                    "name": "collection_loops",
+                    "fields": [
+                        "make_editable_heading"
+                    ]
+                },
+                {
+                    "name": "make_editable",
+                    "fields": [
+                        "make_editable_heading"
+                    ]
+                },
+                {
+                    "name": "cta",
+                    "fields": [
+                        "cta_heading",
+                        "cta_body",
+                        "cta_button"
+                    ]
+                },
+                {
+                    "name": "footer",
+                    "fields": [
+                        "footer_body",
+                        "footer_link_1",
+                        "footer_link_2",
+                        "footer_link_3",
+                        "footer_link_4",
+                        "footer_link_6"
+                    ],
+                    "global": true
+                }
+            ]
+        },
+        "\/gallery": {
+            "template": "gallery.html",
+            "fields": [
+                "gallery_title",
+                "gallery_body",
+                "section_image_1",
+                "section_image_2",
+                "section_image_3",
+                "section_image_4",
+                "section_image_5",
+                "section_image_6",
+                "section_image_7",
+                "section_image_8",
+                "featured_image_section_image",
+                "featured_image_section_heading",
+                "cta_banner_heading",
+                "cta_banner_body",
+                "cta_banner_button",
+                "footer_body",
+                "footer_link_2",
+                "footer_link_3",
+                "footer_link_4",
+                "footer_link_5",
+                "footer_link_6"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "gallery",
+                    "fields": [
+                        "gallery_title",
+                        "gallery_body"
+                    ]
+                },
+                {
+                    "name": "section",
+                    "fields": [
+                        "section_image_1",
+                        "section_image_2",
+                        "section_image_3",
+                        "section_image_4",
+                        "section_image_5",
+                        "section_image_6",
+                        "section_image_7",
+                        "section_image_8"
+                    ]
+                },
+                {
+                    "name": "featured_image_section",
+                    "fields": [
+                        "section_image_1",
+                        "section_image_2",
+                        "section_image_3",
+                        "section_image_4",
+                        "section_image_5",
+                        "section_image_6",
+                        "section_image_7",
+                        "section_image_8"
+                    ]
+                },
+                {
+                    "name": "cta_banner",
+                    "fields": [
+                        "cta_banner_heading",
+                        "cta_banner_body",
+                        "cta_banner_button"
+                    ]
+                },
+                {
+                    "name": "footer",
+                    "fields": [
+                        "footer_body",
+                        "footer_link_2",
+                        "footer_link_3",
+                        "footer_link_4",
+                        "footer_link_5",
+                        "footer_link_6"
+                    ],
+                    "global": true
+                }
+            ]
+        },
+        "\/": {
+            "template": "index.html",
+            "fields": [
+                "hero_v2_headline",
+                "hero_v2_sub",
+                "hero_v2_proof",
+                "hero_headline",
+                "hero_subtext"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": []
+        },
+        "\/project": {
+            "template": "project.html",
+            "fields": [
+                "tech",
+                "image",
+                "project_hero_button",
+                "project_details_grid_heading",
+                "project_details_grid_subheading",
+                "project_details_grid_label_1",
+                "project_details_grid_label_2",
+                "project_details_grid_label_3",
+                "project_details_grid_label_4",
+                "project_gallery_heading",
+                "related_projects_heading",
+                "related_projects_text",
+                "project_not_found_title",
+                "project_not_found_text"
+            ],
+            "globals": [],
+            "collections": [
+                "project"
+            ],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "project_hero",
+                    "fields": [
+                        "project_hero_button"
+                    ]
+                },
+                {
+                    "name": "project_not_found",
+                    "fields": [
+                        "project_details_grid_heading",
+                        "project_details_grid_subheading",
+                        "project_details_grid_label_1",
+                        "project_details_grid_label_2",
+                        "project_details_grid_label_3",
+                        "project_details_grid_label_4",
+                        "project_gallery_heading",
+                        "tech",
+                        "image"
+                    ]
+                },
+                {
+                    "name": "related_projects",
+                    "fields": [
+                        "project_details_grid_heading",
+                        "project_details_grid_subheading",
+                        "project_details_grid_label_1",
+                        "project_details_grid_label_2",
+                        "project_details_grid_label_3",
+                        "project_details_grid_label_4",
+                        "project_gallery_heading",
+                        "tech",
+                        "image"
+                    ]
+                },
+                {
+                    "name": "project_content",
+                    "fields": [
+                        "project_details_grid_heading",
+                        "project_details_grid_subheading",
+                        "project_details_grid_label_1",
+                        "project_details_grid_label_2",
+                        "project_details_grid_label_3",
+                        "project_details_grid_label_4",
+                        "project_gallery_heading",
+                        "tech",
+                        "image"
+                    ]
+                }
+            ]
+        },
+        "\/projects": {
+            "template": "projects.html",
+            "fields": [
+                "page_hero_title",
+                "page_hero_body"
+            ],
+            "globals": [],
+            "collections": [
+                "project"
+            ],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "page_hero",
+                    "fields": [
+                        "page_hero_title",
+                        "page_hero_body"
+                    ]
+                },
+                {
+                    "name": "projects_grid",
+                    "fields": []
+                }
+            ]
+        },
+        "\/test": {
+            "template": "test.html",
+            "fields": [
+                "main_label",
+                "main_title",
+                "main_text",
+                "main_button_label"
+            ],
+            "globals": [],
+            "collections": [],
+            "channels": [],
+            "menus": [],
+            "repeaters": [],
+            "flexible": [],
+            "blocks": [
+                {
+                    "name": "main",
+                    "fields": [
+                        "main_label",
+                        "main_title",
+                        "main_text",
+                        "main_button_label"
+                    ]
+                }
+            ]
+        }
+    },
+    "globals": [],
+    "collections": [
+        "project"
+    ],
+    "channels": [],
+    "menus": [],
+    "partials": [],
+    "built_at": "2026-07-03T15:48:21+00:00"
+}

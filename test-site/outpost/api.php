@@ -4771,7 +4771,7 @@ function handle_feature_flags_update(): void {
         json_error('feature_flags must be an object', 400);
     }
     // Whitelist valid feature keys
-    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation', 'releases', 'workflows', 'review_links', 'backups', 'ranger'];
+    $valid_keys = ['collections', 'channels', 'forms', 'members', 'lodge', 'analytics', 'media', 'code_editor', 'navigation', 'releases', 'workflows', 'review_links', 'backups', 'ranger', 'newsletter', 'calendar'];
     $clean = [];
     foreach ($valid_keys as $key) {
         if (isset($flags[$key])) {
