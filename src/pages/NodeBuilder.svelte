@@ -4,6 +4,7 @@
   import { pages as pagesApi, embeds as embedsApi } from '$lib/api.js';
   import { createNodeEditor } from '$lib/node-store.svelte.js';
   import { NODE_TYPES } from '$lib/node-tree.js';
+  import Checkbox from '$components/Checkbox.svelte';
   import LayersPanel from '$components/builder/LayersPanel.svelte';
   import SelectorsPanel from '$components/builder/SelectorsPanel.svelte';
   import ContentPanel from '$components/builder/ContentPanel.svelte';
@@ -160,8 +161,8 @@
     else editor.updateProps(selected.id, { text: v });
   }
 
-  function toggleDynamic(e) {
-    if (e.target.checked) {
+  function toggleDynamic(checked) {
+    if (checked) {
       const base = selected.type === 'image' ? 'image' : (selected.props.text || selected.type);
       editor.bindField(selected.id, base || 'field');
     } else {
@@ -344,10 +345,7 @@
 
           {#if canBind && editMode === 'design'}
             <div class="dyn">
-              <label class="dyn-toggle">
-                <input type="checkbox" checked={!!boundField} onchange={toggleDynamic} />
-                <span>Dynamic content</span>
-              </label>
+              <Checkbox checked={!!boundField} label="Dynamic content" onchange={toggleDynamic} />
               {#if boundField}
                 <input class="dyn-name" type="text" value={boundField} oninput={renameField} aria-label="Field name" spellcheck="false" />
                 <p class="dyn-hint">Editable as a field — updates the live page without rebuilding.</p>

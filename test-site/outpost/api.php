@@ -1063,7 +1063,9 @@ function handle_me(): void {
 
     // Feature flags for sidebar visibility
     $ffRow = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'feature_flags'");
-    $response['feature_flags'] = $ffRow ? json_decode($ffRow['value'], true) : null;
+    $ffStored = $ffRow ? json_decode($ffRow['value'], true) : [];
+    if (!is_array($ffStored)) $ffStored = [];
+    $response['feature_flags'] = array_merge(outpost_default_feature_flags(), $ffStored);
 
     json_response($response);
 }
@@ -4757,11 +4759,32 @@ function handle_settings_update(): void {
 }
 
 // ── Feature Flags Handlers ───────────────────────────────
+function outpost_default_feature_flags(): array {
+    return [
+        'collections' => true,
+        'media' => true,
+        'navigation' => true,
+        'code_editor' => true,
+        'ranger' => true,
+        'analytics' => false,
+        'forms' => false,
+        'newsletter' => false,
+        'calendar' => false,
+        'releases' => false,
+        'workflows' => false,
+        'review_links' => false,
+        'channels' => false,
+        'backups' => false,
+        'members' => false,
+        'lodge' => false,
+    ];
+}
+
 function handle_feature_flags_get(): void {
     $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'feature_flags'");
-    $flags = $row ? json_decode($row['value'], true) : [];
-    if (!is_array($flags)) $flags = [];
-    json_response(['feature_flags' => $flags]);
+    $stored = $row ? json_decode($row['value'], true) : [];
+    if (!is_array($stored)) $stored = [];
+    json_response(['feature_flags' => array_merge(outpost_default_feature_flags(), $stored)]);
 }
 
 function handle_feature_flags_update(): void {

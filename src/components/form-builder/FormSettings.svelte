@@ -1,4 +1,6 @@
 <script>
+  import Checkbox from '$components/Checkbox.svelte';
+
   let { settings = {}, formSlug = '', onChange } = $props();
 
   function update(key, value) {
@@ -16,10 +18,7 @@
     </div>
 
     <div class="settings-field">
-      <label class="settings-checkbox-label">
-        <input type="checkbox" checked={settings.honeypot !== false} onchange={(e) => update('honeypot', e.target.checked)} />
-        Honeypot spam protection
-      </label>
+      <Checkbox checked={settings.honeypot !== false} label="Honeypot spam protection" onchange={(val) => update('honeypot', val)} />
       <p class="settings-hint">Adds an invisible field that traps bots. No user impact.</p>
     </div>
   </div>

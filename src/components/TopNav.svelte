@@ -73,9 +73,9 @@
 
   let groups = $derived([
     { label: 'Dashboard', icon: Home, route: 'dashboard' },
+    { label: 'Pages', icon: FileText, route: 'pages', on: true, activeAlso: ['node-builder', 'page-new', 'page-import'] },
     {
       label: 'Site', icon: Globe, items: [
-        { label: 'Pages', route: 'pages', icon: FileText, on: true, activeAlso: ['node-builder', 'page-new', 'page-import'], desc: 'Build and edit standalone pages' },
         { label: 'Navigation', route: 'navigation', icon: Layout, on: feat('navigation'), desc: 'Menus and links across your site' },
         { label: 'Globals', route: 'globals', icon: Sparkles, on: true, desc: 'Reusable content shared site-wide' },
         { label: 'Design', route: 'design', icon: SwatchBook, on: showSettings, desc: 'Theme, colors, and typography' },

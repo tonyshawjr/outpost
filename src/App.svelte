@@ -68,7 +68,6 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   import Redirects from '$pages/Redirects.svelte';
   import Newsletter from '$pages/Newsletter.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
-  import Sidebar from '$components/Sidebar.svelte';
   import TopNav from '$components/TopNav.svelte';
   import FloatingBar from '$components/FloatingBar.svelte';
   import RightSidebar from '$components/RightSidebar.svelte';
@@ -132,6 +131,8 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   let hasChannelsAccess = $derived($canManageChannels);
   let hasFormBuilderAccess = $derived($canBuildForms);
   let hasDataAccess = $derived($canManageSettings || $isDeveloper);
+  let ff = $derived($featureFlags);
+  function feat(key) { return !ff || ff[key] !== false; }
 
   // Redirect old standalone routes into Settings hub
   $effect(() => {
@@ -177,7 +178,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
     <div class="app-main">
       <div class="app-content" class:editor-active={route === 'collection-editor' || route === 'code-editor' || route === 'node-builder'}>
         {#if route === 'analytics' || route === 'analytics-events' || route === 'analytics-goals' || route === 'analytics-search' || route === 'analytics-content' || route === 'analytics-funnels'}
-          {#if hasCodeAccess}
+          {#if hasCodeAccess && feat('analytics')}
             <Analytics />
           {:else}
             <AccessDenied />
@@ -185,7 +186,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
         {:else if route === 'dashboard'}
           <Dashboard />
         {:else if route === 'calendar'}
-          {#if hasSettingsAccess}<Calendar />{:else}<AccessDenied />{/if}
+          {#if hasSettingsAccess && feat('calendar')}<Calendar />{:else}<AccessDenied />{/if}
         {:else if route === 'collections'}
           <CollectionList />
         {:else if route === 'collection-items'}
@@ -201,31 +202,31 @@ import EditorialAI from '$pages/EditorialAI.svelte';
         {:else if route === 'navigation'}
           <Navigation />
         {:else if route === 'forms-list'}
-          {#if hasFormBuilderAccess}
+          {#if hasFormBuilderAccess && feat('forms')}
             <FormsList />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'form-builder'}
-          {#if hasFormBuilderAccess}
+          {#if hasFormBuilderAccess && feat('forms')}
             <FormBuilder />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'form-submissions'}
-          {#if hasFormBuilderAccess}
+          {#if hasFormBuilderAccess && feat('forms')}
             <FormSubmissions />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'channels'}
-          {#if hasChannelsAccess}
+          {#if hasChannelsAccess && feat('channels')}
             <ChannelsList />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'channel-builder'}
-          {#if hasChannelsAccess}
+          {#if hasChannelsAccess && feat('channels')}
             <ChannelBuilder />
           {:else}
             <AccessDenied />
@@ -277,31 +278,31 @@ import EditorialAI from '$pages/EditorialAI.svelte';
         {:else if route === 'page-import'}
           <ImportPage />
         {:else if route === 'backups'}
-          {#if hasSettingsAccess}
+          {#if hasSettingsAccess && feat('backups')}
             <Backups />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'releases'}
-          {#if hasSettingsAccess}
+          {#if hasSettingsAccess && feat('releases')}
             <Releases />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'workflows'}
-          {#if hasSettingsAccess}
+          {#if hasSettingsAccess && feat('workflows')}
             <Workflows />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'review-tokens'}
-          {#if hasSettingsAccess}
+          {#if hasSettingsAccess && feat('review_links')}
             <ReviewTokens />
           {:else}
             <AccessDenied />
           {/if}
         {:else if route === 'lodge'}
-          {#if hasSettingsAccess}
+          {#if hasSettingsAccess && (feat('members') || feat('lodge'))}
             <Lodge />
           {:else}
             <AccessDenied />
@@ -313,7 +314,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
             <AccessDenied />
           {/if}
         {:else if route === 'newsletter'}
-          {#if hasSettingsAccess}<Newsletter />{:else}<AccessDenied />{/if}
+          {#if hasSettingsAccess && feat('newsletter')}<Newsletter />{:else}<AccessDenied />{/if}
         {:else if route === 'field-presets'}
           {#if hasDataAccess}<FieldPresets />{:else}<AccessDenied />{/if}
         {:else if route === 'editorial-ai'}

@@ -3,6 +3,7 @@
   import { editorial, collections } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
   import { Plus, Play, Trash2, Sparkles, Search } from 'lucide-svelte';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let jobs = $state([]);
   let runs = $state([]);
@@ -309,10 +310,7 @@
         <label class="lbl">Prompt</label>
         <textarea class="inp" rows="6" bind:value={editing.prompt} placeholder="Write three short blog post drafts on topics relevant to a coastal insurance agency. Match the brand voice: warm, plain-language, never sales-y."></textarea>
 
-        <label class="check">
-          <input type="checkbox" bind:checked={editing.enabled}/>
-          <span>Enabled</span>
-        </label>
+        <Checkbox bind:checked={editing.enabled} label="Enabled" />
       </div>
       <footer class="sheet-foot">
         <button class="btn-secondary" onclick={() => editing = null}>Cancel</button>

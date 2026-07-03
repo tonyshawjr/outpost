@@ -1,4 +1,6 @@
 <script>
+  import Checkbox from '$components/Checkbox.svelte';
+
   let { field = null, onChange } = $props();
 
   function update(key, value) {
@@ -79,10 +81,7 @@
     {#if isInputType}
       <div class="settings-section">
         <div class="settings-field">
-          <label class="settings-checkbox-label">
-            <input type="checkbox" checked={field.required} onchange={(e) => update('required', e.target.checked)} />
-            Required
-          </label>
+          <Checkbox checked={field.required} label="Required" onchange={(val) => update('required', val)} />
         </div>
 
         <div class="settings-field">

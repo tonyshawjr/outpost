@@ -2,6 +2,7 @@
   import { wrapPartialInclude, wrapMenuLoop } from '$lib/forge-tags.js';
   import { code as codeApi } from '$lib/api.js';
   import { addToast } from '$lib/stores.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let { selectedText = '', activeTabPath = '', menus = [], themeFiles = [], onConfirm, onCreated, onFilesModified, onCancel } = $props();
 
@@ -181,10 +182,7 @@
   </div>
 
   {#if showMenuOption}
-    <label class="forge-check-row">
-      <input type="checkbox" bind:checked={connectMenu} />
-      Connect to admin menu
-    </label>
+    <Checkbox bind:checked={connectMenu} label="Connect to admin menu" />
 
     {#if connectMenu}
       <div class="forge-field">

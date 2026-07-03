@@ -1,5 +1,6 @@
 <script>
   import { wrapMenuLoop } from '$lib/forge-tags.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let { selectedText = '', menus = [], onConfirm, onCancel } = $props();
 
@@ -59,10 +60,7 @@
 </div>
 
 {#if hasMultipleLinks}
-  <label class="forge-check-row">
-    <input type="checkbox" bind:checked={applyMapping} />
-    Replace links with menu tags automatically
-  </label>
+  <Checkbox bind:checked={applyMapping} label="Replace links with menu tags automatically" />
   <div class="forge-mapper-hint">
     Keeps the first link as the loop template. Adds <code>data-outpost="url"</code> and <code>data-type="link"</code> attributes to the link element.
   </div>

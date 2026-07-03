@@ -1,5 +1,6 @@
 <script>
   import { wrapEditable } from '$lib/forge-tags.js';
+  import Checkbox from '$components/Checkbox.svelte';
 
   let { selectedText = '', suggestedType = 'text', onConfirm, onCancel } = $props();
 
@@ -110,16 +111,10 @@
   </div>
 </div>
 
-<label class="forge-check-row">
-  <input type="checkbox" bind:checked={editable} />
-  Editable on front-end
-</label>
+<Checkbox bind:checked={editable} label="Editable on front-end" />
 
 {#if canUseDefault && selectedText}
-  <label class="forge-check-row">
-    <input type="checkbox" bind:checked={useDefault} />
-    {defaultLabel}
-  </label>
+  <Checkbox bind:checked={useDefault} label={defaultLabel} />
 {/if}
 
 <div class="forge-actions">
