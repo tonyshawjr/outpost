@@ -15,6 +15,7 @@
   let forgeApplying = $state(false);
   let forgeResult = $state(null);
 
+  let mode = $state(null);
   let packs = $state([]);
   let selectedPackId = $state(null);
   let importActive = $state(false);
@@ -76,7 +77,9 @@
 
   function selectPack(id) { selectedPackId = id; }
 
-  function goForge() { applySetup(); }
+  function chooseImport() { mode = 'import'; }
+  function chooseFresh() { mode = 'fresh'; }
+  function backToWelcome() { mode = null; selectedPackId = null; }
 
   function delay(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
@@ -270,8 +273,60 @@
               <button class="btn-secondary" onclick={() => { importActive = false; importError = ''; }}>Back to templates</button>
             {/if}
           </div>
+        {:else if mode === null}
+          <div class="wizard-center">
+            <h1 class="hero-heading">Welcome to Outpost</h1>
+            <p class="hero-sub">How do you want to start?</p>
+
+            <div class="mode-grid">
+              <button class="mode-card" onclick={chooseImport} type="button">
+                <span class="mode-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="24" height="24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </span>
+                <span class="mode-title">I already have a site</span>
+                <span class="mode-desc">Import your existing pages and turn them into editable templates.</span>
+              </button>
+              <button class="mode-card" onclick={chooseFresh} type="button">
+                <span class="mode-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="24" height="24"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3z"/></svg>
+                </span>
+                <span class="mode-title">Start fresh</span>
+                <span class="mode-desc">Pick a template and build from a clean slate.</span>
+              </button>
+            </div>
+          </div>
+        {:else if mode === 'import'}
+          <div class="wizard-center">
+            <button class="wizard-back" onclick={backToWelcome} type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <h1 class="hero-heading">Let's find your site</h1>
+            <p class="hero-sub">Name your site, then we'll scan your existing pages.</p>
+
+            <div class="name-field-area">
+              {#if detecting}
+                <div class="detecting"><div class="detecting-pulse"></div><span>Detecting from your site…</span></div>
+              {:else}
+                <label class="name-label" for="site-name-import">Site name</label>
+                <div class="name-input-wrap">
+                  <input id="site-name-import" class="name-input" type="text" placeholder="My Website" bind:value={siteName} maxlength="200" />
+                  {#if detected && siteName}<span class="auto-badge">Auto-detected</span>{/if}
+                </div>
+              {/if}
+            </div>
+
+            <button class="btn-primary" onclick={applySetup} disabled={!siteName.trim() || detecting || applying}>
+              {#if applying}Scanning…{:else}Scan my site{/if}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
         {:else}
           <div class="wizard-choose">
+            <button class="wizard-back" onclick={backToWelcome} type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
             <h1 class="hero-heading">Choose a starting point</h1>
             <p class="hero-sub">Pick a template to build on — you can change everything later.</p>
 
@@ -322,8 +377,6 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
             </div>
-
-            <button class="link-muted" onclick={goForge} type="button">Already have a site? Import it instead</button>
           </div>
         {/if}
 
@@ -1601,8 +1654,44 @@
   }
   .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
 
+  .mode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 620px; margin: 38px auto 0; }
+  .mode-card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 26px 24px; text-align: left;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    color: inherit; font: inherit;
+  }
+  .mode-card:hover { border-color: var(--purple, #7C3AED); background: rgba(124, 58, 237, 0.06); transform: translateY(-2px); }
+  .mode-card:focus-visible { outline: 2px solid var(--purple, #7C3AED); outline-offset: 2px; }
+  .mode-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 12px; margin-bottom: 4px;
+    background: rgba(124, 58, 237, 0.14); color: var(--purple-soft, #A78BFA);
+  }
+  .mode-title { font-size: 16px; font-weight: 600; color: #f3f3f5; }
+  .mode-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.68); line-height: 1.5; }
+
+  .wizard-back {
+    display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+    background: none; border: none; cursor: pointer;
+    color: rgba(255, 255, 255, 0.68); font-size: 13.5px; font-weight: 500;
+    padding: 6px 8px; margin-bottom: 16px; border-radius: 8px;
+  }
+  .wizard-back:hover { color: #f3f3f5; }
+  .wizard-back:focus-visible { outline: 2px solid var(--purple, #7C3AED); outline-offset: 2px; }
+
+  .hero-sub { color: rgba(255, 255, 255, 0.7); }
+  .pack-desc { color: rgba(255, 255, 255, 0.68); }
+  .name-label { color: rgba(255, 255, 255, 0.68); }
+  .wizard-skip { color: rgba(255, 255, 255, 0.66); }
+  .wizard-skip:hover { color: #f3f3f5; }
+
   @media (max-width: 640px) {
     .pack-grid { grid-template-columns: 1fr; }
+    .mode-grid { grid-template-columns: 1fr; }
     .choose-footer { flex-direction: column; align-items: stretch; }
   }
 </style>
