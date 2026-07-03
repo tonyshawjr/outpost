@@ -191,12 +191,12 @@
                   {#if sec.title}<div class="tn-sec-label">{sec.title}</div>{/if}
                   {#each sec.items as it (it.collectionSlug || it.route)}
                     <button class="tn-menu-item" class:has-desc={it.desc} class:active={itemActive(it)} role="menuitem" onclick={() => go(it)}>
-                      <span class="tn-ic"><it.icon size={17} aria-hidden="true" /></span>
+                      <span class="tn-ic"><it.icon size={20} aria-hidden="true" /></span>
                       <span class="tn-item-body">
                         <span class="tn-item-title">{it.label}</span>
                         {#if it.desc}<span class="tn-item-desc">{it.desc}</span>{/if}
                       </span>
-                      {#if it.desc}<ArrowRight size={15} aria-hidden="true" class="tn-arrow" />{/if}
+                      {#if it.desc}<ArrowRight size={16} aria-hidden="true" class="tn-arrow" />{/if}
                     </button>
                   {/each}
                 </div>
@@ -279,48 +279,47 @@
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    min-width: 300px;
-    padding: 8px;
+    min-width: 340px;
+    padding: 14px;
     background: var(--raised, #17171b);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14), 0 18px 44px rgba(0, 0, 0, 0.42);
+    border-radius: 20px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14), 0 24px 56px rgba(0, 0, 0, 0.44);
     z-index: 100;
     transform-origin: top left;
-    animation: tn-menu-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: tn-menu-in 0.17s cubic-bezier(0.16, 1, 0.3, 1);
   }
   @keyframes tn-menu-in {
-    from { opacity: 0; transform: translateY(-7px) scale(0.97); }
+    from { opacity: 0; transform: translateY(-8px) scale(0.975); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .tn-menu.mega { display: grid; grid-template-columns: 288px 300px; gap: 6px; min-width: 0; }
-  .tn-menu.mega .tn-col + .tn-col { border-left: 1px solid var(--border); padding-left: 7px; }
+  .tn-menu.mega { display: grid; grid-template-columns: 344px 364px; gap: 28px; min-width: 0; padding: 18px 20px; }
 
-  .tn-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-  .tn-sec-label { padding: 9px 10px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); }
+  .tn-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .tn-sec-label { padding: 4px 12px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
 
   .tn-menu-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 9px 10px;
+    gap: 15px;
+    padding: 12px 13px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     background: transparent;
     color: var(--sec);
     text-align: left;
     cursor: pointer;
     width: 100%;
-    transition: background 0.11s, color 0.11s;
+    transition: background 0.12s, color 0.12s;
   }
   .tn-menu-item.has-desc { align-items: flex-start; }
   .tn-menu-item:hover { background: var(--hover); }
   .tn-menu-item:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
   .tn-menu-item.danger:hover { color: var(--red); }
 
-  .tn-item-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .tn-item-title { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
-  .tn-item-desc { font-size: 12px; color: var(--dim); line-height: 1.3; }
+  .tn-item-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+  .tn-item-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .tn-item-desc { font-size: 13px; color: var(--dim); line-height: 1.45; }
   .tn-menu-item:not(.has-desc) .tn-item-title,
   .tn-menu-item:not(.has-desc) > span:last-child { font-weight: 500; }
   .tn-menu-item.active .tn-item-title { color: var(--purple-soft, var(--purple)); }
@@ -329,12 +328,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     background: var(--hover);
     flex-shrink: 0;
-    transition: background 0.11s;
+    transition: background 0.12s;
   }
   .tn-menu-item.has-desc .tn-ic { margin-top: 1px; }
   .tn-ic :global(svg) { color: var(--sec); transition: color 0.11s; }
