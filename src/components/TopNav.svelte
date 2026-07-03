@@ -329,7 +329,7 @@
 
   .tn-menu {
     position: absolute;
-    top: calc(100% + 14px);
+    top: calc(100% + 22px);
     left: 0;
     min-width: 300px;
     padding: 6px;
