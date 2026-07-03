@@ -506,7 +506,7 @@
   .tn-icon.active :global(svg) { color: var(--purple); }
   .tn-icon:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
-  .tn-user { position: relative; margin-left: 6px; }
+  .tn-user { position: relative; margin-left: 6px; display: inline-flex; align-items: center; }
   .tn-avatar {
     width: 30px;
     height: 30px;
@@ -517,12 +517,13 @@
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.12s ease;
+    transition: opacity 0.12s ease, box-shadow 0.12s ease;
     overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
+    box-shadow: 0 0 0 1px var(--border);
   }
   .tn-avatar.has-img { background: transparent; }
   .tn-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
