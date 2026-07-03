@@ -71,6 +71,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   import AccessDenied from '$pages/AccessDenied.svelte';
   import Sidebar from '$components/Sidebar.svelte';
   import TopNav from '$components/TopNav.svelte';
+  import FloatingBar from '$components/FloatingBar.svelte';
   import RightSidebar from '$components/RightSidebar.svelte';
   import MobileNav from '$components/MobileNav.svelte';
   import Toast from '$components/Toast.svelte';
@@ -342,6 +343,7 @@ import EditorialAI from '$pages/EditorialAI.svelte';
   </div>
   </div>
   <Ranger open={$rangerOpen} onclose={() => rangerOpen.set(false)} />
+  <FloatingBar />
   <MobileNav />
 {/if}
 
