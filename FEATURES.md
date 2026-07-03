@@ -9,7 +9,8 @@ Maintained as features are built. Used for documentation generation.
 - **Hybrid subscribers + double opt-in.** `php/newsletter.php`: a `subscribers` table (email, status, confirm/unsub tokens) plus a `newsletter_optin` flag on member-role users. Recipients = confirmed subscribers ∪ opted-in members (deduped). Public flow: `newsletter/subscribe` (creates pending + sends a confirmation email), `newsletter/confirm` (token → confirmed page), `newsletter/unsubscribe` (token → page + RFC 8058 one-click POST). All three are pre-auth public routes; subscribe is cooldown- + IP-rate-limited against email-bombing.
 - **Resend sending.** Batch send (`/emails/batch`, 100/chunk) with a per-recipient `List-Unsubscribe` header + `Idempotency-Key` per chunk; single send for confirmations; `onboarding@resend.dev` fallback when no verified domain. Key encrypted, server-side only. Free tier 3k/mo, 100/day; 429 surfaced.
 - **Admin + front-end.** A Newsletter page (compose richtext → send test → broadcast to the union) + subscriber list/stats; a `data-outpost-newsletter` signup form (vanilla `newsletter-client.js`, injected by the engine when the marker is present) drops into any theme.
-- **Remaining:** a member-facing opt-in toggle in the Lodge portal, and live send needs the site owner's Resend key + a verified domain (SPF/DKIM).
+- **Member opt-in (beta.33).** The Lodge profile API (`lodge/profile` GET/PUT) reads/writes `newsletter_optin`; a `data-outpost-newsletter-optin` front-end element (in `newsletter-client.js`) renders a member-facing checkbox (hidden for logged-out visitors) that saves via the member API + CSRF. Members receive a **signed, forgery-resistant one-click unsubscribe token** (`newsletter_member_unsub_token`, HMAC of user id) so every recipient — subscriber or member — can unsubscribe.
+- **Remaining:** live send needs the site owner's Resend key + a verified domain (SPF/DKIM); a "send test" path works via Resend's sandbox without it.
 
 ---
 

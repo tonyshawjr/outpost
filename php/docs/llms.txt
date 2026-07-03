@@ -4387,3 +4387,52 @@ docker run -d -p 8010:8010 erikvl87/languagetool
 
 - `POST grammar/check` — requires `content.*`. Body `{ text, language }` (`language` defaults `auto`; `text` capped at 20KB). Returns `{ matches: [...] }`. Each match normalized to `{ offset, length, message, shortMessage, replacements[] (≤8), ruleId, category, issueType }`. HTTP 429 from the server → `rate_limited` (surfaced as "rate limit reached — try again shortly or connect a self-hosted server").
 - `GET/PUT grammar/settings` — requires `settings.*`. GET returns `languagetool_server_url`, `languagetool_username`, and the decrypted `languagetool_apikey`. PUT accepts any of those keys; URL validated for `http(s)://`, key stored encrypted.
+
+## Newsletter (Resend)
+
+Subscriber list with double opt-in, a drop-in signup form, and Resend-backed sending. Implemented in `php/newsletter.php`; the admin page is `src/pages/Newsletter.svelte` (Newsletter nav item); Resend config is in `src/pages/settings/IntegrationsSettings.svelte` (Settings → Integrations → Newsletter (Resend)); the signup-form client is `php/newsletter-client.js`. Tables (`subscribers`, `subscribe_rate_limits`, `newsletter_sends`) and the `users.newsletter_optin` column are created on demand by `ensure_newsletter_tables()`.
+
+Recipients = union of (a) standalone subscribers with `status = 'confirmed'` and (b) member-role users with `newsletter_optin = 1` (internal/admin roles and empty emails excluded), de-duplicated by lowercased email — the standalone subscriber record wins (keeps its personal `unsub_token`). Opted-in members do NOT go through double opt-in and get the generic unsubscribe link (no per-message token).
+
+### Subscriber statuses
+
+`pending` (signed up, not yet confirmed — no broadcasts), `confirmed` (clicked confirm link — receives broadcasts), `unsubscribed` (opted out). Each row: unique `email`, `status`, `confirm_token`, `unsub_token`, `source` (default `form`), created/confirmed/unsubscribed timestamps.
+
+### Signup form (drop into any theme)
+
+```
+<div data-outpost-newsletter data-label="Subscribe" data-placeholder="you@example.com"></div>
+```
+
+The engine injects `newsletter-client.js` when the `data-outpost-newsletter` marker is present. The client builds an email input + submit button + live-region status line (class hooks `outpost-newsletter-form` / `outpost-newsletter-msg`, otherwise unstyled) and POSTs `{ email, source: "form" }` to `newsletter/subscribe`. Both attributes optional (defaults: label `Subscribe`, placeholder `you@example.com`). Messaging is always neutral — never reveals whether an address is already subscribed.
+
+### Double opt-in flow
+
+1. `POST newsletter/subscribe` (public) — creates/resets a `pending` subscriber with a random `confirm_token` and emails a "Confirm your subscription" link. Hardened: per-email 10-min cooldown (re-submit within 10 min of a still-pending signup resends nothing), per-IP sliding-window rate limit (10/hour → still returns neutral pending, sends no email), already-`confirmed` addresses get a quiet "already subscribed", email validated + capped at 254 chars (invalid → 400).
+2. `GET newsletter/confirm?token=…` (public) — flips `pending` → `confirmed`, clears token, renders an HTML confirmation page. Token must be hex.
+3. `GET/POST newsletter/unsubscribe?token=…` (public) — marks `unsubscribed`. GET renders a page; POST is the RFC 8058 one-click path (returns empty 200). Token must be hex.
+
+Confirm/action URLs are absolute, built from the `site_url` setting — set it correctly or email links point at the wrong host.
+
+### Connecting Resend (Settings → Integrations → Newsletter (Resend))
+
+- `resend_api_key` — Resend key from `resend.com`, stored ENCRYPTED (Ranger crypto), used only server-side. Required to send.
+- `newsletter_from` — sender, e.g. `Your Name <news@yourdomain.com>`; must be on a domain verified in Resend (publish the SPF/DKIM DNS records Resend provides). Blank → falls back to the sandbox sender `Outpost <onboarding@resend.dev>` (test sends only; not for real broadcasts).
+- `newsletter_reply_to` — optional reply-to, added to every email when set.
+
+### Sending
+
+Broadcasts POST to Resend `/emails/batch` in chunks of 100 recipients; each chunk carries an `Idempotency-Key` (`nl-<sendId>-<chunkIndex>`) so retries don't double-send. Every recipient gets personalized `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers. Body HTML is wrapped in a responsive email layout (header + content + unsubscribe footer) at send time. HTTP 429 mid-broadcast → send marked `rate_limited`, sent-count recorded. Free tier ~3,000 emails/month, 100/day (confirmation + test emails count too).
+
+### Endpoints (api.php?action=…)
+
+- `POST newsletter/subscribe` — public. Body `{ email, source? }`. Rate-limited (per-email 10-min cooldown + per-IP 10/hour). Returns neutral `pending` / `already_subscribed`.
+- `GET newsletter/confirm` — public. Query `token`. `pending` → `confirmed`, renders HTML page.
+- `GET/POST newsletter/unsubscribe` — public. Query/body `token`. GET renders page; POST (RFC 8058 one-click) returns empty 200.
+- `GET/PUT newsletter/settings` — requires `settings.*`. GET returns decrypted `resend_api_key`, `newsletter_from`, `newsletter_reply_to`. PUT accepts those keys (`resend_api_key` stored encrypted).
+- `GET newsletter/subscribers` — requires `settings.*`. Returns latest 500 subscribers, counts by status, `member_optins`, and `total_recipients` (de-duplicated union size).
+- `POST newsletter/send` — requires `content.*`. Body `{ subject, html, test?, test_email? }`. `test: true` → one `[Test]`-prefixed email to `test_email`; otherwise broadcasts to the full union. Returns `{ sent, recipients }`.
+
+### Admin Newsletter page
+
+Stats (Confirmed / Pending / Members opted in / highlighted Total recipients), compose (subject + rich-text body), Send test (single email, works via sandbox before domain verification), and Broadcast (confirmation step showing recipient count → sends to the union). Subscriber table lists latest 500 with status badges. Broadcast button disabled when total recipients is 0.

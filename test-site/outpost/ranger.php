@@ -8,8 +8,35 @@
 
 // ── Encryption ──────────────────────────────────────────
 
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/db.php';
+
+/**
+ * Get or generate a random 256-bit encryption key.
+ * Stored as 64-char hex in the settings table under 'ranger_key'.
+ * Falls back to deterministic derivation if DB is unavailable.
+ */
+function outpost_encryption_key(): string {
+    try {
+        $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'ranger_key'");
+        if ($row && is_string($row['value']) && strlen($row['value']) === 64 && ctype_xdigit($row['value'])) {
+            return hex2bin($row['value']);
+        }
+        // Generate and store a new random key
+        $key = random_bytes(32);
+        OutpostDB::query(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES ('ranger_key', ?)",
+            [bin2hex($key)]
+        );
+        return $key;
+    } catch (\Throwable $e) {
+        // Fallback to deterministic key if DB is unavailable
+        return hash('sha256', OUTPOST_DB_PATH . 'outpost-ranger-salt', true);
+    }
+}
+
 function ranger_encrypt(string $plaintext): string {
-    $key = hash('sha256', OUTPOST_DB_PATH . 'outpost-ranger-salt', true);
+    $key = outpost_encryption_key();
     $iv = random_bytes(12);
     $tag = '';
     $cipher = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
@@ -20,7 +47,7 @@ function ranger_encrypt(string $plaintext): string {
 }
 
 function ranger_decrypt(string $ciphertext): string {
-    $key = hash('sha256', OUTPOST_DB_PATH . 'outpost-ranger-salt', true);
+    $key = outpost_encryption_key();
     $raw = base64_decode($ciphertext, true);
     if ($raw === false || strlen($raw) < 28) {
         throw new RuntimeException('Decryption failed: invalid ciphertext');
@@ -33,6 +60,21 @@ function ranger_decrypt(string $ciphertext): string {
         throw new RuntimeException('Decryption failed');
     }
     return $plaintext;
+}
+
+/**
+ * Decrypt a value with fallback to plaintext for backward compatibility.
+ * If decryption fails (e.g. value was stored before encryption was added),
+ * returns the raw value unchanged.
+ */
+function safe_decrypt(string $value): string {
+    if ($value === '') return $value;
+    try {
+        return ranger_decrypt($value);
+    } catch (\Throwable $e) {
+        // Value is likely still plaintext (pre-encryption migration)
+        return $value;
+    }
 }
 
 // ── Database Migration ──────────────────────────────────
@@ -2070,10 +2112,13 @@ function ranger_tool_upload_media(array $input): array {
 
     // SSRF guard — block private/internal IPs
     try {
-        outpost_ssrf_guard($url);
+        $resolvedIp = outpost_ssrf_guard($url);
     } catch (\RuntimeException $e) {
         return ['error' => 'URL blocked: ' . $e->getMessage()];
     }
+    $parsedUrl = parse_url($url);
+    $resolveHost = $parsedUrl['host'];
+    $resolvePort = $parsedUrl['port'] ?? ($parsedUrl['scheme'] === 'https' ? 443 : 80);
 
     // Download the image
     $ch = curl_init($url);
@@ -2084,6 +2129,7 @@ function ranger_tool_upload_media(array $input): array {
         CURLOPT_MAXREDIRS => 5,
         CURLOPT_USERAGENT => 'Outpost-CMS/1.0',
         CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_RESOLVE => ["{$resolveHost}:{$resolvePort}:{$resolvedIp}"],
     ]);
     $data = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

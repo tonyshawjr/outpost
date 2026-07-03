@@ -327,8 +327,9 @@ function handle_lodge_item_delete(array $member): void {
  * Lodge Profile — get member's own profile.
  */
 function handle_lodge_profile_get(array $member): void {
+    if (function_exists('ensure_newsletter_tables')) ensure_newsletter_tables();
     $full = OutpostDB::fetchOne(
-        'SELECT id, username, email, display_name, avatar, bio, member_since, tier, meta FROM users WHERE id = ?',
+        'SELECT id, username, email, display_name, avatar, bio, member_since, tier, meta, newsletter_optin FROM users WHERE id = ?',
         [$member['id']]
     );
     if (!$full) member_error('Member not found', 404);
@@ -343,8 +344,10 @@ function handle_lodge_profile_get(array $member): void {
             'bio' => $full['bio'],
             'member_since' => $full['member_since'],
             'tier' => $full['tier'] ?? 'free',
+            'newsletter_optin' => (int) ($full['newsletter_optin'] ?? 0),
             'meta' => json_decode($full['meta'] ?? '{}', true),
         ],
+        'csrf_token' => OutpostMember::csrfToken(),
     ]);
 }
 
@@ -358,6 +361,11 @@ function handle_lodge_profile_update(array $member): void {
     $allowed = ['display_name', 'bio', 'avatar'];
     foreach ($allowed as $key) {
         if (isset($data[$key])) $update[$key] = trim($data[$key]);
+    }
+
+    if (array_key_exists('newsletter_optin', $data)) {
+        if (function_exists('ensure_newsletter_tables')) ensure_newsletter_tables();
+        $update['newsletter_optin'] = !empty($data['newsletter_optin']) ? 1 : 0;
     }
 
     if (isset($data['email'])) {

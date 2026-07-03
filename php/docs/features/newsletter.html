@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newsletter &mdash; Outpost CMS</title>
+  <base href="/outpost/docs/">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<nav class="sidebar"></nav>
+
+<main class="main">
+  <div class="page-hero">
+    <h1>Newsletter</h1>
+    <p class="lead">Collect subscribers with a drop-in signup form, confirm them with a double opt-in flow, and broadcast rich-text updates through <strong>Resend</strong>. Your audience is the union of confirmed standalone subscribers and Lodge members who opted in &mdash; compose once, send to everyone.</p>
+  </div>
+  <div class="content">
+
+    <h2>Overview</h2>
+    <p>The Newsletter feature has three moving parts, all handled by a single PHP file (<code>newsletter.php</code>): a <strong>subscriber list</strong> with a double opt-in lifecycle, a <strong>signup form</strong> you drop into any theme, and a <strong>Resend</strong>-backed sender for test emails and full broadcasts. You bring a free Resend API key; Outpost handles confirmation emails, unsubscribe links, batching, and the RFC&nbsp;8058 one-click unsubscribe headers that keep you out of spam folders.</p>
+    <p>Recipients are computed as a <strong>union</strong> of two groups: standalone subscribers who confirmed their email, and member-role users (Lodge members) who ticked the <code>newsletter_optin</code> flag on their account. A person who appears in both is de-duplicated by email &mdash; the standalone subscriber record wins, so their personal unsubscribe token is used.</p>
+
+    <div class="callout callout-note"><strong>One integration, one key.</strong> Everything runs through Resend. The API key is encrypted at rest (Ranger crypto) and used only server-side &mdash; it is never exposed to the browser or to the signup form. Without a key connected, the admin Newsletter page loads but sending is blocked with a clear prompt.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Connecting Resend</h2>
+    <p>Go to <strong>Settings &rarr; Integrations &rarr; Newsletter (Resend)</strong> and fill in three fields:</p>
+    <table>
+      <thead><tr><th>Field</th><th>Setting key</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Resend API Key</strong></td><td><code>resend_api_key</code></td><td>Your key from <code>resend.com</code>. Stored <strong>encrypted</strong> (Ranger crypto); required to send anything.</td></tr>
+        <tr><td><strong>From Address</strong></td><td><code>newsletter_from</code></td><td>The sender, e.g. <code>Your Name &lt;news@yourdomain.com&gt;</code>. Must be on a domain you&rsquo;ve verified in Resend.</td></tr>
+        <tr><td><strong>Reply-To</strong> (optional)</td><td><code>newsletter_reply_to</code></td><td>Where replies go if it differs from the From address. Added to every email when set.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Verify a sending domain</h3>
+    <p>To send from your own address, add a domain in the Resend dashboard and publish the DNS records it gives you &mdash; typically an <strong>SPF</strong> record and a <strong>DKIM</strong> record (and a return-path/MX entry for bounce handling). Once Resend marks the domain verified, set your <strong>From Address</strong> to an address on that domain. This is what gets your mail delivered and lets recipients see your brand as the sender.</p>
+
+    <h3>Sandbox fallback (no domain yet)</h3>
+    <p>If you leave the <strong>From Address</strong> blank, Outpost falls back to Resend&rsquo;s shared sandbox sender <code>Outpost &lt;onboarding@resend.dev&gt;</code>. This lets you send <strong>test emails</strong> to yourself before your domain is verified, so you can preview the layout end-to-end. The sandbox address is fine for testing but should not be used for real broadcasts &mdash; verify a domain first.</p>
+
+    <div class="callout callout-warn"><strong>Verify before you broadcast.</strong> The sandbox sender is rate-limited and clearly marked as Resend&rsquo;s test address. Real subscribers should receive mail from a verified domain of your own, or deliverability (and trust) will suffer.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Adding a signup form to a theme</h2>
+    <p>The signup form is a self-contained marker element. Drop this anywhere in a theme template &mdash; a footer, a sidebar, a dedicated page &mdash; and Outpost&rsquo;s engine injects the small client script (<code>newsletter-client.js</code>) automatically when it sees the marker on the page:</p>
+    <pre><code>&lt;div data-outpost-newsletter
+     data-label="Subscribe"
+     data-placeholder="you@example.com"&gt;&lt;/div&gt;</code></pre>
+    <p>The client builds a minimal, unstyled form (an <code>email</code> input plus a submit button and a live-region status line) inside the marker. Both attributes are optional:</p>
+    <table>
+      <thead><tr><th>Attribute</th><th>Default</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-label</code></td><td><code>Subscribe</code></td><td>Text on the submit button.</td></tr>
+        <tr><td><code>data-placeholder</code></td><td><code>you@example.com</code></td><td>Placeholder for the email input.</td></tr>
+      </tbody>
+    </table>
+    <p>On submit, the form POSTs the email to <code>newsletter/subscribe</code> with <code>source: "form"</code> and shows the returned message inline (for example, &ldquo;Almost there &mdash; check your email to confirm.&rdquo;). It renders no CSS of its own beyond the class hooks <code>outpost-newsletter-form</code> and <code>outpost-newsletter-msg</code>, so you style it to match your theme.</p>
+
+    <div class="callout callout-tip"><strong>Tip</strong> &mdash; The form always reports success-shaped, neutral messaging and never reveals whether an address is already on the list. That&rsquo;s deliberate: it prevents the form from being used to probe who has subscribed.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>The double opt-in flow</h2>
+    <p>No one is added to the list until they click a link in their inbox. The lifecycle has three public steps, all on the API and requiring no login.</p>
+
+    <ol class="steps">
+      <li><strong>Subscribe.</strong> A visitor submits the form. Outpost creates (or resets) a <strong>pending</strong> subscriber with a random confirmation token and emails them a &ldquo;Confirm your subscription&rdquo; message containing the confirm link. Nothing is sent to this address by a broadcast while it is pending.</li>
+      <li><strong>Confirm.</strong> The visitor clicks the link, which hits <code>newsletter/confirm?token=&hellip;</code>. Outpost flips the record to <strong>confirmed</strong>, clears the token, and shows a simple &ldquo;Subscription confirmed&rdquo; page. They are now a recipient.</li>
+      <li><strong>Unsubscribe.</strong> Every email carries a per-recipient unsubscribe link (<code>newsletter/unsubscribe?token=&hellip;</code>). Visiting it marks the subscriber <strong>unsubscribed</strong> and shows a confirmation page. They receive nothing further.</li>
+    </ol>
+
+    <h3>Abuse protection on subscribe</h3>
+    <p>The public subscribe endpoint is hardened so it can&rsquo;t be used to spam confirmation emails at arbitrary inboxes:</p>
+    <ul>
+      <li><strong>Per-email cooldown</strong> &mdash; if an address is already pending and was created less than <strong>10 minutes</strong> ago, Outpost returns the same &ldquo;check your email&rdquo; message without sending another confirmation. Re-subscribing after that window issues a fresh token.</li>
+      <li><strong>Per-IP rate limit</strong> &mdash; a sliding window of <strong>10 requests per hour</strong> per IP. Once exceeded, the endpoint still responds with the neutral pending message but sends no email.</li>
+      <li><strong>Already confirmed</strong> &mdash; an address that&rsquo;s already on the list gets a quiet &ldquo;you&rsquo;re already subscribed&rdquo; response, not a new confirmation.</li>
+      <li><strong>Email validation</strong> &mdash; addresses are validated and capped at 254 characters; invalid input returns a 400.</li>
+    </ul>
+
+    <h3>RFC 8058 one-click unsubscribe</h3>
+    <p>Every broadcast email includes standards-based list headers so that Gmail, Apple Mail, and Outlook can show a native <strong>Unsubscribe</strong> button:</p>
+    <pre><code>List-Unsubscribe: &lt;https://yoursite/outpost/api.php?action=newsletter/unsubscribe&amp;token=…&gt;
+List-Unsubscribe-Post: List-Unsubscribe=One-Click</code></pre>
+    <p>When the mail client uses that button it sends a <strong>POST</strong> to the unsubscribe URL. Outpost&rsquo;s unsubscribe handler accepts both a browser <strong>GET</strong> (which renders the confirmation page) and the one-click <strong>POST</strong> (which processes the token and returns an empty <code>200</code> with no page), satisfying RFC&nbsp;8058. Confirmation tokens and unsubscribe tokens are validated as hex before any lookup.</p>
+
+    <div class="callout callout-note"><strong>Confirm and action links are absolute.</strong> They are built from your <code>site_url</code> setting. Make sure Settings has the correct public site URL, or the links in confirmation and broadcast emails will point at the wrong host.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Subscriber statuses</h2>
+    <p>Every standalone subscriber row carries one of three statuses. Only <strong>confirmed</strong> subscribers receive broadcasts.</p>
+    <table>
+      <thead><tr><th>Status</th><th>Meaning</th><th>Receives broadcasts?</th></tr></thead>
+      <tbody>
+        <tr><td><code>pending</code></td><td>Signed up but hasn&rsquo;t clicked the confirm link yet.</td><td>No</td></tr>
+        <tr><td><code>confirmed</code></td><td>Clicked the confirmation link &mdash; a live recipient.</td><td>Yes</td></tr>
+        <tr><td><code>unsubscribed</code></td><td>Opted out via an unsubscribe link.</td><td>No</td></tr>
+      </tbody>
+    </table>
+    <p>Each subscriber also records its <code>source</code> (defaults to <code>form</code>), and timestamps for creation, confirmation, and unsubscription.</p>
+
+    <h3>Member opt-ins</h3>
+    <p>Lodge members are a separate pool. A member-role user with the <code>newsletter_optin</code> flag set on their account is treated as a recipient <strong>without</strong> going through the double opt-in flow &mdash; they already have a verified account relationship with the site. The recipient list merges these members with confirmed subscribers and de-duplicates by email. Internal/admin roles are always excluded, and members with an empty email are skipped.</p>
+
+    <div class="callout callout-warn"><strong>Members don&rsquo;t get a per-message token.</strong> An opted-in member&rsquo;s unsubscribe link points at the generic unsubscribe endpoint rather than a personal token, so their unsubscribe is managed through their account/opt-in setting rather than a one-click list removal. Standalone subscribers always get a personal, tokenized unsubscribe link.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>The admin Newsletter page</h2>
+    <p>Open <strong>Newsletter</strong> in the admin. The page shows live stats, a composer, and the subscriber table.</p>
+
+    <h3>Stats</h3>
+    <p>Four counters across the top: <strong>Confirmed</strong>, <strong>Pending</strong>, <strong>Members opted in</strong>, and a highlighted <strong>Total recipients</strong> &mdash; the de-duplicated size of the send. The broadcast button is disabled when total recipients is zero.</p>
+
+    <h3>Compose &rarr; test &rarr; broadcast</h3>
+    <ol class="steps">
+      <li><strong>Write.</strong> Enter a <strong>Subject</strong> and compose the body in the rich-text editor. The body HTML is wrapped in Outpost&rsquo;s responsive email layout (header, content, and an unsubscribe footer) at send time &mdash; you write content, not a full HTML email.</li>
+      <li><strong>Send a test.</strong> Enter any address in the test field and click <strong>Send test</strong>. Outpost sends a single email to that address, subject-prefixed with <code>[Test]</code>, using the same layout the real send will use. Test sends work even before a domain is verified (via the sandbox sender).</li>
+      <li><strong>Broadcast.</strong> Click <strong>Send to N subscribers</strong>. A confirmation step asks you to confirm the recipient count, then the broadcast goes out to the full subscriber&nbsp;+&nbsp;member union. On success the composer clears and a toast reports how many of how many recipients were sent.</li>
+    </ol>
+
+    <h3>Subscriber table</h3>
+    <p>Below the composer, the most recent subscribers (up to 500) are listed with email, a colored status badge, source, and join date. If the list is empty, the page points you to add a <code>data-outpost-newsletter</code> form or opt members in.</p>
+
+    <div class="callout callout-note"><strong>Sending goes out in batches.</strong> Broadcasts are chunked at <strong>100 recipients per request</strong> to Resend&rsquo;s batch endpoint. Each chunk carries an <code>Idempotency-Key</code> (derived from the send id and chunk index) so a retried request won&rsquo;t double-send that chunk. Each recipient still gets their own personalized unsubscribe header. If Resend returns a rate-limit (HTTP&nbsp;429) mid-broadcast, the send is marked <code>rate_limited</code> and the count sent so far is recorded.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Free-tier limits</h2>
+    <p>Resend&rsquo;s free tier allows roughly <strong>3,000 emails per month</strong> and <strong>100 per day</strong>. Because every recipient counts as one email, a 100-recipient broadcast uses your entire daily allowance on the free tier. Plan larger lists around a paid Resend plan, or stagger sends across days. Confirmation and test emails also count against the quota.</p>
+
+    <div class="callout callout-warn"><strong>Rate limits surface as errors.</strong> If a broadcast trips Resend&rsquo;s limits, the admin sees &ldquo;Resend rate limit hit &mdash; some emails may not have sent&rdquo; (HTTP&nbsp;429). Any recipients already sent in earlier chunks are not re-sent when you retry, thanks to the idempotency keys.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Endpoints</h2>
+    <p>Three routes are <strong>public</strong> (no auth) and power the subscriber lifecycle; the rest are on the admin API and require capabilities. All are under <code>api.php?action=&hellip;</code>.</p>
+    <table>
+      <thead><tr><th>Route</th><th>Method</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>newsletter/subscribe</code></td><td>POST</td><td>Public</td><td>Sign up an email. Body <code>{ email, source? }</code>. Creates a pending subscriber and sends the confirmation email. Per-email 10-min cooldown + per-IP rate limit (10/hour). Returns a neutral <code>pending</code> / <code>already_subscribed</code> status.</td></tr>
+        <tr><td><code>newsletter/confirm</code></td><td>GET</td><td>Public</td><td>Confirm a subscription. Query <code>token</code>. Flips <code>pending</code> &rarr; <code>confirmed</code> and renders an HTML confirmation page.</td></tr>
+        <tr><td><code>newsletter/unsubscribe</code></td><td>GET / POST</td><td>Public</td><td>Remove a subscriber. Query/body <code>token</code>. GET renders a page; POST is the RFC&nbsp;8058 one-click path and returns an empty <code>200</code>.</td></tr>
+        <tr><td><code>newsletter/settings</code></td><td>GET / PUT</td><td><code>settings.*</code></td><td>Read/write the Resend config. GET returns the decrypted key, from, and reply-to. PUT accepts <code>resend_api_key</code> (stored encrypted), <code>newsletter_from</code>, <code>newsletter_reply_to</code>.</td></tr>
+        <tr><td><code>newsletter/subscribers</code></td><td>GET</td><td><code>settings.*</code></td><td>List subscribers (latest 500) plus counts by status, member opt-in count, and total de-duplicated recipients.</td></tr>
+        <tr><td><code>newsletter/send</code></td><td>POST</td><td><code>content.*</code></td><td>Send. Body <code>{ subject, html, test?, test_email? }</code>. With <code>test: true</code> sends one <code>[Test]</code> email to <code>test_email</code>; otherwise broadcasts to the full recipient union. Returns <code>{ sent, recipients }</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-note"><strong>Public routes are token-gated, not login-gated.</strong> Confirm and unsubscribe are safe to expose because they act only on a valid, hex-validated random token tied to a single subscriber &mdash; there is no enumeration surface and no session required.</div>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Data model</h2>
+    <p>Three tables plus one column, created on demand by <code>ensure_newsletter_tables()</code>:</p>
+    <ul>
+      <li><code>subscribers</code> &mdash; one row per standalone subscriber: <code>email</code> (unique), <code>status</code>, <code>confirm_token</code>, <code>unsub_token</code>, <code>source</code>, and lifecycle timestamps.</li>
+      <li><code>subscribe_rate_limits</code> &mdash; per-IP timestamp windows backing the subscribe rate limiter.</li>
+      <li><code>newsletter_sends</code> &mdash; a record of each broadcast: subject, html, recipient count, sent count, and status (<code>sending</code>, <code>sent</code>, or <code>rate_limited</code>).</li>
+      <li><code>users.newsletter_optin</code> &mdash; an integer flag on the member/users table marking members who opted into the newsletter.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>Related Pages</h2>
+    <ul>
+      <li><a href="features/lodge.html">Lodge (Members)</a> &mdash; where member accounts and the <code>newsletter_optin</code> opt-in live</li>
+      <li><a href="features/forms.html">Forms</a> &mdash; the other way to capture visitor input on your site</li>
+      <li><a href="reference/security.html">Security</a> &mdash; encrypted key storage, rate limiting, and token handling across Outpost</li>
+    </ul>
+
+  </div>
+</main>
+
+<script src="assets/docs.js"></script>
+</body>
+</html>

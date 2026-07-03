@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.33] — 2026-07-03
+
+### Added
+- **Newsletter member opt-in.** Members can opt into the newsletter from the Lodge portal — a `data-outpost-newsletter-optin` element (drop into a member account page) toggles their preference, and the Lodge profile API now reads/writes `newsletter_optin`.
+
+### Fixed
+- **Every recipient can now unsubscribe.** Opted-in members previously got a generic, non-functional unsubscribe link in their emails; they now receive a signed one-click unsubscribe token that turns off their opt-in (RFC 8058 compliant, forgery-resistant).
+
+---
+
 ## [6.0.0-beta.32] — 2026-07-03
 
 ### Added

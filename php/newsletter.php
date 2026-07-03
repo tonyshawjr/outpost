@@ -124,9 +124,23 @@ function newsletter_confirm(string $token): bool {
     return true;
 }
 
+function newsletter_member_unsub_token(int $userId): string {
+    return $userId . '.' . substr(hash_hmac('sha256', 'nl-optout-' . $userId, outpost_encryption_key()), 0, 32);
+}
+
 function newsletter_unsubscribe(string $token): bool {
     ensure_newsletter_tables();
-    if ($token === '' || !ctype_xdigit($token)) return false;
+    if ($token === '') return false;
+
+    if (strpos($token, '.') !== false) {
+        [$uid] = explode('.', $token, 2);
+        if (!ctype_digit($uid)) return false;
+        if (!hash_equals(newsletter_member_unsub_token((int) $uid), $token)) return false;
+        OutpostDB::update('users', ['newsletter_optin' => 0], 'id = ?', [(int) $uid]);
+        return true;
+    }
+
+    if (!ctype_xdigit($token)) return false;
     $sub = OutpostDB::fetchOne('SELECT id FROM subscribers WHERE unsub_token = ?', [$token]);
     if ($sub) {
         OutpostDB::update('subscribers',
@@ -145,12 +159,12 @@ function newsletter_recipients(): array {
     foreach ($rows as $r) $out[strtolower($r['email'])] = ['email' => $r['email'], 'unsub_token' => $r['unsub_token']];
 
     if (!function_exists('outpost_is_internal_role')) require_once __DIR__ . '/roles.php';
-    $members = OutpostDB::fetchAll("SELECT email, role FROM users WHERE newsletter_optin = 1 AND email != ''");
+    $members = OutpostDB::fetchAll("SELECT id, email, role FROM users WHERE newsletter_optin = 1 AND email != ''");
     foreach ($members as $m) {
         if (outpost_is_internal_role($m['role'])) continue;
         $key = strtolower($m['email']);
         if (isset($out[$key])) continue;
-        $out[$key] = ['email' => $m['email'], 'unsub_token' => ''];
+        $out[$key] = ['email' => $m['email'], 'unsub_token' => newsletter_member_unsub_token((int) $m['id'])];
     }
     return array_values($out);
 }
