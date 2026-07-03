@@ -15,6 +15,14 @@
   let forgeApplying = $state(false);
   let forgeResult = $state(null);
 
+  let packs = $state([]);
+  let selectedPackId = $state(null);
+  let importActive = $state(false);
+  let importError = $state('');
+  let importSteps = $state([]);
+  let importSummary = $state(null);
+  let selectedPackName = $derived(packs.find((p) => p.id === selectedPackId)?.name || 'your site');
+
   // Pages expand/collapse
   let pagesExpanded = $state(false);
   const PAGE_PREVIEW_COUNT = 5;
@@ -60,10 +68,55 @@
     } finally {
       detecting = false;
     }
+    try {
+      const pk = await setupApi.packs();
+      packs = Array.isArray(pk) ? pk : (pk.packs || []);
+    } catch (e) {}
   });
 
+  function selectPack(id) { selectedPackId = id; }
+
+  function goForge() { applySetup(); }
+
+  function delay(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  async function startImport() {
+    const pack = packs.find((p) => p.id === selectedPackId);
+    if (!pack || !siteName.trim() || importActive) return;
+    const theme = (pack.themes && pack.themes[0]) || 'starter';
+    importError = '';
+    importSummary = null;
+    importActive = true;
+    importSteps = [
+      { label: 'Naming your site', status: 'pending' },
+      { label: 'Scanning theme templates', status: 'pending' },
+      { label: `Building the ${pack.name} template`, status: 'pending' },
+      { label: 'Finishing up', status: 'pending' },
+    ];
+    const setStatus = (i, s) => { importSteps[i].status = s; importSteps = [...importSteps]; };
+    try {
+      setStatus(0, 'active'); await delay(480); setStatus(0, 'done');
+      setStatus(1, 'active'); await delay(520); setStatus(1, 'done');
+      setStatus(2, 'active');
+      const res = await setupApi.apply({ site_name: siteName.trim(), theme, pack: pack.id });
+      importSummary = res?.summary || null;
+      await delay(480); setStatus(2, 'done');
+      setStatus(3, 'active'); await delay(440); setStatus(3, 'done');
+      setupCompleted.set(true);
+      await delay(400);
+      step = 3;
+      setTimeout(() => { showComplete = true; }, 100);
+      setTimeout(() => { showSummary = true; }, 500);
+      setTimeout(() => { showButton = true; }, 800);
+    } catch (e) {
+      const idx = importSteps.findIndex((s) => s.status === 'active');
+      if (idx >= 0) setStatus(idx, 'error');
+      importError = e?.message || 'Setup failed. Please try again.';
+    }
+  }
+
   function handleKeydown(e) {
-    if (e.key === 'Enter' && siteName.trim()) nextStep();
+    if (e.key === 'Enter' && siteName.trim() && selectedPackId) startImport();
   }
 
   async function nextStep() {
@@ -188,52 +241,89 @@
       <!-- STEP 1: Site Name                            -->
       <!-- ============================================ -->
       {#if step === 1}
-        {#if applying}
+        {#if importActive}
           <div class="wizard-center">
-            <div class="spinner-ring"></div>
-            <p class="loading-label">Setting up your site...</p>
-          </div>
-        {:else}
-          <div class="wizard-center">
-            <h1 class="hero-heading">Welcome to Outpost</h1>
-            <p class="hero-sub">Let's set up your site in under a minute.</p>
+            <h1 class="hero-heading">{importError ? 'Something went wrong' : 'Building your site'}</h1>
+            <p class="hero-sub">{importError ? 'We hit a snag setting things up.' : `Setting up ${selectedPackName}. This only takes a moment.`}</p>
 
-            <div class="name-field-area">
-              {#if detecting}
-                <div class="detecting">
-                  <div class="detecting-pulse"></div>
-                  <span>Detecting from your site...</span>
+            <div class="import-steps">
+              {#each importSteps as s (s.label)}
+                <div class="import-step" class:done={s.status === 'done'} class:active={s.status === 'active'} class:error={s.status === 'error'}>
+                  <span class="import-step-icon">
+                    {#if s.status === 'done'}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                    {:else if s.status === 'error'}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    {:else if s.status === 'active'}
+                      <span class="import-spinner"></span>
+                    {:else}
+                      <span class="import-dot"></span>
+                    {/if}
+                  </span>
+                  <span class="import-step-label">{s.label}</span>
                 </div>
-              {:else}
-                <label class="name-label" for="site-name-input">Site name</label>
-                <div class="name-input-wrap">
-                  <input
-                    id="site-name-input"
-                    class="name-input"
-                    type="text"
-                    placeholder="My Website"
-                    bind:value={siteName}
-                    onkeydown={handleKeydown}
-                    autofocus
-                    maxlength="200"
-                  />
-                  {#if detected && siteName}
-                    <span class="auto-badge">Auto-detected</span>
-                  {/if}
-                </div>
-              {/if}
+              {/each}
             </div>
 
-            <button
-              class="btn-primary"
-              onclick={nextStep}
-              disabled={!siteName.trim() || detecting}
-            >
-              Continue
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
+            {#if importError}
+              <p class="import-error-msg">{importError}</p>
+              <button class="btn-secondary" onclick={() => { importActive = false; importError = ''; }}>Back to templates</button>
+            {/if}
+          </div>
+        {:else}
+          <div class="wizard-choose">
+            <h1 class="hero-heading">Choose a starting point</h1>
+            <p class="hero-sub">Pick a template to build on — you can change everything later.</p>
+
+            <div class="pack-grid">
+              {#each packs as p (p.id)}
+                <button class="pack-card" class:selected={selectedPackId === p.id} onclick={() => selectPack(p.id)} type="button">
+                  <div class="pack-preview">
+                    <div class="pp-frame">
+                      <div class="pp-bar"><span></span><span></span><span></span></div>
+                      <div class="pp-canvas pp-{p.id}">
+                        {#if p.id === 'blog'}
+                          <div class="pp-line pp-title"></div>
+                          <div class="pp-row"></div><div class="pp-row"></div><div class="pp-row short"></div>
+                        {:else if p.id === 'portfolio'}
+                          <div class="pp-tiles"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                        {:else if p.id === 'business'}
+                          <div class="pp-hero"></div>
+                          <div class="pp-cols"><span></span><span></span><span></span></div>
+                        {:else}
+                          <div class="pp-blank">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                          </div>
+                        {/if}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pack-meta">
+                    <span class="pack-name">{p.name}</span>
+                    <span class="pack-desc">{p.description}</span>
+                  </div>
+                  {#if selectedPackId === p.id}
+                    <span class="pack-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg></span>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+
+            <div class="choose-footer">
+              <div class="choose-name">
+                <label class="name-label" for="site-name-input">Site name</label>
+                <div class="name-input-wrap">
+                  <input id="site-name-input" class="name-input" type="text" placeholder="My Website" bind:value={siteName} onkeydown={handleKeydown} maxlength="200" />
+                  {#if detected && siteName}<span class="auto-badge">Auto-detected</span>{/if}
+                </div>
+              </div>
+              <button class="btn-primary" onclick={startImport} disabled={!selectedPackId || !siteName.trim() || detecting}>
+                Build my site
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+            <button class="link-muted" onclick={goForge} type="button">Already have a site? Import it instead</button>
           </div>
         {/if}
 
@@ -492,6 +582,27 @@
                   <div class="summary-item">
                     <span class="summary-num">{forgeResult.created_menus}</span>
                     <span class="summary-text">{forgeResult.created_menus === 1 ? 'menu' : 'menus'} imported</span>
+                  </div>
+                {/if}
+              </div>
+            {:else if importSummary && (importSummary.pages || importSummary.items || importSummary.menus)}
+              <div class="summary-stats">
+                {#if importSummary.pages}
+                  <div class="summary-item">
+                    <span class="summary-num">{importSummary.pages}</span>
+                    <span class="summary-text">{importSummary.pages === 1 ? 'page' : 'pages'}</span>
+                  </div>
+                {/if}
+                {#if importSummary.items}
+                  <div class="summary-item">
+                    <span class="summary-num">{importSummary.items}</span>
+                    <span class="summary-text">{importSummary.items === 1 ? 'item' : 'items'}</span>
+                  </div>
+                {/if}
+                {#if importSummary.menus}
+                  <div class="summary-item">
+                    <span class="summary-num">{importSummary.menus}</span>
+                    <span class="summary-text">{importSummary.menus === 1 ? 'menu' : 'menus'}</span>
                   </div>
                 {/if}
               </div>
@@ -1384,5 +1495,114 @@
     .global-item {
       padding: 4px 8px;
     }
+  }
+
+  .wizard-choose { width: 100%; max-width: 780px; margin: 0 auto; text-align: center; }
+
+  .pack-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 34px 0 30px;
+    text-align: left;
+  }
+  .pack-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+  }
+  .pack-card:hover { border-color: rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.04); }
+  .pack-card.selected { border-color: var(--purple, #7C3AED); background: rgba(124, 58, 237, 0.08); }
+  .pack-card:focus-visible { outline: 2px solid var(--purple, #7C3AED); outline-offset: 2px; }
+
+  .pp-frame { background: #16171b; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; overflow: hidden; }
+  .pp-bar { display: flex; gap: 5px; padding: 8px 10px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+  .pp-bar span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
+  .pp-canvas { height: 116px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+  .pp-line { border-radius: 4px; height: 8px; background: rgba(255, 255, 255, 0.16); }
+  .pp-title { width: 55%; height: 12px; background: rgba(255, 255, 255, 0.28); margin-bottom: 2px; }
+  .pp-row { height: 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); }
+  .pp-row.short { width: 60%; }
+
+  .pp-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; height: 100%; }
+  .pp-tiles span { border-radius: 5px; background: rgba(255, 255, 255, 0.10); }
+
+  .pp-hero { height: 44px; border-radius: 6px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.38), rgba(124, 58, 237, 0.12)); }
+  .pp-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; flex: 1; }
+  .pp-cols span { border-radius: 5px; background: rgba(255, 255, 255, 0.08); }
+
+  .pp-blank { flex: 1; display: flex; align-items: center; justify-content: center; border: 1.5px dashed rgba(255, 255, 255, 0.14); border-radius: 8px; color: rgba(255, 255, 255, 0.25); }
+
+  .pack-meta { display: flex; flex-direction: column; gap: 3px; padding: 0 2px 2px; }
+  .pack-name { font-size: 14px; font-weight: 600; color: #f3f3f5; }
+  .pack-desc { font-size: 12.5px; color: rgba(255, 255, 255, 0.45); line-height: 1.4; }
+
+  .pack-check {
+    position: absolute; top: 18px; right: 18px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--purple, #7C3AED); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .choose-footer { display: flex; align-items: flex-end; gap: 14px; max-width: 520px; margin: 0 auto; }
+  .choose-name { flex: 1; text-align: left; }
+  .choose-name .name-input-wrap { margin-top: 6px; }
+  .choose-footer .btn-primary { flex-shrink: 0; }
+
+  .link-muted {
+    display: inline-block; margin-top: 20px;
+    background: none; border: none; cursor: pointer;
+    color: rgba(255, 255, 255, 0.4); font-size: 13px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .link-muted:hover { color: rgba(255, 255, 255, 0.7); }
+
+  .import-steps { display: flex; flex-direction: column; gap: 4px; max-width: 380px; margin: 38px auto 0; text-align: left; }
+  .import-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    opacity: 0.45; transition: opacity 0.25s, background 0.25s;
+  }
+  .import-step.active { opacity: 1; background: rgba(255, 255, 255, 0.05); }
+  .import-step.done { opacity: 1; }
+  .import-step.error { opacity: 1; background: rgba(248, 113, 113, 0.08); }
+  .import-step-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.5);
+  }
+  .import-step.done .import-step-icon { background: var(--green, #34D399); color: #05231a; }
+  .import-step.error .import-step-icon { background: var(--red, #F87171); color: #2a0b0b; }
+  .import-step-label { font-size: 14px; color: #f3f3f5; font-weight: 500; }
+  .import-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .import-spinner {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2); border-top-color: var(--purple-soft, #A78BFA);
+    animation: spin 0.7s linear infinite;
+  }
+  .import-error-msg { margin-top: 18px; color: var(--red, #F87171); font-size: 13.5px; }
+
+  .btn-secondary {
+    margin-top: 14px; padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px; color: #f3f3f5; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+
+  @media (max-width: 640px) {
+    .pack-grid { grid-template-columns: 1fr; }
+    .choose-footer { flex-direction: column; align-items: stretch; }
   }
 </style>
