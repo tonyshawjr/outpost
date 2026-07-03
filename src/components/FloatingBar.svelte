@@ -28,7 +28,7 @@
       case 'pages':
         return [
           { label: 'New page', icon: FileText, run: () => navigate('page-new') },
-          { label: 'Import HTML', icon: Download, run: () => navigate('page-import') },
+          { label: 'Import', icon: Download, run: () => navigate('page-import') },
         ];
       case 'collection-items':
         return [{ label: collLabel(), icon: PenSquare, emit: 'item:new' }];

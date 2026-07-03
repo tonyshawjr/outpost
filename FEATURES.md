@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Import a Whole Site (v6.0.0-beta.34)
+
+- **Stage → review → apply.** The Import screen (`src/pages/ImportPage.svelte`) is a hub: "a single page" (the existing paste-HTML flow) or "a whole site". Whole-site upload posts a `.zip` to `pages/import-site/stage`, which extracts to an isolated per-import staging dir under `content/import-staging/<id>/`, builds a manifest (pages, stylesheets, scripts, assets, conflicts, skipped) and writes **nothing** live. The review UI shows counts + per-page new/updates badges + a conflict warning with an overwrite toggle; **Apply** (`pages/import-site/apply`) moves staged files into the active render root, creates/updates pages, explodes CSS classes into Selectors, and deletes the staging dir. **Discard** (`pages/import-site/discard`) drops the staging dir.
+- **Web assets only, hardened.** `outpost_import_safe_extensions()` allowlist (html/css/js/json/svg/images/fonts/media); PHP and executables skipped and reported. Zip-slip guarded on both extract and apply, dotfiles skipped, HTML PHP-tag-stripped, caps enforced (80 MB zip / 5000 files / 400 MB uncompressed). Staging id is a 16-byte hex token, regex-validated on apply/discard to block path escape; apply re-validates each manifest path. Stale staging dirs auto-pruned after 1 hour. All three endpoints require `settings.*`.
+- **Sensitive dirs denied web access.** `config.php` self-heals a deny-all `.htaccess` into `content/data/`, `content/backups/`, and `content/import-staging/` on every request, closing direct-HTTP fetch of the SQLite DB and backups on Apache (fresh installs previously shipped no protection there).
+
+---
+
 ## Newsletter — Resend (v6.0.0-beta.32)
 
 - **Hybrid subscribers + double opt-in.** `php/newsletter.php`: a `subscribers` table (email, status, confirm/unsub tokens) plus a `newsletter_optin` flag on member-role users. Recipients = confirmed subscribers ∪ opted-in members (deduped). Public flow: `newsletter/subscribe` (creates pending + sends a confirmation email), `newsletter/confirm` (token → confirmed page), `newsletter/unsubscribe` (token → page + RFC 8058 one-click POST). All three are pre-auth public routes; subscribe is cooldown- + IP-rate-limited against email-bombing.

@@ -67,7 +67,7 @@
     <div class="page-header-actions">
       <button class="btn btn-secondary" onclick={() => navigate('page-import')}>
         <FileCode size={16} aria-hidden="true" />
-        <span>Import HTML</span>
+        <span>Import</span>
       </button>
       <button class="btn btn-primary" onclick={createPage}>
         <Plus size={16} aria-hidden="true" />

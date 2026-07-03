@@ -3,7 +3,7 @@
  * Outpost CMS — Configuration
  */
 
-define('OUTPOST_VERSION', '6.0.0-beta.33');
+define('OUTPOST_VERSION', '6.0.0-beta.34');
 
 // Paths (resolved relative to this file's location)
 define('OUTPOST_DIR', __DIR__ . '/');
@@ -80,6 +80,15 @@ define('OUTPOST_ASSET_EXTENSIONS', ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 
                 symlink($new, rtrim($old, '/'));
             }
         }
+    }
+})();
+
+(function() {
+    $deny = "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n</IfModule>\n";
+    foreach ([OUTPOST_DATA_DIR, OUTPOST_BACKUPS_DIR, OUTPOST_CONTENT_DIR . 'import-staging/'] as $dir) {
+        if (!is_dir($dir)) continue;
+        $ht = rtrim($dir, '/') . '/.htaccess';
+        if (!is_file($ht)) @file_put_contents($ht, $deny);
     }
 })();
 

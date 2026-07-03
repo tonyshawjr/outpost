@@ -145,6 +145,15 @@ export const pages = {
     request('pages', { method: 'POST', body: { title, path } }),
   importHtml: (title, slug, html, css = '', js = '', overwrite = false) =>
     request('pages/import', { method: 'POST', body: { title, slug, html, css, js, overwrite } }),
+  importSiteStage: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request('pages/import-site/stage', { method: 'POST', body: formData });
+  },
+  importSiteApply: (stagingId, overwrite = true) =>
+    request('pages/import-site/apply', { method: 'POST', body: { stagingId, overwrite } }),
+  importSiteDiscard: (stagingId) =>
+    request('pages/import-site/discard', { method: 'POST', body: { stagingId } }),
   update: (id, data) =>
     request('pages', { method: 'PUT', params: { id }, body: data }),
   rename: (id, path) =>

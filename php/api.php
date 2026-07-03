@@ -310,6 +310,9 @@ match (true) {
     $action === 'pages' && $method === 'POST' => handle_page_create(),
     $action === 'pages/import' && $method === 'POST' => handle_page_import(),
     $action === 'pages/import-site' && $method === 'POST' => handle_site_import(),
+    $action === 'pages/import-site/stage' && $method === 'POST' => handle_site_import_stage(),
+    $action === 'pages/import-site/apply' && $method === 'POST' => handle_site_import_apply(),
+    $action === 'pages/import-site/discard' && $method === 'POST' => handle_site_import_discard(),
     $action === 'pages' && $method === 'GET' && isset($_GET['id']) => handle_page_get(),
     $action === 'pages' && $method === 'PUT' && isset($_GET['id']) => handle_page_update(),
     $action === 'pages/rename' && $method === 'POST' && isset($_GET['id']) => handle_page_rename(),
@@ -2611,6 +2614,325 @@ function handle_site_import(): void {
         'classes' => $classCount,
         'skipped' => $skipped,
     ]);
+}
+
+function outpost_deny_all_htaccess(): string {
+    return "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n</IfModule>\n";
+}
+
+function outpost_protect_dir(string $dir): void {
+    if (!is_dir($dir)) return;
+    $file = rtrim($dir, '/') . '/.htaccess';
+    if (!is_file($file)) @file_put_contents($file, outpost_deny_all_htaccess());
+}
+
+function outpost_import_staging_root(): string {
+    $root = rtrim(OUTPOST_CONTENT_DIR, '/') . '/import-staging';
+    if (!is_dir($root)) @mkdir($root, 0755, true);
+    outpost_protect_dir($root);
+    return $root;
+}
+
+function outpost_import_valid_staging_id(string $id): bool {
+    return (bool) preg_match('/^[a-f0-9]{24,64}$/', $id);
+}
+
+function outpost_import_rrmdir(string $dir): void {
+    if (!is_dir($dir)) return;
+    $items = scandir($dir);
+    if ($items === false) return;
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = $dir . '/' . $item;
+        if (is_dir($path) && !is_link($path)) {
+            outpost_import_rrmdir($path);
+        } else {
+            @unlink($path);
+        }
+    }
+    @rmdir($dir);
+}
+
+function outpost_import_prune_staging(): void {
+    $root = outpost_import_staging_root();
+    if (!is_dir($root)) return;
+    $cutoff = time() - 3600;
+    foreach (scandir($root) ?: [] as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = $root . '/' . $item;
+        if (is_dir($path) && filemtime($path) < $cutoff) {
+            outpost_import_rrmdir($path);
+        }
+    }
+}
+
+function handle_site_import_stage(): void {
+    outpost_require_cap('settings.*');
+    if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+    outpost_import_prune_staging();
+
+    if (empty($_FILES['file']) || !is_uploaded_file($_FILES['file']['tmp_name'] ?? '')) {
+        json_error('No zip file uploaded', 400);
+    }
+    if (($_FILES['file']['size'] ?? 0) > 80 * 1048576) {
+        json_error('Zip too large (max 80 MB)', 413);
+    }
+
+    $zip = new \ZipArchive();
+    if ($zip->open($_FILES['file']['tmp_name']) !== true) {
+        json_error('Could not read the zip file', 400);
+    }
+    if ($zip->numFiles > 5000) {
+        $zip->close();
+        json_error('Too many files in zip (max 5000)', 413);
+    }
+
+    $names = [];
+    $totalUncompressed = 0;
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $stat = $zip->statIndex($i);
+        if (!$stat) continue;
+        $names[] = $stat['name'];
+        $totalUncompressed += (int) $stat['size'];
+    }
+    if ($totalUncompressed > 400 * 1048576) {
+        $zip->close();
+        json_error('Uncompressed contents too large (max 400 MB)', 413);
+    }
+
+    $firstSegments = [];
+    foreach ($names as $n) {
+        $n = str_replace('\\', '/', $n);
+        if ($n === '' || str_ends_with($n, '/')) continue;
+        $firstSegments[explode('/', ltrim($n, '/'))[0]] = true;
+    }
+    $stripPrefix = (count($firstSegments) === 1) ? array_key_first($firstSegments) . '/' : '';
+
+    $stagingId = bin2hex(random_bytes(16));
+    $stageDir = outpost_import_staging_root() . '/' . $stagingId;
+    if (!is_dir($stageDir) && !@mkdir($stageDir, 0755, true)) {
+        $zip->close();
+        json_error('Could not create staging directory', 500);
+    }
+
+    $renderRoot = rtrim(outpost_active_render_root(), '/');
+    $allowed = outpost_import_safe_extensions();
+    $staged = [];
+    $skipped = [];
+    $totalBytes = 0;
+
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $entry = str_replace('\\', '/', $zip->getNameIndex($i));
+        if ($entry === '' || str_ends_with($entry, '/')) continue;
+
+        $rel = ltrim($entry, '/');
+        if ($stripPrefix !== '' && str_starts_with($rel, $stripPrefix)) {
+            $rel = substr($rel, strlen($stripPrefix));
+        }
+        if ($rel === '') continue;
+
+        $parts = explode('/', $rel);
+        if (in_array('..', $parts, true) || str_contains($rel, "\0")) {
+            $skipped[] = $entry . ' (unsafe path)';
+            continue;
+        }
+        foreach ($parts as $seg) {
+            if ($seg === '' || $seg[0] === '.') { $rel = ''; break; }
+        }
+        if ($rel === '') { $skipped[] = $entry . ' (hidden/dotfile)'; continue; }
+
+        $ext = strtolower(pathinfo($rel, PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowed, true)) {
+            $skipped[] = $entry . ' (blocked .' . $ext . ')';
+            continue;
+        }
+
+        $content = $zip->getFromIndex($i);
+        if ($content === false) { $skipped[] = $entry . ' (read error)'; continue; }
+
+        if ($ext === 'html' || $ext === 'htm') {
+            $content = outpost_strip_php_tags($content);
+        }
+
+        $target = $stageDir . '/' . $rel;
+        $dir = dirname($target);
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        if (file_put_contents($target, $content) === false) {
+            $skipped[] = $entry . ' (write failed)';
+            continue;
+        }
+        $staged[] = $rel;
+        $totalBytes += strlen($content);
+    }
+    $zip->close();
+
+    if (empty($staged)) {
+        outpost_import_rrmdir($stageDir);
+        json_error('No importable files found in the zip', 422);
+    }
+
+    $pages = [];
+    $cssFiles = [];
+    $jsFiles = [];
+    $assets = [];
+    $fileConflicts = [];
+    foreach ($staged as $rel) {
+        if (file_exists($renderRoot . '/' . $rel)) $fileConflicts[] = $rel;
+        $ext = strtolower(pathinfo($rel, PATHINFO_EXTENSION));
+        if (($ext === 'html' || $ext === 'htm') && !str_contains($rel, '/')) {
+            $base = preg_replace('/\.html?$/i', '', $rel);
+            $path = ($base === 'index') ? '/' : '/' . $base;
+            $existing = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
+            $pages[] = [
+                'file' => $rel,
+                'path' => $path,
+                'title' => ucwords(str_replace(['-', '_'], ' ', $base === 'index' ? 'Home' : $base)),
+                'exists' => $existing ? true : false,
+            ];
+        } elseif ($ext === 'css') {
+            $cssFiles[] = $rel;
+        } elseif ($ext === 'js' || $ext === 'mjs') {
+            $jsFiles[] = $rel;
+        } else {
+            $assets[] = $rel;
+        }
+    }
+
+    $pageConflicts = [];
+    foreach ($pages as $p) {
+        if ($p['exists']) $pageConflicts[] = $p['path'];
+    }
+
+    $manifest = [
+        'created_at' => date('Y-m-d H:i:s'),
+        'strip_prefix' => $stripPrefix,
+        'files' => $staged,
+        'pages' => $pages,
+    ];
+    file_put_contents($stageDir . '/manifest.json', json_encode($manifest));
+
+    json_response([
+        'ok' => true,
+        'stagingId' => $stagingId,
+        'pages' => $pages,
+        'cssFiles' => $cssFiles,
+        'jsFiles' => $jsFiles,
+        'assets' => $assets,
+        'fileCount' => count($staged),
+        'totalBytes' => $totalBytes,
+        'conflicts' => ['files' => $fileConflicts, 'pages' => $pageConflicts],
+        'skipped' => $skipped,
+    ]);
+}
+
+function handle_site_import_apply(): void {
+    outpost_require_cap('settings.*');
+    if (!function_exists('outpost_active_render_root')) require_once __DIR__ . '/blocks.php';
+
+    $data = get_json_body();
+    $stagingId = trim($data['stagingId'] ?? '');
+    if (!outpost_import_valid_staging_id($stagingId)) {
+        json_error('Invalid staging reference', 400);
+    }
+    $overwrite = !isset($data['overwrite']) || (bool) $data['overwrite'];
+
+    $stageDir = outpost_import_staging_root() . '/' . $stagingId;
+    $manifestPath = $stageDir . '/manifest.json';
+    if (!is_dir($stageDir) || !is_file($manifestPath)) {
+        json_error('Staged import not found or expired', 404);
+    }
+    $manifest = json_decode((string) file_get_contents($manifestPath), true);
+    if (!is_array($manifest) || empty($manifest['files'])) {
+        json_error('Staged import is corrupt', 422);
+    }
+
+    $renderRoot = rtrim(outpost_active_render_root(), '/');
+    $written = [];
+    $skipped = [];
+
+    foreach ($manifest['files'] as $rel) {
+        $rel = str_replace('\\', '/', (string) $rel);
+        $parts = explode('/', $rel);
+        if ($rel === '' || in_array('..', $parts, true) || str_contains($rel, "\0")) {
+            $skipped[] = $rel . ' (unsafe path)';
+            continue;
+        }
+        $source = $stageDir . '/' . $rel;
+        if (!is_file($source)) { $skipped[] = $rel . ' (missing from staging)'; continue; }
+
+        $target = $renderRoot . '/' . $rel;
+        if (file_exists($target) && !$overwrite) {
+            $skipped[] = $rel . ' (exists, kept)';
+            continue;
+        }
+        $dir = dirname($target);
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        $content = file_get_contents($source);
+        if ($content === false || file_put_contents($target, $content) === false) {
+            $skipped[] = $rel . ' (write failed)';
+            continue;
+        }
+        $written[] = $rel;
+    }
+
+    $now = date('Y-m-d H:i:s');
+    $pagesCreated = [];
+    foreach ($written as $rel) {
+        $ext = strtolower(pathinfo($rel, PATHINFO_EXTENSION));
+        if (($ext !== 'html' && $ext !== 'htm') || str_contains($rel, '/')) continue;
+        $base = preg_replace('/\.html?$/i', '', $rel);
+        $path = ($base === 'index') ? '/' : '/' . $base;
+        $title = ucwords(str_replace(['-', '_'], ' ', $base === 'index' ? 'Home' : $base));
+        $existing = OutpostDB::fetchOne('SELECT id FROM pages WHERE path = ?', [$path]);
+        if ($existing) {
+            OutpostDB::update('pages', ['updated_at' => $now], 'id = ?', [$existing['id']]);
+            $pid = (int) $existing['id'];
+        } else {
+            OutpostDB::insert('pages', [
+                'path' => $path, 'title' => $title,
+                'status' => 'draft', 'visibility' => 'public', 'updated_at' => $now,
+            ]);
+            $pid = (int) OutpostDB::connect()->lastInsertId();
+        }
+        $pageHtml = @file_get_contents($renderRoot . '/' . $rel);
+        if ($pageHtml !== false) outpost_save_page_node_tree($pid, $pageHtml);
+        $pagesCreated[] = $path;
+    }
+
+    $classCount = 0;
+    foreach ($written as $rel) {
+        if (strtolower(pathinfo($rel, PATHINFO_EXTENSION)) !== 'css') continue;
+        $cssText = @file_get_contents($renderRoot . '/' . $rel);
+        if ($cssText !== false) {
+            $classCount += outpost_upsert_style_classes(outpost_parse_css_classes($cssText));
+        }
+    }
+
+    if (function_exists('outpost_scan_site_templates')) {
+        try { outpost_scan_site_templates(); } catch (\Throwable $e) {}
+    }
+
+    outpost_import_rrmdir($stageDir);
+
+    json_response([
+        'ok' => true,
+        'filesWritten' => count($written),
+        'pages' => $pagesCreated,
+        'classes' => $classCount,
+        'skipped' => $skipped,
+    ]);
+}
+
+function handle_site_import_discard(): void {
+    outpost_require_cap('settings.*');
+    $data = get_json_body();
+    $stagingId = trim($data['stagingId'] ?? '');
+    if (!outpost_import_valid_staging_id($stagingId)) {
+        json_error('Invalid staging reference', 400);
+    }
+    $stageDir = outpost_import_staging_root() . '/' . $stagingId;
+    if (is_dir($stageDir)) outpost_import_rrmdir($stageDir);
+    json_response(['ok' => true]);
 }
 
 function handle_page_create(): void {

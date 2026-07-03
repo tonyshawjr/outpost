@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.34">6.0.0-beta.34 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-03</span></h2>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Import a whole site</strong> &mdash; The Import screen is now a hub: bring in a single page (paste HTML/CSS/JS) or a whole site by uploading a <code>.zip</code> of your site folder. Whole-site import stages the files, shows a review of the pages, stylesheets, scripts and assets it found (plus conflicts with existing files), and only writes live when you click Apply. Web assets only &mdash; HTML, CSS, JS, images and fonts; PHP and other executables are skipped.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>The SQLite database, backups, and import staging directories are now denied direct web access &mdash; a deny-all <code>.htaccess</code> is self-healed into <code>content/data/</code>, <code>content/backups/</code>, and <code>content/import-staging/</code> so they can't be fetched over HTTP on Apache.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.33">6.0.0-beta.33 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-03</span></h2>
     <h3>Added</h3>
     <ul>

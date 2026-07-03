@@ -2151,6 +2151,18 @@ Migrate posts from WordPress using the native WXR XML export.
 
 Images in post content still point to old WordPress domain after import — update manually.
 
+## Site Import (HTML / whole site)
+
+Admin → Pages → Import. Two paths:
+
+- **A single page** — paste HTML, CSS, and JS for one page. Mark dynamic parts with `data-outpost` to create editable fields; CSS classes populate the Selectors panel. Endpoint: `POST api.php?action=pages/import`.
+- **A whole site** — upload a `.zip` of your site folder. Staged first, reviewed, then applied. Endpoints (all require `settings.*`):
+  - `POST api.php?action=pages/import-site/stage` (multipart `file`) — extracts to an isolated staging dir under `content/import-staging/<id>/`, writes nothing live, returns a manifest: `stagingId`, `pages[]` (each with `path`, `title`, `exists`), `cssFiles[]`, `jsFiles[]`, `assets[]`, `fileCount`, `totalBytes`, `conflicts{files[],pages[]}`, `skipped[]`.
+  - `POST api.php?action=pages/import-site/apply` (`{stagingId, overwrite}`) — moves staged files into the active render root, creates/updates pages, explodes CSS classes into Selectors, deletes the staging dir.
+  - `POST api.php?action=pages/import-site/discard` (`{stagingId}`) — drops the staging dir.
+
+**Accepted:** HTML, CSS, JS, JSON, SVG, images, fonts, and common media only. PHP and other executables are skipped and reported in `skipped[]`. HTML is PHP-tag-stripped. Caps: 80 MB zip / 5000 files / 400 MB uncompressed. Root-level `.html` files become pages (`index.html` → `/`). The `content/data/`, `content/backups/`, and `content/import-staging/` directories are denied direct web access via a self-healed deny-all `.htaccess`.
+
 ## Code Editor
 
 In-admin site file editor at Admin → Code. Requires `developer` or higher role. Edits files at `OUTPOST_SITE_ROOT`, excluding the `outpost/` directory.

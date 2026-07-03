@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.34] — 2026-07-03
+
+### Added
+- **Import a whole site.** The Import screen is now a hub: bring in a single page (paste HTML/CSS/JS) or a whole site by uploading a `.zip` of your site folder. Whole-site import stages the files first, shows a review of the pages, stylesheets, scripts and assets it found (plus any conflicts with existing files), and only writes live when you click Apply. Web assets only — HTML, CSS, JS, images and fonts; PHP and other executables are skipped.
+
+### Security
+- **Database, backups and import staging are denied direct web access.** Fresh installs now self-heal a deny-all `.htaccess` into `content/data/`, `content/backups/`, and the new `content/import-staging/` directories on every request, so the SQLite database and site backups can't be fetched over HTTP on Apache.
+
+---
+
 ## [6.0.0-beta.33] — 2026-07-03
 
 ### Added
