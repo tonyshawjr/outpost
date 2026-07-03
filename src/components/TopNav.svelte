@@ -11,7 +11,7 @@
     Home, Globe, FileText, Layout, Sparkles, SwatchBook, Palette, ArrowLeftRight,
     LayoutGrid, Box, PenSquare, Mail, Calendar, GitBranch, MessageSquare, ClipboardList,
     Columns3, Database, FolderOpen, BarChart3, Rss, Workflow, Archive, Upload, Lock,
-    Code, Search, Sun, Moon, Settings, ChevronDown, LifeBuoy, Image, Utensils, Briefcase, Wrench,
+    Code, Search, Sun, Moon, Settings, Settings2, ChevronDown, LifeBuoy, Image, Utensils, Briefcase, Wrench,
   } from 'lucide-svelte';
 
   let route = $derived($currentRoute);
@@ -71,10 +71,13 @@
       label: 'Content', icon: PenSquare, mega: true, sections: [
         {
           title: 'Collections',
-          items: contentCollections.map((c) => ({
-            label: c.label, icon: c.icon, on: feat('collections'),
-            route: 'collection-items', collectionSlug: c.slug,
-          })),
+          items: [
+            ...contentCollections.map((c) => ({
+              label: c.label, icon: c.icon, on: feat('collections'),
+              route: 'collection-items', collectionSlug: c.slug,
+            })),
+            { label: 'Manage collections', icon: Settings2, route: 'collections', on: showSettings || showDeveloper, activeAlso: ['collection-schema'] },
+          ],
         },
         {
           title: 'Create & manage',
@@ -93,9 +96,9 @@
     },
     {
       label: 'Data', icon: Database, items: [
-        { label: 'Collections', route: 'collections', icon: Columns3, on: showDeveloper },
-        { label: 'Field Presets', route: 'field-presets', icon: Database, on: showDeveloper },
-        { label: 'Folders', route: 'folder-manager', icon: FolderOpen, on: showDeveloper },
+        { label: 'Collections', route: 'collections', icon: Columns3, on: showSettings || showDeveloper, activeAlso: ['collection-schema'] },
+        { label: 'Field Presets', route: 'field-presets', icon: Database, on: showSettings || showDeveloper },
+        { label: 'Folders', route: 'folder-manager', icon: FolderOpen, on: showSettings || showDeveloper },
         { label: 'Analytics', route: 'analytics', icon: BarChart3, on: showAdmin, activeAlso: ['analytics-events', 'analytics-goals', 'analytics-search', 'analytics-content', 'analytics-funnels'] },
         { label: 'Channels', route: 'channels', icon: Rss, on: showChannels, activeAlso: ['channel-builder'] },
         { label: 'Workflows', route: 'workflows', icon: Workflow, on: showAdmin },
