@@ -92,6 +92,71 @@ function handle_code_files(): void {
     json_response(['tree' => $tree, 'theme' => outpost_get_active_theme()]);
 }
 
+function handle_templates_list(): void {
+    outpost_require_cap('code.*');
+    if (!function_exists('outpost_get_active_theme')) require_once __DIR__ . '/blocks.php';
+    $theme = outpost_get_active_theme();
+    $themeRoot = code_active_theme_root();
+    if (!is_dir($themeRoot)) {
+        json_response(['theme' => $theme, 'templates' => []]);
+        return;
+    }
+
+    $resolveFile = function (string $slug) use ($themeRoot): string {
+        foreach (["templates/{$slug}.html", "{$slug}.html"] as $rel) {
+            if (is_file($themeRoot . $rel)) return $rel;
+        }
+        return '';
+    };
+
+    $declared = [];
+    foreach (['theme.json', 'blueprint.json'] as $manifestFile) {
+        $manifestPath = $themeRoot . $manifestFile;
+        if (!is_file($manifestPath)) continue;
+        $manifest = json_decode((string) file_get_contents($manifestPath), true);
+        if (!is_array($manifest) || !isset($manifest['templates']) || !is_array($manifest['templates'])) continue;
+        foreach ($manifest['templates'] as $t) {
+            if (!is_array($t)) continue;
+            $slug = is_string($t['slug'] ?? null) ? $t['slug'] : '';
+            if ($slug === '' || !preg_match('/^[a-z0-9_-]+$/', $slug)) continue;
+            $entry = [
+                'slug' => $slug,
+                'name' => is_string($t['name'] ?? null) ? $t['name'] : ucwords(str_replace(['-', '_'], ' ', $slug)),
+                'file' => $resolveFile($slug),
+            ];
+            if (isset($t['description']) && is_string($t['description'])) $entry['description'] = $t['description'];
+            $declared[] = $entry;
+        }
+        if ($declared) break;
+    }
+    if ($declared) {
+        json_response(['theme' => $theme, 'source' => 'manifest', 'templates' => $declared]);
+        return;
+    }
+
+    foreach (['templates/', ''] as $sub) {
+        $dir = $themeRoot . $sub;
+        if (!is_dir($dir)) continue;
+        $out = [];
+        foreach (glob($dir . '*.html') ?: [] as $file) {
+            $slug = pathinfo($file, PATHINFO_FILENAME);
+            if (!preg_match('/^[a-z0-9_-]+$/', $slug)) continue;
+            $out[] = [
+                'slug' => $slug,
+                'name' => ucwords(str_replace(['-', '_'], ' ', $slug)),
+                'file' => $sub . $slug . '.html',
+            ];
+        }
+        if ($out) {
+            usort($out, fn($a, $b) => strcmp($a['slug'], $b['slug']));
+            json_response(['theme' => $theme, 'source' => $sub === '' ? 'theme-root' : 'templates-dir', 'templates' => $out]);
+            return;
+        }
+    }
+
+    json_response(['theme' => $theme, 'source' => 'none', 'templates' => []]);
+}
+
 function code_build_tree(string $base, string $prefix): array {
     $items = [];
     $entries = scandir($base);

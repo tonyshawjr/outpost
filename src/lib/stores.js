@@ -27,6 +27,14 @@ export const mediaFolderGrants = writable(null); // null = all, array = restrict
 export const featureFlags = writable(null); // null = all features visible (default)
 
 // Navigation — parse initial state from URL hash
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function parseHash() {
   if (typeof window === 'undefined') return {};
   const hash = window.location.hash.replace(/^#\/?/, '');
@@ -35,7 +43,7 @@ function parseHash() {
   const params = {};
   for (const segment of rest) {
     const [key, value] = segment.split('=');
-    if (key && value !== undefined) params[key] = value;
+    if (key && value !== undefined) params[key] = safeDecode(value);
   }
   return { route, params };
 }
@@ -56,6 +64,7 @@ export const currentChannelId = writable(initial.params?.channelId ? Number(init
 // v6 — click-to-edit intent landing field/block (Section 2.5)
 export const currentFocusField = writable(initial.params?.focus || null);
 export const currentFocusBlockId = writable(initial.params?.block ? Number(initial.params.block) : null);
+export const currentCodeFile = writable(initial.params?.file || null);
 
 // Data
 export const pagesList = writable([]);
@@ -130,6 +139,7 @@ function buildHash(route, params = {}) {
   if (params.section !== undefined) parts.push('section=' + params.section);
   if (params.formId !== undefined) parts.push('formId=' + params.formId);
   if (params.channelId !== undefined) parts.push('channelId=' + params.channelId);
+  if (params.file !== undefined) parts.push('file=' + encodeURIComponent(params.file));
   if (parts.length) hash += '/' + parts.join('/');
   return hash;
 }
@@ -152,6 +162,7 @@ export function navigate(route, params = {}) {
   currentChannelId.set(params.channelId ?? null);
   currentFocusField.set(params.focus ?? null);
   currentFocusBlockId.set(params.block ? Number(params.block) : null);
+  currentCodeFile.set(params.file ?? null);
   if (typeof window !== 'undefined') {
     window.location.hash = buildHash(route, params);
   }

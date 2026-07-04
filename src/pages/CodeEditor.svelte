@@ -1,7 +1,8 @@
 <script>
   import { onMount, onDestroy, untrack } from 'svelte';
   import { code as codeApi, getCsrfToken, getApiBase } from '$lib/api.js';
-  import { addToast, darkMode } from '$lib/stores.js';
+  import { addToast, darkMode, currentCodeFile } from '$lib/stores.js';
+import { get } from 'svelte/store';
   import { setOutpostContext, outpostCompletionSource } from '$lib/outpost-completions.js';
   import { outpostHighlight } from '$lib/outpost-highlight.js';
   import { detectForgeIntent } from '$lib/forge-detect.js';
@@ -242,7 +243,10 @@
 
   // ── Lifecycle ────────────────────────────────────────────────────
   onMount(() => {
-    loadTree();
+    loadTree().then(() => {
+      const f = get(currentCodeFile);
+      if (f) openFile({ path: f, name: f.split('/').pop(), type: 'file' }, null, true);
+    });
     loadCM();
     loadOutpostContext();
     checkForgeAiStatus();

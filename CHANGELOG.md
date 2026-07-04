@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.39] — 2026-07-04
+
+### Added
+- **Templates archive.** A new **Site → Templates** page shows your active theme's layouts (Homepage, Blog post, Landing, etc.) as a visual grid, with each template's file. Click a template to open its markup straight in the Code Editor.
+
+---
+
 ## [6.0.0-beta.38] — 2026-07-04
 
 ### Added

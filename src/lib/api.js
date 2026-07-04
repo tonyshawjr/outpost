@@ -130,6 +130,10 @@ export const designTokens = {
   save: (tokens) => request('design-tokens', { method: 'PUT', body: { tokens } }),
 };
 
+export const templates = {
+  list: () => request('templates'),
+};
+
 export const styleManager = {
   get: () => request('style-manager'),
   save: (data) => request('style-manager', { method: 'PUT', body: data }),

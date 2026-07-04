@@ -283,6 +283,7 @@ $cap_map = [
     // ('theme' is already mapped above to settings.*)
     'field-presets' => 'code.*',
     'schema'        => 'code.*',
+    'templates'     => 'code.*',
     // v6 — editorial AI is admin-tier (publishing AI requires settings cap)
     'editorial'  => 'settings.*',
 ];
@@ -428,6 +429,7 @@ match (true) {
     $action === 'code/create'  && $method === 'POST'   => handle_code_create(),
     $action === 'code/rename'  && $method === 'POST'   => handle_code_rename(),
     $action === 'code/delete'  && $method === 'DELETE' => handle_code_delete(),
+    $action === 'templates'    && $method === 'GET'    => handle_templates_list(),
     $action === 'code/search'  && $method === 'GET'    => handle_code_search(),
     $action === 'code/context' && $method === 'GET'    => handle_code_context(),
     $action === 'code/reset'   && $method === 'POST'   => handle_code_reset(),

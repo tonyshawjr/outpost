@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Templates Archive (v6.0.0-beta.39)
+
+- **Visual grid of the theme's templates (`#10` Mosaic borrow).** `src/pages/TemplateArchive.svelte` (route `template-archive`, `hasCodeAccess`-gated). New REST endpoint `GET templates` → `handle_templates_list()` in `php/code-editor.php` (cap `code.*`) reuses the theme-scan logic (manifest `templates[]` → `templates/*.html` → root `*.html`, first non-empty wins) and resolves each template's theme-relative file. Cards show name/slug/description/file with a per-slug icon; **Edit** deep-links into the Code Editor.
+- **Honest scope.** Outpost "templates" are theme *files* (the `owner_type=template` node path is unused, and there's no template→node-tree→bake-back-to-theme-file round trip). So templates open in the **Code Editor** (already scoped to the active theme dir with a Templates category), not the visual builder. Verified: endpoint returns starter's page/post/landing with resolved files; `code/read` confirms the deep-link target is editable.
+- **Code Editor deep-link.** New `currentCodeFile` store + `navigate('code-editor', {file})` (hash-encoded, since paths contain `/`); `CodeEditor.svelte` opens the file on mount. Server-side `code_validate_path` remains the trust boundary (`..`/null-byte/theme-root checks) — the deep-link doesn't bypass it.
+
+---
+
 ## Style Guide — Visual Design Tokens (v6.0.0-beta.38)
 
 - **Visual editor on the existing token engine (`#16` Mosaic borrow).** `src/pages/StyleGuide.svelte` (route `style-guide`, under Site, settings-gated) edits the builder design tokens: named brand colors (each showing its generated 10-step shade scale via `colorScale`), a fluid type scale (`typeScale`) and spacing scale (`spacingScale`) with live previews. Uses `src/lib/builder-tokens.js` for previews so the editor exactly matches what saves. Saves via the existing `designTokens.save()` (`builder_design_tokens` setting). Validates unique, `[a-z][a-z0-9-]*` color names.

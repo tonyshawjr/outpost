@@ -12,7 +12,7 @@
     LayoutGrid, Box, PenSquare, Mail, Calendar, GitBranch, MessageSquare, ClipboardList,
     Columns3, Database, FolderOpen, BarChart3, Rss, Workflow, Archive, Upload, Lock,
     Code, Search, Sun, Moon, Settings, Settings2, ChevronDown, LifeBuoy, Image, Utensils, Briefcase, Wrench,
-    ArrowRight,
+    ArrowRight, LayoutTemplate,
   } from 'lucide-svelte';
 
   let route = $derived($currentRoute);
@@ -120,6 +120,7 @@
         { label: 'Channels', route: 'channels', icon: Rss, on: showChannels, activeAlso: ['channel-builder'], desc: 'Pull in external feeds and APIs' },
         { label: 'Workflows', route: 'workflows', icon: Workflow, on: showAdmin, desc: 'Custom editorial approval stages' },
         { label: 'Backups', route: 'backups', icon: Archive, on: showAdmin, desc: 'Snapshot and restore your site' },
+        { label: 'Templates', route: 'template-archive', icon: LayoutTemplate, on: showCode, desc: 'Your theme’s page and item layouts' },
         { label: 'Code Editor', route: 'code-editor', icon: Code, on: showCode, desc: 'Edit theme templates and code' },
       ],
     },

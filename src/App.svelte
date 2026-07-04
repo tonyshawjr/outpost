@@ -43,6 +43,7 @@
   import Brand from '$pages/Brand.svelte';
   import Design from '$pages/Design.svelte';
   import StyleGuide from '$pages/StyleGuide.svelte';
+  import TemplateArchive from '$pages/TemplateArchive.svelte';
   import NodeBuilder from '$pages/NodeBuilder.svelte';
   import PagesList from '$pages/PagesList.svelte';
   import CreatePage from '$pages/CreatePage.svelte';
@@ -275,6 +276,12 @@ import EditorialAI from '$pages/EditorialAI.svelte';
         {:else if route === 'style-guide'}
           {#if hasSettingsAccess}
             <StyleGuide />
+          {:else}
+            <AccessDenied />
+          {/if}
+        {:else if route === 'template-archive'}
+          {#if hasCodeAccess}
+            <TemplateArchive />
           {:else}
             <AccessDenied />
           {/if}
