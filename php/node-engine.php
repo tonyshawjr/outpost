@@ -852,6 +852,7 @@ function outpost_render_node_tree(array $tree, ?string $startId = null, array $c
     $tree = outpost_node_validate($tree);
     $start = $startId ?? $tree['root'];
     if (!isset($tree['nodes'][$start])) return '';
+    outpost_motion_target_set(outpost_collect_motion_targets($tree));
     return outpost_render_node($tree, $start, $components, []);
 }
 
@@ -870,6 +871,23 @@ function outpost_node_field_attr(array $props): string {
     return $attr;
 }
 
+function outpost_motion_target_set(?array $set = null): array {
+    static $s = [];
+    if ($set !== null) $s = $set;
+    return $s;
+}
+
+function outpost_collect_motion_targets(array $tree): array {
+    $t = [];
+    foreach ($tree['nodes'] ?? [] as $n) {
+        $m = $n['props']['motion'] ?? null;
+        if (is_array($m) && !empty($m['target']) && is_string($m['target']) && preg_match('/^n_[a-z0-9]+$/', $m['target'])) {
+            $t[$m['target']] = true;
+        }
+    }
+    return $t;
+}
+
 function outpost_node_motion_attr(array $props): string {
     $m = $props['motion'] ?? null;
     if (!is_array($m)) return '';
@@ -882,6 +900,9 @@ function outpost_node_motion_attr(array $props): string {
     $delay = (int) ($m['delay'] ?? 0); if ($delay > 0 && $delay <= 5000) $out['dl'] = $delay;
     $dist = (int) ($m['distance'] ?? 0); if ($dist > 0 && $dist <= 400) $out['ds'] = $dist;
     if (!empty($m['once'])) $out['o'] = 1;
+    if ($trigger === 'click' && !empty($m['target']) && is_string($m['target']) && preg_match('/^n_[a-z0-9]+$/', $m['target'])) {
+        $out['tg'] = $m['target'];
+    }
     return ' data-motion="' . htmlspecialchars(json_encode($out), ENT_QUOTES) . '"';
 }
 
@@ -892,7 +913,9 @@ function outpost_render_node(array $tree, string $id, array $components, array $
     $props = (array) $node['props'];
     $sid = (preg_match('/^n_[a-z0-9]+$/', $id) && is_array($node['styles'] ?? null) && $node['styles'])
         ? ' data-node-id="' . $id . '"' : '';
-    $fld = outpost_node_field_attr($props) . $sid . outpost_node_motion_attr($props);
+    $targets = outpost_motion_target_set();
+    $mid = isset($targets[$id]) ? ' data-mid="' . htmlspecialchars($id, ENT_QUOTES) . '"' : '';
+    $fld = outpost_node_field_attr($props) . $sid . $mid . outpost_node_motion_attr($props);
 
     switch ($node['type']) {
         case 'component-ref':

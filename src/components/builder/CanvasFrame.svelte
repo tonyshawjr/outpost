@@ -2,9 +2,15 @@
   import { mount, unmount } from 'svelte';
   import CanvasContent from './CanvasContent.svelte';
 
-  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel, preview = false, oncommand } = $props();
+  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel, preview = false, oncommand, pickMode = false, onpick } = $props();
   let iframeEl = $state(null);
   let styleEl = $state(null);
+  const livePick = { mode: false, fn: null };
+  $effect(() => { livePick.mode = pickMode; livePick.fn = onpick; });
+  $effect(() => {
+    const body = iframeEl?.contentDocument?.body;
+    if (body) body.style.cursor = pickMode ? 'crosshair' : '';
+  });
 
   const BASE_CSS = `
     html, body { margin: 0; padding: 0; overscroll-behavior: none; }
@@ -63,7 +69,9 @@
     const onClick = (e) => {
       if (isPreview) return;
       const t = e.target.closest('[data-node-id]');
-      editor.select(t ? t.getAttribute('data-node-id') : null);
+      const id = t ? t.getAttribute('data-node-id') : null;
+      if (livePick.mode) { if (id && livePick.fn) livePick.fn(id); return; }
+      editor.select(id);
     };
     const onCtx = (e) => {
       const t = e.target.closest('[data-node-id]');

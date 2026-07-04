@@ -166,6 +166,23 @@
     quickOpen = true;
   }
 
+  let motionPickFor = $state(null);
+
+  $effect(() => {
+    const onPick = (e) => { if (e.detail?.id) motionPickFor = e.detail.id; };
+    window.addEventListener('outpost:motion-pick', onPick);
+    return () => window.removeEventListener('outpost:motion-pick', onPick);
+  });
+
+  function pickTarget(nodeId) {
+    const src = motionPickFor;
+    motionPickFor = null;
+    if (!src || !nodeId || nodeId === src) return;
+    const cur = editor.tree.nodes[src]?.props?.motion || {};
+    editor.updateProps(src, { motion: { ...cur, target: nodeId } });
+    addToast('Target set', 'success');
+  }
+
   async function addEmbed(existingId) {
     const url = prompt('Paste a YouTube, Vimeo, Spotify, SoundCloud, or Flickr link');
     if (!url) return;
@@ -362,6 +379,13 @@
     </div>
   {/if}
 
+  {#if motionPickFor}
+    <div class="pick-banner" role="status">
+      <span>Click an element on the canvas to set it as the interaction's target.</span>
+      <button class="cmp-done" onclick={() => (motionPickFor = null)}>Cancel</button>
+    </div>
+  {/if}
+
   {#if loading}
     <div class="message">Loading…</div>
   {:else if loadError}
@@ -384,7 +408,7 @@
           {/if}
         {/if}
       </div>
-      <NodeCanvas {editor} preview={previewMode} oncommand={openQuick} oncontext={editMode === 'design' && !previewMode ? openContext : undefined} />
+      <NodeCanvas {editor} preview={previewMode} pickMode={!!motionPickFor} onpick={pickTarget} oncommand={openQuick} oncontext={editMode === 'design' && !previewMode && !motionPickFor ? openContext : undefined} />
       <aside class="inspector" class:preview-hidden={previewMode} aria-label="Element settings">
         {#if selected && isComponentRef}
           <div class="ins-head">Component</div>
@@ -731,7 +755,7 @@
   .ai-toggle :global(svg) { color: var(--purple-soft, var(--purple)); }
   .ai-toggle:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 
-  .cmp-banner {
+  .cmp-banner, .pick-banner {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -742,6 +766,7 @@
     font-size: 13px;
     flex-shrink: 0;
   }
+  .pick-banner span { flex: 1; }
   .cmp-banner strong { font-weight: 600; }
   .cmp-banner :global(svg) { color: var(--purple-soft); flex-shrink: 0; }
   .cmp-done {

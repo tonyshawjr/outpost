@@ -2,7 +2,7 @@
   import CanvasFrame from './CanvasFrame.svelte';
   import { Monitor, Tablet, Smartphone, Columns3, Minus, Plus, Maximize } from 'lucide-svelte';
 
-  let { editor, oncontext, oncommand, preview = false } = $props();
+  let { editor, oncontext, oncommand, preview = false, pickMode = false, onpick } = $props();
 
   let mode = $state('desktop');
 
@@ -122,7 +122,7 @@
           <div class="device" style:width={`${d.w}px`}>
             <button class="device-label" onclick={() => (mode = d.key)} title={`Open ${d.label}`}>{d.label} · {d.w}px</button>
             <div class="device-frame">
-              <CanvasFrame {editor} fitHeight viewportHeight={d.h} onwheel={applyWheel} {preview} {oncommand} />
+              <CanvasFrame {editor} fitHeight viewportHeight={d.h} onwheel={applyWheel} {preview} {oncommand} {pickMode} {onpick} />
             </div>
           </div>
         {/each}
@@ -131,7 +131,7 @@
   {:else}
     <div class="stage" class:fluid={mode === 'desktop'}>
       <div class="single" style:width={SINGLE_WIDTH[mode] ? `${SINGLE_WIDTH[mode]}px` : '100%'}>
-        <CanvasFrame {editor} oncontext={preview ? undefined : oncontext} {preview} {oncommand} />
+        <CanvasFrame {editor} oncontext={preview ? undefined : oncontext} {preview} {oncommand} {pickMode} {onpick} />
       </div>
     </div>
   {/if}

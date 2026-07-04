@@ -43,6 +43,9 @@
   function preview() {
     window.dispatchEvent(new CustomEvent('outpost:motion-preview', { detail: { id: selected.id } }));
   }
+  function startPick() {
+    window.dispatchEvent(new CustomEvent('outpost:motion-pick', { detail: { id: selected.id } }));
+  }
 </script>
 
 <div class="ix">
@@ -85,6 +88,17 @@
       <div class="opt"><Checkbox checked={m.once !== false} label="Play once" onchange={(v) => patch({ once: v })} /></div>
     {/if}
 
+    {#if trigger === 'click'}
+      <div class="fld">
+        <span class="fld-label">Plays on</span>
+        <div class="target-row">
+          <span class="target-name">{m.target ? 'A picked element' : 'This element'}</span>
+          <button class="mini" type="button" onclick={startPick}>{m.target ? 'Change' : 'Pick element…'}</button>
+          {#if m.target}<button class="mini" type="button" onclick={() => patch({ target: null })}>Clear</button>{/if}
+        </div>
+      </div>
+    {/if}
+
     {#if trigger === 'reveal' || trigger === 'click'}
       <button class="play" type="button" onclick={preview}>
         <Play size={14} aria-hidden="true" />
@@ -109,4 +123,9 @@
   .play:hover { background: var(--hover); border-color: var(--purple); }
   .play:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
   .hint { font-size: 12px; color: var(--dim); line-height: 1.5; margin: 0; }
+  .target-row { display: flex; align-items: center; gap: 8px; }
+  .target-name { flex: 1; font-size: 13px; color: var(--text); }
+  .mini { padding: 5px 10px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--sec); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .mini:hover { background: var(--hover); color: var(--text); }
+  .mini:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 </style>

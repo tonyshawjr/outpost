@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.42] — 2026-07-04
+
+### Added
+- **Click interactions can target another element.** A click interaction can now reveal or animate a *different* element — pick it by clicking directly on the canvas ("Pick element…"). Great for click-to-reveal panels, toggles and reveals.
+
+---
+
 ## [6.0.0-beta.41] — 2026-07-04
 
 ### Added

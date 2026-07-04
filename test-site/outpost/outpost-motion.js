@@ -21,6 +21,13 @@
     el.style.transform = 'none';
   }
 
+  function oneShot(el, eff, ds, dur, delay) {
+    el.style.transition = 'none';
+    setInitial(el, eff, ds);
+    el.getBoundingClientRect();
+    requestAnimationFrame(function () { requestAnimationFrame(function () { show(el, dur, delay); }); });
+  }
+
   var els = document.querySelectorAll('[data-motion]');
   var io = null;
   var scrollEls = [];
@@ -31,14 +38,11 @@
     if (reduce || !cfg.t) return;
     var dur = cfg.d || 600, delay = cfg.dl || 0, ds = cfg.ds, eff = cfg.e || 'fade';
 
-    if (cfg.t === 'reveal' || cfg.t === 'click') {
+    if (cfg.t === 'reveal') {
       setInitial(el, eff, ds);
+      el._ocOnce = !!cfg.o;
       el._ocShow = function () { show(el, dur, delay); };
       el._ocReset = function () { el.style.transition = 'none'; setInitial(el, eff, ds); };
-    }
-
-    if (cfg.t === 'reveal') {
-      el._ocOnce = !!cfg.o;
       if (!io) {
         io = new IntersectionObserver(function (entries) {
           entries.forEach(function (en) {
@@ -50,10 +54,13 @@
       io.observe(el);
     } else if (cfg.t === 'click') {
       el.style.cursor = 'pointer';
-      el.addEventListener('click', function () {
-        el._ocReset();
-        requestAnimationFrame(function () { requestAnimationFrame(el._ocShow); });
-      });
+      var tgt = cfg.tg ? document.querySelector('[data-mid="' + cfg.tg + '"]') : null;
+      if (tgt) {
+        setInitial(tgt, eff, ds);
+        el.addEventListener('click', function () { show(tgt, dur, delay); });
+      } else {
+        el.addEventListener('click', function () { oneShot(el, eff, ds, dur, delay); });
+      }
     } else if (cfg.t === 'scroll') {
       el.style.willChange = 'opacity, transform';
       scrollEls.push({ el: el, eff: eff, ds: ds || 40 });
