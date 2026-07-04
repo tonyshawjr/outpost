@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.35] — 2026-07-03
+
+### Added
+- **Build pages over MCP from the terminal.** Documented and wired the visual-builder MCP tools (`get_page_tree`, `apply_page_ops`, `get_styles`, `get_design_tokens`, `compose_page`) that the `outpost/mcp.php` server exposes — the same engine as the in-app AI builder, so terminal edits save and bake to static HTML. The MCP docs now cover connecting Claude Code over HTTP and the `outpost://builder/guide` resource. Added `mcp-server/README.md` clarifying the two servers (HTTP builder vs Node content-only stdio).
+
+---
+
 ## [6.0.0-beta.34] — 2026-07-03
 
 ### Added

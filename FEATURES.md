@@ -4,6 +4,14 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Build Pages over MCP (v6.0.0-beta.35)
+
+- **The builder MCP is the same engine as the AI sidebar.** `php/mcp.php` (JSON-RPC 2.0 over Streamable HTTP, Bearer auth via API keys) exposes `get_page_tree`, `apply_page_ops`, `get_styles`, `get_design_tokens`, `compose_page`, `add_block_to_page`, `set_block_field` alongside the content tools. `apply_page_ops` runs `outpost_apply_node_ops()` then validates, saves, and bakes to static HTML with version-based optimistic locking — the identical path the in-app AI builder uses. The ops vocabulary and node model come from `outpost_builder_conventions()` in `php/node-engine.php`, served to BOTH the sidebar and the MCP via the `outpost://builder/guide` resource so terminal and panel build by the same rules.
+- **Connect Claude Code over HTTP.** Add an `outpost-builder` HTTP entry to `.mcp.json` (`type: http`, `url: …/outpost/mcp.php`, `Authorization: Bearer op_…`) or `claude mcp add --transport http`. Verified end-to-end: `get_page_tree` → `apply_page_ops` inserts nodes + defines a class → bakes the live `.html` and registers the class in `style_classes`.
+- **Two servers, documented.** `mcp-server/README.md` clarifies the HTTP builder server (`mcp.php`, full builder) vs the Node stdio server (`mcp-server/index.js`, content-only, DB-direct, no PHP server needed). Docs page `php/docs/features/mcp-server.html` and `llms.txt` now cover the builder tools + Claude Code setup.
+
+---
+
 ## Import a Whole Site (v6.0.0-beta.34)
 
 - **Stage → review → apply.** The Import screen (`src/pages/ImportPage.svelte`) is a hub: "a single page" (the existing paste-HTML flow) or "a whole site". Whole-site upload posts a `.zip` to `pages/import-site/stage`, which extracts to an isolated per-import staging dir under `content/import-staging/<id>/`, builds a manifest (pages, stylesheets, scripts, assets, conflicts, skipped) and writes **nothing** live. The review UI shows counts + per-page new/updates badges + a conflict warning with an overwrite toggle; **Apply** (`pages/import-site/apply`) moves staged files into the active render root, creates/updates pages, explodes CSS classes into Selectors, and deletes the staging dir. **Discard** (`pages/import-site/discard`) drops the staging dir.

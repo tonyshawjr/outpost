@@ -339,7 +339,8 @@ Everything below is already built and released.
 
 - ~~**MCP endpoint**~~ — **Shipped** — `POST /outpost/mcp.php` (JSON-RPC over Streamable HTTP). Pure PHP, no libraries.
 - ~~**15 AI tools**~~ — **Shipped** — `list_collections`, `get_collection`, `list_items`, `get_item`, `create_item`, `update_item`, `delete_item`, `list_pages`, `get_page_fields`, `update_page_fields`, `get_globals`, `update_globals`, `list_media`, `search_content`, `get_schema`
-- ~~**MCP Resources**~~ — **Shipped** — `outpost://schema`, `outpost://pages`, `outpost://globals`, `outpost://collections/{slug}`
+- ~~**Builder tools (build pages over MCP)**~~ — **Shipped (v6.0.0-beta.35)** — `get_page_tree`, `apply_page_ops`, `get_styles`, `get_design_tokens`, `compose_page`, `add_block_to_page`, `set_block_field` — the same node engine as the in-app AI builder, so terminal edits save and bake to static HTML. Documented for Claude Code (HTTP transport) with the `outpost://builder/guide` resource.
+- ~~**MCP Resources**~~ — **Shipped** — `outpost://schema`, `outpost://pages`, `outpost://globals`, `outpost://collections/{slug}`, `outpost://builder/guide`, `outpost://import/guide`
 - ~~**API key auth**~~ — **Shipped** — Reuses existing API keys from Settings → Integrations. Bearer token authentication.
 - ~~**Admin UI**~~ — **Shipped** — Settings → Integrations: MCP connection info panel with endpoint URL, Claude Desktop config snippet, copy buttons.
 - ~~**Security audited**~~ — **Shipped** — 1 MB payload limit, rate-limited mutations, LIKE injection prevention, richtext sanitization, path redaction, Origin header sanitization.

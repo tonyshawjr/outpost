@@ -349,7 +349,8 @@
     <ul>
       <li><strong>MCP endpoint</strong> &mdash; <code>/outpost/mcp.php</code> with JSON-RPC 2.0 over Streamable HTTP. Pure PHP, no libraries.</li>
       <li><strong>15 AI tools</strong> &mdash; list/create/update/delete collections, items, pages, globals, media, search, and site schema</li>
-      <li><strong>4 MCP Resources</strong> &mdash; <code>outpost://schema</code>, <code>outpost://pages</code>, <code>outpost://globals</code>, <code>outpost://collections/{slug}</code></li>
+      <li><strong>Builder tools (v6.0.0-beta.35)</strong> &mdash; <code>get_page_tree</code>, <code>apply_page_ops</code>, <code>get_styles</code>, <code>get_design_tokens</code>, <code>compose_page</code> &mdash; build pages from the terminal with the same node engine as the in-app AI builder; edits save and bake to static HTML. Documented for Claude Code over HTTP.</li>
+      <li><strong>MCP Resources</strong> &mdash; <code>outpost://schema</code>, <code>outpost://pages</code>, <code>outpost://globals</code>, <code>outpost://collections/{slug}</code>, <code>outpost://builder/guide</code>, <code>outpost://import/guide</code></li>
       <li><strong>Existing API key auth</strong> &mdash; Bearer token authentication reuses keys from Settings &rarr; Integrations</li>
       <li><strong>Admin UI</strong> &mdash; MCP connection info panel with endpoint URL, Claude Desktop config snippet, copy buttons</li>
       <li><strong>Security audited</strong> &mdash; 1 MB payload limit, rate-limited mutations, LIKE injection prevention, richtext sanitization, path redaction</li>

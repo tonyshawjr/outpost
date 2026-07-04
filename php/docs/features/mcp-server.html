@@ -57,10 +57,45 @@
 
     <div class="callout callout-note"><strong>Tip:</strong> The connection info panel in Settings &rarr; Integrations shows a pre-filled config snippet you can copy directly.</div>
 
+    <h3>Connect Claude Code (terminal)</h3>
+    <p>Claude Code can connect to the same endpoint over HTTP and build pages from the terminal using the visual-builder tools. Add the server to your project&rsquo;s <code>.mcp.json</code>:</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "outpost-builder": {
+      "type": "http",
+      "url": "https://yoursite.com/outpost/mcp.php",
+      "headers": {
+        "Authorization": "Bearer op_your_api_key_here"
+      }
+    }
+  }
+}</code></pre>
+
+    <p>Or register it in one command:</p>
+    <pre><code>claude mcp add --transport http outpost-builder https://yoursite.com/outpost/mcp.php \
+  --header "Authorization: Bearer op_your_api_key_here"</code></pre>
+
+    <div class="callout callout-note"><strong>To build pages:</strong> read the <code>outpost://builder/guide</code> resource first (the node model and operation vocabulary), then <code>get_page_tree</code> to read a page and <code>apply_page_ops</code> to change it &mdash; the same engine the in-app AI builder uses, so edits save and bake to static HTML.</div>
+
     <hr style="margin: 40px 0;">
 
     <h2>Available Tools</h2>
-    <p>The MCP server exposes 15 tools that cover all major content operations.</p>
+    <p>The MCP server exposes tools covering content operations and the visual page builder.</p>
+
+    <h3>Visual Builder (page building)</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>get_page_tree</code></td><td>Read a page&rsquo;s visual-builder node tree plus its CSS class registry &mdash; the same tree the in-app builder edits. Returns a version for optimistic locking.</td></tr>
+        <tr><td><code>apply_page_ops</code></td><td>Apply an ordered list of build operations (insert_tree, update, set_classes, move, duplicate, remove, define_class, bind_field) to a page. Validates, saves, and bakes to static HTML. Pass <code>expect_version</code> to avoid clobbering concurrent edits.</td></tr>
+        <tr><td><code>get_styles</code></td><td>List the site&rsquo;s CSS class registry with declarations and usage counts.</td></tr>
+        <tr><td><code>get_design_tokens</code></td><td>Read the site&rsquo;s design tokens (color scale, fluid type and spacing scales) so builds stay on-brand.</td></tr>
+        <tr><td><code>compose_page</code></td><td>Assemble a page from blocks/templates in one call.</td></tr>
+        <tr><td><code>add_block_to_page</code> / <code>set_block_field</code></td><td>Add a block to a page and set its field values.</td></tr>
+        <tr><td><code>list_blocks</code> / <code>get_block_schema</code> / <code>list_templates</code></td><td>Discover available blocks and templates and their fields.</td></tr>
+      </tbody>
+    </table>
 
     <h3>Collections</h3>
     <table>
@@ -123,6 +158,8 @@
         <tr><td><code>outpost://pages</code></td><td>All pages with paths, titles, and meta</td></tr>
         <tr><td><code>outpost://globals</code></td><td>All global field values</td></tr>
         <tr><td><code>outpost://collections/{slug}</code></td><td>Collection schema + 20 most recent items</td></tr>
+        <tr><td><code>outpost://builder/guide</code></td><td>How to build pages: the node-tree model, styling, dynamic islands, and the <code>apply_page_ops</code> operation vocabulary. Read this before using the builder tools.</td></tr>
+        <tr><td><code>outpost://import/guide</code></td><td>The import-ready HTML/CSS/JS spec, so an external LLM can emit paste-ready sections for the Import screen.</td></tr>
       </tbody>
     </table>
 
@@ -160,6 +197,12 @@
       <li>&ldquo;Show me all draft posts&rdquo;</li>
       <li>&ldquo;Search for posts mentioning SEO&rdquo;</li>
       <li>&ldquo;What fields does the homepage have?&rdquo;</li>
+    </ul>
+    <p>With Claude Code connected over HTTP, you can also build page layouts:</p>
+    <ul>
+      <li>&ldquo;Read the builder guide, then add a three-column feature grid to the /about page&rdquo;</li>
+      <li>&ldquo;Build a hero section on the homepage with a headline, subhead, and a call-to-action button&rdquo;</li>
+      <li>&ldquo;Add a pricing section to /pricing using the site&rsquo;s design tokens&rdquo;</li>
     </ul>
 
     <hr style="margin: 40px 0;">

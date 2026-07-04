@@ -4337,6 +4337,26 @@ Single-class selectors only, mapped onto the builder's nested-style model:
 
 `outpost://import/guide` (mimeType `text/markdown`) returns the same import-ready HTML/CSS/JS spec (from `outpost_import_conventions()`), so an external LLM can fetch it and emit paste-ready sections a human drops into the Import modal.
 
+## MCP Server — build pages from an AI client / terminal
+
+Endpoint: `POST /outpost/mcp.php` (JSON-RPC 2.0 over Streamable HTTP, pure PHP, no dependencies). Auth: `Authorization: Bearer op_...` (an API key from Settings → Integrations, admin-role user). `initialize` is the only unauthenticated method. Payload cap 1 MB; mutation tools are rate-limited; writes create revision snapshots.
+
+Exposes both content tools (collections, items, pages, globals, media, search) and the **visual builder**, driven by the same engine as the in-app AI sidebar so terminal edits save and bake to static HTML:
+
+- `get_page_tree` (path | page_id) → the page's node tree + CSS class registry + a `version` for optimistic locking.
+- `apply_page_ops` (path | page_id, ops[], expect_version?) → applies build ops and bakes. Ops vocabulary (same as the sidebar): `insert_tree` (with nested `node` spec, `ref` to name/reuse a created node), `update`, `set_classes`, `add_class`/`remove_class`, `move`, `duplicate`, `remove`, `define_class` (create/update a CSS class, kebab-case props, nested `&`/`@media`), `bind_field` (make a node a dynamic island). Returns a summary `{inserted, updated, removed, moved, classes, fields, errors}`, new `version`, `baked`.
+- `get_styles` → class registry with declarations + usage counts. `get_design_tokens` → color scale + fluid type/spacing scales. `compose_page` / `add_block_to_page` / `set_block_field` / `list_blocks` / `get_block_schema` / `list_templates` → block/template composition.
+
+Resource `outpost://builder/guide` (from `outpost_builder_conventions()` in `php/node-engine.php`) is the single source of truth for the node model + ops vocabulary — served to BOTH the in-app AI sidebar and the MCP so the terminal and the panel build by the same rules. Read it before calling the builder tools.
+
+**Connect Claude Code:** add to the project `.mcp.json`:
+```
+{ "mcpServers": { "outpost-builder": {
+  "type": "http", "url": "https://yoursite.com/outpost/mcp.php",
+  "headers": { "Authorization": "Bearer op_your_api_key" } } } }
+```
+or `claude mcp add --transport http outpost-builder https://yoursite.com/outpost/mcp.php --header "Authorization: Bearer op_..."`. A separate content-only stdio server (`mcp-server/index.js`, DB-direct, no PHP server needed) also exists for offline content management; the HTTP endpoint above is the one that exposes the page builder.
+
 ## Element & Class Styling
 
 The visual builder's Style panel styles either a reusable CSS class or a single element directly. It picks the target automatically: if the selected node has a class, it edits the node's active class (the last class in its list); if it has no class, it edits the element itself. The header reads "Editing .class" vs "Editing this <tag>". Both modes offer the same Visual field editor and a raw/nested CSS box (Visual / CSS tabs), and both support pseudo-classes (`&:hover`), descendant selectors (`& .child`), and `@media` blocks. The breakpoint switcher (Desktop / Tablet / Mobile) reads/writes per-breakpoint declarations under a media block; a non-default breakpoint shows an "@ Tablet"/"@ Mobile" badge.
