@@ -623,25 +623,26 @@ HTML;
     }
 }
 
-// Inject design-token variables + review overlay after render if active
 $_outpost_tokens_inject = outpost_design_tokens_style();
-if ($_outpost_review_inject || $_outpost_tokens_inject) {
-    ob_start();
-    outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
-    $html = ob_get_clean();
-    if ($_outpost_tokens_inject) {
-        $headPos = strpos($html, '</head>');
-        if ($headPos !== false) {
-            $html = substr_replace($html, $_outpost_tokens_inject . "\n</head>", $headPos, 7);
-        }
+ob_start();
+outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
+$html = ob_get_clean();
+if ($_outpost_tokens_inject) {
+    $headPos = strpos($html, '</head>');
+    if ($headPos !== false) {
+        $html = substr_replace($html, $_outpost_tokens_inject . "\n</head>", $headPos, 7);
     }
-    if ($_outpost_review_inject) {
-        $html = str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
-    }
-    echo $html;
-} else {
-    outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
 }
+if (str_contains($html, 'data-motion')) {
+    $bodyPos = strrpos($html, '</body>');
+    if ($bodyPos !== false) {
+        $html = substr_replace($html, '<script src="/outpost/outpost-motion.js" defer></script>' . "\n</body>", $bodyPos, 7);
+    }
+}
+if ($_outpost_review_inject) {
+    $html = str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
+}
+echo $html;
 
 // Flush output buffers to trigger outpost_cache_output and boost callbacks
 while (ob_get_level() > 0) {

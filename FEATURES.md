@@ -4,6 +4,15 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Interactions / Motion System (v6.0.0-beta.41)
+
+- **Motion foundation + Interactions panel (`#12` Mosaic borrow).** Node motion lives in `props.motion` (`{trigger: reveal|scroll|click, effect: fade|slide-*|scale, duration, delay, distance, once}`). `outpost_node_motion_attr()` in `php/node-engine.php` bakes a **whitelisted, bounded** `data-motion="{json}"` attribute (trigger/effect `in_array`-gated, numerics `(int)`-bounded, `htmlspecialchars` — no user string reaches output; verified an injected `evil` key is dropped).
+- **Runtime + auto-inject.** `php/outpost-motion.js` (vanilla, ~3KB) reads `[data-motion]` and wires IntersectionObserver reveal, scroll-scrub, and click-replay via inline styles only; respects `prefers-reduced-motion`; the hidden state is JS-applied so no-JS pages stay visible. `php/front-router.php` buffers the render and injects `<script src="/outpost/outpost-motion.js" defer>` before `</body>` **only on pages that contain `data-motion`** (verified: motion page gets it, homepage doesn't).
+- **Builder UI.** `InteractionsPanel.svelte` in the inspector edits the motion config for any selected node; "Play preview" dispatches `outpost:motion-preview`, which `CanvasFrame.svelte` runs as a one-shot inline animation on the node in the canvas iframe. Verified end-to-end: save reveal/slide-up → live page bakes `data-motion` + injects the runtime + serves it.
+- **Next:** `#14` click-target picking and `#13` the stagger/sequence timeline build on this.
+
+---
+
 ## Slash-Insert Quick Menu (v6.0.0-beta.40)
 
 - **`/` quick-insert (`#8` Mosaic borrow).** `src/components/builder/QuickInsert.svelte` — a filterable, keyboard-navigable command palette (role=dialog + listbox, arrow/Enter/Esc, focus-managed) opened by pressing `/` in the builder. Lists element types + Embed + Section gallery + Import; selecting inserts into the current target (`insertTarget`). Wired via a window keydown in `NodeBuilder.svelte` and an iframe-forwarded `oncommand` from `CanvasFrame.svelte` (so `/` works whether focus is on the page chrome or inside the canvas). Empty containers render a "Type / to add" hint (`data-empty` + chrome CSS). Gated to design mode, off in preview.

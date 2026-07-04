@@ -18,6 +18,7 @@
   import StockPhotoPicker from '$components/builder/StockPhotoPicker.svelte';
   import LoopPanel from '$components/builder/LoopPanel.svelte';
   import QuickInsert from '$components/builder/QuickInsert.svelte';
+  import InteractionsPanel from '$components/builder/InteractionsPanel.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate } from 'lucide-svelte';
 
   const editor = createNodeEditor();
@@ -499,6 +500,11 @@
           {#if editMode === 'design'}
             <StylePanel {editor} />
 
+            <div class="ins-section">
+              <div class="ins-section-head">Interactions</div>
+              <InteractionsPanel {editor} {selected} />
+            </div>
+
             {#if selected.id !== editor.tree.root}
               <div class="ins-actions">
                 <button class="ghost" onclick={componentize}>
@@ -775,6 +781,9 @@
   }
 
   .preview-hidden { display: none; }
+
+  .ins-section { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .ins-section-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); margin-bottom: 12px; }
 
   .left-col {
     width: 280px;

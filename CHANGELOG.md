@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.41] — 2026-07-04
+
+### Added
+- **Interactions — scroll & click animations.** Any element can now animate: an **Interactions** panel in the builder adds a reveal-on-scroll, scroll-scrubbed, or replay-on-click effect (fade / slide / scale) with duration, delay and distance, and a "Play preview" on the canvas. Animations run on the published page via a tiny auto-injected runtime, respect `prefers-reduced-motion`, and degrade gracefully (no JS = content still visible).
+
+---
+
 ## [6.0.0-beta.40] — 2026-07-04
 
 ### Added

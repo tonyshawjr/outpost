@@ -77,9 +77,33 @@
     const onKeyDown = (e) => {
       if (e.key === '/' && !isPreview && oncommand) { e.preventDefault(); oncommand(); }
     };
+    const raf = (doc.defaultView || window).requestAnimationFrame;
+    const onPreview = (e) => {
+      const id = e.detail?.id;
+      const mot = editor.tree?.nodes?.[id]?.props?.motion;
+      if (!mot || !mot.trigger) return;
+      const el = doc.querySelector(`[data-node-id="${id}"]`);
+      if (!el) return;
+      const eff = mot.effect || 'fade';
+      const dist = mot.distance || 24, dur = mot.duration || 600, delay = mot.delay || 0;
+      const from = eff === 'slide-up' ? `translateY(${dist}px)` : eff === 'slide-down' ? `translateY(-${dist}px)`
+        : eff === 'slide-left' ? `translateX(${dist}px)` : eff === 'slide-right' ? `translateX(-${dist}px)`
+        : eff === 'scale' ? 'scale(0.92)' : 'none';
+      el.style.transition = 'none';
+      el.style.opacity = '0';
+      el.style.transform = from;
+      el.getBoundingClientRect();
+      raf(() => raf(() => {
+        el.style.transition = `opacity ${dur}ms ease ${delay}ms, transform ${dur}ms cubic-bezier(0.16,1,0.3,1) ${delay}ms`;
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+        setTimeout(() => { el.style.transition = ''; el.style.opacity = ''; el.style.transform = ''; }, dur + delay + 120);
+      }));
+    };
     doc.addEventListener('click', onClick);
     if (oncontext) doc.addEventListener('contextmenu', onCtx);
     if (oncommand) doc.addEventListener('keydown', onKeyDown);
+    if (!isPreview) window.addEventListener('outpost:motion-preview', onPreview);
 
     const onWheelFwd = (e) => {
       e.preventDefault();
@@ -114,6 +138,7 @@
       doc.removeEventListener('contextmenu', onCtx);
       doc.removeEventListener('keydown', onKeyDown);
       doc.removeEventListener('wheel', onWheelFwd);
+      window.removeEventListener('outpost:motion-preview', onPreview);
       styleEl = null;
     };
   });

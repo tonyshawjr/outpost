@@ -870,6 +870,21 @@ function outpost_node_field_attr(array $props): string {
     return $attr;
 }
 
+function outpost_node_motion_attr(array $props): string {
+    $m = $props['motion'] ?? null;
+    if (!is_array($m)) return '';
+    $trigger = in_array($m['trigger'] ?? '', ['reveal', 'scroll', 'click'], true) ? $m['trigger'] : '';
+    if ($trigger === '') return '';
+    $effect = in_array($m['effect'] ?? '', ['fade', 'slide-up', 'slide-down', 'slide-left', 'slide-right', 'scale'], true)
+        ? $m['effect'] : 'fade';
+    $out = ['t' => $trigger, 'e' => $effect];
+    $dur = (int) ($m['duration'] ?? 0); if ($dur > 0 && $dur <= 5000) $out['d'] = $dur;
+    $delay = (int) ($m['delay'] ?? 0); if ($delay > 0 && $delay <= 5000) $out['dl'] = $delay;
+    $dist = (int) ($m['distance'] ?? 0); if ($dist > 0 && $dist <= 400) $out['ds'] = $dist;
+    if (!empty($m['once'])) $out['o'] = 1;
+    return ' data-motion="' . htmlspecialchars(json_encode($out), ENT_QUOTES) . '"';
+}
+
 function outpost_render_node(array $tree, string $id, array $components, array $stack): string {
     $node = $tree['nodes'][$id];
     $tag = $node['tag'];
@@ -877,7 +892,7 @@ function outpost_render_node(array $tree, string $id, array $components, array $
     $props = (array) $node['props'];
     $sid = (preg_match('/^n_[a-z0-9]+$/', $id) && is_array($node['styles'] ?? null) && $node['styles'])
         ? ' data-node-id="' . $id . '"' : '';
-    $fld = outpost_node_field_attr($props) . $sid;
+    $fld = outpost_node_field_attr($props) . $sid . outpost_node_motion_attr($props);
 
     switch ($node['type']) {
         case 'component-ref':
