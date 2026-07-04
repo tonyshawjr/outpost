@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Style Guide — Visual Design Tokens (v6.0.0-beta.38)
+
+- **Visual editor on the existing token engine (`#16` Mosaic borrow).** `src/pages/StyleGuide.svelte` (route `style-guide`, under Site, settings-gated) edits the builder design tokens: named brand colors (each showing its generated 10-step shade scale via `colorScale`), a fluid type scale (`typeScale`) and spacing scale (`spacingScale`) with live previews. Uses `src/lib/builder-tokens.js` for previews so the editor exactly matches what saves. Saves via the existing `designTokens.save()` (`builder_design_tokens` setting). Validates unique, `[a-z][a-z0-9-]*` color names.
+- **Live-apply — tokens now reach the published site.** Previously tokens only affected the builder preview. New `outpost_design_tokens_css_string()` / `outpost_design_tokens_style()` in `php/front-router.php` generate `:root{ --color-*; --text-*; --space-* }` + `.text-*/.bg-*/.border-*` utilities **server-side from the validated token data** (hex→HSL + fluid clamp, a faithful port of the JS engine — no user string reaches output), injected into every rendered page's `<head>`. Verified: saving brand `#e11d48` put `<style id="outpost-tokens">:root{--color-brand:hsl(347 77% 50%)…}</style>` into the live homepage head.
+
+---
+
 ## Section Gallery + Preview Toggle (v6.0.0-beta.37)
 
 - **Section gallery (`#9` Mosaic borrow).** `src/components/builder/SectionGallery.svelte` — a full-screen picker of curated sections from `src/lib/section-patterns.js` (Hero/Features/Content/CTA), each rendered as a **live thumbnail** via an `<iframe srcdoc>` of the pattern's own HTML+CSS scaled to fit (no image assets shipped). Category filter tabs; clicking a card calls the existing `editor.importSection(html, css, js, parentId)` path, so the section explodes into editable nodes + merges classes. Opened via a new **Sections** toolbar button. Patterns follow the import conventions (single-class selectors, semantic tags, `data-outpost` holes, fluid `clamp`/`auto-fit` CSS — no media queries). Verified: the hero pattern explodes into a `sp-hero` container + text/button field nodes via `nodes/import-section`.

@@ -79,6 +79,7 @@
         { label: 'Navigation', route: 'navigation', icon: Layout, on: feat('navigation'), desc: 'Menus and links across your site' },
         { label: 'Globals', route: 'globals', icon: Sparkles, on: true, desc: 'Reusable content shared site-wide' },
         { label: 'Design', route: 'design', icon: SwatchBook, on: showSettings, desc: 'Theme, colors, and typography' },
+        { label: 'Style guide', route: 'style-guide', icon: Palette, on: showSettings, desc: 'Brand colors, shades, type and spacing scales' },
         { label: 'Brand', route: 'brand', icon: Palette, on: showSettings, desc: 'Logo, favicon, and brand assets' },
         { label: 'Redirects', route: 'redirects', icon: ArrowLeftRight, on: showAdmin, desc: 'Forward old URLs to new ones' },
         { label: 'View site', route: 'view-site', icon: Globe, on: true, desc: 'Open your live site in a new tab' },

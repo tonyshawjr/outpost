@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.38] — 2026-07-04
+
+### Added
+- **Style guide.** A new **Site → Style guide** page: set your brand colors and it generates a full 10-step shade scale for each, plus fluid typography and spacing scales — all previewed live. Saving writes the tokens as CSS variables (`--color-*`, `--text-*`, `--space-*`) that now apply **across your whole live site** (injected into every page), not just the builder preview.
+
+---
+
 ## [6.0.0-beta.37] — 2026-07-04
 
 ### Added

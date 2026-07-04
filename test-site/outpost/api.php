@@ -278,6 +278,7 @@ $cap_map = [
     'shield'     => 'settings.*',
     'boost'      => 'settings.*',
     'redirects'  => 'settings.*',
+    'design-tokens' => 'settings.*',
     // v6 — schema/preset mutations are developer-tier work
     // ('theme' is already mapped above to settings.*)
     'field-presets' => 'code.*',

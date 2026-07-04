@@ -514,6 +514,79 @@ if ($pageRow) {
     }
 }
 
+function outpost_design_tokens_css_string(): string {
+    $row = OutpostDB::fetchOne("SELECT value FROM settings WHERE key = 'builder_design_tokens'");
+    if (!$row) return '';
+    $tokens = json_decode($row['value'] ?: 'null', true);
+    if (!is_array($tokens)) return '';
+
+    $stepLightness = [50 => 97, 100 => 93, 200 => 85, 300 => 74, 400 => 62, 500 => null, 600 => 44, 700 => 36, 800 => 27, 900 => 17];
+    $steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+    $scaleSteps = ['xs' => -2, 'sm' => -1, 'md' => 0, 'lg' => 1, 'xl' => 2, '2xl' => 3, '3xl' => 4];
+
+    $hexToHsl = function (string $hex): ?array {
+        $h = ltrim(trim($hex), '#');
+        if (strlen($h) === 3) $h = $h[0] . $h[0] . $h[1] . $h[1] . $h[2] . $h[2];
+        if (!preg_match('/^[0-9a-fA-F]{6}$/', $h)) return null;
+        $r = hexdec(substr($h, 0, 2)) / 255; $g = hexdec(substr($h, 2, 2)) / 255; $b = hexdec(substr($h, 4, 2)) / 255;
+        $max = max($r, $g, $b); $min = min($r, $g, $b); $l = ($max + $min) / 2; $s = 0; $hue = 0;
+        if ($max !== $min) {
+            $d = $max - $min;
+            $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
+            if ($max === $r) $hue = ($g - $b) / $d + ($g < $b ? 6 : 0);
+            elseif ($max === $g) $hue = ($b - $r) / $d + 2;
+            else $hue = ($r - $g) / $d + 4;
+            $hue /= 6;
+        }
+        return [$hue * 360, $s * 100, $l * 100];
+    };
+    $hsl = fn($h, $s, $l) => 'hsl(' . round($h) . ' ' . round($s) . '% ' . round(max(0, min(100, $l))) . '%)';
+    $fluid = function ($minPx, $maxPx, $minVw, $maxVw): string {
+        $minRem = $minPx / 16; $maxRem = $maxPx / 16;
+        if ($maxPx <= $minPx) return number_format($minRem, 3) . 'rem';
+        $slope = ($maxPx - $minPx) / ($maxVw - $minVw);
+        $interceptRem = ($minPx - $slope * $minVw) / 16;
+        return 'clamp(' . number_format($minRem, 3) . 'rem, ' . number_format($interceptRem, 3) . 'rem + ' . number_format($slope * 100, 3) . 'vw, ' . number_format($maxRem, 3) . 'rem)';
+    };
+
+    $vars = ''; $utils = '';
+    foreach ($tokens['colors'] ?? [] as $c) {
+        $name = $c['name'] ?? '';
+        if (!is_string($name) || !preg_match('/^[a-z][a-z0-9-]*$/', $name)) continue;
+        $parts = $hexToHsl((string) ($c['value'] ?? ''));
+        if (!$parts) continue;
+        [$hh, $ss, $baseL] = $parts;
+        $vars .= '--color-' . $name . ':' . $hsl($hh, $ss, $baseL) . ';';
+        foreach ($steps as $step) {
+            $lv = $step === 500 ? $baseL : $stepLightness[$step];
+            $vars .= '--color-' . $name . '-' . $step . ':' . $hsl($hh, $ss, $lv) . ';';
+        }
+        if (!empty($c['utilities'])) {
+            $utils .= '.text-' . $name . '{color:var(--color-' . $name . ');}';
+            $utils .= '.bg-' . $name . '{background-color:var(--color-' . $name . ');}';
+            $utils .= '.border-' . $name . '{border-color:var(--color-' . $name . ');}';
+        }
+    }
+    $emitScale = function (string $prefix, array $opts, array $defaults) use ($scaleSteps, $fluid): string {
+        $o = array_merge($defaults, array_intersect_key($opts, $defaults));
+        $out = '';
+        foreach ($scaleSteps as $step => $exp) {
+            $out .= '--' . $prefix . '-' . $step . ':' . $fluid($o['baseMin'] * $o['ratio'] ** $exp, $o['baseMax'] * $o['ratio'] ** $exp, $o['minVw'], $o['maxVw']) . ';';
+        }
+        return $out;
+    };
+    $vars .= $emitScale('text', is_array($tokens['type'] ?? null) ? $tokens['type'] : [], ['baseMin' => 16, 'baseMax' => 18, 'ratio' => 1.2, 'minVw' => 360, 'maxVw' => 1280]);
+    $vars .= $emitScale('space', is_array($tokens['spacing'] ?? null) ? $tokens['spacing'] : [], ['baseMin' => 14, 'baseMax' => 18, 'ratio' => 1.5, 'minVw' => 360, 'maxVw' => 1280]);
+
+    if ($vars === '' && $utils === '') return '';
+    return ':root{' . $vars . '}' . $utils;
+}
+
+function outpost_design_tokens_style(): string {
+    $css = outpost_design_tokens_css_string();
+    return $css === '' ? '' : '<style id="outpost-tokens">' . $css . '</style>';
+}
+
 // ── Review Mode (client feedback overlay) ────────────
 $reviewToken = $_GET['review'] ?? '';
 $_outpost_review_inject = '';
@@ -550,13 +623,21 @@ HTML;
     }
 }
 
-// Inject review overlay after render if active
-if ($_outpost_review_inject) {
+// Inject design-token variables + review overlay after render if active
+$_outpost_tokens_inject = outpost_design_tokens_style();
+if ($_outpost_review_inject || $_outpost_tokens_inject) {
     ob_start();
     outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
     $html = ob_get_clean();
-    // Inject before </body>
-    $html = str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
+    if ($_outpost_tokens_inject) {
+        $headPos = strpos($html, '</head>');
+        if ($headPos !== false) {
+            $html = substr_replace($html, $_outpost_tokens_inject . "\n</head>", $headPos, 7);
+        }
+    }
+    if ($_outpost_review_inject) {
+        $html = str_replace('</body>', $_outpost_review_inject . "\n</body>", $html);
+    }
     echo $html;
 } else {
     outpost_render_template($templateFile, $themeDir, $_outpost_editor_mode);
