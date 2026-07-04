@@ -65,9 +65,10 @@ function cleanNestedDeclarations(decls, depth = 0) {
 
 function aiNodeProps(spec) {
   const p = {};
-  for (const key of ['text', 'src', 'alt', 'href', 'field', 'fieldType', 'fieldScope']) {
+  for (const key of ['text', 'src', 'alt', 'href', 'field', 'fieldType', 'fieldScope', 'collection', 'sort', 'order']) {
     if (spec[key] != null) p[key] = String(spec[key]);
   }
+  if (spec.limit != null && !Number.isNaN(+spec.limit)) p.limit = Math.max(0, Math.min(100, parseInt(spec.limit, 10)));
   return p;
 }
 
@@ -372,6 +373,17 @@ export function createNodeEditor() {
     },
 
     select(id) { selectedId = id && getTree().nodes[id] ? id : null; },
+
+    loopContextOf(id) {
+      const t = getTree();
+      let cur = T.parentOf(t, id);
+      while (cur) {
+        const n = t.nodes[cur];
+        if (n && n.type === 'loop') return n.props?.collection ?? '';
+        cur = T.parentOf(t, cur);
+      }
+      return null;
+    },
 
     insert(type, parentId, index = -1, overrides = {}) {
       const id = commit((t) => T.insertNode(t, type, parentId, index, overrides));

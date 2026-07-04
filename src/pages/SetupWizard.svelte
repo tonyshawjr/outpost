@@ -45,6 +45,18 @@
     };
   });
 
+  let pathRecap = $derived(
+    forgeResult ? 'You turned your existing site into editable templates.'
+    : selectedPackName ? `You started fresh with the ${selectedPackName} template.`
+    : 'Your site is set up and ready to go.'
+  );
+
+  const orientSteps = [
+    { n: 1, title: 'Setup', desc: 'Your site is configured — you just did this.', done: true },
+    { n: 2, title: 'Overview', desc: 'Your dashboard: content, pages and stats at a glance.', done: false },
+    { n: 3, title: 'Build', desc: 'Open the visual builder to design and edit pages.', done: false },
+  ];
+
   let visiblePages = $derived(() => {
     if (!analysis?.pages) return [];
     if (pagesExpanded) return analysis.pages;
@@ -613,8 +625,10 @@
           </div>
 
           <h1 class="hero-heading" class:visible={showComplete} style="transition-delay: 0.1s">
-            Your site is ready
+            Made it yours in minutes
           </h1>
+
+          <p class="complete-recap" class:visible={showComplete} style="transition-delay: 0.16s">{pathRecap}</p>
 
           <div class="complete-summary" class:visible={showSummary}>
             {#if forgeResult}
@@ -664,6 +678,21 @@
             {/if}
           </div>
 
+          <div class="orient" class:visible={showSummary}>
+            <p class="orient-head">Here's how Outpost works</p>
+            <ol class="orient-list">
+              {#each orientSteps as s (s.n)}
+                <li class="orient-step" class:done={s.done}>
+                  <span class="orient-num" aria-hidden="true">{s.n}</span>
+                  <span class="orient-body">
+                    <span class="orient-title">{s.title}{#if s.done} <span class="orient-done">— done</span>{/if}</span>
+                    <span class="orient-desc">{s.desc}</span>
+                  </span>
+                </li>
+              {/each}
+            </ol>
+          </div>
+
           <div class="complete-action" class:visible={showButton}>
             <button class="btn-primary btn-large" onclick={finish}>
               View Your Site
@@ -671,6 +700,7 @@
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
+            <button class="btn-text" onclick={() => { setupCompleted.set(true); navigate('dashboard'); }}>Go to your dashboard</button>
           </div>
         </div>
       {/if}
@@ -1688,6 +1718,25 @@
   .name-label { color: rgba(255, 255, 255, 0.68); }
   .wizard-skip { color: rgba(255, 255, 255, 0.66); }
   .wizard-skip:hover { color: #f3f3f5; }
+
+  .complete-recap { color: rgba(255, 255, 255, 0.72); font-size: 15px; text-align: center; margin: 10px 0 0; opacity: 0; transition: opacity 0.5s ease; }
+  .complete-recap.visible { opacity: 1; }
+
+  .orient { margin-top: 28px; opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .orient.visible { opacity: 1; transform: none; }
+  .orient-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.5); text-align: center; margin: 0 0 14px; }
+  .orient-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+  .orient-step { display: flex; gap: 14px; align-items: flex-start; }
+  .orient-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: rgba(255, 255, 255, 0.08); color: #f3f3f5; }
+  .orient-step.done .orient-num { background: var(--success, #10b981); color: #04140d; }
+  .orient-body { display: flex; flex-direction: column; gap: 2px; }
+  .orient-title { font-size: 14.5px; font-weight: 600; color: #f3f3f5; }
+  .orient-done { color: #34d399; font-weight: 600; font-size: 12.5px; }
+  .orient-desc { font-size: 13px; color: rgba(255, 255, 255, 0.68); line-height: 1.45; }
+
+  .btn-text { display: block; margin: 14px auto 0; background: none; border: none; color: rgba(255, 255, 255, 0.66); font-size: 13.5px; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+  .btn-text:hover { color: #f3f3f5; }
+  .btn-text:focus-visible { outline: 2px solid var(--purple, #7C3AED); outline-offset: 2px; }
 
   @media (max-width: 640px) {
     .pack-grid { grid-template-columns: 1fr; }

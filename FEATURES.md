@@ -4,6 +4,18 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Loop Element — Visual Dynamic Data (v6.0.0-beta.36)
+
+- **Loop node repeats a template per collection item.** New `loop` node type (`php/node-engine.php` `outpost_node_types()` + `NODE_TYPES` in `src/lib/node-tree.js`). `outpost_render_node()` bakes a loop to `<div class="{loop classes}"><outpost-each collection="X" limit="N" sort order>{item template}</outpost-each></div>`, reusing the existing v2 template engine (`cms_collection_list()`) — so lists render live at request time and item-scoped `data-outpost` holes resolve from each item. No new render pipeline. Slug/limit/sort/order are sanitized/whitelisted at render (the security boundary).
+- **Visual dynamic-data binding.** `LoopPanel.svelte` (collection picker + limit + order) shows for a selected loop. For any node inside a loop, `editor.loopContextOf(id)` surfaces the loop's collection and the "Dynamic content" toggle becomes a picker of that collection's fields (parsed from the collection schema) — bind a heading to `title`, an image to `featured_image`, a link to `url`. In-canvas, the loop shows a green "Loop · {collection} ×{limit}" affordance.
+- **Same engine, terminal too.** `outpost_node_ai_props()` + JS `aiNodeProps` pass through `collection`/`limit`/`sort`/`order`, and the shared `outpost_builder_conventions()` guide documents the loop spec — so the MCP `apply_page_ops` builds loops identically. Verified end-to-end: a loop bound to `post.title` rendered 3 live post titles via both the builder-save path and the MCP.
+
+## Onboarding Recap + Orientation (v6.0.0-beta.36)
+
+- **Wizard closes with a recap + mental model.** `SetupWizard.svelte` completion screen now reads "Made it yours in minutes", recaps the path taken (imported existing site vs started fresh with a template) alongside the existing created-counts, and shows a numbered **1 Setup · 2 Overview · 3 Build** orientation (semantic `<ol>`, "— done" text state on step 1, WCAG-AA contrast on the dark shell) so first-run users get the mental model. A "Go to your dashboard" path complements "View Your Site".
+
+---
+
 ## Build Pages over MCP (v6.0.0-beta.35)
 
 - **The builder MCP is the same engine as the AI sidebar.** `php/mcp.php` (JSON-RPC 2.0 over Streamable HTTP, Bearer auth via API keys) exposes `get_page_tree`, `apply_page_ops`, `get_styles`, `get_design_tokens`, `compose_page`, `add_block_to_page`, `set_block_field` alongside the content tools. `apply_page_ops` runs `outpost_apply_node_ops()` then validates, saves, and bakes to static HTML with version-based optimistic locking — the identical path the in-app AI builder uses. The ops vocabulary and node model come from `outpost_builder_conventions()` in `php/node-engine.php`, served to BOTH the sidebar and the MCP via the `outpost://builder/guide` resource so terminal and panel build by the same rules.

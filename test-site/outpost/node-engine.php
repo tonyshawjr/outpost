@@ -51,6 +51,11 @@ function outpost_node_types(): array {
             'children' => false,
             'void' => false,
         ],
+        'loop' => [
+            'tags' => ['div'],
+            'children' => true,
+            'void' => false,
+        ],
     ];
 }
 
@@ -71,8 +76,9 @@ Node types and their allowed tags:
 - image — img (props.src, props.alt; no children)
 - button — button, a (props.text, props.href; no children)
 - link — a (props.text, props.href; no children)
+- loop — repeats its children once per collection item (props: collection = a collection slug, limit, sort, order). Put ONE item template inside (e.g. a container holding the item's heading/image/link). Bind child text/image/link fields to the collection's field names and each repeated item fills its own data. Use a loop to list posts, projects, products, etc.
 
-Only container nodes can hold children. Put text inside containers as separate text nodes; never nest text in text.
+Only container and loop nodes can hold children. Put text inside containers as separate text nodes; never nest text in text.
 
 # Styling
 Style with CSS classes, not inline styles. Define a class once with define_class, then attach it to nodes. Reuse existing classes when they fit. Prefer design tokens (CSS variables) for colors and spacing so the page stays on-brand.
@@ -82,7 +88,7 @@ A node can be bound to a dynamic field so its content is editable as managed con
 
 # Operations (the apply_ops / apply_page_ops vocabulary)
 Operations run in order. Supported operations:
-- {"op":"insert_tree","parent":<id|"root"|"selected">,"index":<int?>,"node":<spec>} — insert a subtree. A spec is {"type","tag"?,"text"?,"src"?,"alt"?,"href"?,"classes"?:[...],"field"?,"ref"?,"children"?:[spec...]}. Use "ref" to name a created node and reference it later in the same batch (as a parent or target). This is the main tool for building.
+- {"op":"insert_tree","parent":<id|"root"|"selected">,"index":<int?>,"node":<spec>} — insert a subtree. A spec is {"type","tag"?,"text"?,"src"?,"alt"?,"href"?,"classes"?:[...],"field"?,"collection"?,"limit"?,"sort"?,"order"?,"ref"?,"children"?:[spec...]}. For a loop node set "collection" (slug) + "limit" and give it one item-template child; bind that child's fields to collection field names. Use "ref" to name a created node and reference it later in the same batch (as a parent or target). This is the main tool for building.
 - {"op":"update","id":<id|ref>,"text"?,"href"?,"src"?,"alt"?,"tag"?} — change a node's content or tag.
 - {"op":"set_classes","id":<id|ref>,"classes":[...]} — replace a node's class list.
 - {"op":"add_class","id":<id|ref>,"class":"name"} / {"op":"remove_class","id":<id|ref>,"class":"name"}
@@ -437,6 +443,13 @@ function outpost_node_ai_props(array $spec): array {
         $f = preg_replace('/[^A-Za-z0-9_]/', '', (string) $spec['field']);
         if ($f !== '') $p['field'] = $f;
     }
+    if (isset($spec['collection']) && is_scalar($spec['collection'])) {
+        $c = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $spec['collection']));
+        if ($c !== '') $p['collection'] = $c;
+    }
+    if (isset($spec['limit']) && is_numeric($spec['limit'])) $p['limit'] = max(0, min(100, (int) $spec['limit']));
+    if (isset($spec['sort']) && is_scalar($spec['sort'])) $p['sort'] = (string) $spec['sort'];
+    if (isset($spec['order']) && is_scalar($spec['order'])) $p['order'] = (strtoupper((string) $spec['order']) === 'ASC') ? 'ASC' : 'DESC';
     return $p;
 }
 
@@ -914,6 +927,24 @@ function outpost_render_node(array $tree, string $id, array $components, array $
                 . "<iframe src=\"{$u}\" title=\"{$title}\" width=\"{$w}\" height=\"{$h}\" loading=\"lazy\" "
                 . "allow=\"autoplay; encrypted-media; picture-in-picture; fullscreen\" allowfullscreen "
                 . "referrerpolicy=\"strict-origin-when-cross-origin\"></iframe></span></div>";
+
+        case 'loop':
+            $inner = '';
+            foreach ($node['children'] as $cid2) {
+                $inner .= outpost_render_node($tree, $cid2, $components, $stack);
+            }
+            $slug = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) ($props['collection'] ?? '')));
+            if ($slug === '') {
+                return "<{$tag}{$cls}{$sid}>{$inner}</{$tag}>";
+            }
+            $limit = max(0, min(100, (int) ($props['limit'] ?? 6)));
+            $sort = in_array($props['sort'] ?? '', ['created_at', 'updated_at', 'published_at', 'slug', 'sort_order'], true)
+                ? (string) $props['sort'] : '';
+            $order = (strtoupper((string) ($props['order'] ?? 'DESC')) === 'ASC') ? 'ASC' : 'DESC';
+            $each = '<outpost-each collection="' . htmlspecialchars($slug, ENT_QUOTES) . '" limit="' . $limit . '"';
+            if ($sort !== '') $each .= ' sort="' . $sort . '" order="' . $order . '"';
+            $each .= '>' . $inner . '</outpost-each>';
+            return "<{$tag}{$cls}{$sid}>{$each}</{$tag}>";
 
         case 'container':
         default:

@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { currentPageId, addToast, navigate } from '$lib/stores.js';
-  import { pages as pagesApi, embeds as embedsApi } from '$lib/api.js';
+  import { pages as pagesApi, embeds as embedsApi, collections as collectionsApi } from '$lib/api.js';
   import { createNodeEditor } from '$lib/node-store.svelte.js';
   import { NODE_TYPES } from '$lib/node-tree.js';
   import Checkbox from '$components/Checkbox.svelte';
@@ -15,7 +15,8 @@
   import StyleManager from '$components/builder/StyleManager.svelte';
   import SectionImportModal from '$components/builder/SectionImportModal.svelte';
   import StockPhotoPicker from '$components/builder/StockPhotoPicker.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film } from 'lucide-svelte';
+  import LoopPanel from '$components/builder/LoopPanel.svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -59,7 +60,7 @@
   );
 
   let insertTarget = $derived(
-    selected && selected.type === 'container' ? selected.id : editor.tree.root
+    selected && NODE_TYPES[selected.type]?.children ? selected.id : editor.tree.root
   );
 
   const adders = [
@@ -68,7 +69,37 @@
     { type: 'image', label: 'Image', icon: ImageIcon },
     { type: 'button', label: 'Button', icon: MousePointerClick },
     { type: 'link', label: 'Link', icon: LinkIcon },
+    { type: 'loop', label: 'Loop', icon: Repeat },
   ];
+
+  let collectionsList = $state([]);
+
+  function parseSchemaFields(schema) {
+    let s = schema;
+    if (typeof s === 'string') { try { s = JSON.parse(s || '{}'); } catch { return []; } }
+    if (!s || typeof s !== 'object') return [];
+    if (Array.isArray(s.fields)) {
+      return s.fields.filter((f) => f && f.name).map((f) => ({ name: f.name, label: f.label || f.name }));
+    }
+    return Object.entries(s)
+      .filter(([, v]) => v && typeof v === 'object')
+      .map(([k, v]) => ({ name: k, label: v.label || k }));
+  }
+
+  onMount(async () => {
+    try {
+      const res = await collectionsApi.list();
+      collectionsList = (res.collections || []).map((c) => ({ slug: c.slug, name: c.name, fields: parseSchemaFields(c.schema) }));
+    } catch { collectionsList = []; }
+  });
+
+  let loopFields = $derived.by(() => {
+    if (!selected) return null;
+    const slug = editor.loopContextOf(selected.id);
+    if (slug == null) return null;
+    const c = collectionsList.find((x) => x.slug === slug);
+    return c ? c.fields : [];
+  });
 
   onMount(async () => {
     let id = $currentPageId;
@@ -347,10 +378,27 @@
             <div class="dyn">
               <Checkbox checked={!!boundField} label="Dynamic content" onchange={toggleDynamic} />
               {#if boundField}
-                <input class="dyn-name" type="text" value={boundField} oninput={renameField} aria-label="Field name" spellcheck="false" />
-                <p class="dyn-hint">Editable as a field — updates the live page without rebuilding.</p>
+                {#if loopFields}
+                  <select class="dyn-name" value={boundField} onchange={(e) => editor.bindField(selected.id, e.target.value)} aria-label="Collection field">
+                    {#each loopFields as f (f.name)}
+                      <option value={f.name}>{f.label}</option>
+                    {/each}
+                    <option value="url">url (item link)</option>
+                    {#if boundField !== 'url' && !loopFields.some((f) => f.name === boundField)}
+                      <option value={boundField}>{boundField}</option>
+                    {/if}
+                  </select>
+                  <p class="dyn-hint">Pulls each item's <strong>{boundField}</strong> from the collection.</p>
+                {:else}
+                  <input class="dyn-name" type="text" value={boundField} oninput={renameField} aria-label="Field name" spellcheck="false" />
+                  <p class="dyn-hint">Editable as a field — updates the live page without rebuilding.</p>
+                {/if}
               {/if}
             </div>
+          {/if}
+
+          {#if selected.type === 'loop' && editMode === 'design'}
+            <LoopPanel {editor} {selected} collections={collectionsList} />
           {/if}
 
           {#if selected.type === 'text'}

@@ -4357,6 +4357,12 @@ Resource `outpost://builder/guide` (from `outpost_builder_conventions()` in `php
 ```
 or `claude mcp add --transport http outpost-builder https://yoursite.com/outpost/mcp.php --header "Authorization: Bearer op_..."`. A separate content-only stdio server (`mcp-server/index.js`, DB-direct, no PHP server needed) also exists for offline content management; the HTTP endpoint above is the one that exposes the page builder.
 
+## Loop element (dynamic collection lists in the visual builder)
+
+A `loop` node repeats its child template once per collection item. In the builder: add a **Loop** element, pick a collection + item count in the Loop panel, add the elements for ONE item inside it, and bind each text/image/link to a collection field via the **Dynamic content** toggle (inside a loop it becomes a picker of that collection's fields, plus `url`).
+
+Under the hood the loop node bakes to `<div class="{loop classes}"><outpost-each collection="X" limit="N" sort="…" order="ASC|DESC">{item template}</outpost-each></div>` (`outpost_render_node()` in `php/node-engine.php`, `case 'loop'`). This reuses the existing v2 template engine — `<outpost-each>` compiles to `cms_collection_list()` and item-scoped `data-outpost` holes resolve from each `$item` — so lists render live at request time, never baked per-item. The collection slug is charset-restricted, `limit` is bounded 0–100, `sort` is whitelisted (created_at/updated_at/published_at/slug/sort_order), `order` is ASC/DESC — sanitized at render. Node props: `collection` (slug), `limit`, `sort`, `order`. Buildable over MCP via `apply_page_ops` with an `insert_tree` spec `{"type":"loop","collection":"post","limit":6,"children":[…item template…]}`.
+
 ## Element & Class Styling
 
 The visual builder's Style panel styles either a reusable CSS class or a single element directly. It picks the target automatically: if the selected node has a class, it edits the node's active class (the last class in its list); if it has no class, it edits the element itself. The header reads "Editing .class" vs "Editing this <tag>". Both modes offer the same Visual field editor and a raw/nested CSS box (Visual / CSS tabs), and both support pseudo-classes (`&:hover`), descendant selectors (`& .child`), and `@media` blocks. The breakpoint switcher (Desktop / Tablet / Mobile) reads/writes per-breakpoint declarations under a media block; a non-default breakpoint shows an "@ Tablet"/"@ Mobile" badge.

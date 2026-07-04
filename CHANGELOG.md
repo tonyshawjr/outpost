@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.36] — 2026-07-04
+
+### Added
+- **Loop element — dynamic collection lists in the visual builder.** A new **Loop** element in the page builder repeats a template once per collection item. Pick a collection, design one item (heading, image, link), and bind its text/images to collection fields with **Dynamic content** — each entry fills its own data. It bakes to the existing `<outpost-each>` engine, so lists render live at request time. Works from the visual builder and the MCP `apply_page_ops` tool alike.
+- **Onboarding recap + orientation.** The setup wizard now closes with a "Made it yours in minutes" recap of the path you took and a numbered **1 Setup · 2 Overview · 3 Build** orientation so new users get the mental model of how Outpost works before landing in the CMS.
+
+---
+
 ## [6.0.0-beta.35] — 2026-07-03
 
 ### Added

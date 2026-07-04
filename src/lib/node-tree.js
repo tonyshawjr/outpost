@@ -18,6 +18,7 @@ export const NODE_TYPES = {
   link:      { tags: ['a'], children: false, void: false },
   'component-ref': { tags: ['div'], children: false, void: false },
   embed: { tags: ['div'], children: false, void: false },
+  loop: { tags: ['div'], children: true, void: false },
 };
 
 /** Default props per type, used when creating a node. */
@@ -29,6 +30,7 @@ const DEFAULT_PROPS = {
   link: { text: 'Link', href: '#' },
   'component-ref': { componentId: '' },
   embed: { provider: '', embedUrl: '', kind: 'iframe', title: '' },
+  loop: { collection: '', limit: 6 },
 };
 
 const HEX = '0123456789abcdef';

@@ -10,6 +10,13 @@
   let hasFieldVal = $derived(fieldVal != null && fieldVal !== '');
   let text = $derived(hasFieldVal ? fieldVal : (node.props.text || ''));
   let imgSrc = $derived(hasFieldVal ? fieldVal : (node.props.src || ''));
+  let loopLabel = $derived(
+    node.type === 'loop'
+      ? (node.props.collection
+          ? `Loop · ${node.props.collection}${node.props.limit ? ` ×${node.props.limit}` : ''}`
+          : 'Loop · pick a collection')
+      : ''
+  );
 </script>
 
 {#if node.type === 'component-ref'}
@@ -39,6 +46,15 @@
       <span class="oc-embed-empty">Embed</span>
     {/if}
   </div>
+{:else if node.type === 'loop'}
+  <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} data-loop class={cls}>
+    {#if !inert}<span class="oc-loop-badge">{loopLabel}</span>{/if}
+    {#each node.children as cid (cid)}
+      {#if tree.nodes[cid]}
+        <NodeView node={tree.nodes[cid]} {tree} {editor} {inert} />
+      {/if}
+    {/each}
+  </svelte:element>
 {:else if node.type === 'container'}
   <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} class={cls}>
     {#each node.children as cid (cid)}

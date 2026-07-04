@@ -22,6 +22,9 @@
     [data-node-id][data-selected] { outline: 2px solid #7C3AED; outline-offset: 1px; }
     [data-component-ref] { outline: 1px dashed #A78BFA; outline-offset: 1px; }
     [data-component-ref][data-selected] { outline: 2px solid #7C3AED; }
+    [data-loop] { position: relative; outline: 1px dashed rgba(16,185,129,0.55); outline-offset: 3px; min-height: 44px; }
+    [data-loop][data-selected] { outline: 2px solid #7C3AED; }
+    .oc-loop-badge { position: absolute; top: 0; left: 0; transform: translateY(-100%); font: 700 11px/1.5 system-ui, sans-serif; background: #10b981; color: #04140d; padding: 2px 8px; border-radius: 6px 6px 0 0; white-space: nowrap; pointer-events: none; }
   `;
 
   function withViewportHeight(css, vh) {
