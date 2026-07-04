@@ -2,7 +2,7 @@
   import { mount, unmount } from 'svelte';
   import CanvasContent from './CanvasContent.svelte';
 
-  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel, preview = false } = $props();
+  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel, preview = false, oncommand } = $props();
   let iframeEl = $state(null);
   let styleEl = $state(null);
 
@@ -28,6 +28,8 @@
     [data-component-ref][data-selected] { outline: 2px solid #7C3AED; }
     [data-loop] { position: relative; outline: 1px dashed rgba(16,185,129,0.55); outline-offset: 3px; min-height: 44px; }
     [data-loop][data-selected] { outline: 2px solid #7C3AED; }
+    [data-empty] { min-height: 46px; }
+    [data-empty]::before { content: "Type / to add"; display: flex; align-items: center; justify-content: center; min-height: 46px; color: #b7b2c6; font: 500 12px/1 system-ui, sans-serif; pointer-events: none; }
     .oc-loop-badge { position: absolute; top: 0; left: 0; transform: translateY(-100%); font: 700 11px/1.5 system-ui, sans-serif; background: #10b981; color: #04140d; padding: 2px 8px; border-radius: 6px 6px 0 0; white-space: nowrap; pointer-events: none; }
   `;
 
@@ -72,8 +74,12 @@
       const rect = iframe.getBoundingClientRect();
       oncontext?.(id, rect.left + e.clientX, rect.top + e.clientY);
     };
+    const onKeyDown = (e) => {
+      if (e.key === '/' && !isPreview && oncommand) { e.preventDefault(); oncommand(); }
+    };
     doc.addEventListener('click', onClick);
     if (oncontext) doc.addEventListener('contextmenu', onCtx);
+    if (oncommand) doc.addEventListener('keydown', onKeyDown);
 
     const onWheelFwd = (e) => {
       e.preventDefault();
@@ -106,6 +112,7 @@
       if (ro) ro.disconnect();
       doc.removeEventListener('click', onClick);
       doc.removeEventListener('contextmenu', onCtx);
+      doc.removeEventListener('keydown', onKeyDown);
       doc.removeEventListener('wheel', onWheelFwd);
       styleEl = null;
     };

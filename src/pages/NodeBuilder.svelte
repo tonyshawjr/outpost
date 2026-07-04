@@ -17,6 +17,7 @@
   import SectionGallery from '$components/builder/SectionGallery.svelte';
   import StockPhotoPicker from '$components/builder/StockPhotoPicker.svelte';
   import LoopPanel from '$components/builder/LoopPanel.svelte';
+  import QuickInsert from '$components/builder/QuickInsert.svelte';
   import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate } from 'lucide-svelte';
 
   const editor = createNodeEditor();
@@ -32,6 +33,7 @@
   let styleManagerOpen = $state(false);
   let importOpen = $state(false);
   let galleryOpen = $state(false);
+  let quickOpen = $state(false);
   let stockOpen = $state(false);
 
   function applyStockPhoto(res) {
@@ -132,10 +134,13 @@
 
   $effect(() => {
     const onKey = (e) => {
+      const typing = ['input', 'textarea', 'select'].includes((e.target.tagName || '').toLowerCase());
+      if (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey && !quickOpen) {
+        e.preventDefault(); openQuick(); return;
+      }
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
       const key = e.key.toLowerCase();
-      const typing = ['input', 'textarea', 'select'].includes((e.target.tagName || '').toLowerCase());
       if (key === 's') { e.preventDefault(); save(); }
       else if (key === 'z' && !typing) { e.preventDefault(); e.shiftKey ? editor.redo() : editor.undo(); }
       else if (key === 'y' && !typing) { e.preventDefault(); editor.redo(); }
@@ -146,6 +151,18 @@
 
   function add(type) {
     editor.insert(type, insertTarget);
+  }
+
+  let quickItems = $derived([
+    ...adders.map((a) => ({ label: a.label, icon: a.icon, keywords: a.type, run: () => add(a.type) })),
+    { label: 'Embed', icon: Film, keywords: 'video media iframe youtube', run: () => addEmbed() },
+    { label: 'Section…', icon: LayoutTemplate, keywords: 'pattern gallery prebuilt hero', run: () => (galleryOpen = true) },
+    { label: 'Import HTML…', icon: Download, keywords: 'paste code markup', run: () => (importOpen = true) },
+  ]);
+
+  function openQuick() {
+    if (previewMode || editMode !== 'design') return;
+    quickOpen = true;
   }
 
   async function addEmbed(existingId) {
@@ -366,7 +383,7 @@
           {/if}
         {/if}
       </div>
-      <NodeCanvas {editor} preview={previewMode} oncontext={editMode === 'design' && !previewMode ? openContext : undefined} />
+      <NodeCanvas {editor} preview={previewMode} oncommand={openQuick} oncontext={editMode === 'design' && !previewMode ? openContext : undefined} />
       <aside class="inspector" class:preview-hidden={previewMode} aria-label="Element settings">
         {#if selected && isComponentRef}
           <div class="ins-head">Component</div>
@@ -558,6 +575,10 @@
         addToast(parts.length ? `Added — ${parts.join(', ')}` : 'Section added', 'success');
       }}
     />
+  {/if}
+
+  {#if quickOpen}
+    <QuickInsert items={quickItems} onclose={() => (quickOpen = false)} />
   {/if}
 </div>
 

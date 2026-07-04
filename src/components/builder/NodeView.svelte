@@ -56,7 +56,7 @@
     {/each}
   </svelte:element>
 {:else if node.type === 'container'}
-  <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} class={cls}>
+  <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} data-empty={!inert && !preview && node.children.length === 0 ? true : undefined} class={cls}>
     {#each node.children as cid (cid)}
       {#if tree.nodes[cid]}
         <NodeView node={tree.nodes[cid]} {tree} {editor} {inert} {preview} />

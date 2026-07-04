@@ -4,6 +4,12 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Slash-Insert Quick Menu (v6.0.0-beta.40)
+
+- **`/` quick-insert (`#8` Mosaic borrow).** `src/components/builder/QuickInsert.svelte` — a filterable, keyboard-navigable command palette (role=dialog + listbox, arrow/Enter/Esc, focus-managed) opened by pressing `/` in the builder. Lists element types + Embed + Section gallery + Import; selecting inserts into the current target (`insertTarget`). Wired via a window keydown in `NodeBuilder.svelte` and an iframe-forwarded `oncommand` from `CanvasFrame.svelte` (so `/` works whether focus is on the page chrome or inside the canvas). Empty containers render a "Type / to add" hint (`data-empty` + chrome CSS). Gated to design mode, off in preview.
+
+---
+
 ## Templates Archive (v6.0.0-beta.39)
 
 - **Visual grid of the theme's templates (`#10` Mosaic borrow).** `src/pages/TemplateArchive.svelte` (route `template-archive`, `hasCodeAccess`-gated). New REST endpoint `GET templates` → `handle_templates_list()` in `php/code-editor.php` (cap `code.*`) reuses the theme-scan logic (manifest `templates[]` → `templates/*.html` → root `*.html`, first non-empty wins) and resolves each template's theme-relative file. Cards show name/slug/description/file with a per-slug icon; **Edit** deep-links into the Code Editor.

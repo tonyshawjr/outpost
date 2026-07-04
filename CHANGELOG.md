@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.40] — 2026-07-04
+
+### Added
+- **Slash to insert.** Press <kbd>/</kbd> anywhere in the visual builder to open a quick-insert menu — type to filter, arrow keys to move, Enter to add. Empty containers now show a "Type / to add" hint so they're never a dead end.
+
+---
+
 ## [6.0.0-beta.39] — 2026-07-04
 
 ### Added
