@@ -1,7 +1,7 @@
 <script>
   import NodeView from './NodeView.svelte';
 
-  let { node, tree, editor, inert = false } = $props();
+  let { node, tree, editor, inert = false, preview = false } = $props();
   let selected = $derived(!inert && editor.selectedId === node.id);
   let cls = $derived(node.classes.length ? node.classes.join(' ') : undefined);
   let nid = $derived(inert ? undefined : node.id);
@@ -47,11 +47,11 @@
     {/if}
   </div>
 {:else if node.type === 'loop'}
-  <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} data-loop class={cls}>
-    {#if !inert}<span class="oc-loop-badge">{loopLabel}</span>{/if}
+  <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} data-loop={preview ? undefined : true} class={cls}>
+    {#if !inert && !preview}<span class="oc-loop-badge">{loopLabel}</span>{/if}
     {#each node.children as cid (cid)}
       {#if tree.nodes[cid]}
-        <NodeView node={tree.nodes[cid]} {tree} {editor} {inert} />
+        <NodeView node={tree.nodes[cid]} {tree} {editor} {inert} {preview} />
       {/if}
     {/each}
   </svelte:element>
@@ -59,7 +59,7 @@
   <svelte:element this={node.tag} data-node-id={nid} data-selected={selected || undefined} class={cls}>
     {#each node.children as cid (cid)}
       {#if tree.nodes[cid]}
-        <NodeView node={tree.nodes[cid]} {tree} {editor} {inert} />
+        <NodeView node={tree.nodes[cid]} {tree} {editor} {inert} {preview} />
       {/if}
     {/each}
   </svelte:element>

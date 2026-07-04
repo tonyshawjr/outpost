@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.37] — 2026-07-04
+
+### Added
+- **Section gallery.** A new **Sections** button in the visual builder opens a gallery of pre-designed sections (Hero, Features, Content, CTA) shown as live thumbnails. Pick one and it drops onto the canvas as editable elements you can restyle — build from a starting point instead of a blank canvas.
+- **Preview toggle + View live.** A **Preview** toggle in the builder hides the editing chrome (outlines, badges, panels) to show the page as it will look, and a **View live** button opens the published page in a new tab.
+
+---
+
 ## [6.0.0-beta.36] — 2026-07-04
 
 ### Added

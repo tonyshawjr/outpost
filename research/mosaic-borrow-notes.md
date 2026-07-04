@@ -1,6 +1,6 @@
 # Mosaic → Outpost: Borrow Notes
 
-**Status:** Research / observation. **Shipped so far:** #1 theme-first picker + #2 animated import (mosaic-wizard); **#11 loop element + visual dynamic-data** (v6.0.0-beta.36, bakes to `<outpost-each>`, verified live); **#3 numbered orientation** + **#4 "Made it yours" recap** (v6.0.0-beta.36, on the wizard completion screen). Editor-shell items #5/#6/#7(partial)/#15/#17 landed via the v6 builder arc.
+**Status:** Research / observation. **Shipped so far:** #1 theme-first picker + #2 animated import (mosaic-wizard); **#11 loop element + visual dynamic-data** (v6.0.0-beta.36, bakes to `<outpost-each>`, verified live); **#3 numbered orientation** + **#4 "Made it yours" recap** (v6.0.0-beta.36); **#9 section/pattern gallery** (v6.0.0-beta.37, live-thumbnail picker → `importSection`) + **#7 preview toggle + View live** (v6.0.0-beta.37). Editor-shell items #5/#6/#15/#17 landed via the v6 builder arc. **Remaining:** #10 template grid, #16 style-guide editor, and the interaction cluster #8/#12/#13/#14.
 **Date:** 2026-07-03
 **Source:** Mosaic "Getting Started" video — https://www.youtube.com/watch?v=hOKe3h3FdpM (demo theme "Monolith", plugin build `Mosaic-pro-beta-0.0.15.zip`)
 **Companion doc:** [`instatic-borrow-spec.md`](./instatic-borrow-spec.md) — the source-of-truth plan this cross-references.

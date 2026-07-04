@@ -14,13 +14,16 @@
   import AiPanel from '$components/builder/AiPanel.svelte';
   import StyleManager from '$components/builder/StyleManager.svelte';
   import SectionImportModal from '$components/builder/SectionImportModal.svelte';
+  import SectionGallery from '$components/builder/SectionGallery.svelte';
   import StockPhotoPicker from '$components/builder/StockPhotoPicker.svelte';
   import LoopPanel from '$components/builder/LoopPanel.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat } from 'lucide-svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
   let pageTitle = $state('Page');
+  let pagePath = $state('');
+  let previewMode = $state(false);
   let loading = $state(true);
   let loadError = $state('');
   let leftPanel = $state('layers');
@@ -28,6 +31,7 @@
   let aiOpen = $state(false);
   let styleManagerOpen = $state(false);
   let importOpen = $state(false);
+  let galleryOpen = $state(false);
   let stockOpen = $state(false);
 
   function applyStockPhoto(res) {
@@ -116,6 +120,7 @@
       try {
         const res = await pagesApi.get(id);
         pageTitle = (res.page || res)?.title || 'Page';
+        pagePath = (res.page || res)?.path || '';
       } catch { pageTitle = 'Page'; }
       await editor.load(id);
     } catch (e) {
@@ -243,6 +248,18 @@
       addToast(editor.conflict ? 'Someone else saved first — reload' : (e.message || 'Save failed'), 'error');
     }
   }
+
+  function viewLive() {
+    const target = pagePath && pagePath !== '/' ? pagePath : '/';
+    let dest;
+    try {
+      dest = new URL(target, window.location.origin);
+    } catch {
+      return;
+    }
+    if (dest.origin !== window.location.origin) return;
+    window.open(dest.href, '_blank', 'noopener');
+  }
 </script>
 
 <div class="builder">
@@ -271,6 +288,10 @@
           <span>Embed</span>
         </button>
         <span class="add-sep" aria-hidden="true"></span>
+        <button class="add" onclick={() => (galleryOpen = true)} title="Add a pre-designed section">
+          <LayoutTemplate size={15} aria-hidden="true" />
+          <span>Sections</span>
+        </button>
         <button class="add" onclick={() => (importOpen = true)} title="Import a section from HTML, CSS &amp; JavaScript">
           <Download size={15} aria-hidden="true" />
           <span>Import</span>
@@ -291,6 +312,13 @@
           <span>AI</span>
         </button>
       {/if}
+      <button class="ai-toggle" class:on={previewMode} aria-pressed={previewMode} onclick={() => (previewMode = !previewMode)} title={previewMode ? 'Back to editing' : 'Preview (hide builder chrome)'}>
+        <Eye size={15} aria-hidden="true" />
+        <span>{previewMode ? 'Editing' : 'Preview'}</span>
+      </button>
+      <button class="icon" onclick={viewLive} aria-label="View live page in a new tab" title="View live page">
+        <ExternalLink size={17} aria-hidden="true" />
+      </button>
       <button class="icon" onclick={() => editor.undo()} disabled={!editor.canUndo} aria-label="Undo" title="Undo (⌘Z)">
         <Undo2 size={17} aria-hidden="true" />
       </button>
@@ -322,7 +350,7 @@
     <div class="message error">{loadError}</div>
   {:else}
     <div class="body">
-      <div class="left-col">
+      <div class="left-col" class:preview-hidden={previewMode}>
         {#if editMode === 'content'}
           <div class="left-single">Content</div>
           <ContentPanel {editor} />
@@ -338,8 +366,8 @@
           {/if}
         {/if}
       </div>
-      <NodeCanvas {editor} oncontext={editMode === 'design' ? openContext : undefined} />
-      <aside class="inspector" aria-label="Element settings">
+      <NodeCanvas {editor} preview={previewMode} oncontext={editMode === 'design' && !previewMode ? openContext : undefined} />
+      <aside class="inspector" class:preview-hidden={previewMode} aria-label="Element settings">
         {#if selected && isComponentRef}
           <div class="ins-head">Component</div>
           <div class="cmp-name">{editor.componentName(selected.props.componentId) || 'Component'}</div>
@@ -514,6 +542,20 @@
         if (res.classCount) parts.push(`${res.classCount} style${res.classCount === 1 ? '' : 's'} merged`);
         if (res.jsWritten) parts.push('script saved');
         addToast(parts.length ? `Imported — ${parts.join(', ')}` : 'Nothing to import', res.inserted || res.classCount || res.jsWritten ? 'success' : 'error');
+      }}
+    />
+  {/if}
+
+  {#if galleryOpen}
+    <SectionGallery
+      {editor}
+      parentId={insertTarget}
+      onclose={() => (galleryOpen = false)}
+      onimported={(res) => {
+        const parts = [];
+        if (res.inserted) parts.push('section added');
+        if (res.classCount) parts.push(`${res.classCount} style${res.classCount === 1 ? '' : 's'} merged`);
+        addToast(parts.length ? `Added — ${parts.join(', ')}` : 'Section added', 'success');
       }}
     />
   {/if}
@@ -710,6 +752,8 @@
     display: flex;
     min-height: 0;
   }
+
+  .preview-hidden { display: none; }
 
   .left-col {
     width: 280px;

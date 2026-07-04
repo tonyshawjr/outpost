@@ -2,7 +2,7 @@
   import { mount, unmount } from 'svelte';
   import CanvasContent from './CanvasContent.svelte';
 
-  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel } = $props();
+  let { editor, oncontext, fitHeight = false, viewportHeight = 0, onwheel, preview = false } = $props();
   let iframeEl = $state(null);
   let styleEl = $state(null);
 
@@ -13,11 +13,15 @@
     body { background: #ffffff; color: #111; }
     .oc-canvas { min-height: 100vh; }
     img { max-width: 100%; }
-    [data-node-id] { cursor: pointer; scroll-margin: 96px 0; }
+    [data-node-id] { scroll-margin: 96px 0; }
     .oc-embed { display: block; max-width: 100%; }
     .oc-embed iframe, .oc-embed img { display: block; width: 100%; height: auto; border: 0; }
-    .oc-embed iframe { pointer-events: none; }
     .oc-embed-empty { display: block; padding: 24px; text-align: center; color: #888; border: 1px dashed #ccc; }
+  `;
+
+  const CHROME_CSS = `
+    [data-node-id] { cursor: pointer; }
+    .oc-embed iframe { pointer-events: none; }
     [data-field] { outline: 1px dashed rgba(124,58,237,0.45); outline-offset: 1px; }
     [data-node-id][data-selected] { outline: 2px solid #7C3AED; outline-offset: 1px; }
     [data-component-ref] { outline: 1px dashed #A78BFA; outline-offset: 1px; }
@@ -42,8 +46,9 @@
     doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div class="oc-canvas"></div></body></html>');
     doc.close();
 
+    const isPreview = preview;
     const baseStyle = doc.createElement('style');
-    baseStyle.textContent = withViewportHeight(BASE_CSS, fitHeight ? viewportHeight : 0);
+    baseStyle.textContent = withViewportHeight(BASE_CSS + (isPreview ? '' : CHROME_CSS), fitHeight ? viewportHeight : 0);
     doc.head.appendChild(baseStyle);
 
     const dynStyle = doc.createElement('style');
@@ -51,9 +56,10 @@
     styleEl = dynStyle;
 
     const surface = doc.querySelector('.oc-canvas');
-    const app = mount(CanvasContent, { target: surface, props: { editor } });
+    const app = mount(CanvasContent, { target: surface, props: { editor, preview: isPreview } });
 
     const onClick = (e) => {
+      if (isPreview) return;
       const t = e.target.closest('[data-node-id]');
       editor.select(t ? t.getAttribute('data-node-id') : null);
     };

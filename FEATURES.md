@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Section Gallery + Preview Toggle (v6.0.0-beta.37)
+
+- **Section gallery (`#9` Mosaic borrow).** `src/components/builder/SectionGallery.svelte` — a full-screen picker of curated sections from `src/lib/section-patterns.js` (Hero/Features/Content/CTA), each rendered as a **live thumbnail** via an `<iframe srcdoc>` of the pattern's own HTML+CSS scaled to fit (no image assets shipped). Category filter tabs; clicking a card calls the existing `editor.importSection(html, css, js, parentId)` path, so the section explodes into editable nodes + merges classes. Opened via a new **Sections** toolbar button. Patterns follow the import conventions (single-class selectors, semantic tags, `data-outpost` holes, fluid `clamp`/`auto-fit` CSS — no media queries). Verified: the hero pattern explodes into a `sp-hero` container + text/button field nodes via `nodes/import-section`.
+- **Preview toggle + View live (`#7`).** `CanvasFrame.svelte` splits builder chrome into `CHROME_CSS`; a `preview` prop (threaded via `NodeCanvas` → `CanvasContent` → `NodeView`) omits chrome CSS, disables click-select + context menu, and hides the loop badge. `NodeBuilder.svelte` adds a **Preview** toggle (`aria-pressed`) that also hides the side panels (`.preview-hidden`) for a clean full-width view, plus a **View live** button that opens the page's live URL.
+
+---
+
 ## Loop Element — Visual Dynamic Data (v6.0.0-beta.36)
 
 - **Loop node repeats a template per collection item.** New `loop` node type (`php/node-engine.php` `outpost_node_types()` + `NODE_TYPES` in `src/lib/node-tree.js`). `outpost_render_node()` bakes a loop to `<div class="{loop classes}"><outpost-each collection="X" limit="N" sort order>{item template}</outpost-each></div>`, reusing the existing v2 template engine (`cms_collection_list()`) — so lists render live at request time and item-scoped `data-outpost` holes resolve from each item. No new render pipeline. Slug/limit/sort/order are sanitized/whitelisted at render (the security boundary).
