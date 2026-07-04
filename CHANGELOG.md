@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.43] — 2026-07-04
+
+### Added
+- **Animation timeline.** A new **Timeline** panel in the builder lists every animated element as a track — drag its bar (or type a delay) to time when each one fires, hit **Auto-stagger** to cascade your reveals evenly, and **Play all** to preview the whole sequence. Makes staggered, sequenced scroll animations easy.
+
+---
+
 ## [6.0.0-beta.42] — 2026-07-04
 
 ### Added

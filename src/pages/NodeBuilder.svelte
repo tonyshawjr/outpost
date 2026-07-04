@@ -19,7 +19,8 @@
   import LoopPanel from '$components/builder/LoopPanel.svelte';
   import QuickInsert from '$components/builder/QuickInsert.svelte';
   import InteractionsPanel from '$components/builder/InteractionsPanel.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate } from 'lucide-svelte';
+  import MotionTimeline from '$components/builder/MotionTimeline.svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate, Clapperboard } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
@@ -35,6 +36,7 @@
   let importOpen = $state(false);
   let galleryOpen = $state(false);
   let quickOpen = $state(false);
+  let timelineOpen = $state(false);
   let stockOpen = $state(false);
 
   function applyStockPhoto(res) {
@@ -346,6 +348,10 @@
           <Sparkles size={15} aria-hidden="true" />
           <span>AI</span>
         </button>
+        <button class="ai-toggle" class:on={timelineOpen} aria-pressed={timelineOpen} onclick={() => (timelineOpen = !timelineOpen)} title="Animation timeline">
+          <Clapperboard size={15} aria-hidden="true" />
+          <span>Timeline</span>
+        </button>
       {/if}
       <button class="ai-toggle" class:on={previewMode} aria-pressed={previewMode} onclick={() => (previewMode = !previewMode)} title={previewMode ? 'Back to editing' : 'Preview (hide builder chrome)'}>
         <Eye size={15} aria-hidden="true" />
@@ -561,6 +567,9 @@
         <AiPanel {editor} onclose={() => (aiOpen = false)} />
       {/if}
     </div>
+    {#if timelineOpen && editMode === 'design'}
+      <MotionTimeline {editor} onclose={() => (timelineOpen = false)} />
+    {/if}
   {/if}
 
   {#if ctx}
