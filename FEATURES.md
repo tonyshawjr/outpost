@@ -4,6 +4,13 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Per-Element Action Bar + Code View (v6.0.0-beta.44)
+
+- **Floating per-node action bar (Instatic borrow 2.2).** `CanvasFrame.svelte` injects a small toolbar into the canvas iframe, anchored above the selected node (single-frame design mode only): **Select parent / Duplicate / Delete** pills. Repositions on selection/scroll/resize, hidden in preview + pick mode + on the root, and its clicks `stopPropagation` so they don't deselect. Buttons call the already-audited `editor.select/duplicate/remove`.
+- **`</>` code view (Instatic borrow 2.2).** `CodeView.svelte` — a `</>` toolbar button opens a modal showing the page's rendered HTML (read-only, via the existing `nodes/render` → `{html}` endpoint) with a Copy button. WCAG dialog (labelled, Esc-close, focus-managed).
+
+---
+
 ## Interactions / Motion System (v6.0.0-beta.41)
 
 - **Motion foundation + Interactions panel (`#12` Mosaic borrow).** Node motion lives in `props.motion` (`{trigger: reveal|scroll|click, effect: fade|slide-*|scale, duration, delay, distance, once}`). `outpost_node_motion_attr()` in `php/node-engine.php` bakes a **whitelisted, bounded** `data-motion="{json}"` attribute (trigger/effect `in_array`-gated, numerics `(int)`-bounded, `htmlspecialchars` — no user string reaches output; verified an injected `evil` key is dropped).

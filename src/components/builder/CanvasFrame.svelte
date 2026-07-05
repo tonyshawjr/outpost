@@ -6,6 +6,7 @@
   let iframeEl = $state(null);
   let styleEl = $state(null);
   const livePick = { mode: false, fn: null };
+  let repositionBar = null;
   $effect(() => { livePick.mode = pickMode; livePick.fn = onpick; });
   $effect(() => {
     const body = iframeEl?.contentDocument?.body;
@@ -127,6 +128,53 @@
     };
     if (onwheel) doc.addEventListener('wheel', onWheelFwd, { passive: false });
 
+    let bar = null;
+    if (!fitHeight && !isPreview) {
+      bar = doc.createElement('div');
+      bar.style.cssText = 'position:fixed;z-index:2147483000;display:none;gap:2px;padding:3px;background:#7C3AED;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.25);';
+      bar.addEventListener('mousedown', (ev) => ev.stopPropagation());
+      const mkBtn = (label, title, fn) => {
+        const b = doc.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.title = title;
+        b.setAttribute('aria-label', title);
+        b.style.cssText = 'width:26px;height:24px;border:0;border-radius:6px;background:transparent;color:#fff;font:600 13px/1 system-ui,sans-serif;cursor:pointer;';
+        b.addEventListener('mouseenter', () => { b.style.background = 'rgba(255,255,255,0.22)'; });
+        b.addEventListener('mouseleave', () => { b.style.background = 'transparent'; });
+        b.addEventListener('click', (ev) => { ev.stopPropagation(); fn(); });
+        return b;
+      };
+      const parentBtn = mkBtn('↑', 'Select parent', () => {
+        const id = editor.selectedId;
+        if (!id) return;
+        const nodes = editor.tree.nodes;
+        for (const nid in nodes) { if (nodes[nid].children && nodes[nid].children.includes(id)) { editor.select(nid); return; } }
+      });
+      const dupBtn = mkBtn('⧉', 'Duplicate', () => { if (editor.selectedId) editor.duplicate(editor.selectedId); });
+      const delBtn = mkBtn('✕', 'Delete', () => { const id = editor.selectedId; if (id && id !== editor.tree.root) editor.remove(id); });
+      bar.appendChild(parentBtn);
+      bar.appendChild(dupBtn);
+      bar.appendChild(delBtn);
+      doc.body.appendChild(bar);
+
+      const reposition = () => {
+        const id = editor.selectedId;
+        const el = (id && !livePick.mode) ? doc.querySelector(`[data-node-id="${id}"]`) : null;
+        if (!el) { bar.style.display = 'none'; return; }
+        const r = el.getBoundingClientRect();
+        const isRoot = id === editor.tree.root;
+        delBtn.disabled = isRoot;
+        delBtn.style.opacity = isRoot ? '0.4' : '1';
+        bar.style.display = 'flex';
+        bar.style.top = (r.top - 30 < 4 ? r.top + 4 : r.top - 30) + 'px';
+        bar.style.left = Math.max(4, r.left) + 'px';
+      };
+      doc.addEventListener('scroll', reposition, { passive: true, capture: true });
+      repositionBar = reposition;
+      reposition();
+    }
+
     let ro = null;
     if (fitHeight) {
       const fit = () => {
@@ -147,8 +195,15 @@
       doc.removeEventListener('keydown', onKeyDown);
       doc.removeEventListener('wheel', onWheelFwd);
       window.removeEventListener('outpost:motion-preview', onPreview);
+      repositionBar = null;
       styleEl = null;
     };
+  });
+
+  $effect(() => {
+    const _ = editor.selectedId;
+    void _;
+    if (repositionBar) (requestAnimationFrame || window.requestAnimationFrame)(() => repositionBar && repositionBar());
   });
 
   $effect(() => {

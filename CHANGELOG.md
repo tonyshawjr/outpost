@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.44] — 2026-07-05
+
+### Added
+- **Per-element action bar + code view.** Selecting an element on the canvas now shows a floating toolbar right on it — jump to the parent, duplicate, or delete without leaving the canvas. And a new **`</>`** button in the builder opens the page's rendered HTML in a copyable view.
+
+---
+
 ## [6.0.0-beta.43] — 2026-07-04
 
 ### Added

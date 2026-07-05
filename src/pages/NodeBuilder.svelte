@@ -20,13 +20,16 @@
   import QuickInsert from '$components/builder/QuickInsert.svelte';
   import InteractionsPanel from '$components/builder/InteractionsPanel.svelte';
   import MotionTimeline from '$components/builder/MotionTimeline.svelte';
-  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate, Clapperboard } from 'lucide-svelte';
+  import CodeView from '$components/builder/CodeView.svelte';
+  import { Undo2, Redo2, Save, Copy, Trash2, Box, Type, Image as ImageIcon, MousePointerClick, Link as LinkIcon, Component, Pencil, ArrowLeft, Sparkles, Palette, Download, Images, Film, Repeat, Eye, ExternalLink, LayoutTemplate, Clapperboard, Code2 } from 'lucide-svelte';
 
   const editor = createNodeEditor();
 
   let pageTitle = $state('Page');
   let pagePath = $state('');
+  let pageId = $state(null);
   let previewMode = $state(false);
+  let codeOpen = $state(false);
   let loading = $state(true);
   let loadError = $state('');
   let leftPanel = $state('layers');
@@ -127,6 +130,7 @@
         pageTitle = (res.page || res)?.title || 'Page';
         pagePath = (res.page || res)?.path || '';
       } catch { pageTitle = 'Page'; }
+      pageId = id;
       await editor.load(id);
     } catch (e) {
       loadError = e.message || 'Failed to load page.';
@@ -356,6 +360,9 @@
       <button class="ai-toggle" class:on={previewMode} aria-pressed={previewMode} onclick={() => (previewMode = !previewMode)} title={previewMode ? 'Back to editing' : 'Preview (hide builder chrome)'}>
         <Eye size={15} aria-hidden="true" />
         <span>{previewMode ? 'Editing' : 'Preview'}</span>
+      </button>
+      <button class="icon" onclick={() => (codeOpen = true)} aria-label="View page HTML" title="View HTML">
+        <Code2 size={17} aria-hidden="true" />
       </button>
       <button class="icon" onclick={viewLive} aria-label="View live page in a new tab" title="View live page">
         <ExternalLink size={17} aria-hidden="true" />
@@ -618,6 +625,10 @@
 
   {#if quickOpen}
     <QuickInsert items={quickItems} onclose={() => (quickOpen = false)} />
+  {/if}
+
+  {#if codeOpen}
+    <CodeView {pageId} onclose={() => (codeOpen = false)} />
   {/if}
 </div>
 
