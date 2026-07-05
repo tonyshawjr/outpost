@@ -79,3 +79,25 @@ Which model to build first:
 - **(Hybrid)** — B now, A layered after (the recommendation).
 
 Everything downstream (dependency graph vs client runtime first) branches on this.
+
+---
+
+## DECISION (2026-07-05): **B — ISR.** Concrete implementation map (traced, ready to build)
+
+The codebase already flags this as future work — `outpost_clear_cache()` (`php/engine.php:1762`) ALWAYS calls `boost_clear_page_cache()` which clears the **entire** Boost page cache, even when a single `$page_path` is passed (see the comment at engine.php:1776: *"Targeted invalidation (single page) is future work"*). So ANY content edit nukes the whole cache today.
+
+**The build, precisely:**
+
+1. **Path-addressable cache filenames.** `boost_cache_path()` (`php/boost.php:114`) currently returns `md5(url_path[+query]) . '.html'` — not enumerable by path. Change to a path-prefixed form, e.g. `md5(pathOnly) . '_' . md5(fullUrlWithQuery) . '.html'`, so all cache files for a path (incl. `?page=2` pagination variants) glob as `md5(pathOnly) . '_*.html'`. Serve + write both go through `boost_cache_path`, so they stay consistent. Old-format files orphan harmlessly (clear-all still globs `*.html`).
+
+2. **Targeted `boost_clear_page_cache(?string $path = null)`.** If `$path`, `glob(dir . md5($path) . '_*.html')` and unlink those; else clear all. Boost derives its key from `parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)` (`boost.php:169,231`), and DB `page_path` is `/about`, `/` etc. — they match for normal pages. **Edge cases to handle:** trailing slash (`/about` vs `/about/` → normalize both sides), and homepage `/`.
+
+3. **`outpost_clear_cache($path)` passes the path through** to `boost_clear_page_cache($path)` instead of clearing all. This alone makes every field/page edit that already scopes a path (api.php has many `outpost_clear_cache($page['path'])` calls) fine-grained.
+
+4. **Collection→page dependency map (auto-tracked).** Add `page_collection_deps(path, collection_slug)`. Record `(current REQUEST path, $slug)` inside `cms_collection_list($slug, …)` (`php/engine.php:972`) via `INSERT OR IGNORE` on every render — so deps self-populate on first (cache-miss) render, including collection single/archive URLs (`/journal/{slug}`) that aren't in the `pages` table. On a collection item **save/delete** (the `outpost_clear_cache()` no-arg calls at api.php:2032/3096/3351/3981/4077 etc.), replace clear-all with: `SELECT path FROM page_collection_deps WHERE collection_slug = ?` → `outpost_clear_cache($path)` for each. Unrendered pages have no deps and no cache → no stale risk (self-consistent).
+
+5. **(Optional) proactive warming** — after invalidating, the next request lazily re-renders (this is exactly Next.js `revalidatePath` semantics; ISR does NOT require pre-warming). Pre-warming is a later optimization.
+
+**Why this is a its-own-pass build, not a tail-of-session cram:** cache invalidation is high-blast-radius — a path-normalization mismatch silently serves *stale* content to live visitors, or fails to clear. It needs a dedicated **cache-correctness audit**: verify the targeted glob matches the write path exactly (trailing-slash/query/homepage), that a field edit clears only its page (and a sibling page's cache survives — directly testable), that a collection edit clears exactly its dependent pages, and that member/paid pages (cache-excluded) are unaffected. That verification is the point, and it deserves fresh focus.
+
+**Status:** fully scoped + implementation-mapped. Ready to build as a focused pass (Phase 1 = steps 1–4 above; member/live islands = the deferred A layer).
