@@ -66,6 +66,23 @@
  <p>The template cache is invalidated automatically based on file modification time. Before serving a cached template, Outpost compares the <code>filemtime()</code> of the source <code>.html</code> file against the <code>filemtime()</code> of the compiled cache file. If the source is newer, the template is recompiled and the cache is updated.</p>
  <p>This means during development, editing and saving an <code>.html</code> template takes effect on the next page load with no manual steps required. The mtime check has negligible overhead — it is a single filesystem call per template.</p>
 
+ <h2>Targeted invalidation on content edits (ISR)</h2>
+ <p>When you edit content in the admin, Outpost clears <strong>only the pages that content appears on</strong> — not the entire cache. This is incremental static regeneration: the rest of your site stays warm and only the changed pages re-render on their next visit.</p>
+ <p>Each cached page's files are keyed by their URL path, so a single page (and all of its query/pagination variants, e.g. <code>?page=2</code>) can be cleared on its own. What gets cleared depends on what you edited:</p>
+ <table>
+ <thead>
+ <tr><th>You edit&hellip;</th><th>Outpost clears&hellip;</th></tr>
+ </thead>
+ <tbody>
+ <tr><td>A field on a page</td><td>Only that page's cache (sibling pages stay cached)</td></tr>
+ <tr><td>A global field</td><td>The whole page cache (globals appear on every page)</td></tr>
+ <tr><td>A collection item</td><td>The item's own single-item page (e.g. <code>/journal/my-post</code>) <em>and</em> any listing page that renders that collection</td></tr>
+ <tr><td>A collection item's slug (rename)</td><td>Both the old URL's cache and the new URL's cache</td></tr>
+ </tbody>
+ </table>
+ <p>The listing pages are tracked automatically: the first time a page renders a collection loop, Outpost records the dependency (page&nbsp;&rarr;&nbsp;collection). A later edit to any item in that collection then clears exactly those pages. Pages that have never been rendered have no cache and no dependency, so there is nothing to clear — the system stays self-consistent with no manual bookkeeping.</p>
+ <p><strong>Member- and paid-gated pages are never written to the page cache</strong> (any logged-in or gated request bypasses it), so gated content is always rendered fresh and is never at risk of being served stale from cache.</p>
+
  <h2>Performance characteristics</h2>
  <p>With both cache layers functioning, Outpost's request path is as fast as a static file server for cached pages:</p>
  <ol class="steps">

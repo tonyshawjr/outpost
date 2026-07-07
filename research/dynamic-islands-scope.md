@@ -1,6 +1,6 @@
 # Dynamic Islands (#11) — Scope
 
-**Status:** Scoping / decision needed. No code yet.
+**Status:** ✅ SHIPPED — Phase 1 (ISR, model B) in v6.0.0-beta.45 (2026-07-07). Approach A (client-hydrated islands for member/live holes) remains deferred. See the "DECISION" section at the bottom for the exact build that shipped.
 **Date:** 2026-07-05
 **Source item:** Instatic borrow spec §5a #11 + §3.5 — "static baked page + lazy-loaded dynamic fragments." The most North-Star-aligned remaining item ("static except the holes, deploys like WordPress").
 

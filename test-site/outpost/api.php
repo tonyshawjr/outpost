@@ -3866,9 +3866,63 @@ function handle_item_create(): void {
     require_once __DIR__ . '/compass.php';
     compass_index_item($id);
 
+    // A new item may appear on any page that renders this collection (ISR-targeted)
+    clear_collection_cache_for_items([$id]);
+
     $response = ['success' => true, 'id' => $id];
     if ($submitted_for_review) $response['submitted_for_review'] = true;
     json_response($response, 201);
+}
+
+/**
+ * ISR-targeted cache clear for collection item mutations. Two things depend on
+ * a collection item and must be cleared:
+ *   1. The item's OWN single-item page (e.g. /journal/my-post) — cleared
+ *      surgically by URL for each affected item.
+ *   2. Any listing page that loops the item's collection — cleared via the
+ *      page_collection_deps map (outpost_clear_collection_cache).
+ *
+ * Pass item IDs for items that still exist; pass pre-fetched $rows (each with
+ * slug, url_pattern, coll_slug) for items already deleted (IDs no longer
+ * resolve). Falls back to a full clear if nothing can be resolved — the
+ * conservative choice never serves stale content.
+ */
+function clear_collection_cache_for_items(array $item_ids, array $rows = []): void {
+    $item_ids = array_values(array_filter(array_map('intval', $item_ids)));
+    if ($item_ids) {
+        $ph = implode(',', array_fill(0, count($item_ids), '?'));
+        try {
+            $fetched = OutpostDB::fetchAll(
+                "SELECT ci.slug, c.url_pattern, c.slug AS coll_slug
+                 FROM collection_items ci JOIN collections c ON ci.collection_id = c.id
+                 WHERE ci.id IN ($ph)",
+                $item_ids
+            );
+            $rows = array_merge($rows, $fetched);
+        } catch (\Throwable $e) {
+            outpost_clear_cache();
+            return;
+        }
+    }
+    if (!$rows) { outpost_clear_cache(); return; }
+
+    $collSlugs = [];
+    foreach ($rows as $r) {
+        $cslug = $r['coll_slug'] ?? '';
+        if ($cslug !== '') $collSlugs[$cslug] = true;
+        // Clear this item's own single-item page cache (e.g. /journal/my-post).
+        if (!empty($r['slug'])) {
+            $url = collection_item_url_path($r['slug'], [
+                'url_pattern' => $r['url_pattern'] ?? '',
+                'slug'        => $cslug,
+            ]);
+            if ($url !== '') outpost_clear_cache($url);
+        }
+    }
+    // Clear every listing page that renders each affected collection.
+    foreach (array_keys($collSlugs) as $slug) {
+        outpost_clear_collection_cache($slug);
+    }
 }
 
 function handle_item_update(): void {
@@ -3901,6 +3955,10 @@ function handle_item_update(): void {
                 'slug'        => $current['coll_slug'],
             ]);
             purge_ghost_page($old_path);
+            // Clear the OLD URL's page cache too — the final targeted clear below
+            // only sees the new slug, so without this the pre-rename URL keeps
+            // serving stale content until TTL (a regression from the old clear-all).
+            if ($old_path !== '') outpost_clear_cache($old_path);
         }
         $update['slug'] = $data['slug'];
     }
@@ -3977,8 +4035,8 @@ function handle_item_update(): void {
         log_activity('content', '"' . $title . '" published');
     }
 
-    // Clear full HTML cache — any listing page (e.g. /blog) needs to reflect changes too
-    outpost_clear_cache();
+    // Clear cache for pages that render this item's collection (ISR-targeted)
+    clear_collection_cache_for_items([$id]);
 
     // Dispatch webhook
     $updated_item = OutpostDB::fetchOne('SELECT * FROM collection_items WHERE id = ?', [$id]);
@@ -4073,8 +4131,8 @@ function handle_item_inline_update(): void {
         OutpostDB::update('collection_items', $update, 'id = ?', [$id]);
     }
 
-    // Clear full HTML cache
-    outpost_clear_cache();
+    // Clear cache for pages that render this item's collection (ISR-targeted)
+    clear_collection_cache_for_items([$id]);
 
     // Dispatch webhook
     $updated_item = OutpostDB::fetchOne('SELECT * FROM collection_items WHERE id = ?', [$id]);
@@ -4112,6 +4170,11 @@ function handle_item_delete(): void {
 
     $wh_data = ['id' => $id, 'slug' => $item['slug'] ?? '', 'collection_slug' => $item['coll_slug'] ?? ''];
     OutpostDB::delete('collection_items', 'id = ?', [$id]);
+    // Item is gone — clear its single page and any listing page that renders
+    // this collection (ISR-targeted). $item carries slug + url_pattern + coll_slug.
+    if ($item) {
+        clear_collection_cache_for_items([], [$item]);
+    }
     dispatch_webhook('entry.deleted', $wh_data);
     json_response(['success' => true]);
 }
@@ -4197,7 +4260,7 @@ function handle_items_bulk_status(): void {
         );
     }
 
-    outpost_clear_cache();
+    clear_collection_cache_for_items($ids);
     $count = count($ids);
     if (!empty($reviewIds) && !empty($publishIds)) {
         log_activity('content', count($publishIds) . ' item(s) published, ' . count($reviewIds) . ' submitted for review');
@@ -4262,7 +4325,10 @@ function handle_items_bulk_delete(): void {
         dispatch_webhook('entry.deleted', ['slug' => $wh_item['slug'], 'collection_slug' => $wh_item['coll_slug']]);
     }
     OutpostDB::query("DELETE FROM collection_items WHERE id IN ($placeholders)", $ids);
-    outpost_clear_cache();
+    // Items are gone — clear using the rows captured before deletion (slug +
+    // url_pattern + coll_slug), so each item's single page and its listing
+    // pages are both invalidated.
+    clear_collection_cache_for_items([], $items);
     $count = count($ids);
     log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' deleted');
     json_response(['success' => true, 'count' => $count]);
@@ -4318,7 +4384,7 @@ function handle_items_bulk_schedule(): void {
         "UPDATE collection_items SET status = 'scheduled', scheduled_at = ?, updated_at = ? WHERE id IN ($placeholders)",
         array_merge([$scheduledAt, $now], $ids)
     );
-    outpost_clear_cache();
+    clear_collection_cache_for_items($ids);
     $count = count($ids);
     log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' scheduled for ' . $scheduledAt);
     foreach ($ids as $wh_id) {
@@ -4419,7 +4485,7 @@ function handle_items_approve(): void {
         "UPDATE collection_items SET status = 'published', published_at = COALESCE(published_at, ?), reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id IN ($placeholders) AND status = 'pending_review'",
         array_merge([$now, $userId, $now, $now], $ids)
     );
-    outpost_clear_cache();
+    clear_collection_cache_for_items($ids);
     $count = count($ids);
     log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' approved');
     foreach ($ids as $wh_id) {
@@ -4448,7 +4514,7 @@ function handle_items_reject(): void {
         "UPDATE collection_items SET status = 'draft', reviewed_by = NULL, reviewed_at = NULL, updated_at = ? WHERE id IN ($placeholders) AND status = 'pending_review'",
         array_merge([$now], $ids)
     );
-    outpost_clear_cache();
+    clear_collection_cache_for_items($ids);
     $count = count($ids);
     log_activity('content', $count . ' item' . ($count !== 1 ? 's' : '') . ' rejected');
     foreach ($ids as $wh_id) {

@@ -4,6 +4,17 @@ Maintained as features are built. Used for documentation generation.
 
 ---
 
+## Dynamic Islands — Targeted Cache Invalidation / ISR (v6.0.0-beta.45)
+
+- **Path-addressable cache filenames (`#11` Instatic borrow).** `boost_cache_path()` (`php/boost.php`) now keys each cache file `md5(pathOnly) . '_' . md5(fullUrlWithQuery) . '.html'`, so every query/pagination variant of a page (`?page=2`, `?category=x`) shares one glob-able prefix. `boost_normalize_cache_path()` collapses leading/trailing slashes to match `outpost_current_path()`, keeping the write key and the clear key aligned (verified `/about`, `/about/`, `//about`, homepage `/` all normalize identically on both sides).
+- **Targeted `boost_clear_page_cache(?string $path)`.** With a path it globs `md5(normalize($path)) . '_*.html'` and unlinks just that page (all query variants); null clears all. `outpost_clear_cache($path)` (`php/engine.php`) now threads the path through instead of always nuking the whole page cache — so every field/page edit that already scoped a path became fine-grained for free (globals still clear-all, correctly).
+- **Collection→page dependency map (auto-tracked).** New `page_collection_deps(path, collection_slug)` self-populates inside `cms_collection_list()` on every cache-miss render (query string stripped → no unbounded growth; `/outpost/*` paths skipped). On a collection item create/update/delete/bulk/approve/reject, `clear_collection_cache_for_items()` (`php/api.php`) clears (a) the item's **own** single-item page (e.g. `/journal/my-post`) and (b) every listing page recorded as rendering that collection — never the whole cache. Unrendered pages have no deps and no cache, so an empty result is a correct no-op; DB errors fall back to a full clear (never risks stale).
+- **Slug-rename safety.** Renaming an item's slug clears the **old** URL's cache (not just the new one), so the pre-rename URL never serves stale content.
+- **Not cached, so never stale:** member/paid-gated pages remain session-excluded from the page cache — ISR doesn't bake gated content (the client-hydrated "islands" layer for those is deferred, per the scope doc).
+- Verified live end-to-end (authenticated): field edit clears only its page (sibling survives); collection-item edit clears only its single page (sibling survives); slug rename clears the old URL; plus a 15-check cache-correctness harness (normalization, query variants, targeted clear, dep map, empty no-op). Security-audited — path-normalization divergence and a slug-rename stale-content regression were both caught and fixed before release.
+
+---
+
 ## Per-Element Action Bar + Code View (v6.0.0-beta.44)
 
 - **Floating per-node action bar (Instatic borrow 2.2).** `CanvasFrame.svelte` injects a small toolbar into the canvas iframe, anchored above the selected node (single-frame design mode only): **Select parent / Duplicate / Delete** pills. Repositions on selection/scroll/resize, hidden in preview + pick mode + on the root, and its clicks `stopPropagation` so they don't deselect. Buttons call the already-audited `editor.select/duplicate/remove`.

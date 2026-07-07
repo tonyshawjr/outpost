@@ -976,6 +976,11 @@ function cms_collection_list(string $slug, callable $callback, array $opts = [])
     $collection = OutpostDB::fetchOne('SELECT * FROM collections WHERE slug = ?', [$slug]);
     if (!$collection) return;
 
+    // Record the dependency: this page renders this collection. Lets a later
+    // item save clear only the pages that show this collection (ISR). Runs on
+    // cache-miss renders only (cache hits never execute this code path).
+    outpost_record_collection_dep($slug);
+
     $limit       = $opts['limit'] ?? $collection['items_per_page'];
     $relatedId   = (int) ($opts['related_id'] ?? 0);
     $filterParam = $opts['filter_param'] ?? '';
@@ -1773,15 +1778,84 @@ function outpost_clear_cache(?string $page_path = null): void {
     }
 
     // Also invalidate the Boost page cache so visitors don't see stale HTML
-    // after content / theme-file edits. Targeted invalidation (single page) is
-    // future work — for now we clear the whole page cache, matching the
-    // behavior of the legacy template cache above.
+    // after content / theme-file edits. When a $page_path is given we clear
+    // ONLY that page (ISR-style targeted invalidation); a null path clears the
+    // whole page cache. boost_clear_page_cache normalizes the path the same way
+    // it keys the write, so trailing-slash/query variants are covered.
     if (!function_exists('boost_clear_page_cache')) {
         $boostFile = __DIR__ . '/boost.php';
         if (file_exists($boostFile)) @require_once $boostFile;
     }
     if (function_exists('boost_clear_page_cache')) {
-        boost_clear_page_cache();
+        boost_clear_page_cache($page_path);
+    }
+}
+
+// ── Collection → page dependency map (ISR) ───────────────
+/**
+ * Ensure the page_collection_deps table exists. Records which front-end
+ * page paths render which collections, so a collection item save can clear
+ * only the pages that actually display that collection (targeted ISR
+ * invalidation) instead of nuking the whole page cache.
+ */
+function ensure_page_collection_deps_table(): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    try {
+        OutpostDB::connect()->exec(
+            "CREATE TABLE IF NOT EXISTS page_collection_deps (
+                path TEXT NOT NULL,
+                collection_slug TEXT NOT NULL,
+                PRIMARY KEY (path, collection_slug)
+            )"
+        );
+    } catch (\Throwable $e) {
+        // Table creation failed — record/clear helpers fall back to clear-all.
+    }
+}
+
+/**
+ * Record that the current request path renders the given collection.
+ * Called from cms_collection_list() on every (cache-miss) render, so the
+ * dependency map self-populates. INSERT OR IGNORE keeps it idempotent.
+ */
+function outpost_record_collection_dep(string $slug): void {
+    $path = outpost_current_path();
+    // Never track admin / api / non-page paths.
+    if ($path === '' || str_starts_with($path, '/outpost')) return;
+    ensure_page_collection_deps_table();
+    try {
+        OutpostDB::query(
+            'INSERT OR IGNORE INTO page_collection_deps (path, collection_slug) VALUES (?, ?)',
+            [$path, $slug]
+        );
+    } catch (\Throwable $e) {
+        // Non-fatal — a missed dep only means a later fallback clear-all.
+    }
+}
+
+/**
+ * Clear the page cache for every page that renders the given collection.
+ * Looks up the dependency map and targets each dependent page. If the map
+ * is missing/unreadable, falls back to a full clear (safe, never stale).
+ * An empty result set is correct and intentional: a page that has never been
+ * rendered has no cache entry to clear (self-consistent — see scope doc).
+ */
+function outpost_clear_collection_cache(string $slug): void {
+    if (!file_exists(OUTPOST_DB_PATH)) { outpost_clear_cache(); return; }
+    ensure_page_collection_deps_table();
+    try {
+        $rows = OutpostDB::fetchAll(
+            'SELECT path FROM page_collection_deps WHERE collection_slug = ?',
+            [$slug]
+        );
+    } catch (\Throwable $e) {
+        outpost_clear_cache();
+        return;
+    }
+    foreach ($rows as $r) {
+        if (!empty($r['path'])) outpost_clear_cache($r['path']);
     }
 }
 

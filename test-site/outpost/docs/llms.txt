@@ -3004,9 +3004,15 @@ Repeater sub-fields use the same type set:
 
 Two cache layers:
 
-1. **HTML page cache** — full rendered HTML stored in `outpost/cache/{md5(path+query)}.html`. Keyed on path + sorted query string, so `?category=bricks` and `?page=2` get separate cache files. TTL: `OUTPOST_CACHE_TTL` (default 1 hour). Cleared on content save or via admin. Logged-in admins bypass it.
+1. **HTML page cache** (Boost) — full rendered HTML stored in `outpost/cache/boost/{md5(pathOnly)}_{md5(fullUrlWithQuery)}.html`. The path-only prefix makes every query/pagination variant of a page (`?category=bricks`, `?page=2`) share one glob-able prefix so a single page can be cleared on its own. TTL: `page_cache_ttl` (default 1 hour). Logged-in / gated requests bypass it (gated pages are never cached).
 
 2. **Template cache** — compiled PHP stored in `outpost/cache/templates/{md5(templatePath)}.php`. Recompiled when template file changes (mtime check). Disable with `OUTPOST_TEMPLATE_CACHE = false` during development.
+
+**Targeted invalidation (ISR).** Content edits clear only the affected page(s), not the whole cache:
+- Field edit → clears only that page. Global field edit → clears all pages (globals are site-wide).
+- Collection item edit/create/delete → clears the item's own single-item page (e.g. `/journal/my-post`) AND every listing page that renders that collection. Listing pages are tracked automatically in `page_collection_deps(path, collection_slug)`, self-populated on first render of a collection loop in `cms_collection_list()`. Pages never rendered have no cache and no dependency → nothing to clear (self-consistent). DB errors fall back to a full clear (never risks stale).
+- Slug rename → clears both the old and new URL's cache.
+Key functions: `boost_cache_path()` / `boost_clear_page_cache(?$path)` (php/boost.php), `outpost_clear_cache(?$path)` / `outpost_clear_collection_cache($slug)` (php/engine.php), `clear_collection_cache_for_items()` (php/api.php).
 
 Cache bypass: `?nocache=1` in URL (development only).
 

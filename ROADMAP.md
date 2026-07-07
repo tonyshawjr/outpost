@@ -330,6 +330,7 @@ Everything below is already built and released.
 - ~~**Developer Mode**~~ — single toggle disables all caching and optimization — **Shipped**
 - ~~**Performance dashboard**~~ — cache hit rate, page count, template cache, database size — **Shipped**
 - ~~**Admin UI**~~ — Settings > Boost with full configuration and real-time stats — **Shipped**
+- ~~**Targeted cache invalidation (ISR)**~~ — path-addressable cache files; a field/item edit clears only the affected page(s) instead of the whole cache; collection→page dependency map auto-tracks which pages render each collection; slug-rename clears the old URL — **Shipped v6.0.0-beta.45** (Dynamic Islands #11, ISR model; member/live "islands" layer deferred)
 
 ---
 

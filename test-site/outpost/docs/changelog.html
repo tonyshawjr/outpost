@@ -22,6 +22,18 @@
 
     <hr style="margin: 40px 0;">
 
+    <h2 id="6.0.0-beta.45">6.0.0-beta.45 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-07</span></h2>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Targeted cache invalidation (ISR)</strong> &mdash; Editing a page field or a collection item now clears only the affected page's cache instead of the entire site cache. Cache files are keyed by path, a collection item's own page and any listing page that shows it are tracked automatically, and everything else stays warm &mdash; so one edit no longer forces every page to re-render on its next visit.</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Renaming a collection item's slug clears the old URL's cache</strong> &mdash; the previous URL no longer serves stale content after a rename.</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+
     <h2 id="6.0.0-beta.44">6.0.0-beta.44 <span style="font-weight:normal;color:var(--muted)">&mdash; 2026-07-05</span></h2>
     <h3>Added</h3>
     <ul>

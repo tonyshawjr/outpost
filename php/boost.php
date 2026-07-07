@@ -109,18 +109,44 @@ function boost_cache_dir(): string {
 }
 
 /**
+ * Normalize a URL path into a stable cache key.
+ * Strips a trailing slash (except the root "/") so "/about" and "/about/"
+ * hash to the same path prefix — this MUST match between the write side
+ * (boost_cache_path) and the targeted clear (boost_clear_page_cache), or a
+ * mismatch silently serves stale content.
+ */
+function boost_normalize_cache_path(string $url_path): string {
+    // Collapse leading AND trailing slashes so "/about", "/about/", and a
+    // malformed "//about" all key to the same cache prefix. This mirrors
+    // engine.php outpost_current_path() ("/" . trim($p, "/")), which keys the
+    // dependency map — keeping the write key and the clear key aligned even for
+    // odd request URIs. Well-formed paths ("/about", "/") are unchanged.
+    $url_path = '/' . trim($url_path, '/');
+    return $url_path;
+}
+
+/**
  * Generate a cache file path for the current request.
+ *
+ * Format: md5(pathOnly) . '_' . md5(fullUrlWithQuery) . '.html'
+ * The path-only prefix makes every cache file for a given page (including
+ * ?page=2 pagination and ?category= filter variants) enumerable via
+ * glob(md5(pathOnly) . '_*.html') for targeted invalidation. The full-URL
+ * hash keeps each query variant a distinct file so serve/write stay consistent.
  */
 function boost_cache_path(string $url_path): string {
+    $pathOnly = boost_normalize_cache_path($url_path);
+    $full = $pathOnly;
+
     $query = $_GET;
     // Remove nocache param if present
     unset($query['nocache']);
     if (!empty($query)) {
         ksort($query);
-        $url_path .= '?' . http_build_query($query);
+        $full .= '?' . http_build_query($query);
     }
-    $hash = md5($url_path);
-    return boost_cache_dir() . $hash . '.html';
+
+    return boost_cache_dir() . md5($pathOnly) . '_' . md5($full) . '.html';
 }
 
 /**
@@ -242,11 +268,23 @@ function boost_cache_page(string $html): void {
 
 /**
  * Clear the Boost page cache.
+ *
+ * With $path (e.g. "/about" or "/"): clears ONLY that page's cache files —
+ * all query variants (?page=2, ?category=…) glob under the path-only prefix.
+ * The path is normalized the same way the write side keys it, so a trailing
+ * slash never causes a miss. Without $path (null): clears the entire cache.
  */
-function boost_clear_page_cache(): void {
+function boost_clear_page_cache(?string $path = null): void {
     $dir = boost_cache_dir();
     if (!is_dir($dir)) return;
-    $files = glob($dir . '*.html');
+
+    if ($path !== null && $path !== '') {
+        $key   = boost_normalize_cache_path($path);
+        $files = glob($dir . md5($key) . '_*.html');
+    } else {
+        $files = glob($dir . '*.html');
+    }
+
     if ($files) {
         foreach ($files as $file) {
             @unlink($file);

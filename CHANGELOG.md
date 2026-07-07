@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0-beta.45] — 2026-07-07
+
+### Changed
+- **Targeted cache invalidation (ISR).** Editing a page field or a collection item now clears only the affected page's cache instead of throwing away the entire site cache. Cache files are keyed by path, a collection item's own page and any listing page that shows it are tracked automatically, and everything else stays warm — so one edit no longer forces every page to re-render on its next visit.
+
+### Fixed
+- **Renaming a collection item's slug clears the old URL's cache** — the previous URL no longer serves stale content after a rename.
+
+---
+
 ## [6.0.0-beta.44] — 2026-07-05
 
 ### Added
