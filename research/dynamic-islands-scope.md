@@ -100,4 +100,28 @@ The codebase already flags this as future work — `outpost_clear_cache()` (`php
 
 **Why this is a its-own-pass build, not a tail-of-session cram:** cache invalidation is high-blast-radius — a path-normalization mismatch silently serves *stale* content to live visitors, or fails to clear. It needs a dedicated **cache-correctness audit**: verify the targeted glob matches the write path exactly (trailing-slash/query/homepage), that a field edit clears only its page (and a sibling page's cache survives — directly testable), that a collection edit clears exactly its dependent pages, and that member/paid pages (cache-excluded) are unaffected. That verification is the point, and it deserves fresh focus.
 
-**Status:** fully scoped + implementation-mapped. Ready to build as a focused pass (Phase 1 = steps 1–4 above; member/live islands = the deferred A layer).
+**Status:** ✅ Phase 1 (steps 1–4) SHIPPED in v6.0.0-beta.45 (2026-07-07). Member/live islands = the deferred A layer, mapped below.
+
+---
+
+## APPROACH A (deferred) — Client-hydrated islands. Concrete implementation map (traced 2026-07-07)
+
+**When to build this:** only when there's a concrete need for either (a) a **member/paid-gated fragment on an otherwise public, cacheable page**, or (b) a **hole that must be fresh per-view** (a live feed), not just per-edit. ISR (shipped) already covers the static 95%; A is the personalized/live 5%. Don't build it speculatively — it adds an auth-sensitive endpoint.
+
+**⚠️ This is its-own-pass, auth-sensitive work — start fresh, not at a session tail.** The island endpoint returns hole values to the browser; if it fails to re-enforce the member/paid gate **server-side, per hole**, it leaks paid content to anonymous visitors. That authz re-check *is* the feature's risk and deserves a dedicated security audit (same discipline as ISR's cache-correctness audit).
+
+**The build, precisely:**
+
+1. **Mark a hole as an island.** Holes today are `data-outpost="field"` (baked by `cms_text()`/`cms_richtext()` in `php/engine.php`, and by the node-engine for builder pages). Add an opt-in attribute on the baked element: `data-island` (+ optional `data-island-gate="members|paid"` for gated holes, `data-island-live` for always-fresh feeds). The element keeps its **baked last-known value** as the no-JS/crawler fallback — an island only repaints if the fetched value differs. For loops, mark the `<outpost-each>`/loop container as `data-island` and ship its item-template so the client can re-render the subtree.
+
+2. **Island data endpoint** — add `'content/islands' => handle_content_islands()` to the match in `handle_content_request()` (`php/content-api.php:63`; GET-only + `outpost_ip_rate_limit` already enforced at the top of that function). `GET /outpost/api.php?action=content/islands&path=/some-page` returns `{ fields: {name: value, …}, loops: {slug: html|items} }` for exactly the islands on that page. **Server-side authz is mandatory:** for any hole with `data-island-gate`, re-check `cms_is_member()` / `cms_is_paid_member()` (`php/engine.php:1916+`) and OMIT the value if the caller isn't entitled — never return gated values to an unauthenticated session. The base page stays public-cacheable because the gated value never bakes into it; it arrives (or doesn't) via this authed fetch.
+
+3. **Hydration runtime** — ship `php/outpost-islands.js` (vanilla, ~3KB, same pattern as `php/outpost-motion.js`): on load, collect `[data-island]`, make ONE `content/islands` fetch for the current path (credentials: same-origin so the member session cookie rides along), and swap values into holes (skip repaint when unchanged to avoid flash). Inject it from `php/front-router.php` **only on pages that contain `data-island`** — mirror the motion injection at `front-router.php:636` (`if (str_contains($html, 'data-motion'))` → add a sibling `if (str_contains($html, 'data-island'))` that inserts `<script src="/outpost/outpost-islands.js" defer>` before `</body>`).
+
+4. **Builder UI** — an "Island" toggle in the inspector for a selected hole/loop (writes `data-island`/gate into `props`), same shape as the Interactions panel that shipped for motion (`InteractionsPanel.svelte`). Bakes the marker via the node-engine, analogous to `outpost_node_motion_attr()`.
+
+5. **Docs + security audit + release** — authz review on the island endpoint (the readonly-but-leaks check: confirm a gated hole returns nothing for an anonymous/under-entitled session), SEO/no-JS verification (crawlers see baked last-known values), flash/layout-shift check. Then the usual release checklist.
+
+**Interaction with ISR (shipped):** an island hole is exempt from ISR baking of its *live* value — it bakes only the last-known fallback and hydrates the rest. A page can mix both: static ISR holes for the 95%, islands for the gated/live 5%. Nothing in A changes the beta.45 invalidation paths.
+
+**Status:** Approach A is mapped but intentionally NOT built — no concrete triggering need yet. Pick it up when a real member-on-cacheable-page or live-feed requirement appears.
